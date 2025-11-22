@@ -60,15 +60,18 @@ def test_resolve_with_exact_match(resolver, classifier, planner):
 
 
 def test_resolve_no_link_for_greeting(resolver, classifier, planner):
-    """Test that greetings don't get article links"""
+    """Test that greetings get a fallback article to showcase OLJ content"""
     query = "Bonjour"
     classification = classifier.classify(query)
     plan = planner.plan(classification, query)
 
     result = resolver.resolve(plan)
 
-    assert result.primary_article is None
-    assert result.strategy == "no_link_needed"
+    # After P0 fix: greeting should get fallback article to showcase OLJ
+    assert result.primary_article is not None
+    assert result.strategy == "greeting_fallback"
+    assert result.confidence == 0.5
+    assert resolver.validate_url(result.primary_article.url)
 
 
 def test_resolve_fallback_when_no_match(resolver, classifier, planner):

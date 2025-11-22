@@ -47,14 +47,34 @@ class LinkResolver:
         Returns:
             LinkResolutionResult with primary_article and suggested_articles
         """
-        # No link needed for non-food intents
-        if query_plan.need_type in ["greeting", "about_bot", "off_topic"]:
-            return LinkResolutionResult(
-                primary_article=None,
-                suggested_articles=[],
-                strategy="no_link_needed",
-                confidence=1.0,
+        # For greeting and about_bot, provide a fallback article to showcase OLJ content
+        if query_plan.need_type in ["greeting", "about_bot"]:
+            fallback_articles = self.link_index.get_fallback_articles(
+                strategy="recent",
+                count=1,
             )
+            if fallback_articles:
+                return LinkResolutionResult(
+                    primary_article=fallback_articles[0],
+                    suggested_articles=[],
+                    strategy="greeting_fallback",
+                    confidence=0.5,
+                )
+
+        # For off_topic, no link needed
+        if query_plan.need_type == "off_topic":
+            # Still provide a fallback to redirect to cooking
+            fallback_articles = self.link_index.get_fallback_articles(
+                strategy="popular",
+                count=1,
+            )
+            if fallback_articles:
+                return LinkResolutionResult(
+                    primary_article=fallback_articles[0],
+                    suggested_articles=[],
+                    strategy="off_topic_redirect",
+                    confidence=0.4,
+                )
 
         # Try to find exact or best match
         if query_plan.link_query:

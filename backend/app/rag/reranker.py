@@ -67,6 +67,24 @@ class Reranker:
         # Start with base retrieval score
         score = candidate.score
 
+        # STRICT RANKING RULE 1: For recipe_by_name, OLJ MUST outrank Base 2
+        if query_plan.need_type == "recipe_by_name":
+            if candidate.source == "olj":
+                # Strong boost for OLJ when asking for specific dish
+                score *= 1.5
+            elif candidate.source == "base2":
+                # Penalize Base 2 for named dish queries
+                score *= 0.7
+
+        # STRICT RANKING RULE 2: For recipe_by_ingredients, Base 2 SHOULD outrank OLJ
+        if query_plan.need_type == "recipe_by_ingredients":
+            if candidate.source == "base2":
+                # Boost Base 2 for ingredient queries
+                score *= 1.3
+            elif candidate.source == "olj":
+                # Slight penalty for OLJ passages in ingredient queries
+                score *= 0.9
+
         # Factor 1: Lebanese/Mediterranean relevance (10% boost)
         if self._is_lebanese_relevant(candidate):
             score *= 1.1
@@ -89,16 +107,6 @@ class Reranker:
                 candidate, query_plan.constraints
             )
             score *= (1.0 + constraint_boost * 0.15)
-
-        # Factor 5: Source preference based on need type
-        if query_plan.need_type == "recipe_by_ingredients":
-            # Prefer Base 2 for ingredient queries
-            if candidate.source == "base2":
-                score *= 1.15
-        elif query_plan.need_type == "recipe_by_name":
-            # Slight preference for OLJ for recipe name queries
-            if candidate.source == "olj":
-                score *= 1.05
 
         return score
 

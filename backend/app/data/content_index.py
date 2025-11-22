@@ -168,41 +168,43 @@ class ContentIndex:
     ) -> list[tuple[ContentDocument, float]]:
         """
         Search for recipes by ingredients
-        Specialized search that prioritizes ingredient matches
+        Specialized search that prioritizes ingredient matches with equivalence support
         """
         if not self._is_built:
             return []
 
-        # Create query from ingredients
-        query = " ".join(ingredients)
+        # Import ingredient normalizer
+        from app.data.ingredient_normalizer import ingredient_normalizer
+
+        # Create query from ingredients (with equivalents for broader search)
+        expanded_ingredients = ingredient_normalizer.normalize_ingredient_list(ingredients)
+        query = " ".join(expanded_ingredients[:10])  # Limit to avoid too long query
         normalized_query = normalize_text(query)
 
         # Search
-        results = self.search(normalized_query, top_k=top_k, source_filter="base2")
+        results = self.search(normalized_query, top_k=top_k * 2, source_filter="base2")
 
-        # Re-score based on ingredient overlap
+        # Re-score based on ingredient overlap with equivalence matching
         rescored_results = []
         for doc, base_score in results:
             doc_ingredients = doc.metadata.get("ingredients", [])
-            doc_ingredients_norm = [normalize_text(ing) for ing in doc_ingredients]
 
-            # Count ingredient matches
-            query_ingredients_norm = [normalize_text(ing) for ing in ingredients]
-            matches = sum(
-                1 for q_ing in query_ingredients_norm
-                if any(q_ing in d_ing or d_ing in q_ing for d_ing in doc_ingredients_norm)
+            # Use ingredient normalizer for matching with equivalences
+            matches, match_ratio = ingredient_normalizer.match_ingredients(
+                query_ingredients=ingredients,
+                doc_ingredients=doc_ingredients,
             )
 
-            # Boost score based on matches
-            ingredient_boost = matches / len(ingredients) if ingredients else 0
-            final_score = base_score * 0.5 + ingredient_boost * 0.5
+            # Boost score based on match ratio
+            # Higher weight on ingredient matches for ingredient-based queries
+            final_score = base_score * 0.3 + match_ratio * 0.7
 
             rescored_results.append((doc, final_score))
 
         # Re-sort by final score
         rescored_results.sort(key=lambda x: x[1], reverse=True)
 
-        return rescored_results
+        return rescored_results[:top_k]
 
     def get_document_by_id(self, doc_id: str) -> ContentDocument | None:
         """Get a document by ID"""
