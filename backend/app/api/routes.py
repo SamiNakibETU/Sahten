@@ -52,11 +52,12 @@ async def status():
     """API status endpoint"""
     try:
         from app.rag.pipeline import get_pipeline
+        from app.models.config import settings
         pipeline = get_pipeline()
 
         return {
             "status": "operational",
-            "version": "3.0.0",
+            "version": settings.app_version,
             "components": {
                 "data_loaders": "ready",
                 "content_index": "ready" if pipeline.content_index.is_built else "not_built",

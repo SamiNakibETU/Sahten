@@ -1,5 +1,5 @@
 """
-Configuration management for Sahtein 3.0
+Configuration management for Sahtein 3.1
 Handles environment variables and application settings
 """
 
@@ -12,8 +12,8 @@ class Settings(BaseSettings):
     """Application settings with environment variable support"""
 
     # Application
-    app_name: str = "Sahtein 3.0"
-    app_version: str = "3.0.0"
+    app_name: str = "Sahtein 3.1"
+    app_version: str = "3.1.0"
     debug: bool = False
 
     # API

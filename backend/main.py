@@ -1,6 +1,7 @@
 """
-Sahtein 3.0 - Main FastAPI Application
+Sahtein 3.1 - Main FastAPI Application
 Lebanese culinary chatbot for L'Orient-Le Jour
+Production-ready with all P0 fixes implemented
 """
 
 import logging
