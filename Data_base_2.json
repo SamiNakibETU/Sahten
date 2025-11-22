@@ -1,0 +1,1357 @@
+{
+  "mezzes_froids": [
+    {
+      "nom": "Houmous",
+      "nombre_de_personnes": 4,
+      "temps_preparation": "15 min",
+      "temps_cuisson": "0 min",
+      "difficulte": "facile",
+      "ingredients": [
+        { "nom": "pois chiches cuits", "quantite": 400, "unite": "g" },
+        { "nom": "tahini", "quantite": 2, "unite": "c. à soupe" },
+        { "nom": "jus de citron", "quantite": 2, "unite": "c. à soupe" },
+        { "nom": "ail", "quantite": 1, "unite": "gousse" },
+        { "nom": "huile d'olive", "quantite": 2, "unite": "c. à soupe" },
+        { "nom": "sel", "quantite": 1, "unite": "pinch" },
+        { "nom": "eau froide", "quantite": 2, "unite": "c. à soupe" }
+      ],
+      "etapes": [
+        "Mettre tous les ingrédients dans un mixeur.",
+        "Mixer jusqu'à obtention d'une texture lisse.",
+        "Ajouter de l'eau froide si nécessaire pour ajuster la consistance.",
+        "Rectifier l'assaisonnement en sel et citron.",
+        "Servir garni d'un filet d'huile d'olive et de paprika."
+      ]
+    },
+    {
+      "nom": "Moutabbal (caviar d’aubergine)",
+      "nombre_de_personnes": 4,
+      "temps_preparation": "20 min",
+      "temps_cuisson": "30 min",
+      "difficulte": "moyen",
+      "ingredients": [
+        { "nom": "aubergines", "quantite": 2, "unite": "pièces" },
+        { "nom": "tahini", "quantite": 2, "unite": "c. à soupe" },
+        { "nom": "jus de citron", "quantite": 1, "unite": "c. à soupe" },
+        { "nom": "ail", "quantite": 1, "unite": "gousse" },
+        { "nom": "sel", "quantite": 1, "unite": "pinch" },
+        { "nom": "huile d'olive", "quantite": 2, "unite": "c. à soupe" }
+      ],
+      "etapes": [
+        "Préchauffer le four à 200 °C.",
+        "Piquer les aubergines et les enfourner 30 min jusqu’à ce que la peau noircisse.",
+        "Laisser refroidir, puis retirer la chair.",
+        "Mixer la chair avec tahini, citron, ail et sel.",
+        "Servir garni d'huile d'olive et de graines de grenade."
+      ]
+    },
+    {
+      "nom": "Labné à l’huile d’olive",
+      "nombre_de_personnes": 4,
+      "temps_preparation": "5 min + 12 h égouttage",
+      "temps_cuisson": "0 min",
+      "difficulte": "facile",
+      "ingredients": [
+        { "nom": "yaourt grec", "quantite": 500, "unite": "g" },
+        { "nom": "sel", "quantite": 1, "unite": "c. à café" },
+        { "nom": "huile d'olive", "quantite": 3, "unite": "c. à soupe" },
+        { "nom": "menthe séchée", "quantite": 1, "unite": "c. à café" }
+      ],
+      "etapes": [
+        "Mélanger yaourt et sel.",
+        "Placer sur une étamine suspendue au-dessus d’un bol, couvrir et réfrigérer 12 h.",
+        "Récupérer le fromage frais (labné).",
+        "Déposer dans un plat, creuser un puits, verser l'huile d'olive.",
+        "Saupoudrer de menthe séchée et servir."
+      ]
+    },
+    {
+      "nom": "Mohammara",
+      "nombre_de_personnes": 4,
+      "temps_preparation": "15 min",
+      "temps_cuisson": "10 min",
+      "difficulte": "moyen",
+      "ingredients": [
+        { "nom": "poivrons rouges", "quantite": 3, "unite": "pièces" },
+        { "nom": "noix", "quantite": 100, "unite": "g" },
+        { "nom": "chapouli (pain sec)", "quantite": 1, "unite": "tranche" },
+        { "nom": "pâte de grenade", "quantite": 2, "unite": "c. à soupe" },
+        { "nom": "ail", "quantite": 1, "unite": "gousse" },
+        { "nom": "cumin moulu", "quantite": 1, "unite": "c. à café" },
+        { "nom": "huile d'olive", "quantite": 3, "unite": "c. à soupe" },
+        { "nom": "sel", "quantite": 1, "unite": "pinch" }
+      ],
+      "etapes": [
+        "Griller les poivrons 10 min au four puis peler et épépiner.",
+        "Torréfier légèrement les noix.",
+        "Mettre tous les ingrédients dans un mixeur.",
+        "Mixer jusqu'à consistance homogène.",
+        "Servir arrosé d'huile d'olive."
+      ]
+    },
+    {
+      "nom": "Warak Enab (feuilles de vigne farcies froides)",
+      "nombre_de_personnes": 4,
+      "temps_preparation": "40 min",
+      "temps_cuisson": "30 min",
+      "difficulte": "moyen",
+      "ingredients": [
+        { "nom": "feuilles de vigne en saumure", "quantite": 200, "unite": "g" },
+        { "nom": "riz long grain", "quantite": 200, "unite": "g" },
+        { "nom": "tomates concassées", "quantite": 200, "unite": "g" },
+        { "nom": "oignon", "quantite": 1, "unite": "pièce" },
+        { "nom": "persil frais", "quantite": 50, "unite": "g" },
+        { "nom": "menthe fraîche", "quantite": 20, "unite": "g" },
+        { "nom": "huile d'olive", "quantite": 4, "unite": "c. à soupe" },
+        { "nom": "jus de citron", "quantite": 2, "unite": "c. à soupe" },
+        { "nom": "sel", "quantite": 1, "unite": "c. à café" }
+      ],
+      "etapes": [
+        "Rincer et égoutter les feuilles de vigne.",
+        "Mélanger riz, tomates, oignon haché, herbes, sel, huile, citron.",
+        "Étaler chaque feuille, déposer une cuillère de farce, rouler serré.",
+        "Disposer en couches serrées dans une casserole, ajouter eau pour couvrir.",
+        "Cuire 30 min à feu doux, laisser refroidir et servir froid."
+      ]
+    },
+    {
+      "nom": "Salade fattouche",
+      "nombre_de_personnes": 4,
+      "temps_preparation": "20 min",
+      "temps_cuisson": "0 min",
+      "difficulte": "facile",
+      "ingredients": [
+        { "nom": "laitue romaine", "quantite": 1, "unite": "pièce" },
+        { "nom": "concombre", "quantite": 1, "unite": "pièce" },
+        { "nom": "tomates", "quantite": 2, "unite": "pièces" },
+        { "nom": "radis", "quantite": 4, "unite": "pièces" },
+        { "nom": "menthe fraîche", "quantite": 10, "unite": "g" },
+        { "nom": "persil frais", "quantite": 10, "unite": "g" },
+        { "nom": "chapouli grillé", "quantite": 2, "unite": "tranches" },
+        { "nom": "sumac", "quantite": 1, "unite": "c. à café" },
+        { "nom": "huile d'olive", "quantite": 3, "unite": "c. à soupe" },
+        { "nom": "jus de citron", "quantite": 1, "unite": "c. à soupe" },
+        { "nom": "sel", "quantite": 1, "unite": "pinch" }
+      ],
+      "etapes": [
+        "Couper légumes et herbes, mélanger dans un saladier.",
+        "Émietter chapouli grillé.",
+        "Préparer vinaigrette huile, citron, sumac, sel.",
+        "Verser sur la salade, mélanger.",
+        "Servir immédiatement pour garder le croquant."
+      ]
+    },
+    {
+      "nom": "Salade taboulé",
+      "nombre_de_personnes": 4,
+      "temps_preparation": "15 min + 30 min trempage",
+      "temps_cuisson": "0 min",
+      "difficulte": "facile",
+      "ingredients": [
+        { "nom": "boulgour fin", "quantite": 100, "unite": "g" },
+        { "nom": "persil plat", "quantite": 200, "unite": "g" },
+        { "nom": "menthe fraîche", "quantite": 20, "unite": "g" },
+        { "nom": "concombre", "quantite": 1, "unite": "pièce" },
+        { "nom": "tomates", "quantite": 2, "unite": "pièces" },
+        { "nom": "oignon nouveau", "quantite": 1, "unite": "pièce" },
+        { "nom": "jus de citron", "quantite": 3, "unite": "c. à soupe" },
+        { "nom": "huile d'olive", "quantite": 3, "unite": "c. à soupe" },
+        { "nom": "sel", "quantite": 1, "unite": "pinch" }
+      ],
+      "etapes": [
+        "Tremper boulgour 30 min puis égoutter.",
+        "Hacher finement persil, menthe, légumes.",
+        "Mélanger avec boulgour, citron, huile, sel.",
+        "Laisser reposer 10 min.",
+        "Servir frais."
+      ]
+    },
+    {
+      "nom": "Salade de roquette et sumac",
+      "nombre_de_personnes": 4,
+      "temps_preparation": "10 min",
+      "temps_cuisson": "0 min",
+      "difficulte": "facile",
+      "ingredients": [
+        { "nom": "roquette", "quantite": 150, "unite": "g" },
+        { "nom": "oignon rouge", "quantite": 0.5, "unite": "pièce" },
+        { "nom": "sumac", "quantite": 1, "unite": "c. à café" },
+        { "nom": "huile d'olive", "quantite": 2, "unite": "c. à soupe" },
+        { "nom": "jus de citron", "quantite": 1, "unite": "c. à soupe" },
+        { "nom": "sel", "quantite": 1, "unite": "pinch" }
+      ],
+      "etapes": [
+        "Placer roquette et oignon émincé dans un saladier.",
+        "Mélanger sumac, huile, citron, sel.",
+        "Verser vinaigrette sur la salade.",
+        "Mélanger délicatement.",
+        "Servir immédiatement."
+      ]
+    },
+    {
+      "nom": "Basterma en tranches",
+      "nombre_de_personnes": 4,
+      "temps_preparation": "5 min",
+      "temps_cuisson": "0 min",
+      "difficulte": "facile",
+      "ingredients": [
+        { "nom": "basterma (viande séchée épicée)", "quantite": 200, "unite": "g" }
+      ],
+      "etapes": [
+        "Trancher finement la basterma.",
+        "Disposer sur un plat.",
+        "Accompagner de pain pita et olives.",
+        "Servir frais."
+      ]
+    },
+    {
+      "nom": "Salade de lentilles et coriandre",
+      "nombre_de_personnes": 4,
+      "temps_preparation": "15 min",
+      "temps_cuisson": "20 min",
+      "difficulte": "facile",
+      "ingredients": [
+        { "nom": "lentilles vertes", "quantite": 200, "unite": "g" },
+        { "nom": "eau", "quantite": 500, "unite": "ml" },
+        { "nom": "oignon rouge", "quantite": 1, "unite": "pièce" },
+        { "nom": "coriandre fraîche", "quantite": 30, "unite": "g" },
+        { "nom": "jus de citron", "quantite": 2, "unite": "c. à soupe" },
+        { "nom": "huile d'olive", "quantite": 2, "unite": "c. à soupe" },
+        { "nom": "sel", "quantite": 1, "unite": "pinch" }
+      ],
+      "etapes": [
+        "Cuire lentilles 20 min dans l'eau jusqu'à tendreté, égoutter.",
+        "Laisser refroidir.",
+        "Mélanger lentilles, oignon émincé, coriandre hachée.",
+        "Assaisonner avec citron, huile, sel.",
+        "Servir frais."
+      ]
+    },
+    {
+      "nom": "Raheb (salade d’aubergines)",
+      "nombre_de_personnes": 4,
+      "temps_preparation": "15 min",
+      "temps_cuisson": "30 min",
+      "difficulte": "moyen",
+      "ingredients": [
+        { "nom": "aubergines", "quantite": 2, "unite": "pièces" },
+        { "nom": "ail", "quantite": 1, "unite": "gousse" },
+        { "nom": "jus de citron", "quantite": 2, "unite": "c. à soupe" },
+        { "nom": "huile d'olive", "quantite": 3, "unite": "c. à soupe" },
+        { "nom": "persil haché", "quantite": 10, "unite": "g" },
+        { "nom": "sel", "quantite": 1, "unite": "pinch" }
+      ],
+      "etapes": [
+        "Piquer et rôtir les aubergines au four 30 min à 200 °C.",
+        "Retirer la chair, hacher grossièrement.",
+        "Mélanger avec ail écrasé, citron, huile, sel.",
+        "Parsemer de persil et servir froid."
+      ]
+    },
+    {
+      "nom": "Salade de Shanklish",
+      "nombre_de_personnes": 4,
+      "temps_preparation": "10 min",
+      "temps_cuisson": "0 min",
+      "difficulte": "facile",
+      "ingredients": [
+        { "nom": "Shanklish (fromage fermenté)", "quantite": 200, "unite": "g" },
+        { "nom": "tomates", "quantite": 2, "unite": "pièces" },
+        { "nom": "oignon rouge", "quantite": 0.5, "unite": "pièce" },
+        { "nom": "huile d'olive", "quantite": 2, "unite": "c. à soupe" },
+        { "nom": "menthe fraîche", "quantite": 5, "unite": "g" },
+        { "nom": "sumac", "quantite": 1, "unite": "c. à café" }
+      ],
+      "etapes": [
+        "Émietter le Shanklish.",
+        "Couper tomates et oignon, mélanger aux miettes de fromage.",
+        "Ajouter huile, sumac et menthe.",
+        "Mélanger délicatement et servir."
+      ]
+    },
+    {
+      "nom": "Salade de Hindbeh",
+      "nombre_de_personnes": 4,
+      "temps_preparation": "15 min",
+      "temps_cuisson": "0 min",
+      "difficulte": "facile",
+      "ingredients": [
+        { "nom": "feuilles de chicorée frisée (hindbeh)", "quantite": 200, "unite": "g" },
+        { "nom": "tomates cerises", "quantite": 10, "unite": "pièces" },
+        { "nom": "oignon rouge", "quantite": 0.5, "unite": "pièce" },
+        { "nom": "huile d'olive", "quantite": 2, "unite": "c. à soupe" },
+        { "nom": "jus de citron", "quantite": 1, "unite": "c. à soupe" },
+        { "nom": "sel, poivre", "quantite": 1, "unite": "pinch" }
+      ],
+      "etapes": [
+        "Laver et essorer la hindbeh.",
+        "Couper tomates et oignon, ajouter aux feuilles.",
+        "Préparer vinaigrette huile, citron, sel, poivre.",
+        "Verser sur la salade, mélanger et servir."
+      ]
+    },
+    {
+      "nom": "Kebbeh Nayé",
+      "nombre_de_personnes": 4,
+      "temps_preparation": "20 min",
+      "temps_cuisson": "0 min",
+      "difficulte": "difficile",
+      "ingredients": [
+        { "nom": "boulgour fin", "quantite": 150, "unite": "g" },
+        { "nom": "viande d’agneau hachée", "quantite": 200, "unite": "g" },
+        { "nom": "oignon", "quantite": 1, "unite": "pièce" },
+        { "nom": "pignons", "quantite": 20, "unite": "g" },
+        { "nom": "cannelle", "quantite": 0.5, "unite": "c. à café" },
+        { "nom": "sel, poivre", "quantite": 1, "unite": "pinch" }
+      ],
+      "etapes": [
+        "Tremper le boulgour 30 min puis égoutter.",
+        "Mélanger boulgour, viande, oignon râpé, sel, poivre et cannelle.",
+        "Former petites galettes, garnir de pignons.",
+        "Servir immédiatement bien frais."
+      ]  
+    }
+  ],
+  "mezzes_chauds": [
+    {
+      "nom": "Falafel",
+      "nombre_de_personnes": 4,
+      "temps_preparation": "20 min",
+      "temps_cuisson": "10 min",
+      "difficulte": "moyen",
+      "ingredients": [
+        { "nom": "pois chiches secs", "quantite": 250, "unite": "g" },
+        { "nom": "oignon", "quantite": 1, "unite": "pièce" },
+        { "nom": "persil frais", "quantite": 30, "unite": "g" },
+        { "nom": "coriandre fraîche", "quantite": 30, "unite": "g" },
+        { "nom": "ail", "quantite": 2, "unite": "gousses" },
+        { "nom": "cumin moulu", "quantite": 1, "unite": "c. à café" },
+        { "nom": "sel", "quantite": 1, "unite": "pinch" },
+        { "nom": "bicarbonate de soude", "quantite": 0.5, "unite": "c. à café" },
+        { "nom": "huile de friture", "quantite": 500, "unite": "ml" }
+      ],
+      "etapes": [
+        "Tremper les pois chiches 12 h, égoutter.",
+        "Mixer pois chiches, oignon, herbes, ail, épices jusqu’à pâte grossière.",
+        "Ajouter bicarbonate, laisser reposer 30 min.",
+        "Former des boules, aplatir légèrement.",
+        "Frire 5 min par fournée jusqu’à doré, égoutter."
+      ]
+    },
+    {
+      "nom": "Rakakat (cigares au fromage)",
+      "nombre_de_personnes": 4,
+      "temps_preparation": "15 min",
+      "temps_cuisson": "15 min",
+      "difficulte": "facile",
+      "ingredients": [
+        { "nom": "feuilles de brick", "quantite": 8, "unite": "pièces" },
+        { "nom": "fromage feta émietté", "quantite": 200, "unite": "g" },
+        { "nom": "persil frais haché", "quantite": 10, "unite": "g" },
+        { "nom": "huile d'olive", "quantite": 2, "unite": "c. à soupe" }
+      ],
+      "etapes": [
+        "Couper chaque feuille en deux.",
+        "Mélanger feta et persil.",
+        "Déposer un peu de farce, rouler en cigare.",
+        "Badigeonner d'huile, enfourner 15 min à 180 °C.",
+        "Servir chaud."
+      ]
+    },
+    {
+      "nom": "Sambousek à la viande",
+      "nombre_de_personnes": 4,
+      "temps_preparation": "25 min",
+      "temps_cuisson": "20 min",
+      "difficulte": "moyen",
+      "ingredients": [
+        { "nom": "farine", "quantite": 250, "unite": "g" },
+        { "nom": "eau tiède", "quantite": 125, "unite": "ml" },
+        { "nom": "huile d'olive", "quantite": 2, "unite": "c. à soupe" },
+        { "nom": "viande de bœuf hachée", "quantite": 200, "unite": "g" },
+        { "nom": "oignon", "quantite": 1, "unite": "pièce" },
+        { "nom": "pignons", "quantite": 30, "unite": "g" },
+        { "nom": "sumac", "quantite": 1, "unite": "c. à café" },
+        { "nom": "sel", "quantite": 1, "unite": "pinch" }
+      ],
+      "etapes": [
+        "Pétrir farine, eau, huile 5 min, reposer 15 min.",
+        "Faire revenir oignon, viande, pignons, sumac, sel 5 min.",
+        "Étaler pâte, découper cercles, déposer farce, souder bords en croissant.",
+        "Frire 3–4 min jusqu’à doré.",
+        "Égoutter et servir chaud."
+      ]
+    },
+    {
+      "nom": "Kebbé boulette frites",
+      "nombre_de_personnes": 4,
+      "temps_preparation": "30 min",
+      "temps_cuisson": "10 min",
+      "difficulte": "moyen",
+      "ingredients": [
+        { "nom": "boulgour fin", "quantite": 150, "unite": "g" },
+        { "nom": "viande d'agneau hachée", "quantite": 200, "unite": "g" },
+        { "nom": "oignon", "quantite": 1, "unite": "pièce" },
+        { "nom": "pignons", "quantite": 20, "unite": "g" },
+        { "nom": "cannelle", "quantite": 0.5, "unite": "c. à café" },
+        { "nom": "sel", "quantite": 1, "unite": "pinch" },
+        { "nom": "huile de friture", "quantite": 500, "unite": "ml" }
+      ],
+      "etapes": [
+        "Tremper boulgour 30 min puis égoutter.",
+        "Mélanger boulgour, viande, oignon râpé, sel.",
+        "Former boules, creuser puits, remplir pignons épicés.",
+        "Refermer, frire 5 min jusqu’à doré.",
+        "Égoutter et servir."
+      ]
+    },
+    {
+      "nom": "Kebbé au four",
+      "nombre_de_personnes": 4,
+      "temps_preparation": "25 min",
+      "temps_cuisson": "40 min",
+      "difficulte": "moyen",
+      "ingredients": [
+        { "nom": "boulgour moyen", "quantite": 200, "unite": "g" },
+        { "nom": "viande d'agneau hachée", "quantite": 200, "unite": "g" },
+        { "nom": "oignon", "quantite": 1, "unite": "pièce" },
+        { "nom": "pignons", "quantite": 30, "unite": "g" },
+        { "nom": "huile d'olive", "quantite": 2, "unite": "c. à soupe" },
+        { "nom": "sel", "quantite": 1, "unite": "pinch" }
+      ],
+      "etapes": [
+        "Tremper boulgour 20 min, égoutter.",
+        "Mixer boulgour, viande, oignon, sel.",
+        "Étaler moitié pâte dans plat huilé.",
+        "Répartir farce aux pignons, couvrir avec reste de pâte.",
+        "Enfourner 40 min à 180 °C, servir tiède."
+      ]
+    },
+    {
+      "nom": "Fatayer aux épinards",
+      "nombre_de_personnes": 4,
+      "temps_preparation": "20 min",
+      "temps_cuisson": "20 min",
+      "difficulte": "moyen",
+      "ingredients": [
+        { "nom": "farine", "quantite": 250, "unite": "g" },
+        { "nom": "eau tiède", "quantite": 125, "unite": "ml" },
+        { "nom": "huile d'olive", "quantite": 2, "unite": "c. à soupe" },
+        { "nom": "épinards frais hachés", "quantite": 200, "unite": "g" },
+        { "nom": "oignon", "quantite": 1, "unite": "pièce" },
+        { "nom": "sumac", "quantite": 1, "unite": "c. à café" },
+        { "nom": "sel", "quantite": 1, "unite": "pinch" }
+      ],
+      "etapes": [
+        "Pétrir pâte farine, eau, huile 5 min, reposer 15 min.",
+        "Mélanger épinards, oignon, sumac, sel.",
+        "Étaler pâte, découper cercles, déposer farce.",
+        "Former triangles, badigeonner d'huile.",
+        "Enfourner 20 min à 180 °C, servir chaud."
+      ]
+    },
+    {
+      "nom": "Fromage Halloumi grillé",
+      "nombre_de_personnes": 4,
+      "temps_preparation": "5 min",
+      "temps_cuisson": "10 min",
+      "difficulte": "facile",
+      "ingredients": [
+        { "nom": "fromage Halloumi", "quantite": 250, "unite": "g" },
+        { "nom": "huile d'olive", "quantite": 1, "unite": "c. à soupe" },
+        { "nom": "origan séché", "quantite": 0.5, "unite": "c. à café" }
+      ],
+      "etapes": [
+        "Trancher Halloumi en 1 cm d’épaisseur.",
+        "Chauffer poêle, ajouter huile.",
+        "Griller 2–3 min chaque face jusqu’à grillé.",
+        "Saupoudrer d’origan, servir immédiatement."
+      ]
+    },
+    {
+      "nom": "Mouajanet assorties (mini-feuilletés)",
+      "nombre_de_personnes": 4,
+      "temps_preparation": "30 min",
+      "temps_cuisson": "20 min",
+      "difficulte": "moyen",
+      "ingredients": [
+        { "nom": "pâte feuilletée", "quantite": 300, "unite": "g" },
+        { "nom": "fromage feta émietté", "quantite": 100, "unite": "g" },
+        { "nom": "zaatar", "quantite": 2, "unite": "c. à soupe" },
+        { "nom": "épinards cuits et égouttés", "quantite": 150, "unite": "g" },
+        { "nom": "huile d'olive", "quantite": 1, "unite": "c. à soupe" }
+      ],
+      "etapes": [
+        "Découper pâte en cercles 8 cm.",
+        "Préparer trois garnitures: feta, zaatar, épinards.",
+        "Déposer garniture, refermer bords.",
+        "Badigeonner d'huile, enfourner 20 min à 180 °C.",
+        "Servir chauds."
+      ]
+    },
+    {
+      "nom": "Soubereg (lasagnes arméniennes)",
+      "nombre_de_personnes": 6,
+      "temps_preparation": "30 min",
+      "temps_cuisson": "45 min",
+      "difficulte": "difficile",
+      "ingredients": [
+        { "nom": "pâte à lasagne fine", "quantite": 400, "unite": "g" },
+        { "nom": "viande d'agneau hachée", "quantite": 300, "unite": "g" },
+        { "nom": "oignon", "quantite": 1, "unite": "pièce" },
+        { "nom": "cannelle", "quantite": 1, "unite": "c. à café" },
+        { "nom": "beurre fondu", "quantite": 50, "unite": "g" },
+        { "nom": "huile d'olive", "quantite": 2, "unite": "c. à soupe" },
+        { "nom": "sel", "quantite": 1, "unite": "pinch" }
+      ],
+      "etapes": [
+        "Faire revenir oignon et viande avec sel, cannelle 5 min.",
+        "Beurrer feuilles de lasagne, garnir viande, superposer 3 feuilles × 2 couches.",
+        "Verser beurre restant dessus.",
+        "Enfourner 45 min à 180 °C.",
+        "Laisser reposer 10 min avant de couper et servir."
+      ]
+    },
+    {
+      "nom": "Foul moudammas chaud",
+      "nombre_de_personnes": 4,
+      "temps_preparation": "10 min",
+      "temps_cuisson": "15 min",
+      "difficulte": "facile",
+      "ingredients": [
+        { "nom": "fèves cuites", "quantite": 400, "unite": "g" },
+        { "nom": "ail", "quantite": 1, "unite": "gousse" },
+        { "nom": "cumin moulu", "quantite": 1, "unite": "c. à café" },
+        { "nom": "jus de citron", "quantite": 1, "unite": "c. à soupe" },
+        { "nom": "huile d'olive", "quantite": 2, "unite": "c. à soupe" },
+        { "nom": "sel", "quantite": 1, "unite": "pinch" }
+      ],
+      "etapes": [
+        "Chauffer fèves avec un peu d’eau 10 min.",
+        "Écraser légèrement les fèves.",
+        "Ajouter ail écrasé, cumin, sel, citron.",
+        "Mélanger et réchauffer 5 min.",
+        "Arroser d’huile d’olive avant de servir."
+      ]
+    },
+    {
+      "nom": "Batata Harra",
+      "nombre_de_personnes": 4,
+      "temps_preparation": "10 min",
+      "temps_cuisson": "20 min",
+      "difficulte": "facile",
+      "ingredients": [
+        { "nom": "pommes de terre", "quantite": 500, "unite": "g" },
+        { "nom": "ail", "quantite": 2, "unite": "gousses" },
+        { "nom": "coriandre fraîche", "quantite": 10, "unite": "g" },
+        { "nom": "piment rouge frais", "quantite": 1, "unite": "pièce" },
+        { "nom": "huile d'olive", "quantite": 3, "unite": "c. à soupe" },
+        { "nom": "sel, poivre", "quantite": 1, "unite": "pinch" }
+      ],
+      "etapes": [
+        "Couper pommes de terre en dés, frire jusqu’à doré.",
+        "Sauter ail et piment 2 min, ajouter pommes de terre.",
+        "Assaisonner, ajouter coriandre, mélanger et servir chaud."
+      ]
+    },
+    {
+      "nom": "Bizri (petites sardines frites)",
+      "nombre_de_personnes": 4,
+      "temps_preparation": "5 min",
+      "temps_cuisson": "10 min",
+      "difficulte": "facile",
+      "ingredients": [
+        { "nom": "petites sardines", "quantite": 400, "unite": "g" },
+        { "nom": "farine", "quantite": 50, "unite": "g" },
+        { "nom": "sel, poivre", "quantite": 1, "unite": "pinch" },
+        { "nom": "huile de friture", "quantite": 500, "unite": "ml" }
+      ],
+      "etapes": [
+        "Saler et poivrer les sardines, les rouler dans la farine.",
+        "Frire 3 min de chaque côté jusqu’à croustillant.",
+        "Égoutter et servir immédiatement."
+      ]
+    }
+  ],
+  "entrees": [
+    {
+      "nom": "Soupe de lentilles corail",
+      "nombre_de_personnes": 4,
+      "temps_preparation": "10 min",
+      "temps_cuisson": "20 min",
+      "difficulte": "facile",
+      "ingredients": [
+        { "nom": "lentilles corail", "quantite": 200, "unite": "g" },
+        { "nom": "oignon", "quantite": 1, "unite": "pièce" },
+        { "nom": "carotte", "quantite": 1, "unite": "pièce" },
+        { "nom": "bouillon de légumes", "quantite": 1, "unite": "L" },
+        { "nom": "huile d'olive", "quantite": 2, "unite": "c. à soupe" },
+        { "nom": "cumin", "quantite": 1, "unite": "c. à café" },
+        { "nom": "sel", "quantite": 1, "unite": "pinch" }
+      ],
+      "etapes": [
+        "Faire revenir oignon et carotte hachés dans l'huile 5 min.",
+        "Ajouter lentilles et cumin, mélanger 2 min.",
+        "Verser bouillon, saler, cuire 20 min.",
+        "Mixer la soupe jusqu'à consistance lisse.",
+        "Servir chaud avec un filet d'huile d'olive."
+      ]
+    },
+    {
+      "nom": "Soupe shorbet adas (style palestinien)",
+      "nombre_de_personnes": 4,
+      "temps_preparation": "10 min",
+      "temps_cuisson": "25 min",
+      "difficulte": "facile",
+      "ingredients": [
+        { "nom": "lentilles rouges", "quantite": 200, "unite": "g" },
+        { "nom": "ail", "quantite": 2, "unite": "gousses" },
+        { "nom": "oignon", "quantite": 1, "unite": "pièce" },
+        { "nom": "eau", "quantite": 1, "unite": "L" },
+        { "nom": "huile d'olive", "quantite": 2, "unite": "c. à soupe" },
+        { "nom": "poivre noir", "quantite": 1, "unite": "pinch" },
+        { "nom": "sel", "quantite": 1, "unite": "pinch" }
+      ],
+      "etapes": [
+        "Faire revenir ail et oignon dans l'huile 3 min.",
+        "Ajouter lentilles, eau, sel, poivre, porter à ébullition.",
+        "Cuire 25 min à feu doux.",
+        "Mixer légèrement pour garder de la texture.",
+        "Servir garni de citron confit si désiré."
+      ]
+    },
+    {
+      "nom": "Soupe au yaourt (shorbat laban)",
+      "nombre_de_personnes": 4,
+      "temps_preparation": "5 min",
+      "temps_cuisson": "10 min",
+      "difficulte": "facile",
+      "ingredients": [
+        { "nom": "yaourt nature", "quantite": 400, "unite": "g" },
+        { "nom": "eau", "quantite": 400, "unite": "ml" },
+        { "nom": "farine", "quantite": 1, "unite": "c. à soupe" },
+        { "nom": "menthe séchée", "quantite": 1, "unite": "c. à café" },
+        { "nom": "sel", "quantite": 1, "unite": "pinch" }
+      ],
+      "etapes": [
+        "Mélanger yaourt, farine et eau jusqu’à homogénéité.",
+        "Chauffer à feu doux sans cesser de remuer.",
+        "Ajouter sel et menthe, cuire 10 min sans bouillir.",
+        "Servir tiède avec un filet d’huile d’olive."
+      ]
+    },
+    {
+      "nom": "Soupe de freekeh",
+      "nombre_de_personnes": 4,
+      "temps_preparation": "10 min",
+      "temps_cuisson": "30 min",
+      "difficulte": "moyen",
+      "ingredients": [
+        { "nom": "freekeh décoquillé", "quantite": 150, "unite": "g" },
+        { "nom": "poulet effiloché", "quantite": 200, "unite": "g" },
+        { "nom": "oignon", "quantite": 1, "unite": "pièce" },
+        { "nom": "bouillon de poulet", "quantite": 1.2, "unite": "L" },
+        { "nom": "cannelle", "quantite": 0.5, "unite": "c. à café" },
+        { "nom": "sel", "quantite": 1, "unite": "pinch" }
+      ],
+      "etapes": [
+        "Faire revenir oignon haché 5 min.",
+        "Ajouter freekeh, poulet, bouillon, cannelle, sel.",
+        "Cuire 30 min à couvert.",
+        "Rectifier l’assaisonnement.",
+        "Servir chaud avec un filet d’huile d’olive."
+      ]
+    },
+    {
+      "nom": "Bouillon d’agneau au citron et coriandre",
+      "nombre_de_personnes": 4,
+      "temps_preparation": "15 min",
+      "temps_cuisson": "1 h",
+      "difficulte": "moyen",
+      "ingredients": [
+        { "nom": "cubes d’agneau", "quantite": 500, "unite": "g" },
+        { "nom": "oignon", "quantite": 1, "unite": "pièce" },
+        { "nom": "ail", "quantite": 2, "unite": "gousses" },
+        { "nom": "bouillon de légumes", "quantite": 1, "unite": "L" },
+        { "nom": "jus de citron", "quantite": 2, "unite": "c. à soupe" },
+        { "nom": "feuilles de coriandre", "quantite": 20, "unite": "g" },
+        { "nom": "sel, poivre", "quantite": 1, "unite": "pinch" }
+      ],
+      "etapes": [
+        "Saisir agneau salé et poivré 5 min.",
+        "Ajouter oignon, ail, revenir 5 min.",
+        "Verser bouillon, cuire 1 h à feu doux.",
+        "Incorporer citron et coriandre hachée 5 min avant la fin.",
+        "Servir chaud."
+      ]
+    },
+    {
+      "nom": "Salade de carottes à la harissa et cumin",
+      "nombre_de_personnes": 4,
+      "temps_preparation": "15 min",
+      "temps_cuisson": "0 min",
+      "difficulte": "facile",
+      "ingredients": [
+        { "nom": "carottes râpées", "quantite": 300, "unite": "g" },
+        { "nom": "harissa", "quantite": 1, "unite": "c. à soupe" },
+        { "nom": "jus de citron", "quantite": 1, "unite": "c. à soupe" },
+        { "nom": "cumin", "quantite": 0.5, "unite": "c. à café" },
+        { "nom": "huile d'olive", "quantite": 2, "unite": "c. à soupe" },
+        { "nom": "sel", "quantite": 1, "unite": "pinch" }
+      ],
+      "etapes": [
+        "Mélanger tous les ingrédients dans un bol.",
+        "Laisser reposer 10 min pour que les saveurs se mélangent.",
+        "Rectifier l’assaisonnement.",
+        "Servir frais."
+      ]
+    },
+    {
+      "nom": "Salade de betteraves au tahini",
+      "nombre_de_personnes": 4,
+      "temps_preparation": "10 min",
+      "temps_cuisson": "0 min",
+      "difficulte": "facile",
+      "ingredients": [
+        { "nom": "betteraves cuites coupées", "quantite": 300, "unite": "g" },
+        { "nom": "tahini", "quantite": 2, "unite": "c. à soupe" },
+        { "nom": "jus de citron", "quantite": 1, "unite": "c. à soupe" },
+        { "nom": "ail", "quantite": 1, "unite": "gousse" },
+        { "nom": "persil haché", "quantite": 10, "unite": "g" },
+        { "nom": "sel", "quantite": 1, "unite": "pinch" }
+      ],
+      "etapes": [
+        "Écraser betteraves avec tahini, citron et ail.",
+        "Ajouter persil et sel, mélanger.",
+        "Servir frais."
+      ]
+    },
+    {
+      "nom": "Petits artichauts farcis froids",
+      "nombre_de_personnes": 4,
+      "temps_preparation": "20 min",
+      "temps_cuisson": "20 min",
+      "difficulte": "moyen",
+      "ingredients": [
+        { "nom": "petits artichauts", "quantite": 8, "unite": "pièces" },
+        { "nom": "chapouli sec émietté", "quantite": 2, "unite": "tranches" },
+        { "nom": "ail", "quantite": 1, "unite": "gousse" },
+        { "nom": "persil haché", "quantite": 10, "unite": "g" },
+        { "nom": "huile d'olive", "quantite": 3, "unite": "c. à soupe" },
+        { "nom": "jus de citron", "quantite": 1, "unite": "c. à soupe" },
+        { "nom": "sel", "quantite": 1, "unite": "pinch" }
+      ],
+      "etapes": [
+        "Cuire artichauts 20 min dans l’eau salée, égoutter et refroidir.",
+        "Mélanger chapelure, ail, persil, sel, huile, citron.",
+        "Ouvrir chaque artichaut, farcir de préparation.",
+        "Servir frais."
+      ]
+    },
+    {
+      "nom": "Moussakaa (aubergines en sauce tomate)",
+      "nombre_de_personnes": 4,
+      "temps_preparation": "15 min",
+      "temps_cuisson": "30 min",
+      "difficulte": "moyen",
+      "ingredients": [
+        { "nom": "aubergines", "quantite": 2, "unite": "pièces" },
+        { "nom": "tomates concassées", "quantite": 400, "unite": "g" },
+        { "nom": "oignon", "quantite": 1, "unite": "pièce" },
+        { "nom": "ail", "quantite": 1, "unite": "gousse" },
+        { "nom": "persil haché", "quantite": 10, "unite": "g" },
+        { "nom": "huile d'olive", "quantite": 3, "unite": "c. à soupe" },
+        { "nom": "sel, poivre", "quantite": 1, "unite": "pinch" }
+      ],
+      "etapes": [
+        "Couper aubergines, saler, laisser dégorger 10 min, rincer.",
+        "Faire revenir oignon et ail, ajouter tomates, cuire 10 min.",
+        "Ajouter aubergines, cuire 15 min.",
+        "Incorporer persil, rectifier sel/poivre.",
+        "Servir tiède ou froid."
+      ]
+    }
+  ],
+  "plats_principaux": [
+    {
+      "nom": "Riz au poulet (riz djaj)",
+      "nombre_de_personnes": 4,
+      "temps_preparation": "15 min",
+      "temps_cuisson": "45 min",
+      "difficulte": "moyen",
+      "ingredients": [
+        { "nom": "riz basmati", "quantite": 300, "unite": "g" },
+        { "nom": "morceaux de poulet", "quantite": 600, "unite": "g" },
+        { "nom": "oignon", "quantite": 1, "unite": "pièce" },
+        { "nom": "ail", "quantite": 2, "unite": "gousses" },
+        { "nom": "bouillon de poulet", "quantite": 700, "unite": "ml" },
+        { "nom": "curcuma", "quantite": 1, "unite": "c. à café" },
+        { "nom": "cumin", "quantite": 1, "unite": "c. à café" },
+        { "nom": "huile d'olive", "quantite": 2, "unite": "c. à soupe" },
+        { "nom": "sel, poivre", "quantite": 1, "unite": "pinch" }
+      ],
+      "etapes": [
+        "Faire revenir oignon et ail hachés dans l'huile 5 min.",
+        "Ajouter poulet, curcuma, cumin, sel et poivre, dorer 10 min.",
+        "Ajouter riz, mélanger 2 min.",
+        "Verser bouillon, cuire couvert 30 min à feu doux.",
+        "Laisser reposer 5 min puis servir."
+      ]
+    },
+    {
+      "nom": "Sayyadieh (riz au poisson)",
+      "nombre_de_personnes": 4,
+      "temps_preparation": "20 min",
+      "temps_cuisson": "40 min",
+      "difficulte": "difficile",
+      "ingredients": [
+        { "nom": "filets de poisson blanc", "quantite": 500, "unite": "g" },
+        { "nom": "riz basmati", "quantite": 300, "unite": "g" },
+        { "nom": "oignon", "quantite": 2, "unite": "pièces" },
+        { "nom": "ail", "quantite": 2, "unite": "gousses" },
+        { "nom": "bouillon de poisson", "quantite": 800, "unite": "ml" },
+        { "nom": "sumac", "quantite": 1, "unite": "c. à soupe" },
+        { "nom": "cumin", "quantite": 1, "unite": "c. à café" },
+        { "nom": "huile d'olive", "quantite": 3, "unite": "c. à soupe" },
+        { "nom": "sel, poivre", "quantite": 1, "unite": "pinch" }
+      ],
+      "etapes": [
+        "Assaisonner poisson de sel, poivre et sumac, cuire 5 min de chaque côté dans l'huile.",
+        "Réserver poisson, conserver jus.",
+        "Faire revenir oignon émincé et ail 5 min dans même jus.",
+        "Ajouter riz, cumin, mélanger 2 min.",
+        "Verser bouillon, cuire 25 min à feu doux, ajouter poisson 5 min avant la fin.",
+        "Laisser reposer, émietter poisson sur le riz avant de servir."
+      ]
+    },
+    {
+      "nom": "Riz au kebbé et pois chiches",
+      "nombre_de_personnes": 4,
+      "temps_preparation": "20 min",
+      "temps_cuisson": "40 min",
+      "difficulte": "moyen",
+      "ingredients": [
+        { "nom": "riz long grain", "quantite": 300, "unite": "g" },
+        { "nom": "kebbés précuits", "quantite": 200, "unite": "g" },
+        { "nom": "pois chiches cuits", "quantite": 200, "unite": "g" },
+        { "nom": "oignon", "quantite": 1, "unite": "pièce" },
+        { "nom": "bouillon de légumes", "quantite": 700, "unite": "ml" },
+        { "nom": "cannelle", "quantite": 0.5, "unite": "c. à café" },
+        { "nom": "huile d'olive", "quantite": 2, "unite": "c. à soupe" },
+        { "nom": "sel, poivre", "quantite": 1, "unite": "pinch" }
+      ],
+      "etapes": [
+        "Faire revenir oignon haché dans l'huile 5 min.",
+        "Ajouter riz, cannelle, mélanger 2 min.",
+        "Incorporer pois chiches et kebbé, mélanger doucement.",
+        "Verser bouillon, cuire couvert 30 min à feu doux.",
+        "Laisser reposer 5 min, servir."
+      ]
+    },
+    {
+      "nom": "Maqloubeh (renversé de légumes, viande, riz)",
+      "nombre_de_personnes": 6,
+      "temps_preparation": "30 min",
+      "temps_cuisson": "45 min",
+      "difficulte": "difficile",
+      "ingredients": [
+        { "nom": "riz basmati", "quantite": 300, "unite": "g" },
+        { "nom": "morceaux d'agneau", "quantite": 600, "unite": "g" },
+        { "nom": "aubergine", "quantite": 1, "unite": "pièce" },
+        { "nom": "chou-fleur", "quantite": 200, "unite": "g" },
+        { "nom": "pommes de terre", "quantite": 2, "unite": "pièces" },
+        { "nom": "oignon", "quantite": 1, "unite": "pièce" },
+        { "nom": "bouillon de légumes", "quantite": 900, "unite": "ml" },
+        { "nom": "épices (cannelle, cumin)", "quantite": 1, "unite": "c. à café" },
+        { "nom": "huile d'olive", "quantite": 3, "unite": "c. à soupe" },
+        { "nom": "sel, poivre", "quantite": 1, "unite": "pinch" }
+      ],
+      "etapes": [
+        "Saisir agneau avec épices, sel et poivre 10 min.",
+        "Frire séparément tranches d’aubergine, pommes de terre et bouquets de chou-fleur 5 min chacun.",
+        "Dans une marmite huilée, disposer couches : légumes, viande, riz.",
+        "Verser bouillon, cuire couvert 35 min à feu doux.",
+        "Inverser la marmite sur un plat, démouler et servir."
+      ]
+    },
+    {
+      "nom": "Kafta au four (pommes de terre, tomates)",
+      "nombre_de_personnes": 4,
+      "temps_preparation": "20 min",
+      "temps_cuisson": "40 min",
+      "difficulte": "moyen",
+      "ingredients": [
+        { "nom": "viande de bœuf hachée", "quantite": 400, "unite": "g" },
+        { "nom": "oignon", "quantite": 1, "unite": "pièce" },
+        { "nom": "persil haché", "quantite": 20, "unite": "g" },
+        { "nom": "pommes de terre", "quantite": 3, "unite": "pièces" },
+        { "nom": "tomates", "quantite": 2, "unite": "pièces" },
+        { "nom": "huile d'olive", "quantite": 2, "unite": "c. à soupe" },
+        { "nom": "sel, poivre", "quantite": 1, "unite": "pinch" }
+      ],
+      "etapes": [
+        "Mélanger viande, oignon, persil, sel et poivre.",
+        "Former des boulettes ovales, disposer dans plat.",
+        "Ajouter rondelles de pommes de terre et tomates autour.",
+        "Arroser d'huile, cuire 40 min à 180 °C.",
+        "Servir chaud."
+      ]
+    },
+    {
+      "nom": "Dawood Basha (boulettes à la tomate)",
+      "nombre_de_personnes": 4,
+      "temps_preparation": "20 min",
+      "temps_cuisson": "30 min",
+      "difficulte": "moyen",
+      "ingredients": [
+        { "nom": "viande de bœuf hachée", "quantite": 300, "unite": "g" },
+        { "nom": "oignon", "quantite": 1, "unite": "pièce" },
+        { "nom": "chapouli râpé", "quantite": 1, "unite": "tranche" },
+        { "nom": "tomates concassées", "quantite": 400, "unite": "g" },
+        { "nom": "ail", "quantite": 1, "unite": "gousse" },
+        { "nom": "huile d'olive", "quantite": 2, "unite": "c. à soupe" },
+        { "nom": "sel, poivre", "quantite": 1, "unite": "pinch" }
+      ],
+      "etapes": [
+        "Mélanger viande, oignon râpé, chapouli, sel et poivre, former boulettes.",
+        "Dorer boulettes 5 min dans l'huile, réserver.",
+        "Faire revenir ail, ajouter tomates, cuire 5 min.",
+        "Replacer boulettes, cuire couvert 20 min.",
+        "Servir chaud."
+      ]
+    },
+    {
+      "nom": "Chich taouk (brochettes de poulet)",
+      "nombre_de_personnes": 4,
+      "temps_preparation": "30 min (marinade)",
+      "temps_cuisson": "10 min",
+      "difficulte": "facile",
+      "ingredients": [
+        { "nom": "morceaux de poulet", "quantite": 600, "unite": "g" },
+        { "nom": "yaourt", "quantite": 100, "unite": "g" },
+        { "nom": "ail", "quantite": 2, "unite": "gousses" },
+        { "nom": "paprika", "quantite": 1, "unite": "c. à café" },
+        { "nom": "jus de citron", "quantite": 2, "unite": "c. à soupe" },
+        { "nom": "huile d'olive", "quantite": 2, "unite": "c. à soupe" },
+        { "nom": "sel, poivre", "quantite": 1, "unite": "pinch" }
+      ],
+      "etapes": [
+        "Mélanger yaourt, ail écrasé, paprika, citron, sel, poivre.",
+        "Mariner poulet 30 min.",
+        "Enfiler sur brochettes, griller 5 min de chaque côté.",
+        "Servir chaud."
+      ]
+    },
+    {
+      "nom": "Kofta grillée (agneau, oignons, persil)",
+      "nombre_de_personnes": 4,
+      "temps_preparation": "20 min",
+      "temps_cuisson": "10 min",
+      "difficulte": "moyen",
+      "ingredients": [
+        { "nom": "viande d'agneau hachée", "quantite": 400, "unite": "g" },
+        { "nom": "oignon", "quantite": 1, "unite": "pièce" },
+        { "nom": "persil haché", "quantite": 20, "unite": "g" },
+        { "nom": "cumin", "quantite": 1, "unite": "c. à café" },
+        { "nom": "sel, poivre", "quantite": 1, "unite": "pinch" },
+        { "nom": "huile d'olive", "quantite": 1, "unite": "c. à soupe" }
+      ],
+      "etapes": [
+        "Mélanger viande, oignon râpé, persil, cumin, sel et poivre.",
+        "Former des saucisses autour des brochettes.",
+        "Griller 5 min de chaque côté en badigeonnant d'huile.",
+        "Servir chaud."
+      ]
+    },
+    {
+      "nom": "Filets de poisson au tahini (samak bi tahini)",
+      "nombre_de_personnes": 4,
+      "temps_preparation": "10 min",
+      "temps_cuisson": "20 min",
+      "difficulte": "moyen",
+      "ingredients": [
+        { "nom": "filets de poisson blanc", "quantite": 500, "unite": "g" },
+        { "nom": "tahini", "quantite": 4, "unite": "c. à soupe" },
+        { "nom": "jus de citron", "quantite": 2, "unite": "c. à soupe" },
+        { "nom": "ail", "quantite": 1, "unite": "gousse" },
+        { "nom": "eau", "quantite": 100, "unite": "ml" },
+        { "nom": "sel, poivre", "quantite": 1, "unite": "pinch" }
+      ],
+      "etapes": [
+        "Mélanger tahini, jus de citron, ail, eau, sel et poivre.",
+        "Déposer filets dans un plat, napper de sauce.",
+        "Cuire 20 min au four à 180 °C.",
+        "Servir chaud, nappé de sauce."
+      ]
+    },
+    {
+      "nom": "Fatteh au yaourt et pois chiches",
+      "nombre_de_personnes": 4,
+      "temps_preparation": "15 min",
+      "temps_cuisson": "10 min",
+      "difficulte": "facile",
+      "ingredients": [
+        { "nom": "pois chiches cuits", "quantite": 200, "unite": "g" },
+        { "nom": "yaourt", "quantite": 300, "unite": "g" },
+        { "nom": "chapouli grillé", "quantite": 2, "unite": "tranches" },
+        { "nom": "pistaches concassées", "quantite": 30, "unite": "g" },
+        { "nom": "ail", "quantite": 1, "unite": "gousse" },
+        { "nom": "sel", "quantite": 1, "unite": "pinch" }
+      ],
+      "etapes": [
+        "Torréfier chapouli 5 min.",
+        "Étaler chapouli dans plat, couvrir de pois chiches chauds.",
+        "Mélanger yaourt et ail écrasé, napper sur pois chiches.",
+        "Parsemer de pistaches, servir immédiatement."
+      ]
+    },
+    {
+      "nom": "Moghrabieh",
+      "nombre_de_personnes": 4,
+      "temps_preparation": "20 min",
+      "temps_cuisson": "40 min",
+      "difficulte": "difficile",
+      "ingredients": [
+        { "nom": "moghrabieh (perles de semoule)", "quantite": 300, "unite": "g" },
+        { "nom": "poulet en morceaux", "quantite": 500, "unite": "g" },
+        { "nom": "pois chiches cuits", "quantite": 200, "unite": "g" },
+        { "nom": "céleri", "quantite": 100, "unite": "g" },
+        { "nom": "oignon", "quantite": 1, "unite": "pièce" },
+        { "nom": "bouillon de poulet", "quantite": 1, "unite": "L" },
+        { "nom": "épices (cannelle, cumin)", "quantite": 1, "unite": "c. à café" },
+        { "nom": "sel, poivre", "quantite": 1, "unite": "pinch" }
+      ],
+      "etapes": [
+        "Faire revenir oignon et épices 5 min.",
+        "Ajouter poulet et pois chiches, couvrir de bouillon, cuire 20 min.",
+        "Incorporer moghrabieh, cuire 20 min à couvert.",
+        "Servir chaud en plat unique."
+      ]
+    },
+    {
+      "nom": "Feuilles de vigne farcies à la viande",
+      "nombre_de_personnes": 4,
+      "temps_preparation": "30 min",
+      "temps_cuisson": "40 min",
+      "difficulte": "moyen",
+      "ingredients": [
+        { "nom": "feuilles de vigne", "quantite": 200, "unite": "g" },
+        { "nom": "viande hachée", "quantite": 250, "unite": "g" },
+        { "nom": "riz", "quantite": 100, "unite": "g" },
+        { "nom": "oignon", "quantite": 1, "unite": "pièce" },
+        { "nom": "tomates", "quantite": 2, "unite": "pièces" },
+        { "nom": "jus de citron", "quantite": 2, "unite": "c. à soupe" },
+        { "nom": "huile d'olive", "quantite": 3, "unite": "c. à soupe" },
+        { "nom": "sel, poivre", "quantite": 1, "unite": "pinch" }
+      ],
+      "etapes": [
+        "Préparer farce viande, riz, oignon, sel, poivre.",
+        "Rouler chaque feuille avec 1 c. à soupe de farce.",
+        "Disposer serré, arroser huile et citron.",
+        "Cuire 40 min à feu doux, servir chaud."
+      ]
+    },
+    {
+      "nom": "Fatteh au yaourt et aux aubergines",
+      "nombre_de_personnes": 4,
+      "temps_preparation": "15 min",
+      "temps_cuisson": "20 min",
+      "difficulte": "facile",
+      "ingredients": [
+        { "nom": "pain pita grillé", "quantite": 2, "unite": "tranches" },
+        { "nom": "aubergines", "quantite": 2, "unite": "pièces" },
+        { "nom": "yaourt", "quantite": 300, "unite": "g" },
+        { "nom": "pois chiches cuits", "quantite": 200, "unite": "g" },
+        { "nom": "ail", "quantite": 1, "unite": "gousse" },
+        { "nom": "pignons", "quantite": 20, "unite": "g" },
+        { "nom": "sel, poivre", "quantite": 1, "unite": "pinch" }
+      ],
+      "etapes": [
+        "Frire aubergines coupées en dés 10 min.",
+        "Torréfier les pain pita émiettés.",
+        "Superposer pita, pois chiches, yaourt mélangé à l'ail.",
+        "Ajouter aubergines et pignons, servir chaud."
+      ]
+    },
+    {
+      "nom": "Samkeh Harra (poisson épicé)",
+      "nombre_de_personnes": 4,
+      "temps_preparation": "15 min",
+      "temps_cuisson": "25 min",
+      "difficulte": "moyen",
+      "ingredients": [
+        { "nom": "filets de poisson blanc", "quantite": 500, "unite": "g" },
+        { "nom": "ail", "quantite": 2, "unite": "gousses" },
+        { "nom": "piment", "quantite": 1, "unite": "pièce" },
+        { "nom": "jus de citron", "quantite": 1, "unite": "c. à soupe" },
+        { "nom": "huile d'olive", "quantite": 3, "unite": "c. à soupe" },
+        { "nom": "sel, poivre", "quantite": 1, "unite": "pinch" }
+      ],
+      "etapes": [
+        "Mariner poisson avec ail, piment, citron, sel, poivre 10 min.",
+        "Cuire au four 20 min à 180 °C.",
+        "Arroser d'huile d'olive à la sortie et servir."
+      ]
+    },
+    {
+      "nom": "Kebbé de potiron",
+      "nombre_de_personnes": 4,
+      "temps_preparation": "20 min",
+      "temps_cuisson": "30 min",
+      "difficulte": "moyen",
+      "ingredients": [
+        { "nom": "purée de potiron", "quantite": 300, "unite": "g" },
+        { "nom": "boulgour fin", "quantite": 100, "unite": "g" },
+        { "nom": "viande hachée", "quantite": 150, "unite": "g" },
+        { "nom": "oignon", "quantite": 1, "unite": "pièce" },
+        { "nom": "cannelle", "quantite": 0.5, "unite": "c. à café" },
+        { "nom": "sel, poivre", "quantite": 1, "unite": "pinch" }
+      ],
+      "etapes": [
+        "Mélanger potiron, boulgour, sel, poivre et cannelle.",
+        "Former galettes, dorer à la poêle 5 min de chaque côté.",
+        "Servir chaud en accompagnement ou mezzé."
+      ]
+    }
+  ],
+  "desserts": [
+    {
+      "nom": "Mouhalabieh (flan au lait et fleur d’oranger)",
+      "nombre_de_personnes": 4,
+      "temps_preparation": "5 min",
+      "temps_cuisson": "10 min",
+      "difficulte": "facile",
+      "ingredients": [
+        { "nom": "lait", "quantite": 500, "unite": "ml" },
+        { "nom": "sucre", "quantite": 50, "unite": "g" },
+        { "nom": "fécule de maïs", "quantite": 30, "unite": "g" },
+        { "nom": "eau de fleur d’oranger", "quantite": 1, "unite": "c. à soupe" },
+        { "nom": "pistaches concassées", "quantite": 20, "unite": "g" }
+      ],
+      "etapes": [
+        "Délayer fécule dans un peu de lait froid.",
+        "Chauffer le reste du lait avec sucre jusqu’à ébullition.",
+        "Ajouter fécule, remuer jusqu’à épaississement (2–3 min).",
+        "Hors du feu, incorporer eau de fleur d’oranger.",
+        "Verser en verrines, laisser refroidir, saupoudrer de pistaches."
+      ]
+    },
+    {
+      "nom": "Meghli (pouding à la caroube et épices)",
+      "nombre_de_personnes": 6,
+      "temps_preparation": "10 min",
+      "temps_cuisson": "15 min",
+      "difficulte": "facile",
+      "ingredients": [
+        { "nom": "farine de riz", "quantite": 100, "unite": "g" },
+        { "nom": "sucre", "quantite": 100, "unite": "g" },
+        { "nom": "poudre de caroube", "quantite": 50, "unite": "g" },
+        { "nom": "cannelle", "quantite": 1, "unite": "c. à café" },
+        { "nom": "clous de girofle moulus", "quantite": 0.5, "unite": "c. à café" },
+        { "nom": "eau", "quantite": 1, "unite": "L" },
+        { "nom": "pistaches hachées", "quantite": 30, "unite": "g" },
+        { "nom": "amandes effilées", "quantite": 20, "unite": "g" },
+        { "nom": "noix de coco râpée", "quantite": 20, "unite": "g" }
+      ],
+      "etapes": [
+        "Mélanger farine de riz, poudre de caroube, épices et sucre sec.",
+        "Ajouter progressivement l’eau en fouettant.",
+        "Cuire à feu moyen 15 min en remuant constamment.",
+        "Verser dans un plat, laisser tiédir.",
+        "Décorer de pistaches, amandes et coco avant de servir."
+      ]
+    },
+    {
+      "nom": "Maamoul (gâteaux fourrés dattes, noix ou pistaches)",
+      "nombre_de_personnes": 12,
+      "temps_preparation": "30 min",
+      "temps_cuisson": "15 min",
+      "difficulte": "moyen",
+      "ingredients": [
+        { "nom": "semoule fine", "quantite": 200, "unite": "g" },
+        { "nom": "farine", "quantite": 100, "unite": "g" },
+        { "nom": "sucre glace", "quantite": 50, "unite": "g" },
+        { "nom": "beurre fondu", "quantite": 100, "unite": "g" },
+        { "nom": "eau de fleur d’oranger", "quantite": 2, "unite": "c. à soupe" },
+        { "nom": "farce dattes", "quantite": 150, "unite": "g" }
+      ],
+      "etapes": [
+        "Mélanger semoule, farine et sucre.",
+        "Ajouter beurre et eau de fleur d’oranger, former une pâte souple, reposer 30 min.",
+        "Façonner boules, creuser, remplir de farce, refermer.",
+        "Presser dans moule à maamoul, démouler.",
+        "Cuire 15 min à 180 °C, laisser refroidir."
+      ]
+    },
+    {
+      "nom": "Sfouf (gâteau semoule-curcuma)",
+      "nombre_de_personnes": 8,
+      "temps_preparation": "10 min",
+      "temps_cuisson": "25 min",
+      "difficulte": "facile",
+      "ingredients": [
+        { "nom": "semoule fine", "quantite": 200, "unite": "g" },
+        { "nom": "sucre", "quantite": 100, "unite": "g" },
+        { "nom": "huile", "quantite": 100, "unite": "ml" },
+        { "nom": "lait", "quantite": 200, "unite": "ml" },
+        { "nom": "curcuma", "quantite": 1, "unite": "c. à soupe" },
+        { "nom": "levure chimique", "quantite": 1, "unite": "c. à café" },
+        { "nom": "fèves fava craquantes", "quantite": 20, "unite": "g" }
+      ],
+      "etapes": [
+        "Mélanger semoule, sucre, curcuma et levure.",
+        "Ajouter huile et lait, obtenir un mélange homogène.",
+        "Verser dans moule huilé, parsemer de fèves craquantes.",
+        "Cuire 25 min à 180 °C.",
+        "Couper en carrés après refroidissement."
+      ]
+    },
+    {
+      "nom": "Atayef (crêpes fourrées à la crème ou noix)",
+      "nombre_de_personnes": 6,
+      "temps_preparation": "30 min",
+      "temps_cuisson": "10 min",
+      "difficulte": "moyen",
+      "ingredients": [
+        { "nom": "farine", "quantite": 150, "unite": "g" },
+        { "nom": "eau", "quantite": 300, "unite": "ml" },
+        { "nom": "levure boulangère", "quantite": 1, "unite": "c. à café" },
+        { "nom": "crème pâtissière", "quantite": 200, "unite": "g" },
+        { "nom": "noix concassées", "quantite": 50, "unite": "g" },
+        { "nom": "sirop de sucre", "quantite": 100, "unite": "ml" }
+      ],
+      "etapes": [
+        "Préparer pâte avec farine, eau et levure, reposer 30 min.",
+        "Cuire petites crêpes côté mousseux uniquement.",
+        "Garnir de crème ou noix, sceller les bords.",
+        "Tremper dans sirop, égoutter.",
+        "Servir froids."
+      ]
+    },
+    {
+      "nom": "Osmalieh (cheveux d’ange, crème)",
+      "nombre_de_personnes": 6,
+      "temps_preparation": "20 min",
+      "temps_cuisson": "15 min",
+      "difficulte": "difficile",
+      "ingredients": [
+        { "nom": "kadayif (cheveux d’ange)", "quantite": 300, "unite": "g" },
+        { "nom": "beurre fondu", "quantite": 50, "unite": "g" },
+        { "nom": "crème fraîche épaisse", "quantite": 200, "unite": "g" },
+        { "nom": "sirop de sucre", "quantite": 150, "unite": "ml" },
+        { "nom": "pistaches hachées", "quantite": 30, "unite": "g" }
+      ],
+      "etapes": [
+        "Séparer kadayif, mélanger avec beurre fondu.",
+        "Tasser moitié dans plat, napper de crème, couvrir avec reste.",
+        "Cuire 15 min à 180 °C.",
+        "Arroser de sirop tiède, parsemer de pistaches.",
+        "Servir après absorption du sirop."
+      ]
+    },
+    {
+      "nom": "Znoud el sit (feuilleté crème)",
+      "nombre_de_personnes": 6,
+      "temps_preparation": "25 min",
+      "temps_cuisson": "15 min",
+      "difficulte": "moyen",
+      "ingredients": [
+        { "nom": "feuilles de brick", "quantite": 6, "unite": "pièces" },
+        { "nom": "crème pâtissière épaisse", "quantite": 300, "unite": "g" },
+        { "nom": "beurre fondu", "quantite": 50, "unite": "g" },
+        { "nom": "sirop de sucre", "quantite": 100, "unite": "ml" },
+        { "nom": "pistaches concassées", "quantite": 20, "unite": "g" }
+      ],
+      "etapes": [
+        "Badigeonner feuilles de brick de beurre.",
+        "Déposer crème, rouler serré.",
+        "Enfourner 15 min à 180 °C.",
+        "Tremper dans sirop, parsemer de pistaches.",
+        "Servir froid."
+      ]
+    },
+    {
+      "nom": "Halawet el Jeben (roulés de fromage à la crème)",
+      "nombre_de_personnes": 4,
+      "temps_preparation": "15 min",
+      "temps_cuisson": "0 min",
+      "difficulte": "facile",
+      "ingredients": [
+        { "nom": "fromage à la crème", "quantite": 200, "unite": "g" },
+        { "nom": "semoule fine", "quantite": 50, "unite": "g" },
+        { "nom": "sucre glace", "quantite": 50, "unite": "g" },
+        { "nom": "eau de fleur d’oranger", "quantite": 1, "unite": "c. à soupe" },
+        { "nom": "pistaches hachées", "quantite": 20, "unite": "g" }
+      ],
+      "etapes": [
+        "Mélanger semoule, sucre glace et fleur d’oranger.",
+        "Étaler fine couche sur film plastique.",
+        "Étaler fromage dessus, rouler avec film.",
+        "Couper en tronçons, parsemer de pistaches.",
+        "Servir frais."
+      ]
+    },
+    {
+      "nom": "Baklawa",
+      "nombre_de_personnes": 8,
+      "temps_preparation": "30 min",
+      "temps_cuisson": "30 min",
+      "difficulte": "difficile",
+      "ingredients": [
+        { "nom": "pâte filo", "quantite": 300, "unite": "g" },
+        { "nom": "noix concassées", "quantite": 200, "unite": "g" },
+        { "nom": "beurre fondu", "quantite": 150, "unite": "g" },
+        { "nom": "sucre", "quantite": 100, "unite": "g" },
+        { "nom": "eau", "quantite": 100, "unite": "ml" },
+        { "nom": "eau de fleur d’oranger", "quantite": 1, "unite": "c. à soupe" }
+      ],
+      "etapes": [
+        "Superposer feuilles filo beurrées par couches.",
+        "Parsemer noix entre toutes les 2–3 feuilles.",
+        "Couper en losanges avant cuisson.",
+        "Cuire 30 min à 180 °C.",
+        "Verser sirop (eau, sucre, fleur d’oranger) tiède sur baklawa."
+      ]
+    },
+    {
+      "nom": "Riz au lait à la rose",
+      "nombre_de_personnes": 4,
+      "temps_preparation": "5 min",
+      "temps_cuisson": "25 min",
+      "difficulte": "facile",
+      "ingredients": [
+        { "nom": "riz rond", "quantite": 100, "unite": "g" },
+        { "nom": "lait", "quantite": 500, "unite": "ml" },
+        { "nom": "sucre", "quantite": 50, "unite": "g" },
+        { "nom": "eau de rose", "quantite": 1, "unite": "c. à café" },
+        { "nom": "pistaches concassées", "quantite": 20, "unite": "g" }
+      ],
+      "etapes": [
+        "Cuire riz dans lait frémissant 20 min en remuant.",
+        "Ajouter sucre et eau de rose, cuire 5 min.",
+        "Verser en verrines, laisser refroidir.",
+        "Parsemer de pistaches avant de servir."
+      ]
+    },
+    {
+      "nom": "Kneffeh",
+      "nombre_de_personnes": 6,
+      "temps_preparation": "30 min",
+      "temps_cuisson": "20 min",
+      "difficulte": "difficile",
+      "ingredients": [
+        { "nom": "kataïf (cheveux d’ange)", "quantite": 300, "unite": "g" },
+        { "nom": "fromage Akkawi", "quantite": 250, "unite": "g" },
+        { "nom": "beurre fondu", "quantite": 100, "unite": "g" },
+        { "nom": "sirop de sucre", "quantite": 200, "unite": "ml" },
+        { "nom": "pistaches hachées", "quantite": 30, "unite": "g" }
+      ],
+      "etapes": [
+        "Séparer kataïf, mélanger avec beurre fondu.",
+        "Tasser la moitié dans un plat, ajouter fromage, couvrir du reste.",
+        "Cuire 20 min à 180 °C.",
+        "Napper de sirop tiède, parsemer de pistaches et servir."
+      ]
+    }
+  ]
+}
