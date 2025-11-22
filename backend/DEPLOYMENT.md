@@ -1,10 +1,10 @@
-# Sahtein 3.0 Backend - Deployment Guide
+# Sahtein 3.1 Backend - Deployment Guide
 
 ## Overview
 
-Sahtein 3.0 is a production-ready RAG-based chatbot backend for Lebanese culinary content from L'Orient-Le Jour.
+Sahtein 3.1 is a production-ready RAG-based chatbot backend for Lebanese culinary content from L'Orient-Le Jour.
 
-**Status**: ✅ Complete - All 66 tests passing
+**Status**: ✅ Production Ready - All 74 tests passing (all P0 fixes implemented)
 
 ## Architecture Summary
 
@@ -308,6 +308,7 @@ For issues or questions about the Sahtein 3.0 backend:
 
 ---
 
-**Version**: 3.0.0
+**Version**: 3.1.0
 **Last Updated**: 2025-11-22
 **Status**: Production Ready ✅
+**Improvements**: All P0 fixes (greeting links, OLJ ranking, 80+ dishes, ingredient normalization)
