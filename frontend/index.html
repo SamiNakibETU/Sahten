@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>L'Orient Le Jour - SAHTEIN 3.1</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* === VARIABLES & RESET === */
+      :root {
+        --green: #94c2ae;
+        --green-light: #a8d4c0;
+        --gray-light: #f5f5f5;
+        --gray-medium: #d4d4d4;
+        --gray-dark: #525252;
+        --white: #ffffff;
+        --black: #000000;
+        --shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        --radius: 12px;
+        --transition: all 0.3s ease;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Inter", sans-serif;
+        background: var(--white);
+        color: var(--black);
+        line-height: 1.6;
+      }
+
+      /* === ANIMATIONS === */
+      @keyframes pulse {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.05);
+        }
+      }
+
+      @keyframes pulse-dots {
+        0%,
+        80%,
+        100% {
+          transform: scale(0);
+        }
+        40% {
+          transform: scale(1);
+        }
+      }
+
+      /* === LAYOUT COMPONENTS === */
+      .header {
+        border-bottom: 1px solid var(--gray-medium);
+        padding: 16px 24px;
+        background: var(--white);
+        position: relative;
+        z-index: 100;
+      }
+
+      .nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .logo {
+        font-weight: 600;
+        font-size: 18px;
+      }
+
+      .nav-items {
+        display: flex;
+        gap: 32px;
+        font-size: 14px;
+        color: var(--gray-dark);
+      }
+
+      .green-section {
+        background: var(--green);
+        color: var(--white);
+        text-align: center;
+        padding: 40px 24px;
+      }
+
+      .green-section h1 {
+        font-size: 32px;
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+
+      .green-section p {
+        font-size: 16px;
+        opacity: 0.9;
+      }
+
+      .green-section small {
+        display: block;
+        margin-top: 4px;
+        font-size: 13px;
+        opacity: 0.8;
+      }
+
+      /* === WELCOME SECTION === */
+      .welcome-section {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 60px 24px;
+        text-align: center;
+      }
+
+      .welcome-section h2 {
+        font-size: 24px;
+        margin-bottom: 16px;
+        color: var(--black);
+      }
+
+      .welcome-section p {
+        font-size: 16px;
+        color: var(--gray-dark);
+        margin-bottom: 32px;
+        line-height: 1.6;
+      }
+
+      .quick-suggestions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 16px;
+        margin-bottom: 32px;
+      }
+
+      .suggestion-btn {
+        background: var(--white);
+        border: 2px solid var(--gray-medium);
+        border-radius: var(--radius);
+        padding: 16px;
+        cursor: pointer;
+        transition: var(--transition);
+        text-align: left;
+        font-size: 15px;
+        color: var(--black);
+        font-family: "Inter", sans-serif;
+      }
+
+      .suggestion-btn:hover {
+        border-color: var(--green);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow);
+      }
+
+      .suggestion-btn .emoji {
+        font-size: 24px;
+        margin-right: 8px;
+      }
+
+      /* === BLOB SYSTEM === */
+      .blob {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        width: 70px;
+        height: 70px;
+        background: var(--green);
+        border-radius: 50%;
+        cursor: pointer;
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 32px;
+        box-shadow: var(--shadow);
+        transition: var(--transition);
+        animation: pulse 3s infinite;
+      }
+
+      .blob:hover {
+        transform: scale(1.1);
+        background: var(--green-light);
+      }
+
+      .blob.hidden {
+        transform: translateY(150%);
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      /* === CHAT WINDOW === */
+      .chat-window {
+        position: fixed;
+        background: var(--white);
+        border: 2px solid var(--green);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        z-index: 600;
+        opacity: 0;
+        pointer-events: none;
+        transition: var(--transition);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      .chat-window.visible {
+        opacity: 1;
+        pointer-events: all;
+      }
+
+      /* Chat window modes */
+      .chat-window.window-mode {
+        top: 10%;
+        right: 5%;
+        width: 550px;
+        height: 650px;
+        resize: both;
+        min-width: 400px;
+        min-height: 450px;
+        max-width: 90vw;
+        max-height: 85vh;
+      }
+
+      .chat-window.half-screen {
+        top: 0;
+        right: 0;
+        width: 50vw;
+        height: 100vh;
+        border-radius: 0;
+        resize: horizontal;
+        min-width: 400px;
+      }
+
+      .chat-window.full-screen {
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100vw;
+        height: 100vh;
+        border-radius: 0;
+        resize: none;
+      }
+
+      .chat-header {
+        background: var(--green);
+        color: var(--white);
+        padding: 16px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: move;
+      }
+
+      .chat-info h3 {
+        font-size: 18px;
+        font-weight: 500;
+        margin-bottom: 2px;
+      }
+
+      .chat-info p {
+        font-size: 13px;
+        opacity: 0.9;
+      }
+
+      .chat-controls {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .control-btn {
+        width: 32px;
+        height: 32px;
+        background: rgba(255, 255, 255, 0.2);
+        color: var(--white);
+        border: none;
+        border-radius: 6px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .control-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+      }
+
+      .debug-toggle {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-right: 8px;
+        font-size: 12px;
+        background: rgba(255, 255, 255, 0.15);
+        padding: 4px 10px;
+        border-radius: 12px;
+        cursor: pointer;
+        user-select: none;
+      }
+
+      .debug-toggle input[type="checkbox"] {
+        width: 14px;
+        height: 14px;
+        cursor: pointer;
+      }
+
+      .chat-messages {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+        min-height: 0;
+      }
+
+      .chat-input-area {
+        padding: 16px 20px;
+        border-top: 1px solid var(--gray-medium);
+        background: var(--white);
+      }
+
+      .input-container {
+        display: flex;
+        gap: 12px;
+        align-items: flex-end;
+      }
+
+      .chat-input {
+        flex: 1;
+        border: 1px solid var(--gray-medium);
+        border-radius: 8px;
+        padding: 12px 16px;
+        min-height: 44px;
+        max-height: 120px;
+        font-size: 15px;
+        font-family: "Inter", sans-serif;
+        resize: none;
+        overflow-y: auto;
+        line-height: 1.4;
+        background: var(--white);
+        outline: none;
+      }
+
+      .chat-input:focus {
+        border-color: var(--green);
+      }
+
+      .send-button {
+        width: 44px;
+        height: 44px;
+        background: linear-gradient(135deg, var(--green), var(--green-light));
+        border: none;
+        border-radius: 10px;
+        color: var(--white);
+        flex-shrink: 0;
+        font-size: 20px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: var(--transition);
+        box-shadow: 0 3px 12px rgba(148, 194, 174, 0.3);
+      }
+
+      .send-button:hover {
+        background: linear-gradient(135deg, var(--green-light), var(--green));
+        transform: scale(1.05) translateY(-1px);
+        box-shadow: 0 6px 20px rgba(148, 194, 174, 0.4);
+      }
+
+      .send-button:active {
+        transform: scale(0.98);
+      }
+
+      .send-button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .reset-button {
+        flex-shrink: 0;
+        padding: 10px 16px;
+        background: rgba(229, 62, 62, 0.1);
+        border: 1px solid rgba(229, 62, 62, 0.3);
+        border-radius: 8px;
+        color: #c53030;
+        font-size: 13px;
+        font-family: "Inter", sans-serif;
+        cursor: pointer;
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .reset-button:hover {
+        background: rgba(229, 62, 62, 0.15);
+      }
+
+      /* === MESSAGES === */
+      .message {
+        margin-bottom: 20px;
+        position: relative;
+      }
+
+      .message.user {
+        display: flex;
+        justify-content: flex-end;
+      }
+
+      .message-content {
+        word-wrap: break-word;
+        line-height: 1.5;
+      }
+
+      .message.user .message-content {
+        background: var(--green);
+        color: var(--white);
+        padding: 12px 16px;
+        border-radius: var(--radius);
+        max-width: 75%;
+        white-space: pre-wrap;
+      }
+
+      .message.assistant .message-wrapper {
+        max-width: 90%;
+      }
+
+      .message.assistant .message-content {
+        border-left: 3px solid var(--green);
+        padding-left: 16px;
+        color: var(--black);
+        line-height: 1.6;
+      }
+
+      .message.assistant .message-content p {
+        margin: 8px 0;
+      }
+
+      .message.assistant .message-content p:first-child {
+        margin-top: 0;
+      }
+
+      .message.assistant .message-content p:last-child {
+        margin-bottom: 0;
+      }
+
+      .message.assistant .message-content a {
+        color: var(--green);
+        text-decoration: none;
+        font-weight: 500;
+        border-bottom: 1px solid var(--green);
+      }
+
+      .message.assistant .message-content a:hover {
+        color: var(--green-light);
+      }
+
+      .message-metadata {
+        margin-top: 8px;
+        padding: 8px 12px;
+        background: rgba(148, 194, 174, 0.1);
+        border-radius: 8px;
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .metadata-item {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        color: var(--gray-dark);
+      }
+
+      .metadata-item strong {
+        color: var(--black);
+      }
+
+      .metadata-item a {
+        color: var(--green);
+        text-decoration: none;
+        font-weight: 500;
+      }
+
+      .metadata-item a:hover {
+        text-decoration: underline;
+      }
+
+      .debug-info {
+        margin-top: 8px;
+      }
+
+      .debug-info details {
+        background: #f8f9fa;
+        border: 1px solid var(--gray-medium);
+        border-radius: 8px;
+        padding: 8px;
+      }
+
+      .debug-info summary {
+        cursor: pointer;
+        font-weight: 500;
+        font-size: 13px;
+        color: var(--gray-dark);
+        user-select: none;
+      }
+
+      .debug-info summary:hover {
+        color: var(--black);
+      }
+
+      .debug-info pre {
+        margin-top: 8px;
+        padding: 12px;
+        background: #ffffff;
+        border: 1px solid var(--gray-medium);
+        border-radius: 6px;
+        font-size: 11px;
+        overflow-x: auto;
+        max-height: 300px;
+        overflow-y: auto;
+      }
+
+      /* Special message states */
+      .message.loading .message-content {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding-left: 16px;
+        color: var(--gray-dark);
+      }
+
+      .message.loading .message-content span {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--gray-medium);
+        animation: pulse-dots 1.4s infinite both;
+      }
+
+      .message.loading .message-content span:nth-child(1) {
+        animation-delay: -0.32s;
+      }
+      .message.loading .message-content span:nth-child(2) {
+        animation-delay: -0.16s;
+      }
+
+      .message.error .message-wrapper {
+        max-width: 90%;
+      }
+
+      .message.error .message-content {
+        border-left-color: #e53e3e;
+        color: #e53e3e;
+        padding-left: 16px;
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+      }
+
+      /* === WELCOME STATE === */
+      .empty-state {
+        text-align: center;
+        padding: 32px;
+        color: var(--gray-dark);
+      }
+
+      .empty-icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+      }
+
+      .empty-state h3 {
+        margin: 16px 0 8px 0;
+        color: var(--black);
+        font-size: 20px;
+      }
+
+      .empty-state p {
+        margin: 8px 0;
+        line-height: 1.5;
+      }
+
+      .suggestions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 12px;
+        margin-top: 24px;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .suggestion-chip {
+        background: var(--white);
+        border: 2px solid var(--gray-medium);
+        border-radius: var(--radius);
+        padding: 12px;
+        cursor: pointer;
+        transition: var(--transition);
+        text-align: left;
+        font-size: 14px;
+        color: var(--black);
+      }
+
+      .suggestion-chip:hover {
+        border-color: var(--green);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow);
+      }
+
+      .suggestion-chip .emoji {
+        font-size: 20px;
+        margin-right: 6px;
+      }
+
+      /* === RESPONSIVE === */
+      @media (max-width: 768px) {
+        .nav-items {
+          display: none;
+        }
+
+        .blob {
+          bottom: 20px;
+          right: 20px;
+          width: 60px;
+          height: 60px;
+          font-size: 28px;
+        }
+
+        .chat-window.window-mode,
+        .chat-window.half-screen,
+        .chat-window.full-screen {
+          position: fixed !important;
+          top: 0 !important;
+          left: 0 !important;
+          right: 0 !important;
+          bottom: 0 !important;
+          width: 100vw !important;
+          height: 100vh !important;
+          border-radius: 0 !important;
+          resize: none !important;
+          max-width: 100% !important;
+          min-width: 100% !important;
+        }
+
+        #windowBtn,
+        #halfBtn,
+        #fullBtn {
+          display: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Header -->
+    <header class="header">
+      <nav class="nav">
+        <div class="logo">L'Orient-Le Jour</div>
+        <div class="nav-items">
+          <span>Liban à table</span>
+          <span>Recettes</span>
+          <span>Chefs</span>
+          <span>Restaurants</span>
+        </div>
+      </nav>
+    </header>
+
+    <!-- Section verte -->
+    <section class="green-section">
+      <h1>🍽️ SAHTEIN 3.1</h1>
+      <p>Votre assistant culinaire libanais intelligent</p>
+      <small>Propulsé par RAG & L'Orient-Le Jour</small>
+    </section>
+
+    <!-- Welcome section -->
+    <section class="welcome-section">
+      <h2>Bienvenue ! Comment puis-je vous aider ?</h2>
+      <p>
+        Découvrez les meilleures recettes libanaises, trouvez des idées de plats,
+        ou explorez la cuisine du Levant avec des articles de L'Orient-Le Jour.
+      </p>
+
+      <div class="quick-suggestions">
+        <button class="suggestion-btn" data-query="Recette du taboulé libanais">
+          <span class="emoji">🥗</span>
+          Recette du taboulé libanais
+        </button>
+        <button class="suggestion-btn" data-query="Idée de mezzé végétarien">
+          <span class="emoji">🌱</span>
+          Idée de mezzé végétarien
+        </button>
+        <button class="suggestion-btn" data-query="Dessert libanais à base de pistache">
+          <span class="emoji">🧁</span>
+          Dessert à la pistache
+        </button>
+        <button class="suggestion-btn" data-query="Qui es-tu ?">
+          <span class="emoji">💬</span>
+          Qui es-tu ?
+        </button>
+      </div>
+    </section>
+
+    <!-- Blob -->
+    <div class="blob" id="blob">💬</div>
+
+    <!-- Fenêtre de chat -->
+    <div class="chat-window window-mode" id="chatWindow">
+      <div class="chat-header" id="chatHeader">
+        <div class="chat-info">
+          <h3>🍽️ SAHTEIN 3.1</h3>
+          <p>Assistant culinaire libanais</p>
+        </div>
+        <div class="chat-controls">
+          <label class="debug-toggle" title="Activer le mode debug">
+            <input type="checkbox" id="debugToggle" />
+            <span>Debug</span>
+          </label>
+          <button class="control-btn" id="windowBtn" title="Mode fenêtre">❐</button>
+          <button class="control-btn" id="halfBtn" title="Demi-écran">◧</button>
+          <button class="control-btn" id="fullBtn" title="Plein écran">🗖</button>
+          <button class="control-btn" id="closeBtn" title="Fermer">×</button>
+        </div>
+      </div>
+
+      <div class="chat-messages" id="chatMessages">
+        <!-- Messages will appear here -->
+      </div>
+
+      <div class="chat-input-area">
+        <div class="input-container">
+          <button class="reset-button" id="resetButton" title="Effacer la conversation">
+            🗑️ Effacer
+          </button>
+          <textarea
+            class="chat-input"
+            id="chatInput"
+            placeholder="Tapez votre message... (Entrée pour envoyer, Maj+Entrée pour nouvelle ligne)"
+            rows="1"
+          ></textarea>
+          <button class="send-button" id="sendButton" title="Envoyer">✦</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ==================== CONFIGURATION ====================
+      const API_BASE_URL = "http://localhost:8000/api";
+      const APP_NAME = "Sahtein 3.1";
+
+      // Scenario names for debugging
+      const SCENARIO_NAMES = {
+        1: "Recette OLJ disponible",
+        2: "Recette Base 2 + OLJ",
+        3: "Fallback (hors sujet)",
+        4: "Salutation",
+        5: "À propos du bot",
+        6: "Redirection (hors sujet)",
+        7: "Langue non-française",
+        8: "Suggestions d'ingrédients",
+      };
+
+      // ==================== DOM ELEMENTS ====================
+      const elements = {
+        blob: document.getElementById("blob"),
+        chatWindow: document.getElementById("chatWindow"),
+        chatHeader: document.getElementById("chatHeader"),
+        chatMessages: document.getElementById("chatMessages"),
+        chatInput: document.getElementById("chatInput"),
+        sendButton: document.getElementById("sendButton"),
+        resetButton: document.getElementById("resetButton"),
+        debugToggle: document.getElementById("debugToggle"),
+        controls: {
+          window: document.getElementById("windowBtn"),
+          half: document.getElementById("halfBtn"),
+          full: document.getElementById("fullBtn"),
+          close: document.getElementById("closeBtn"),
+        },
+      };
+
+      // ==================== APP STATE ====================
+      const state = {
+        isChatVisible: false,
+        isDragging: false,
+        dragStart: { x: 0, y: 0 },
+        windowStart: { x: 0, y: 0 },
+        isFirstQuery: true,
+        isDebugMode: false,
+      };
+
+      // ==================== UTILITIES ====================
+      const utils = {
+        autoResize: (textarea) => {
+          textarea.style.height = "auto";
+          textarea.style.height = Math.min(textarea.scrollHeight, 120) + "px";
+        },
+
+        scrollToBottom: () => {
+          elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
+        },
+
+        sanitizeHTML: (html) => {
+          // Basic HTML sanitization - backend ContentGuard already handles most of this
+          const temp = document.createElement("div");
+          temp.innerHTML = html;
+          return temp.innerHTML;
+        },
+      };
+
+      // ==================== MESSAGE MANAGEMENT ====================
+      const messageSystem = {
+        addMessage: (type, content, metadata = null) => {
+          const messageDiv = document.createElement("div");
+          messageDiv.className = `message ${type}`;
+
+          if (type === "user") {
+            const contentDiv = document.createElement("div");
+            contentDiv.className = "message-content";
+            contentDiv.textContent = content;
+            messageDiv.appendChild(contentDiv);
+          } else if (type === "loading") {
+            const contentDiv = document.createElement("div");
+            contentDiv.className = "message-content";
+            contentDiv.innerHTML =
+              "Sahtein réfléchit... <span></span><span></span><span></span>";
+            messageDiv.appendChild(contentDiv);
+          } else if (type === "assistant") {
+            const wrapperDiv = document.createElement("div");
+            wrapperDiv.className = "message-wrapper";
+
+            const contentDiv = document.createElement("div");
+            contentDiv.className = "message-content";
+            contentDiv.innerHTML = utils.sanitizeHTML(content);
+            wrapperDiv.appendChild(contentDiv);
+
+            // Add metadata if available
+            if (metadata) {
+              const metadataDiv = messageSystem.createMetadata(metadata);
+              wrapperDiv.appendChild(metadataDiv);
+            }
+
+            messageDiv.appendChild(wrapperDiv);
+          } else if (type === "error") {
+            const wrapperDiv = document.createElement("div");
+            wrapperDiv.className = "message-wrapper";
+
+            const contentDiv = document.createElement("div");
+            contentDiv.className = "message-content";
+            contentDiv.innerHTML = `⚠️ <span>${content}</span>`;
+            wrapperDiv.appendChild(contentDiv);
+
+            messageDiv.appendChild(wrapperDiv);
+          } else if (type === "empty") {
+            const contentDiv = document.createElement("div");
+            contentDiv.className = "message-content";
+            contentDiv.innerHTML = `
+              <div class="empty-state">
+                <div class="empty-icon">👋</div>
+                <h3>Bonjour ! Je suis ${APP_NAME}</h3>
+                <p>Votre assistant culinaire libanais intelligent.</p>
+                <p>Posez-moi vos questions sur la cuisine libanaise !</p>
+                <div class="suggestions-grid">
+                  <button class="suggestion-chip" data-query="Recette du taboulé">
+                    <span class="emoji">🥗</span> Recette du taboulé
+                  </button>
+                  <button class="suggestion-chip" data-query="Mezzé végétarien">
+                    <span class="emoji">🌱</span> Mezzé végétarien
+                  </button>
+                  <button class="suggestion-chip" data-query="Dessert à la pistache">
+                    <span class="emoji">🧁</span> Dessert pistache
+                  </button>
+                  <button class="suggestion-chip" data-query="Qui es-tu ?">
+                    <span class="emoji">💬</span> Qui es-tu ?
+                  </button>
+                </div>
+              </div>
+            `;
+            messageDiv.appendChild(contentDiv);
+          }
+
+          elements.chatMessages.appendChild(messageDiv);
+          setTimeout(utils.scrollToBottom, 100);
+
+          return messageDiv;
+        },
+
+        createMetadata: (metadata) => {
+          const metadataDiv = document.createElement("div");
+          metadataDiv.className = "message-metadata";
+
+          // Scenario ID
+          if (metadata.scenario_id) {
+            const scenarioItem = document.createElement("div");
+            scenarioItem.className = "metadata-item";
+            const scenarioName =
+              SCENARIO_NAMES[metadata.scenario_id] || `Scénario ${metadata.scenario_id}`;
+            scenarioItem.innerHTML = `<strong>Scénario:</strong> ${scenarioName}`;
+            metadataDiv.appendChild(scenarioItem);
+          }
+
+          // Primary URL
+          if (metadata.primary_url) {
+            const urlItem = document.createElement("div");
+            urlItem.className = "metadata-item";
+            urlItem.innerHTML = `<strong>Source:</strong> <a href="${metadata.primary_url}" target="_blank" rel="noopener noreferrer">Voir l'article OLJ →</a>`;
+            metadataDiv.appendChild(urlItem);
+          }
+
+          // Debug info
+          if (metadata.debug_info && state.isDebugMode) {
+            const debugDiv = document.createElement("div");
+            debugDiv.className = "debug-info";
+            debugDiv.innerHTML = `
+              <details>
+                <summary>🔍 Informations de debug</summary>
+                <pre>${JSON.stringify(metadata.debug_info, null, 2)}</pre>
+              </details>
+            `;
+            metadataDiv.appendChild(debugDiv);
+          }
+
+          return metadataDiv;
+        },
+      };
+
+      // ==================== API COMMUNICATION ====================
+      const api = {
+        async sendMessage(message, debug = false) {
+          try {
+            const response = await fetch(`${API_BASE_URL}/chat`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                message: message,
+                debug: debug,
+              }),
+            });
+
+            if (!response.ok) {
+              const errorData = await response.json().catch(() => ({}));
+              throw new Error(
+                errorData.detail || `Erreur HTTP ${response.status}`
+              );
+            }
+
+            const data = await response.json();
+            return { success: true, data: data };
+          } catch (error) {
+            console.error("API Error:", error);
+            return {
+              success: false,
+              error:
+                error.message ||
+                "Une erreur est survenue. Vérifiez que le backend est démarré.",
+            };
+          }
+        },
+
+        async checkHealth() {
+          try {
+            const response = await fetch(`${API_BASE_URL}/status`);
+            const data = await response.json();
+            console.log("Backend status:", data);
+            return data.status === "operational";
+          } catch (error) {
+            console.error("Health check failed:", error);
+            return false;
+          }
+        },
+      };
+
+      // ==================== UI HANDLERS ====================
+      const ui = {
+        showChat: () => {
+          state.isChatVisible = true;
+          elements.chatWindow.classList.add("visible");
+          elements.chatInput.focus();
+
+          // Show empty state on first interaction
+          if (state.isFirstQuery) {
+            messageSystem.addMessage("empty", "");
+            state.isFirstQuery = false;
+          }
+        },
+
+        hideChat: () => {
+          state.isChatVisible = false;
+          elements.chatWindow.classList.remove("visible");
+        },
+
+        async handleUserQuery(query) {
+          if (!query.trim()) return;
+
+          // Disable send button
+          elements.sendButton.disabled = true;
+
+          // Add user message
+          messageSystem.addMessage("user", query.trim());
+
+          // Show loading state
+          const loadingMessage = messageSystem.addMessage("loading", "");
+
+          // Call API with debug mode
+          const result = await api.sendMessage(query.trim(), state.isDebugMode);
+
+          // Remove loading state
+          loadingMessage.remove();
+
+          // Re-enable send button
+          elements.sendButton.disabled = false;
+
+          // Handle response
+          if (result.success) {
+            const metadata = {
+              scenario_id: result.data.scenario_id,
+              primary_url: result.data.primary_url,
+              debug_info: result.data.debug_info,
+            };
+            messageSystem.addMessage("assistant", result.data.html, metadata);
+          } else {
+            messageSystem.addMessage("error", result.error);
+          }
+        },
+
+        resetConversation: () => {
+          if (confirm("Êtes-vous sûr de vouloir effacer la conversation ?")) {
+            elements.chatMessages.innerHTML = "";
+            state.isFirstQuery = true;
+            messageSystem.addMessage("empty", "");
+          }
+        },
+      };
+
+      // ==================== DRAG SYSTEM ====================
+      const dragSystem = {
+        start: (e) => {
+          if (e.target.closest(".chat-controls")) return;
+          if (window.innerWidth <= 768) return; // No drag on mobile
+
+          state.isDragging = true;
+          state.dragStart = { x: e.clientX, y: e.clientY };
+          const rect = elements.chatWindow.getBoundingClientRect();
+          state.windowStart = { x: rect.left, y: rect.top };
+
+          elements.chatHeader.style.cursor = "grabbing";
+          document.body.style.cursor = "grabbing";
+          elements.chatWindow.style.transition = "none";
+
+          document.addEventListener("mousemove", dragSystem.move);
+          document.addEventListener("mouseup", dragSystem.end);
+          e.preventDefault();
+        },
+
+        move: (e) => {
+          if (!state.isDragging) return;
+
+          const deltaX = e.clientX - state.dragStart.x;
+          const deltaY = e.clientY - state.dragStart.y;
+
+          elements.chatWindow.style.left = state.windowStart.x + deltaX + "px";
+          elements.chatWindow.style.top = state.windowStart.y + deltaY + "px";
+        },
+
+        end: () => {
+          state.isDragging = false;
+          elements.chatHeader.style.cursor = "move";
+          document.body.style.cursor = "";
+          elements.chatWindow.style.transition = "";
+
+          document.removeEventListener("mousemove", dragSystem.move);
+          document.removeEventListener("mouseup", dragSystem.end);
+        },
+      };
+
+      // ==================== EVENT LISTENERS ====================
+      document.addEventListener("DOMContentLoaded", () => {
+        // Check backend health
+        api.checkHealth();
+
+        // Chat input handlers
+        elements.chatInput.addEventListener("input", () =>
+          utils.autoResize(elements.chatInput)
+        );
+
+        elements.chatInput.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            const message = elements.chatInput.value.trim();
+            if (message) {
+              elements.chatInput.value = "";
+              elements.chatInput.style.height = "auto";
+              ui.handleUserQuery(message);
+            }
+          }
+        });
+
+        // Send button
+        elements.sendButton.addEventListener("click", () => {
+          const message = elements.chatInput.value.trim();
+          if (message) {
+            elements.chatInput.value = "";
+            elements.chatInput.style.height = "auto";
+            ui.handleUserQuery(message);
+          }
+        });
+
+        // Reset button
+        elements.resetButton.addEventListener("click", ui.resetConversation);
+
+        // Debug toggle
+        elements.debugToggle.addEventListener("change", (e) => {
+          state.isDebugMode = e.target.checked;
+          console.log("Debug mode:", state.isDebugMode ? "ON" : "OFF");
+        });
+
+        // Window controls
+        elements.controls.window.addEventListener("click", () => {
+          elements.chatWindow.className = "chat-window window-mode visible";
+        });
+        elements.controls.half.addEventListener("click", () => {
+          elements.chatWindow.className = "chat-window half-screen visible";
+        });
+        elements.controls.full.addEventListener("click", () => {
+          elements.chatWindow.className = "chat-window full-screen visible";
+        });
+        elements.controls.close.addEventListener("click", ui.hideChat);
+
+        // Drag & drop
+        elements.chatHeader.addEventListener("mousedown", dragSystem.start);
+
+        // Blob click
+        elements.blob.addEventListener("click", ui.showChat);
+
+        // Quick suggestions (welcome page)
+        document.querySelectorAll(".suggestion-btn, .suggestion-chip").forEach((btn) => {
+          btn.addEventListener("click", (e) => {
+            const query = e.currentTarget.dataset.query;
+            ui.showChat();
+            setTimeout(() => {
+              elements.chatInput.value = query;
+              elements.chatInput.focus();
+            }, 300);
+          });
+        });
+
+        // Delegate click events for dynamically added suggestion chips
+        elements.chatMessages.addEventListener("click", (e) => {
+          const chip = e.target.closest(".suggestion-chip");
+          if (chip) {
+            const query = chip.dataset.query;
+            elements.chatInput.value = query;
+            elements.chatInput.focus();
+          }
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape" && state.isChatVisible) {
+            ui.hideChat();
+          }
+          if (e.ctrlKey && e.key === "k") {
+            e.preventDefault();
+            if (state.isChatVisible) {
+              ui.hideChat();
+            } else {
+              ui.showChat();
+            }
+          }
+        });
+
+        console.log(`${APP_NAME} initialized successfully!`);
+        console.log(`Backend: ${API_BASE_URL}`);
+      });
+    </script>
+  </body>
+</html>
