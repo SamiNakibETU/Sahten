@@ -1,8 +1,8 @@
-# Sahten - Production Deployment
+# Sahten - Production Deployment (Railway)
 
 > Lebanese Culinary Assistant by L'Orient-Le Jour
 
-This is the **production-ready** version of Sahten, configured for Vercel deployment with Upstash Redis logging.
+This is the **production-ready** version of Sahten, configured for Railway deployment with Upstash Redis logging.
 
 ---
 
@@ -10,10 +10,10 @@ This is the **production-ready** version of Sahten, configured for Vercel deploy
 
 ```
 Sahten/
-├── api/
-│   └── index.py          # Vercel serverless entry point
 ├── backend/
-│   └── app/              # FastAPI application
+│   ├── app/              # FastAPI application
+│   ├── main.py           # Entry point
+│   └── requirements.txt  # Backend dependencies
 ├── frontend/
 │   ├── css/sahten.css
 │   ├── js/sahten.js
@@ -22,13 +22,14 @@ Sahten/
 │   └── olj_canonical.json
 ├── data_base_OLJ_enriched.json
 ├── Data_base_2.json
-├── requirements.txt
-└── vercel.json
+├── requirements.txt      # Root dependencies (for Railway)
+├── Procfile              # Railway start command
+└── railway.toml          # Railway configuration
 ```
 
 ---
 
-## 🚀 Déploiement sur Vercel
+## 🚀 Déploiement sur Railway
 
 ### Étape 1 : Créer un compte Upstash (pour les traces)
 
@@ -39,59 +40,68 @@ Sahten/
    - `UPSTASH_REDIS_REST_URL`
    - `UPSTASH_REDIS_REST_TOKEN`
 
-### Étape 2 : Push sur GitHub
+### Étape 2 : Déployer sur Railway
 
-```bash
-# Dans le dossier Sahten/
-git init
-git add .
-git commit -m "Initial Sahten deployment"
-git branch -M main
-git remote add origin https://github.com/VOTRE_USERNAME/sahten.git
-git push -u origin main
-```
+1. Aller sur **[railway.app](https://railway.app)**
+2. Cliquer **"Start a New Project"**
+3. Choisir **"Deploy from GitHub repo"**
+4. Sélectionner **SamiNakibETU/Sahten**
+5. Railway détecte automatiquement Python et le Procfile
 
-### Étape 3 : Configurer Vercel
+### Étape 3 : Configurer les variables d'environnement
 
-1. Aller sur [vercel.com](https://vercel.com)
-2. "New Project" → Importer depuis GitHub
-3. Sélectionner le repo `sahten`
-4. **Framework Preset** : "Other"
-5. **Root Directory** : `.` (laisser vide, c'est la racine)
-6. **Environment Variables** (Settings → Environment Variables) :
+Dans Railway → **Variables** :
 
 | Variable | Valeur | Description |
 |----------|--------|-------------|
 | `OPENAI_API_KEY` | `sk-...` | Clé API OpenAI (requise) |
 | `UPSTASH_REDIS_REST_URL` | `https://...upstash.io` | URL Redis Upstash |
 | `UPSTASH_REDIS_REST_TOKEN` | `AX...` | Token Redis Upstash |
+| `PORT` | (auto) | Railway le configure automatiquement |
 
-7. Cliquer **Deploy**
+### Étape 4 : Générer un domaine
+
+1. Aller dans **Settings** → **Networking**
+2. Cliquer **"Generate Domain"**
+3. Tu obtiens une URL comme : `sahten-production.up.railway.app`
 
 ---
 
-## 🔍 Voir les traces (conversations)
+## 🌐 Accéder à l'application
+
+Après déploiement :
+
+- **API Health** : `https://ton-app.up.railway.app/api/health`
+- **API Status** : `https://ton-app.up.railway.app/api/status`
+- **Chat API** : `https://ton-app.up.railway.app/api/chat`
+- **Traces** : `https://ton-app.up.railway.app/api/traces`
+
+### Frontend
+
+Le frontend (`frontend/index.html`) peut être :
+1. Ouvert localement (il appellera l'API Railway)
+2. Hébergé sur GitHub Pages / Netlify / Vercel (statique)
+
+Pour configurer l'URL de l'API dans le frontend, modifier `frontend/js/sahten.js` :
+```javascript
+const chat = new SahtenChat({
+    apiBase: "https://ton-app.up.railway.app/api"
+});
+```
+
+---
+
+## 📊 Voir les conversations
 
 ### Via l'API
 
-Après déploiement, accéder à :
-
 ```
-https://votre-app.vercel.app/api/traces?limit=50
+https://ton-app.up.railway.app/api/traces?limit=100
 ```
 
-Retourne les 50 dernières conversations avec :
-- Question utilisateur
-- Type de réponse (recette, menu, etc.)
-- Intent détecté
-- Nombre de recettes retournées
+### Via les logs Railway
 
-### Via Vercel Logs
-
-Même sans Upstash, les traces sont toujours visibles dans :
-**Vercel Dashboard → Project → Logs**
-
-Format : `[TRACE] {"ts":"...","id":"abc","q":"recette taboulé","intent":"recipe_specific","recipes":1}`
+Dashboard Railway → **Deployments** → **View Logs**
 
 ---
 
@@ -101,32 +111,34 @@ Format : `[TRACE] {"ts":"...","id":"abc","q":"recette taboulé","intent":"recipe
 cd Sahten/backend
 pip install -r requirements.txt
 
-# Avec clé API OpenAI
+# Configurer les variables
 $env:OPENAI_API_KEY="sk-..."
-python -m uvicorn main:app --reload
+
+# Lancer le serveur
+python -m uvicorn main:app --reload --port 8000
 
 # Ouvrir http://localhost:8000
 ```
 
 ---
 
-## 📊 Endpoints
+## 📊 Endpoints API
 
-| Endpoint | Description |
-|----------|-------------|
-| `GET /` | Interface chat |
-| `POST /api/chat` | Envoyer un message |
-| `GET /api/health` | Health check |
-| `GET /api/status` | Statut détaillé |
-| `GET /api/traces` | Historique conversations (si Upstash) |
+| Méthode | Endpoint | Description |
+|---------|----------|-------------|
+| `GET` | `/` | Interface chat (frontend) |
+| `POST` | `/api/chat` | Envoyer un message |
+| `GET` | `/api/health` | Health check |
+| `GET` | `/api/status` | Statut détaillé |
+| `GET` | `/api/traces` | Historique des conversations |
 
 ---
 
-## 🔒 Notes de sécurité
+## 💰 Coûts Railway
 
-- Ne jamais committer les clés API dans le code
-- Utiliser les Variables d'Environnement Vercel
-- Le fichier `.env` est pour le dev local uniquement
+- **Free tier** : $5 de crédit gratuit/mois
+- **Usage estimé Sahten** : ~$0-3/mois (selon trafic)
+- Pas de limite de taille comme Vercel !
 
 ---
 
