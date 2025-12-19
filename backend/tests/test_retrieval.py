@@ -230,5 +230,53 @@ def test_filter_by_constraints(retriever):
     assert filtered[0].content == "recette végétarienne rapide"
 
 
+def test_hybrid_retrieval_prefers_olj_for_taboule(retriever, classifier, planner):
+    """`recette taboulé` should surface the OLJ reference article."""
+    query = "recette taboulé"
+    classification = classifier.classify(query)
+    plan = planner.plan(classification, query)
+
+    candidates = retriever.retrieve(plan, top_k=5)
+    assert candidates, "Retriever should surface candidates for taboulé"
+
+    top_olj = next((c for c in candidates if c.source == "olj"), None)
+    assert top_olj is not None
+    url = top_olj.metadata.get("url", "").lower()
+    assert url.startswith("https://www.lorientlejour.com")
+    assert "taboul" in url
+
+
+def test_semantic_search_returns_results(content_index):
+    """Embedding-based search should return OLJ documents even with mock embeddings."""
+    results = content_index.semantic_search("taboule", top_k=1, source_filter="olj")
+    assert results
+    doc, score = results[0]
+    assert doc.source == "olj"
+    assert score > 0
+
+
+@pytest.mark.parametrize("query,expected_token", [
+    ("recette avec du poulet", "poulet"),
+    ("recette avec du yaourt", "yaourt"),
+    ("j'ai des patates, que puis-je faire de libanais ?", "pomme de terre"),
+])
+def test_ingredient_queries_prioritize_olj(retriever, classifier, planner, query, expected_token):
+    """Ingredient queries should return OLJ candidates mentioning the ingredient."""
+    classification = classifier.classify(query)
+    plan = planner.plan(classification, query)
+
+    candidates = retriever.retrieve(plan, top_k=5)
+    assert candidates, f"No candidates returned for {query}"
+
+    top_olj = next((c for c in candidates if c.source == "olj"), None)
+    assert top_olj is not None, f"Expected OLJ candidate for {query}"
+
+    doc_text = (top_olj.metadata.get("doc_text") or "").lower()
+    if expected_token == "pomme de terre":
+        assert ("pomme de terre" in doc_text or "pommes de terre" in doc_text or "patate" in doc_text), "OLJ candidate should mention pommes de terre"
+    else:
+        assert expected_token in doc_text, f"OLJ candidate should mention {expected_token}"
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

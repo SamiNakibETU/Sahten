@@ -1,3 +1,9 @@
+# =============================================================================
+# Sahten - Production Dependencies
+# =============================================================================
+# Lebanese Recipe Assistant powered by L'Orient-Le Jour
+# =============================================================================
+
 # Core FastAPI dependencies
 fastapi==0.115.0
 uvicorn[standard]==0.32.0
@@ -8,9 +14,7 @@ pydantic-settings==2.6.1
 numpy==1.26.4
 scikit-learn==1.6.1
 
-# Testing
-pytest==8.3.4
-pytest-asyncio==0.24.0
+# HTTP client (for testing and async requests)
 httpx==0.28.1
 
 # Utilities
@@ -18,8 +22,16 @@ python-multipart==0.0.20
 python-dotenv==1.0.1
 unidecode==1.3.8
 
-# Optional: LLM integration (can be replaced with any LLM provider)
-openai==1.59.6
+# LLM integration (OpenAI API)
+openai>=1.12.0
 
-# CORS support
-fastapi-cors==0.0.6
+# =============================================================================
+# PRODUCTION LOGGING - Upstash Redis
+# =============================================================================
+# Serverless Redis for persistent conversation traces
+# Free tier: 10K requests/day
+# Configure in Vercel:
+#   - UPSTASH_REDIS_REST_URL
+#   - UPSTASH_REDIS_REST_TOKEN
+# =============================================================================
+upstash-redis>=1.0.0

@@ -5,7 +5,10 @@ Loads and processes JSON datasets from the repository
 
 import json
 import logging
-from datetime import datetime
+import re
+from collections import Counter
+from datetime import datetime, timezone
+from html import unescape
 from pathlib import Path
 from typing import Any
 
@@ -15,14 +18,198 @@ from app.models.schemas import (
     StructuredRecipe,
     GoldenExample,
     Ingredient,
+    ArticleEnrichment,
 )
 from app.data.normalizers import (
     normalize_text,
     normalize_recipe_name,
     extract_slug_from_url,
 )
+from app.data.ingredient_normalizer import ingredient_normalizer
 
 logger = logging.getLogger(__name__)
+
+
+def _safe_str(value: Any) -> str:
+    """Return a sanitized string without None surprises."""
+    if isinstance(value, str):
+        return value.strip()
+    return ""
+
+
+def _safe_list(value: Any) -> list:
+    """Ensure we always manipulate a list."""
+    if isinstance(value, list):
+        return value
+    return []
+
+
+def _extract_text_from_html(html_text: str) -> str:
+    """Strip HTML tags and collapse whitespace."""
+    if not html_text:
+        return ""
+    text = re.sub(r"<[^>]+>", " ", html_text)
+    text = unescape(text)
+    return " ".join(text.split()).strip()
+
+
+def _normalize_datetime(value: datetime | None) -> datetime | None:
+    """Ensure all datetimes are stored as naive UTC for consistent comparisons."""
+    if value is None:
+        return None
+    if value.tzinfo is not None:
+        return value.astimezone(timezone.utc).replace(tzinfo=None)
+    return value
+
+
+def _derive_title(article_data: dict, recipe_name: str, url: str) -> str:
+    """Best-effort strategy to determine article title."""
+    title = _safe_str(article_data.get("title"))
+    if title:
+        return title
+
+    if recipe_name:
+        return recipe_name
+
+    html_content = _safe_str(article_data.get("content_html"))
+    if html_content:
+        heading_match = re.search(r"<h[12][^>]*>(.*?)</h[12]>", html_content, re.IGNORECASE | re.DOTALL)
+        if heading_match:
+            heading = _extract_text_from_html(heading_match.group(1))
+            if heading:
+                return heading
+
+    slug = extract_slug_from_url(url)
+    if slug:
+        return slug.replace("-", " ").strip()
+
+    return ""
+
+
+COURSE_KEYWORDS = {
+    "mezze": ["mezze", "meze", "mezze froid", "mezze chaud", "entree", "entrée"],
+    "dessert": ["dessert", "sucre", "gateau", "gâteau", "douceur"],
+    "plat": ["plat", "plat principal", "plat familial", "cocotte", "riz", "ragout"],
+    "soupe": ["soupe", "potage", "bouillon"],
+    "boisson": ["boisson", "drink", "cocktail", "jus"],
+    "pain": ["pain", "boulangerie", "manakish"],
+}
+
+FISH_KEYWORDS = {"poisson", "thon", "crevette", "saumon", "moule", "calamar", "gambas"}
+MEAT_KEYWORDS = {"poulet", "veau", "boeuf", "agneau", "viande", "oeuf", "foie", "dinde", "saucisse"}
+
+CUISINE_KEYWORDS = {
+    "arménienne": ["armenien", "armenienne"],
+    "syrienne": ["syrien", "syrienne"],
+    "palestinienne": ["palestinien", "palestinienne"],
+    "levantine": ["levantin", "levantine"],
+    "libanaise": ["liban", "libanais", "libanaise"],
+}
+
+
+def _parse_datetime(value: str | None) -> datetime | None:
+    if not value:
+        return None
+    try:
+        value = value.replace("Z", "+00:00")
+        dt = datetime.fromisoformat(value)
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt.astimezone(timezone.utc)
+    except Exception:
+        logger.debug("Unable to parse datetime: %s", value)
+        return None
+
+
+def _infer_course(tags: list[str], category: str | None) -> str | None:
+    candidates = [normalize_text(tag) for tag in tags if tag]
+    if category:
+        candidates.append(normalize_text(category))
+
+    for course, keywords in COURSE_KEYWORDS.items():
+        for keyword in keywords:
+            normalized_kw = normalize_text(keyword)
+            if any(normalized_kw in candidate for candidate in candidates):
+                return course
+
+    return "plat" if candidates else None
+
+
+def _extract_main_ingredients(raw_ingredients: list[str]) -> list[str]:
+    cleaned: list[str] = []
+    for entry in raw_ingredients or []:
+        text = _safe_str(entry)
+        if not text or text.endswith(":"):
+            continue
+        text = re.sub(r"\([^)]*\)", " ", text)
+        text = re.sub(r"\d+[\/\.,]?\d*\s*[a-zàâçéèêëîïôûùüÿñæœ\.]*", " ", text, flags=re.IGNORECASE)
+        text = re.sub(r"\b(c\.|cuill|sachet|tasse|verre|pincee)\b", " ", text, flags=re.IGNORECASE)
+        normalized = normalize_text(text)
+        if normalized:
+            cleaned.append(normalized)
+
+    counter = Counter()
+    for phrase in cleaned:
+        tokens = phrase.split()
+        if not tokens:
+            continue
+        # take the last token to capture ingredient (skip leading verbs)
+        counter[" ".join(tokens[-2:])] += 1
+
+    results: list[str] = []
+    seen: set[str] = set()
+    for ingredient, _ in counter.most_common(12):
+        equivalents = ingredient_normalizer.get_equivalents(ingredient)
+        canonical = next(iter(sorted(equivalents))) if equivalents else ingredient
+        if canonical and canonical not in seen:
+            seen.add(canonical)
+            results.append(canonical)
+        if len(results) >= 5:
+            break
+
+    return results
+
+
+def _infer_diet(main_ingredients: list[str]) -> str:
+    normalized = {normalize_text(ing) for ing in main_ingredients}
+
+    if any(word in normalized for word in FISH_KEYWORDS):
+        return "poisson"
+    if any(word in normalized for word in MEAT_KEYWORDS):
+        return "viande"
+    return "vege"
+
+
+def _infer_cuisine(tags: list[str]) -> str:
+    normalized_tags = [normalize_text(tag) for tag in tags if tag]
+    for cuisine, keywords in CUISINE_KEYWORDS.items():
+        for keyword in keywords:
+            norm = normalize_text(keyword)
+            if any(norm in tag for tag in normalized_tags):
+                return cuisine
+    return "libanaise"
+
+
+def _calculate_editorial_score(has_chef: bool, tags: list[str], difficulty: str | None) -> float:
+    score = 0.5
+    if has_chef:
+        score += 0.2
+    if difficulty:
+        score += 0.1
+    if any("chef" in normalize_text(tag) for tag in tags):
+        score += 0.1
+    return min(score, 1.0)
+
+
+def _calculate_recency_score(published: datetime | None, updated: datetime | None) -> float:
+    reference = updated or published
+    if not reference:
+        return 0.4
+    delta = datetime.now(timezone.utc) - reference
+    days = max(delta.days, 0)
+    window = 5 * 365  # 5 years
+    score = 1.0 - min(days / window, 1.0)
+    return max(0.1, score)
 
 
 # ============================================================================
@@ -30,148 +217,164 @@ logger = logging.getLogger(__name__)
 # ============================================================================
 
 def load_olj_articles() -> list[RecipeArticle]:
-    """Load OLJ recipe articles from Base 1"""
-    logger.info(f"Loading OLJ articles from {settings.olj_recipes_path}")
+    """Load OLJ recipe articles from the refreshed dataset."""
+    
+    # Priority: Enriched > Configured Path > Standard > Fallback
+    
+    # 1. Enriched Data (if enabled)
+    if settings.use_enriched_data:
+        enriched_path = settings.data_dir / "data_base_OLJ_enriched.json"
+        if enriched_path.exists():
+            logger.info("Loading ENRICHED OLJ articles from %s", enriched_path)
+            olj_path = enriched_path
+        else:
+            logger.warning("Enriched data not found at %s, falling back to standard.", enriched_path)
+            olj_path = settings.olj_recipes_path
+    else:
+        olj_path = settings.olj_recipes_path
 
-    with open(settings.olj_recipes_path, "r", encoding="utf-8") as f:
-        data = json.load(f)
+    # 2. Configured/Standard Path check
+    if not olj_path.exists():
+        fallback_paths = [
+            settings.data_dir / "data_base_OLJ_final.json",
+            settings.data_dir / "olj_recette_liban_a_table.json",
+        ]
+        for candidate in fallback_paths:
+            if candidate.exists():
+                olj_path = candidate
+                break
+
+    logger.info("Final OLJ source: %s", olj_path)
+
+    with open(olj_path, "r", encoding="utf-8") as f:
+        raw_data = json.load(f)
+
+    if isinstance(raw_data, dict):
+        raw_articles = raw_data.get("articles") or raw_data.get("data") or []
+    else:
+        raw_articles = raw_data
+
+    logger.info("Found %d raw OLJ records", len(raw_articles))
 
     articles: list[RecipeArticle] = []
+    skipped = 0
+    enriched_count = 0
 
-    for article_data in data.get("articles", []):
+    for idx, article_data in enumerate(raw_articles):
         try:
-            # Parse dates
-            published = None
-            if article_data.get("published"):
+            url = _safe_str(article_data.get("url"))
+            if not url:
+                skipped += 1
+                continue
+
+            slug = article_data.get("slug") or extract_slug_from_url(url) or f"article-{idx}"
+            article_id = (
+                _safe_str(article_data.get("id"))
+                or _safe_str(article_data.get("article_id"))
+                or slug
+            )
+
+            primary_title = (
+                _safe_str(article_data.get("title"))
+                or _safe_str(article_data.get("recipe_section_title"))
+                or slug.replace("-", " ").title()
+            )
+            dish_name = _safe_str(article_data.get("recipe_section_title")) or primary_title
+            normalized_title = normalize_recipe_name(primary_title)
+
+            ingredients_raw = _safe_list(article_data.get("ingredients"))
+            instructions_raw = _safe_list(article_data.get("instructions"))
+
+            tags_raw = article_data.get("tags") or []
+            if isinstance(tags_raw, list):
+                tags = [tag for tag in tags_raw if isinstance(tag, str)]
+            elif isinstance(tags_raw, str):
+                tags = [t.strip() for t in tags_raw.split(",") if t.strip()]
+            else:
+                tags = []
+
+            main_ingredients = _extract_main_ingredients(ingredients_raw)
+            diet = _infer_diet(main_ingredients)
+            course = _infer_course(tags, article_data.get("category"))
+            cuisine = _infer_cuisine(tags)
+
+            published = _parse_datetime(
+                article_data.get("publication_date") or article_data.get("published_at")
+            )
+            updated = _parse_datetime(article_data.get("updated_at") or article_data.get("modified_at"))
+
+            chef_name = _safe_str(article_data.get("chef_name"))
+            difficulty = _safe_str(article_data.get("difficulty"))
+            editorial_score = _calculate_editorial_score(bool(chef_name), tags, difficulty)
+            recency_score = _calculate_recency_score(published, updated)
+
+            description = _safe_str(article_data.get("recipe_description"))
+            anecdote = _safe_str(article_data.get("chef_bio")) or description
+            doc_text = _extract_text_from_html(
+                " ".join(
+                    [
+                        description,
+                        " ".join(instructions_raw),
+                        " ".join(ingredients_raw),
+                        chef_name,
+                    ]
+                )
+            )
+
+            # Mark recipe vs cultural article
+            has_error = "error" in article_data
+            has_ingredients = bool(ingredients_raw)
+            
+            # --- Enrichment Handling ---
+            enrichment = None
+            if "enrichment" in article_data and article_data["enrichment"]:
                 try:
-                    published = datetime.fromisoformat(article_data["published"])
-                except Exception:
-                    pass
-
-            modified = None
-            if article_data.get("modified"):
-                try:
-                    modified = datetime.fromisoformat(article_data["modified"])
-                except Exception:
-                    pass
-
-            # Extract recipe name
-            recipe_name = ""
-            if article_data.get("recipe"):
-                recipe_name = article_data["recipe"].get("name", "")
-
-            # Build article
-            url = article_data.get("url", "")
-            title = article_data.get("title", recipe_name)
+                    enrichment = ArticleEnrichment(**article_data["enrichment"])
+                    enriched_count += 1
+                except Exception as e:
+                    logger.warning(f"Failed to parse enrichment for {article_id}: {e}")
 
             article = RecipeArticle(
-                article_id=article_data.get("id", url),
-                title=title,
-                normalized_title=normalize_recipe_name(title),
-                slug=extract_slug_from_url(url),
+                article_id=article_id,
+                title=primary_title,
+                normalized_title=normalized_title,
+                slug=slug,
                 url=url,
-                chef=extract_chef_from_article(article_data),
-                author=article_data.get("author"),
-                section="Liban à table",
-                tags=parse_tags(article_data.get("tags")),
+                chef=chef_name or None,
+                author=_safe_str(article_data.get("author")) or None,
+                section=_safe_str(article_data.get("category")) or "Liban à table",
+                tags=tags,
                 publish_date=published,
-                modified_date=modified,
-                popularity_score=calculate_popularity(published, modified),
-                short_summary=article_data.get("description", "")[:200],
-                description=article_data.get("description", ""),
-                anecdote=extract_anecdote(article_data),
-                tips=extract_tips(article_data),
-                is_editor_pick=is_editor_pick(article_data),
+                modified_date=updated,
+                popularity_score=editorial_score,
+                short_summary=description[:200],
+                description=description,
+                anecdote=anecdote,
+                tips=[],
+                is_editor_pick=bool(article_data.get("is_editor_pick", False)),
+                ingredients=[_safe_str(i) for i in ingredients_raw if _safe_str(i)],
+                instructions=[_safe_str(step) for step in instructions_raw if _safe_str(step)],
+                dish_name=dish_name,
+                course=course,
+                diet=diet,
+                main_ingredients=main_ingredients,
+                cuisine=cuisine,
+                editorial_score=editorial_score,
+                recency_score=recency_score,
+                image_url=_safe_str(article_data.get("recipe_image_url")) or None,
+                doc_text=doc_text,
+                is_recipe=not has_error and has_ingredients,
+                enrichment=enrichment
             )
 
             articles.append(article)
 
-        except Exception as e:
-            logger.warning(f"Failed to parse article {article_data.get('url')}: {e}")
-            continue
+        except Exception as exc:
+            skipped += 1
+            logger.warning("Failed to parse OLJ article #%s: %s", idx, exc)
 
-    logger.info(f"Loaded {len(articles)} OLJ articles")
+    logger.info("Loaded %d OLJ articles (skipped %d, enriched %d)", len(articles), skipped, enriched_count)
     return articles
-
-
-def extract_chef_from_article(article_data: dict) -> str | None:
-    """Extract chef name from article"""
-    # Try to find chef in title or description
-    title = article_data.get("title", "").lower()
-    desc = article_data.get("description", "").lower()
-
-    # Common patterns: "de [Chef Name]", "par [Chef Name]"
-    import re
-
-    patterns = [
-        r"de ([A-Z][a-z]+ [A-Z][a-z]+(?:-[A-Z][a-z]+)?)",
-        r"par ([A-Z][a-z]+ [A-Z][a-z]+(?:-[A-Z][a-z]+)?)",
-    ]
-
-    for pattern in patterns:
-        match = re.search(pattern, article_data.get("title", ""))
-        if match:
-            return match.group(1)
-
-    return None
-
-
-def parse_tags(tags: Any) -> list[str]:
-    """Parse tags from various formats"""
-    if not tags:
-        return []
-    if isinstance(tags, list):
-        return [str(t).strip() for t in tags if t]
-    if isinstance(tags, str):
-        return [t.strip() for t in tags.split(",") if t.strip()]
-    return []
-
-
-def calculate_popularity(published: datetime | None, modified: datetime | None) -> float:
-    """Calculate popularity score based on recency"""
-    if not published:
-        return 0.5
-
-    # More recent articles get higher scores
-    days_old = (datetime.now(published.tzinfo) - published).days
-    recency_score = max(0, 1.0 - (days_old / 365.0))  # Decay over 1 year
-
-    # Bonus for recently modified
-    if modified and modified > published:
-        days_since_modified = (datetime.now(modified.tzinfo) - modified).days
-        if days_since_modified < 30:
-            recency_score += 0.2
-
-    return min(1.0, recency_score)
-
-
-def is_editor_pick(article_data: dict) -> bool:
-    """Determine if article is an editor's pick"""
-    # For now, consider recent articles with chef names as editor picks
-    # This can be enhanced with actual metadata if available
-    return False  # TODO: Add logic based on actual editorial signals
-
-
-def extract_anecdote(article_data: dict) -> str:
-    """Extract anecdote or story from article"""
-    # Try to find storytelling elements in description
-    desc = article_data.get("description", "")
-    # For now, return first part of description as anecdote
-    if len(desc) > 100:
-        return desc[:150] + "..."
-    return desc
-
-
-def extract_tips(article_data: dict) -> list[str]:
-    """Extract cooking tips from article"""
-    # Tips might be in instructions
-    tips = []
-    if article_data.get("recipe", {}).get("instructions"):
-        instructions = article_data["recipe"]["instructions"]
-        for instruction in instructions:
-            if isinstance(instruction, str) and ("astuce" in instruction.lower() or "secret" in instruction.lower()):
-                tips.append(instruction)
-    return tips
 
 
 # ============================================================================
