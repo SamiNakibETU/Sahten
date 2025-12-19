@@ -6,7 +6,7 @@ Provides a unified interface for different LLM providers
 import json
 import logging
 from abc import ABC, abstractmethod
-from typing import Any, Literal
+from typing import Any, Literal, Optional
 
 from app.models.config import settings
 
@@ -15,6 +15,10 @@ logger = logging.getLogger(__name__)
 
 class LLMClient(ABC):
     """Abstract base class for LLM clients"""
+    
+    def __init__(self):
+        self.client = None
+        self.model = None
 
     @abstractmethod
     def chat_completion(
@@ -30,6 +34,30 @@ class LLMClient(ABC):
 
 class MockLLMClient(LLMClient):
     """Mock LLM client for testing and development"""
+    
+    class MockClient:
+        class Chat:
+            class Completions:
+                def create(self, *args, **kwargs):
+                    # Return a mock response object that mimics OpenAI's structure
+                    class Choice:
+                        class Message:
+                            def __init__(self):
+                                self.content = "Mock response content"
+                                self.tool_calls = None
+                        message = Message()
+                    
+                    class Response:
+                        choices = [Choice()]
+                    
+                    return Response()
+            completions = Completions()
+        chat = Chat()
+
+    def __init__(self):
+        super().__init__()
+        self.client = self.MockClient()
+        self.model = "mock-model"
 
     def chat_completion(
         self,
@@ -44,7 +72,7 @@ class MockLLMClient(LLMClient):
         # Mock classification responses
         if "classify" in last_message or "intent" in last_message:
             return json.dumps({
-                "intent": "food_request",
+                "intent": "recipe_by_name",
                 "language": "fr",
                 "slots": {
                     "dishes": [],
@@ -65,6 +93,7 @@ class OpenAIClient(LLMClient):
     """OpenAI LLM client"""
 
     def __init__(self, api_key: str | None = None):
+        super().__init__()
         try:
             from openai import OpenAI
         except ImportError:
@@ -100,6 +129,7 @@ class AnthropicClient(LLMClient):
     """Anthropic (Claude) LLM client"""
 
     def __init__(self, api_key: str | None = None):
+        super().__init__()
         try:
             from anthropic import Anthropic
         except ImportError:

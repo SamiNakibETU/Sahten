@@ -179,6 +179,34 @@ pytest tests/test_classifier.py -v
 - **Emojis**: 1-3 max, food/emotion related, no flags
 - **Length**: ~100 words (except full Base 2 recipes)
 
+## Trace Logging
+
+Every chat request is recorded for auditing in **`backend/logs/chat_traces.jsonl`** (one JSON object per line) with:
+
+- ISO timestamp and unique `request_id`
+- Raw `user_message`, rendered `response_html`
+- Scenario metadata (`scenario_id`, `scenario_name`, `primary_url`)
+- Full `debug_info` when the request was sent with `debug=true`
+
+Use standard tooling to review traces, e.g.:
+
+```bash
+cd backend
+tail -n 5 logs/chat_traces.jsonl | jq .
+```
+
+or load them in Python:
+
+```python
+import json, pathlib
+path = pathlib.Path("logs/chat_traces.jsonl")
+for line in path.open(encoding="utf-8"):
+    entry = json.loads(line)
+    print(entry["timestamp"], entry["user_message"])
+```
+
+You can forward this file to other assistants for post-run analysis without affecting the live service.
+
 ## License
 
 Proprietary - L'Orient-Le Jour

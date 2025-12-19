@@ -5,6 +5,7 @@ Only operates on OLJ articles (Base 1)
 """
 
 import logging
+from datetime import datetime, timezone
 from typing import Literal
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -164,11 +165,23 @@ class LinkIndex:
         """
         articles = [doc.article for doc in self.documents]
 
+        def _safe_date(article: RecipeArticle) -> datetime:
+            """Return a timezone-aware datetime for sorting, never raising."""
+            candidate = article.modified_date or article.publish_date
+            if not candidate:
+                return datetime.min.replace(tzinfo=timezone.utc)
+            if candidate.tzinfo is None:
+                try:
+                    return candidate.replace(tzinfo=timezone.utc)
+                except Exception:
+                    return datetime.min.replace(tzinfo=timezone.utc)
+            return candidate
+
         if strategy == "recent":
             # Sort by most recent publication/modification
             sorted_articles = sorted(
                 articles,
-                key=lambda a: a.modified_date or a.publish_date or datetime.min,
+                key=_safe_date,
                 reverse=True,
             )
 
@@ -186,14 +199,14 @@ class LinkIndex:
             if editor_picks:
                 sorted_articles = sorted(
                     editor_picks,
-                    key=lambda a: a.modified_date or a.publish_date or datetime.min,
+                    key=_safe_date,
                     reverse=True,
                 )
             else:
                 # Fallback to recent
                 sorted_articles = sorted(
                     articles,
-                    key=lambda a: a.modified_date or a.publish_date or datetime.min,
+                    key=_safe_date,
                     reverse=True,
                 )
 
@@ -243,7 +256,3 @@ class LinkIndex:
     def __len__(self) -> int:
         """Number of articles in index"""
         return len(self.documents)
-
-
-# Import datetime for fallback_articles
-from datetime import datetime

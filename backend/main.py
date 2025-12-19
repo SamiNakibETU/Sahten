@@ -1,7 +1,11 @@
 """
-Sahtein 3.1 - Main FastAPI Application
-Lebanese culinary chatbot for L'Orient-Le Jour
-Production-ready with all P0 fixes implemented
+Sahten API
+==========
+
+Main entry point for the Lebanese culinary chatbot.
+Architecture: RAG with Retrieve -> Rerank -> Select pipeline.
+
+Author: L'Orient-Le Jour AI Team
 """
 
 import logging
@@ -10,10 +14,13 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 
+# Import components
 from app.api.routes import router as api_router
-from app.models.config import settings
+from app.core.config import get_settings
+
+settings = get_settings()
 
 # Configure logging
 logging.basicConfig(
@@ -26,51 +33,32 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Application lifespan events"""
+    """Application lifespan events."""
     logger.info(f"Starting {settings.app_name} v{settings.app_version}")
-    logger.info(f"LLM Provider: {settings.llm_provider}")
-    logger.info(f"Debug mode: {settings.debug}")
-
-    # Initialize data loaders and indexes
-    logger.info("Loading data and building indexes...")
-    from app.data.loaders import data_cache
-    from app.data.content_index import ContentIndex
-    from app.data.link_index import LinkIndex
-    from app.rag.pipeline import initialize_pipeline
-
-    # Load data
-    articles = data_cache.get_olj_articles()
-    recipes = data_cache.get_structured_recipes()
-    logger.info(f"Loaded {len(articles)} OLJ articles and {len(recipes)} recipes")
-
-    # Build content index
-    content_index = ContentIndex()
-    content_index.add_olj_articles(articles)
-    content_index.add_structured_recipes(recipes)
-    content_index.build()
-    logger.info(f"Content index built with {len(content_index)} documents")
-
-    # Build link index
-    link_index = LinkIndex()
-    link_index.add_articles(articles)
-    link_index.build()
-    logger.info(f"Link index built with {len(link_index)} articles")
-
-    # Initialize RAG pipeline
-    initialize_pipeline(content_index, link_index)
-    logger.info("RAG pipeline initialized and ready")
-
+    logger.info(f"Pipeline: Durable RAG")
+    logger.info(f"Model: {settings.openai_model}")
+    
+    # Pre-warm the bot to avoid cold start latency
+    try:
+        from app.bot import get_bot
+        bot = get_bot()
+        logger.info(f"Bot ready. Loaded {len(bot.retriever.olj_docs)} OLJ docs.")
+    except Exception as e:
+        logger.warning(f"Bot pre-warming failed (will retry on request): {e}")
+    
     yield
-
-    logger.info(f"Shutting down {settings.app_name}")
+    
+    logger.info("Shutting down Sahten.")
 
 
 # Create FastAPI application
 app = FastAPI(
     title=settings.app_name,
     version=settings.app_version,
-    description="Lebanese culinary chatbot powered by RAG",
+    description="Lebanese culinary chatbot powered by LLM",
     lifespan=lifespan,
+    docs_url="/docs",
+    redoc_url=None,
 )
 
 # Configure CORS
@@ -86,34 +74,54 @@ app.add_middleware(
 app.include_router(api_router, prefix=settings.api_prefix)
 
 
+# --- Static File Serving ---
+FRONTEND_PATH = Path(__file__).parent.parent / "frontend"
+
+@app.get("/css/{filename}")
+async def get_css(filename: str):
+    file_path = FRONTEND_PATH / "css" / filename
+    if file_path.exists() and file_path.is_file():
+        return FileResponse(file_path, media_type="text/css")
+    return Response(status_code=404)
+
+@app.get("/js/{filename}")
+async def get_js(filename: str):
+    file_path = FRONTEND_PATH / "js" / filename
+    if file_path.exists() and file_path.is_file():
+        return FileResponse(file_path, media_type="application/javascript")
+    return Response(status_code=404)
+
+@app.get("/img/{filename}")
+async def get_img(filename: str):
+    file_path = FRONTEND_PATH / "img" / filename
+    if file_path.exists() and file_path.is_file():
+        return FileResponse(file_path)
+    return Response(status_code=404)
+
+
 @app.get("/")
 async def root():
-    """Serve the frontend UI"""
-    # Path to frontend HTML file
-    frontend_path = Path(__file__).parent.parent / "frontend" / "index.html"
-
-    # If frontend exists, serve it
-    if frontend_path.exists():
-        return FileResponse(frontend_path)
-
-    # Otherwise, return JSON status
+    """Serve the frontend UI."""
+    frontend_index = FRONTEND_PATH / "index.html"
+    
+    if frontend_index.exists():
+        return FileResponse(frontend_index)
+    
     return {
         "name": settings.app_name,
-        "version": settings.app_version,
         "status": "running",
-        "message": "Frontend not found. Please ensure frontend/index.html exists.",
+        "message": "Frontend index.html not found.",
     }
 
 
 @app.get("/health")
 async def health():
-    """Health check endpoint"""
     return {"status": "healthy"}
 
 
 if __name__ == "__main__":
     import uvicorn
-
+    
     uvicorn.run(
         "main:app",
         host=settings.api_host,
