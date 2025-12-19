@@ -159,12 +159,23 @@
       </svg>
     </button>
 
+    <!-- API Configuration -->
+    <script>
+      // ============================================================
+      // PRODUCTION: Set your Railway API URL here
+      // ============================================================
+      // After deploying to Railway, uncomment and update this line:
+      // window.SAHTEN_API_BASE = "https://YOUR-APP.up.railway.app/api";
+      // ============================================================
+    </script>
+
     <!-- Logic -->
     <script type="module">
       import { SahtenChat } from "./js/sahten.js";
 
-      // Initialize - Uses relative paths for Vercel deployment
-      // The SahtenChat class auto-detects the correct API base
+      // Initialize - Auto-detects API URL
+      // Local dev: http://localhost:8000/api
+      // Production: Uses window.SAHTEN_API_BASE if set
       const chat = new SahtenChat();
     </script>
   </body>

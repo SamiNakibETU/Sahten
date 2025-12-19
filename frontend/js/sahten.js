@@ -1,23 +1,38 @@
 /**
  * SAHTEN CLIENT (V3.1 Responsive)
  * Persona: Editorial Chef from L'Orient-Le Jour
+ * 
+ * Configuration:
+ * - Set window.SAHTEN_API_BASE before loading to override API URL
+ * - Or pass { apiBase: "https://..." } to constructor
  */
 
 export class SahtenChat {
-    constructor(config) {
-        // Durable URL logic
+    constructor(config = {}) {
+        // API URL Resolution (priority order):
+        // 1. Constructor config.apiBase
+        // 2. Global window.SAHTEN_API_BASE
+        // 3. Auto-detect based on current host
+        
         const host = window.location.hostname;
         const protocol = window.location.protocol;
         
-        let apiHost = 'localhost';
-        if (host === '127.0.0.1') apiHost = '127.0.0.1';
-
         const isLocalDev = (host === 'localhost' || host === '127.0.0.1');
         const isFile = (protocol === 'file:');
         
-        const defaultApiBase = (isLocalDev || isFile) 
-            ? `http://${apiHost}:8000/api` 
-            : '/api';
+        let defaultApiBase;
+        
+        if (window.SAHTEN_API_BASE) {
+            // Use global config (set in index.html for production)
+            defaultApiBase = window.SAHTEN_API_BASE;
+        } else if (isLocalDev || isFile) {
+            // Local development
+            const apiHost = (host === '127.0.0.1') ? '127.0.0.1' : 'localhost';
+            defaultApiBase = `http://${apiHost}:8000/api`;
+        } else {
+            // Production: same origin
+            defaultApiBase = '/api';
+        }
 
         this.config = {
             apiBase: defaultApiBase, 
