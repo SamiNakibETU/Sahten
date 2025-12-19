@@ -52,12 +52,12 @@ Sahten/
 
 Dans Railway → **Variables** :
 
-| Variable | Valeur | Description |
-|----------|--------|-------------|
-| `OPENAI_API_KEY` | `sk-...` | Clé API OpenAI (requise) |
-| `UPSTASH_REDIS_REST_URL` | `https://...upstash.io` | URL Redis Upstash |
-| `UPSTASH_REDIS_REST_TOKEN` | `AX...` | Token Redis Upstash |
-| `PORT` | (auto) | Railway le configure automatiquement |
+| Variable                   | Valeur                  | Description                          |
+| -------------------------- | ----------------------- | ------------------------------------ |
+| `OPENAI_API_KEY`           | `sk-...`                | Clé API OpenAI (requise)             |
+| `UPSTASH_REDIS_REST_URL`   | `https://...upstash.io` | URL Redis Upstash                    |
+| `UPSTASH_REDIS_REST_TOKEN` | `AX...`                 | Token Redis Upstash                  |
+| `PORT`                     | (auto)                  | Railway le configure automatiquement |
 
 ### Étape 4 : Générer un domaine
 
@@ -79,13 +79,15 @@ Après déploiement :
 ### Frontend
 
 Le frontend (`frontend/index.html`) peut être :
+
 1. Ouvert localement (il appellera l'API Railway)
 2. Hébergé sur GitHub Pages / Netlify / Vercel (statique)
 
 Pour configurer l'URL de l'API dans le frontend, modifier `frontend/js/sahten.js` :
+
 ```javascript
 const chat = new SahtenChat({
-    apiBase: "https://ton-app.up.railway.app/api"
+  apiBase: "https://ton-app.up.railway.app/api",
 });
 ```
 
@@ -124,13 +126,13 @@ python -m uvicorn main:app --reload --port 8000
 
 ## 📊 Endpoints API
 
-| Méthode | Endpoint | Description |
-|---------|----------|-------------|
-| `GET` | `/` | Interface chat (frontend) |
-| `POST` | `/api/chat` | Envoyer un message |
-| `GET` | `/api/health` | Health check |
-| `GET` | `/api/status` | Statut détaillé |
-| `GET` | `/api/traces` | Historique des conversations |
+| Méthode | Endpoint      | Description                  |
+| ------- | ------------- | ---------------------------- |
+| `GET`   | `/`           | Interface chat (frontend)    |
+| `POST`  | `/api/chat`   | Envoyer un message           |
+| `GET`   | `/api/health` | Health check                 |
+| `GET`   | `/api/status` | Statut détaillé              |
+| `GET`   | `/api/traces` | Historique des conversations |
 
 ---
 
@@ -142,4 +144,4 @@ python -m uvicorn main:app --reload --port 8000
 
 ---
 
-*Sahten ! 🇱🇧*
+_Sahten ! 🇱🇧_
