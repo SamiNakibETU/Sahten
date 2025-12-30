@@ -39,9 +39,8 @@ class Settings(BaseSettings):
     retrieve_top_k: int = 20
     rerank_top_k: int = 10
     rerank_model: str = "gpt-4o-mini"
-    enable_embeddings: bool = True
-    embedding_provider: str = "mock"  # "openai" or "mock"
-    embedding_model: str = "text-embedding-3-small"
+    # Embeddings disabled: TF-IDF + LLM reranker is sufficient for recipe search
+    enable_embeddings: bool = False
     
     # API settings
     api_host: str = "0.0.0.0"

@@ -6,6 +6,7 @@ Formats structured LLM responses into clean, semantic HTML for the frontend.
 Follows "Editorial Chef" design principles: centered text, elegant typography.
 """
 
+import re
 from typing import List, Optional
 from ..schemas.responses import SahtenResponse, RecipeCard
 
@@ -50,35 +51,42 @@ def compose_html_response(response: SahtenResponse) -> str:
 
 def _format_text(text: str) -> str:
     """
-    Minimal text formatter. 
-    - Converts newlines to paragraph breaks.
-    - Handles basic markdown for emphasis: **bold**, *italic*, __underline__.
+    Text formatter with proper Markdown-to-HTML conversion.
+    
+    Supported syntax:
+    - **bold** → <strong>bold</strong>
+    - *italic* → <em>italic</em>  
+    - __underline__ → <u>underline</u>
+    - Double newlines → paragraph breaks
     """
+    if not text:
+        return ""
+    
     # Normalize newlines
     text = text.replace("\r\n", "\n")
-    paragraphs = text.split("\n\n")
     
+    # Apply Markdown transformations (order matters: longest patterns first)
+    # Bold: **text** → <strong>text</strong>
+    text = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', text)
+    
+    # Underline: __text__ → <u>text</u>
+    text = re.sub(r'__(.+?)__', r'<u>\1</u>', text)
+    
+    # Italic: *text* → <em>text</em> (after bold to avoid conflicts)
+    text = re.sub(r'\*(.+?)\*', r'<em>\1</em>', text)
+    
+    # Split into paragraphs and wrap each in <p>
+    paragraphs = text.split("\n\n")
     html_paragraphs = []
+    
     for p in paragraphs:
-        if not p.strip():
+        p = p.strip()
+        if not p:
             continue
-            
-        # Basic Markdown-to-HTML shim
-        # Bold: **text** -> <strong>text</strong>
-        p = p.replace("**", "<strong>")
-        
-        # Underline: __text__ -> <u>text</u> (Custom requirement)
-        p = p.replace("__", "<u>")
-        
-        # Italic: *text* -> <em>text</em>
-        # Note: simplistic replacement, works for well-formed simple markdown
-        p = p.replace("*", "<em>") 
-        
-        # Close tags blindly? No, replacement pairs assume valid markdown input.
-        # Given we trust the LLM's structured output capability, this suffices for a MVP.
-        
-        html_paragraphs.append(f"<p>{p.strip()}</p>")
-        
+        # Handle single newlines within paragraphs as <br>
+        p = p.replace("\n", "<br>")
+        html_paragraphs.append(f"<p>{p}</p>")
+    
     return "".join(html_paragraphs)
 
 
