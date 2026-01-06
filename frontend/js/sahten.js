@@ -1,19 +1,21 @@
 /**
- * SAHTEN CLIENT (V3.1 Responsive)
+ * SAHTEN CLIENT (MVP)
  * Persona: Editorial Chef from L'Orient-Le Jour
+ * 
+ * Features:
+ * - Model selection (nano/mini/auto)
+ * - A/B testing support
+ * - Response model tracking
  * 
  * Configuration:
  * - Set window.SAHTEN_API_BASE before loading to override API URL
  * - Or pass { apiBase: "https://..." } to constructor
+ * - Pass { modelSelector: element } for model dropdown support
  */
 
 export class SahtenChat {
     constructor(config = {}) {
-        // API URL Resolution (priority order):
-        // 1. Constructor config.apiBase
-        // 2. Global window.SAHTEN_API_BASE
-        // 3. Auto-detect based on current host
-        
+        // API URL Resolution
         const host = window.location.hostname;
         const protocol = window.location.protocol;
         
@@ -23,27 +25,26 @@ export class SahtenChat {
         let defaultApiBase;
         
         if (window.SAHTEN_API_BASE) {
-            // Use global config (set in index.html for production)
             defaultApiBase = window.SAHTEN_API_BASE;
         } else if (isLocalDev || isFile) {
-            // Local development
             const apiHost = (host === '127.0.0.1') ? '127.0.0.1' : 'localhost';
             defaultApiBase = `http://${apiHost}:8000/api`;
         } else {
-            // Production: same origin
             defaultApiBase = '/api';
         }
 
         this.config = {
-            apiBase: defaultApiBase, 
+            apiBase: defaultApiBase,
+            modelSelector: null,  // Optional model dropdown element
             ...config
         };
 
         this.state = {
             isOpen: false,
             isLoading: false,
-            size: 'window', // window | mid | full
-            touchStartY: 0
+            size: 'window',
+            touchStartY: 0,
+            lastModelUsed: null,  // Track model used in last response
         };
 
         this.dom = {
@@ -56,7 +57,8 @@ export class SahtenChat {
             input: document.querySelector('#sahten-input'),
             sendBtn: document.querySelector('.send-btn'),
             sizeBtns: document.querySelectorAll('.sahten-size-btn'),
-            dragHandle: document.querySelector('.sahten-drag-handle')
+            dragHandle: document.querySelector('.sahten-drag-handle'),
+            modelSelector: this.config.modelSelector,
         };
 
         this.init();
@@ -65,7 +67,39 @@ export class SahtenChat {
     init() {
         if (!this.dom.container) return; 
         this.bindEvents();
-        console.log(`Sahten initialized. Backend URL: ${this.config.apiBase}`);
+        this.loadModels();
+        console.log(`Sahten MVP initialized. Backend: ${this.config.apiBase}`);
+    }
+
+    async loadModels() {
+        /**
+         * Fetch available models from API and update dropdown.
+         */
+        if (!this.dom.modelSelector) return;
+        
+        try {
+            const response = await fetch(`${this.config.apiBase}/models`);
+            if (response.ok) {
+                const data = await response.json();
+                console.log('Available models:', data.models);
+                console.log('Default model:', data.default);
+                console.log('A/B testing:', data.ab_testing_enabled ? 'ON' : 'OFF');
+                
+                // Update dropdown options if needed
+                // (keeping static options for now as they match the API)
+            }
+        } catch (e) {
+            console.log('Could not fetch models (will use static list)');
+        }
+    }
+
+    getSelectedModel() {
+        /**
+         * Get currently selected model from dropdown.
+         */
+        if (!this.dom.modelSelector) return null;
+        const value = this.dom.modelSelector.value;
+        return value === 'auto' ? null : value;
     }
 
     bindEvents() {
@@ -98,13 +132,11 @@ export class SahtenChat {
                 const endY = e.changedTouches[0].clientY;
                 const diff = endY - this.state.touchStartY;
 
-                // Swipe Down (> 50px) -> Minimize or Close
                 if (diff > 50) {
                     if (this.state.size === 'full') this.setSize('mid');
                     else if (this.state.size === 'mid') this.setSize('window');
                     else this.toggle(false);
                 } 
-                // Swipe Up (> 50px) -> Expand
                 else if (diff < -50) {
                     if (this.state.size === 'window') this.setSize('mid');
                     else if (this.state.size === 'mid') this.setSize('full');
@@ -123,7 +155,7 @@ export class SahtenChat {
             this.dom.trigger.style.pointerEvents = 'none';
             setTimeout(() => this.dom.input.focus(), 100);
             
-            // Welcome Message - Editorial Chef Persona
+            // Welcome Message
             if (this.dom.body.children.length === 0) {
                 this.appendBotMessage({
                     html: `<div class="sahten-narrative">
@@ -138,8 +170,6 @@ export class SahtenChat {
             this.dom.backdrop.classList.remove('visible');
             this.dom.trigger.style.opacity = '1';
             this.dom.trigger.style.pointerEvents = 'auto';
-            // Reset size on close for consistency? Optional.
-            // this.setSize('window'); 
         }
     }
 
@@ -147,7 +177,6 @@ export class SahtenChat {
         this.state.size = size;
         this.dom.container.setAttribute('data-size', size);
         
-        // Update active button state
         this.dom.sizeBtns.forEach(btn => {
             if (btn.dataset.action === size) btn.classList.add('active');
             else btn.classList.remove('active');
@@ -163,35 +192,62 @@ export class SahtenChat {
         this.setLoading(true);
 
         try {
-            console.log(`Sending message to: ${this.config.apiBase}/chat`);
+            const model = this.getSelectedModel();
+            const payload = { 
+                message: text, 
+                debug: false,
+            };
+            
+            // Add model if specified (not auto)
+            if (model) {
+                payload.model = model;
+            }
+            
+            console.log(`Sending to ${this.config.apiBase}/chat`, payload);
+            
             const response = await fetch(`${this.config.apiBase}/chat`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: text, debug: false })
+                body: JSON.stringify(payload)
             });
 
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
             const data = await response.json();
+            
+            // Track model used
+            this.state.lastModelUsed = data.model_used;
+            
+            // Add model indicator to response if in debug/testing mode
+            if (data.model_used) {
+                data.html = this.addModelIndicator(data.html, data.model_used);
+            }
+            
             this.appendBotMessage(data);
 
         } catch (error) {
             console.error(error);
-            // Polite, in-character error message with DEBUG info
             this.appendBotMessage({
                 html: `<div class="sahten-narrative" style="color: var(--color-accent);">
                     <p><em>Mille excuses, un petit incident en cuisine...</em></p>
                     <p>Pourriez-vous répéter votre demande ?</p>
                     <p style="font-size: 11px; opacity: 0.7; margin-top: 10px;">
-                        (Debug: Impossible de joindre <code>${this.config.apiBase}</code>.<br>
-                        Page: <code>${window.location.origin}</code><br>
-                        Erreur: ${error.message || 'Réseau'})
+                        (Debug: ${this.config.apiBase} - ${error.message || 'Réseau'})
                     </p>
                 </div>`
             });
         } finally {
             this.setLoading(false);
         }
+    }
+
+    addModelIndicator(html, modelUsed) {
+        /**
+         * Add a small model indicator to the response HTML (for testing).
+         */
+        const modelName = modelUsed.includes('nano') ? '⚡ nano' : '✨ mini';
+        const indicator = `<div style="font-size: 9px; opacity: 0.5; text-align: right; margin-top: 8px; font-family: monospace;">${modelName}</div>`;
+        return html + indicator;
     }
 
     appendUserMessage(text) {
@@ -213,7 +269,7 @@ export class SahtenChat {
     setLoading(loading) {
         this.state.isLoading = loading;
         this.dom.sendBtn.disabled = loading;
-        this.dom.input.disabled = loading; // Prevent double submit
+        this.dom.input.disabled = loading;
         
         if (loading) {
             const loader = document.createElement('div');

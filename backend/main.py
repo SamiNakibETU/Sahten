@@ -1,9 +1,14 @@
 """
-Sahten API
-==========
+Sahten MVP API
+==============
 
 Main entry point for the Lebanese culinary chatbot.
-Architecture: RAG with Retrieve -> Rerank -> Select pipeline.
+
+Features:
+- RAG with Retrieve -> Rerank -> Select pipeline
+- Flexible model selection (env, API, A/B testing)
+- CMS webhook for new recipes
+- Optional embeddings (OFF by default)
 
 Author: L'Orient-Le Jour AI Team
 """
@@ -18,6 +23,7 @@ from fastapi.responses import FileResponse, Response
 
 # Import components
 from app.api.routes import router as api_router
+from app.api.webhook import router as webhook_router
 from app.core.config import get_settings
 
 settings = get_settings()
@@ -35,8 +41,9 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     """Application lifespan events."""
     logger.info(f"Starting {settings.app_name} v{settings.app_version}")
-    logger.info(f"Pipeline: Durable RAG")
-    logger.info(f"Model: {settings.openai_model}")
+    logger.info(f"Default Model: {settings.openai_model}")
+    logger.info(f"A/B Testing: {'ON' if settings.enable_ab_testing else 'OFF'}")
+    logger.info(f"Embeddings: {'ON' if settings.enable_embeddings else 'OFF'}")
     
     # Pre-warm the bot to avoid cold start latency
     try:
@@ -55,7 +62,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title=settings.app_name,
     version=settings.app_version,
-    description="Lebanese culinary chatbot powered by LLM",
+    description="Lebanese culinary chatbot powered by LLM with flexible model selection",
     lifespan=lifespan,
     docs_url="/docs",
     redoc_url=None,
@@ -72,10 +79,12 @@ app.add_middleware(
 
 # Include API routes
 app.include_router(api_router, prefix=settings.api_prefix)
+app.include_router(webhook_router, prefix=settings.api_prefix)
 
 
 # --- Static File Serving ---
 FRONTEND_PATH = Path(__file__).parent.parent / "frontend"
+
 
 @app.get("/css/{filename}")
 async def get_css(filename: str):
@@ -84,12 +93,14 @@ async def get_css(filename: str):
         return FileResponse(file_path, media_type="text/css")
     return Response(status_code=404)
 
+
 @app.get("/js/{filename}")
 async def get_js(filename: str):
     file_path = FRONTEND_PATH / "js" / filename
     if file_path.exists() and file_path.is_file():
         return FileResponse(file_path, media_type="application/javascript")
     return Response(status_code=404)
+
 
 @app.get("/img/{filename}")
 async def get_img(filename: str):
@@ -116,7 +127,11 @@ async def root():
 
 @app.get("/health")
 async def health():
-    return {"status": "healthy"}
+    return {
+        "status": "healthy",
+        "version": settings.app_version,
+        "model": settings.openai_model,
+    }
 
 
 if __name__ == "__main__":

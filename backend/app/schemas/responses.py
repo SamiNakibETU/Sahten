@@ -155,6 +155,7 @@ class SahtenResponse(BaseModel):
     # Métadonnées pour debugging/analytics
     intent_detected: Optional[str] = None
     confidence: Optional[float] = None
+    model_used: Optional[str] = None  # Model used for this response (for A/B testing)
     
     @field_validator('recipes')
     @classmethod
