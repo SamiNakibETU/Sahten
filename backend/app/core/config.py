@@ -1,58 +1,111 @@
 """
-Sahten Configuration
-====================
+Sahten MVP Configuration
+========================
 
-Centralized application settings.
+Centralized application settings with flexible model selection,
+A/B testing support, and optional embeddings.
 """
 
 from functools import lru_cache
-from typing import Optional
+from typing import Optional, List
 from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
     """Application settings loaded from environment."""
     
-    # App info
+    # ============================================================================
+    # APP INFO
+    # ============================================================================
     app_name: str = "Sahten"
-    app_version: str = "1.0.0"
+    app_version: str = "2.0.0-mvp"
     
-    # OpenAI
+    # ============================================================================
+    # OPENAI CONFIGURATION
+    # ============================================================================
     openai_api_key: str = ""
-    openai_model: str = "gpt-4o-mini"
     
-    # Data paths (relative to v2/ directory)
+    # Default model - can be overridden via API request or A/B testing
+    # Options: "gpt-4.1-nano" (economique), "gpt-4o-mini" (qualite)
+    openai_model: str = "gpt-4.1-nano"
+    
+    # ============================================================================
+    # MODEL SELECTION & A/B TESTING
+    # ============================================================================
+    # Enable A/B testing between models
+    enable_ab_testing: bool = False
+    
+    # Models to test (when A/B testing is enabled)
+    ab_test_model_a: str = "gpt-4.1-nano"
+    ab_test_model_b: str = "gpt-4o-mini"
+    
+    # Ratio for A/B split (0.5 = 50% each)
+    ab_test_ratio: float = 0.5
+    
+    # ============================================================================
+    # DATA PATHS (relative to Sahten_MVP/ directory)
+    # ============================================================================
     olj_data_path: str = "data_base_OLJ_enriched.json"
     base2_data_path: str = "Data_base_2.json"
-    # Canonical dataset (generated offline)
     olj_canonical_path: str = "data/olj_canonical.json"
     
-    # Feature flags
+    # ============================================================================
+    # FEATURE FLAGS
+    # ============================================================================
     enable_safety_check: bool = True
     enable_narrative_generation: bool = True
     
-    # Retrieval settings
+    # ============================================================================
+    # RETRIEVAL SETTINGS
+    # ============================================================================
     max_results: int = 5
     olj_score_threshold: float = 0.5
-
-    # RAG settings
     retrieve_top_k: int = 20
     rerank_top_k: int = 10
     rerank_model: str = "gpt-4o-mini"
-    # Embeddings disabled: TF-IDF + LLM reranker is sufficient for recipe search
+    
+    # ============================================================================
+    # EMBEDDINGS CONFIGURATION
+    # ============================================================================
+    # OFF by default - TF-IDF + LLM reranker is sufficient for 145 recipes
+    # Enable when: 1000+ recipes OR frequent semantic queries ("quelque chose de frais")
     enable_embeddings: bool = False
     
-    # API settings
+    # Provider: "openai" (real embeddings) or "mock" (deterministic, for testing)
+    embedding_provider: str = "openai"
+    embedding_model: str = "text-embedding-3-small"
+    embedding_dimension: int = 1536
+    
+    # ============================================================================
+    # CMS WEBHOOK CONFIGURATION
+    # ============================================================================
+    # Secret for webhook authentication (set in production)
+    webhook_secret: str = ""
+    
+    # Auto-enrich new recipes via LLM when received from CMS
+    auto_enrich_on_webhook: bool = True
+    
+    # ============================================================================
+    # API SETTINGS
+    # ============================================================================
     api_host: str = "0.0.0.0"
     api_port: int = 8000
     api_prefix: str = "/api"
     debug: bool = False
     
-    # CORS - Allow all origins for Vercel deployment
+    # ============================================================================
+    # CORS - Allow all origins for Vercel/Railway deployment
+    # ============================================================================
     cors_origins: list = ["*"]
-    cors_allow_credentials: bool = False  # Must be False with wildcard origins
+    cors_allow_credentials: bool = False
     cors_allow_methods: list = ["*"]
     cors_allow_headers: list = ["*"]
+    
+    # ============================================================================
+    # UPSTASH REDIS (for persistent logging)
+    # ============================================================================
+    upstash_redis_rest_url: str = ""
+    upstash_redis_rest_token: str = ""
     
     class Config:
         env_file = ".env"
@@ -64,3 +117,8 @@ class Settings(BaseSettings):
 def get_settings() -> Settings:
     """Get cached settings instance."""
     return Settings()
+
+
+def get_available_models() -> List[str]:
+    """Return list of available models for UI dropdown."""
+    return ["gpt-4.1-nano", "gpt-4o-mini"]

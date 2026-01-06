@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>L'Orient-Le Jour - Sahten</title>
+    <title>L'Orient-Le Jour - Sahten MVP</title>
 
     <!-- Fonts: Inter (Variable) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -36,12 +36,58 @@
         letter-spacing: -0.03em;
         margin-bottom: 8px;
       }
+      
+      /* Model Selector Styles */
+      .model-selector-container {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-right: auto;
+        padding-left: 12px;
+      }
+      
+      .model-selector-label {
+        font-size: 10px;
+        color: var(--color-text-muted, #888);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      
+      .model-selector {
+        font-size: 11px;
+        font-family: inherit;
+        padding: 4px 8px;
+        border: 1px solid rgba(0,0,0,0.1);
+        border-radius: 4px;
+        background: rgba(255,255,255,0.8);
+        color: var(--color-text-main, #1B1A1A);
+        cursor: pointer;
+        transition: border-color 0.2s;
+      }
+      
+      .model-selector:hover {
+        border-color: var(--color-accent, #94C2AE);
+      }
+      
+      .model-selector:focus {
+        outline: none;
+        border-color: var(--color-accent, #94C2AE);
+        box-shadow: 0 0 0 2px rgba(148, 194, 174, 0.2);
+      }
+      
+      .model-indicator {
+        font-size: 9px;
+        padding: 2px 6px;
+        border-radius: 3px;
+        background: rgba(148, 194, 174, 0.15);
+        color: var(--color-accent, #94C2AE);
+      }
     </style>
   </head>
   <body>
     <div class="page-context">
       <h1>L'Orient-Le Jour</h1>
-      <p>Simulation d'intégration (Widget)</p>
+      <p>Simulation d'intégration (Widget MVP)</p>
     </div>
 
     <!-- SAHTEN WIDGET -->
@@ -52,6 +98,16 @@
 
       <!-- Header -->
       <div class="sahten-header">
+        <!-- Model Selector (for testing) -->
+        <div class="model-selector-container">
+          <label class="model-selector-label" for="model-select">Modèle</label>
+          <select id="model-select" class="model-selector">
+            <option value="auto">Auto</option>
+            <option value="gpt-4.1-nano">Nano (économique)</option>
+            <option value="gpt-4o-mini">Mini (qualité)</option>
+          </select>
+        </div>
+        
         <div class="sahten-title">Sahten</div>
         <div class="sahten-controls">
           <button
@@ -173,10 +229,10 @@
     <script type="module">
       import { SahtenChat } from "./js/sahten.js";
 
-      // Initialize - Auto-detects API URL
-      // Local dev: http://localhost:8000/api
-      // Production: Uses window.SAHTEN_API_BASE if set
-      const chat = new SahtenChat();
+      // Initialize with model selector support
+      const chat = new SahtenChat({
+        modelSelector: document.getElementById('model-select')
+      });
     </script>
   </body>
 </html>

@@ -1,15 +1,15 @@
 """
-Sahten API Routes
-=================
+Sahten API Routes (MVP)
+=======================
 
-Dedicated routes for the durable RAG pipeline.
-Production version with Upstash Redis logging for persistent traces.
+Dedicated routes for the durable RAG pipeline with flexible model selection.
 
 Endpoints:
-  - POST /chat
-  - GET  /health
-  - GET  /status
-  - GET  /traces  (team review - see recent conversations)
+  - POST /chat         - Main chat endpoint (supports model override)
+  - GET  /health       - Health check
+  - GET  /status       - Detailed status
+  - GET  /traces       - Team review of conversations
+  - GET  /models       - Available models list
 """
 
 from __future__ import annotations
@@ -25,6 +25,7 @@ from fastapi import APIRouter, HTTPException, status, Query
 from pydantic import BaseModel
 
 from ..bot import get_bot
+from ..core.config import get_settings, get_available_models
 from ..schemas.responses import SahtenResponse
 from .response_composer import compose_html_response
 
@@ -36,12 +37,9 @@ router = APIRouter(tags=["chat"])
 # ============================================================================
 # UPSTASH REDIS CONFIGURATION
 # ============================================================================
-# Set these environment variables in Vercel:
-#   - UPSTASH_REDIS_REST_URL
-#   - UPSTASH_REDIS_REST_TOKEN
-# ============================================================================
 
 _redis_client = None
+
 
 def get_redis():
     """Lazy initialization of Upstash Redis client."""
@@ -59,12 +57,12 @@ def get_redis():
             logger.info("Upstash Redis connected successfully")
         except ImportError:
             logger.warning("upstash-redis not installed, traces will be stdout only")
-            _redis_client = False  # Mark as unavailable
+            _redis_client = False
         except Exception as e:
             logger.warning("Failed to connect to Upstash Redis: %s", e)
             _redis_client = False
     else:
-        logger.info("Upstash not configured (no UPSTASH_REDIS_REST_URL), using stdout logging")
+        logger.info("Upstash not configured, using stdout logging")
         _redis_client = False
     
     return _redis_client if _redis_client else None
@@ -78,13 +76,9 @@ def log_chat_trace(
     response: SahtenResponse,
     debug: bool,
     debug_info: Optional[dict],
+    model_used: Optional[str] = None,
 ) -> None:
-    """
-    Log conversation trace.
-    
-    - Always logs to stdout (captured by Vercel Logs)
-    - If Upstash is configured, also persists to Redis for team review
-    """
+    """Log conversation trace to stdout and optionally Upstash Redis."""
     try:
         trace = {
             "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -95,20 +89,21 @@ def log_chat_trace(
             "intent": response.intent_detected,
             "confidence": response.confidence,
             "recipe_count": response.recipe_count,
-            "has_olj_reco": response.olj_recommendation is not None,
+            "model_used": model_used or response.model_used,
             "metadata": {
                 "source": "api",
                 "debug": debug,
             },
         }
         
-        # Always log to stdout (Vercel captures this)
+        # Always log to stdout
         compact_trace = {
             "ts": trace["timestamp"],
             "id": request_id,
-            "q": user_message[:100],  # Truncate for readability
+            "q": user_message[:100],
             "intent": response.intent_detected,
             "recipes": response.recipe_count,
+            "model": model_used or response.model_used,
         }
         print(f"[TRACE] {json.dumps(compact_trace, ensure_ascii=False)}")
         
@@ -116,42 +111,71 @@ def log_chat_trace(
         redis = get_redis()
         if redis:
             try:
-                # Store full trace with 30-day expiry
                 key = f"trace:{request_id}"
                 redis.set(key, json.dumps(trace, ensure_ascii=False), ex=60*60*24*30)
-                
-                # Also push to a list for easy retrieval (keep last 500)
                 redis.lpush("sahten:traces:recent", json.dumps(trace, ensure_ascii=False))
                 redis.ltrim("sahten:traces:recent", 0, 499)
-                
                 logger.debug("Trace %s saved to Redis", request_id)
             except Exception as e:
-                logger.warning("Redis write failed (trace still in stdout): %s", e)
+                logger.warning("Redis write failed: %s", e)
                 
     except Exception as e:
         logger.warning("Failed to log trace: %s", e)
 
 
+# ============================================================================
+# REQUEST/RESPONSE MODELS
+# ============================================================================
+
 class ChatRequest(BaseModel):
+    """Chat request with optional model override."""
     message: str
     debug: bool = False
+    model: Optional[str] = None  # "auto", "gpt-4.1-nano", "gpt-4o-mini"
 
 
 class ChatResponseAPI(BaseModel):
+    """Chat response with model info."""
     html: str
     response_type: str
     intent: Optional[str] = None
     confidence: Optional[float] = None
     recipe_count: int = 0
+    model_used: Optional[str] = None
     debug_info: Optional[dict] = None
 
 
+class ModelsResponse(BaseModel):
+    """Available models response."""
+    models: List[str]
+    default: str
+    ab_testing_enabled: bool
+
+
+# ============================================================================
+# ENDPOINTS
+# ============================================================================
+
 @router.post("/chat", response_model=ChatResponseAPI)
 async def chat(request: ChatRequest):
+    """
+    Main chat endpoint.
+    
+    Supports model override:
+    - model="auto" or None: Use default or A/B testing
+    - model="gpt-4.1-nano": Force nano model (economique)
+    - model="gpt-4o-mini": Force mini model (qualite)
+    """
     request_id = str(uuid.uuid4())[:8]
+    
     try:
         bot = get_bot()
-        response, debug_info = await bot.chat(request.message, debug=request.debug)
+        response, debug_info = await bot.chat(
+            request.message,
+            debug=request.debug,
+            model=request.model,
+            request_id=request_id,
+        )
         html = compose_html_response(response)
 
         log_chat_trace(
@@ -161,6 +185,7 @@ async def chat(request: ChatRequest):
             response=response,
             debug=request.debug,
             debug_info=debug_info,
+            model_used=response.model_used,
         )
 
         return ChatResponseAPI(
@@ -169,6 +194,7 @@ async def chat(request: ChatRequest):
             intent=response.intent_detected,
             confidence=response.confidence,
             recipe_count=response.recipe_count,
+            model_used=response.model_used,
             debug_info=debug_info if request.debug else None,
         )
     except Exception as e:
@@ -179,14 +205,26 @@ async def chat(request: ChatRequest):
         )
 
 
+@router.get("/models", response_model=ModelsResponse)
+async def get_models():
+    """Get available models for UI dropdown."""
+    settings = get_settings()
+    return ModelsResponse(
+        models=get_available_models(),
+        default=settings.openai_model,
+        ab_testing_enabled=settings.enable_ab_testing,
+    )
+
+
 @router.get("/health")
 async def health():
     """Health check endpoint."""
     redis = get_redis()
+    settings = get_settings()
     return {
         "status": "healthy",
-        "version": "1.0.0",
-        "pipeline": "durable-rag",
+        "version": settings.app_version,
+        "pipeline": "durable-rag-mvp",
         "logging": "upstash" if redis else "stdout",
     }
 
@@ -197,9 +235,20 @@ async def get_status():
     try:
         bot = get_bot()
         redis = get_redis()
+        settings = get_settings()
+        
         return {
             "status": "operational",
-            "version": "1.0.0",
+            "version": settings.app_version,
+            "model": {
+                "default": settings.openai_model,
+                "ab_testing": settings.enable_ab_testing,
+                "available": get_available_models(),
+            },
+            "embeddings": {
+                "enabled": settings.enable_embeddings,
+                "provider": settings.embedding_provider if settings.enable_embeddings else None,
+            },
             "logging": {
                 "backend": "upstash" if redis else "stdout",
                 "traces_endpoint": "/api/traces" if redis else None,
@@ -220,7 +269,7 @@ async def get_status():
 
 
 # ============================================================================
-# TRACES ENDPOINT - For team review
+# TRACES ENDPOINT
 # ============================================================================
 
 class TraceItem(BaseModel):
@@ -231,6 +280,7 @@ class TraceItem(BaseModel):
     intent: Optional[str]
     confidence: Optional[float]
     recipe_count: int
+    model_used: Optional[str]
 
 
 class TracesResponse(BaseModel):
@@ -243,12 +293,7 @@ class TracesResponse(BaseModel):
 async def get_traces(
     limit: int = Query(default=50, ge=1, le=200, description="Number of traces to retrieve")
 ):
-    """
-    Retrieve recent conversation traces for team review.
-    
-    Requires Upstash Redis to be configured.
-    Returns the most recent conversations with user questions and bot responses.
-    """
+    """Retrieve recent conversation traces for team review."""
     redis = get_redis()
     
     if not redis:
@@ -259,14 +304,12 @@ async def get_traces(
         )
     
     try:
-        # Get recent traces from Redis list
         raw_traces = redis.lrange("sahten:traces:recent", 0, limit - 1)
         
         traces = []
         for raw in raw_traces:
             try:
                 trace = json.loads(raw) if isinstance(raw, str) else raw
-                # Return a clean subset for review
                 traces.append({
                     "timestamp": trace.get("timestamp"),
                     "request_id": trace.get("request_id"),
@@ -275,6 +318,7 @@ async def get_traces(
                     "intent": trace.get("intent"),
                     "confidence": trace.get("confidence"),
                     "recipe_count": trace.get("recipe_count"),
+                    "model_used": trace.get("model_used"),
                 })
             except (json.JSONDecodeError, TypeError):
                 continue
