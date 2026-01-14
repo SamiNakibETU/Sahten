@@ -4,72 +4,70 @@ Guide complet pour l'équipe de développement du journal pour intégrer Sahten 
 
 ## Vue d'ensemble
 
-Sahten supporte l'intégration **PUSH** via webhook : le CMS envoie les nouvelles recettes à Sahten qui les enrichit et les indexe automatiquement.
+Sahten utilise une intégration **hybride PUSH + PULL** :
+1. Le CMS envoie une notification (webhook) avec l'`article_id`
+2. Sahten récupère les données complètes via l'API OLJ
+3. Sahten enrichit et indexe automatiquement la recette
 
 ```
-┌──────────────┐     POST /api/webhook/recipe     ┌──────────────┐
-│              │  ──────────────────────────────► │              │
-│   Votre CMS  │     {title, content, url...}     │   Sahten     │
-│              │  ◄────────────────────────────── │              │
-└──────────────┘     {"status": "indexed"}        └──────────────┘
-       │                                                 │
-       │ Vous développez                   Nous développons │
-       ▼                                                 ▼
-  Appeler le webhook                         Recevoir + Enrichir
-  lors de la publication                     + Indexer + Répondre
+┌──────────────┐  POST /webhook/recipe   ┌──────────────┐  GET /cms/content/{id}  ┌──────────────┐
+│              │  { article_id: 123 }    │              │  ─────────────────────► │              │
+│   Votre CMS  │  ────────────────────►  │   Sahten     │  ◄───────────────────── │   OLJ API    │
+│              │  ◄────────────────────  │              │   { title, content... } │              │
+└──────────────┘  {"status": "indexed"}  └──────────────┘                         └──────────────┘
+       │                                        │
+       │ Vous développez              Nous développons │
+       ▼                                        ▼
+  Appeler le webhook               Récupérer + Enrichir
+  avec l'article_id                + Indexer + Répondre
 ```
 
-## Endpoint
+## Endpoint Webhook
 
 ```
 POST /api/webhook/recipe
 ```
 
-## Authentification
+### Authentification
 
-Utiliser le header `X-Webhook-Secret` :
-
+Header requis :
 ```http
 X-Webhook-Secret: votre-secret-partage
 ```
 
-Le secret est configuré côté Sahten via la variable d'environnement `WEBHOOK_SECRET`.
+Le secret est configuré côté Sahten via `WEBHOOK_SECRET`.
 
-## Format du Payload
+### Format du Payload (Simplifié)
 
 ```json
 {
-  "id": "article_12345",
-  "title": "Fattouch aux herbes fraîches",
-  "url": "https://lorientlejour.com/article/12345",
-  "author": "Maya Sfeir",
-  "published_date": "2025-01-05",
-  "content": "La fattouch est une salade libanaise traditionnelle...",
-  "image_url": "https://cdn.lorientlejour.com/images/12345.jpg"
+  "article_id": 1227694,
+  "action": "publish"
 }
 ```
 
-### Champs
+| Champ        | Type   | Requis | Description                                        |
+| ------------ | ------ | ------ | -------------------------------------------------- |
+| `article_id` | int    | ✅     | Content ID de l'article (ex: 1227694)              |
+| `action`     | string | ❌     | `"publish"` (défaut), `"update"`, ou `"delete"`    |
 
-| Champ            | Type   | Requis | Description                            |
-| ---------------- | ------ | ------ | -------------------------------------- |
-| `id`             | string | ✅     | Identifiant unique de l'article        |
-| `title`          | string | ✅     | Titre de la recette                    |
-| `url`            | string | ✅     | URL de l'article sur lorientlejour.com |
-| `content`        | string | ✅     | Contenu complet de la recette          |
-| `author`         | string | ❌     | Nom du chef/auteur                     |
-| `published_date` | string | ❌     | Date de publication (ISO 8601)         |
-| `image_url`      | string | ❌     | URL de l'image principale              |
+### Actions supportées
+
+| Action    | Comportement                                      |
+| --------- | ------------------------------------------------- |
+| `publish` | Ajoute la recette (ignore si déjà existante)      |
+| `update`  | Met à jour la recette existante                   |
+| `delete`  | Supprime la recette de l'index                    |
 
 ## Réponses
 
-### Succès (200)
+### Succès - Recette indexée (200)
 
 ```json
 {
   "status": "indexed",
-  "id": "article_12345",
-  "message": "Recipe 'Fattouch aux herbes fraîches' added and indexed",
+  "article_id": 1227694,
+  "message": "Recipe 'Le taboulé de Kamal Mouzawak' added and indexed",
   "enriched": true
 }
 ```
@@ -79,8 +77,19 @@ Le secret est configuré côté Sahten via la variable d'environnement `WEBHOOK_
 ```json
 {
   "status": "skipped",
-  "id": "article_12345",
+  "article_id": 1227694,
   "message": "Recipe already exists",
+  "enriched": false
+}
+```
+
+### Recette supprimée (200)
+
+```json
+{
+  "status": "deleted",
+  "article_id": 1227694,
+  "message": "Recipe 1227694 deleted",
   "enriched": false
 }
 ```
@@ -93,74 +102,64 @@ Le secret est configuré côté Sahten via la variable d'environnement `WEBHOOK_
 }
 ```
 
-### Erreur serveur (500)
+### Recette non trouvée dans l'API (404)
 
 ```json
 {
-  "detail": "Failed to save recipe: ..."
+  "detail": "Recipe 1227694 not found in OLJ API"
+}
+```
+
+### Erreur API OLJ (502)
+
+```json
+{
+  "detail": "Failed to fetch recipe from OLJ API: ..."
 }
 ```
 
 ## Exemples curl
 
-### Test simple
+### Publier une nouvelle recette
 
 ```bash
-curl -X POST "https://your-sahten-instance.railway.app/api/webhook/recipe" \
+curl -X POST "https://sahten-mvp-production.up.railway.app/api/webhook/recipe" \
   -H "Content-Type: application/json" \
-  -H "X-Webhook-Secret: your-secret" \
+  -H "X-Webhook-Secret: votre-secret" \
   -d '{
-    "id": "test_001",
-    "title": "Test Taboulé",
-    "url": "https://lorientlejour.com/test",
-    "content": "Le taboulé est une salade de persil..."
+    "article_id": 1227694,
+    "action": "publish"
   }'
 ```
 
-### Avec tous les champs
+### Mettre à jour une recette
 
 ```bash
-curl -X POST "https://your-sahten-instance.railway.app/api/webhook/recipe" \
+curl -X POST "https://sahten-mvp-production.up.railway.app/api/webhook/recipe" \
   -H "Content-Type: application/json" \
-  -H "X-Webhook-Secret: your-secret" \
+  -H "X-Webhook-Secret: votre-secret" \
   -d '{
-    "id": "article_67890",
-    "title": "Kibbeh nayeh traditionnel",
-    "url": "https://lorientlejour.com/article/67890",
-    "author": "Chef Antoine",
-    "published_date": "2025-01-05T10:30:00Z",
-    "content": "Le kibbeh nayeh est un plat emblématique de la cuisine libanaise. Cette préparation de viande crue assaisonnée demande une qualité de viande irréprochable et un savoir-faire traditionnel...",
-    "image_url": "https://cdn.lorientlejour.com/images/67890.jpg"
+    "article_id": 1227694,
+    "action": "update"
   }'
 ```
 
-## Enrichissement automatique
+### Supprimer une recette
 
-Quand Sahten reçoit une recette, il l'enrichit automatiquement via LLM :
-
-| Champ enrichi       | Description            | Exemple                            |
-| ------------------- | ---------------------- | ---------------------------------- |
-| `categories`        | Type de plat           | `["mezze_froid", "entree"]`        |
-| `difficulty`        | Niveau de difficulté   | `"facile"`                         |
-| `is_lebanese`       | Cuisine libanaise ?    | `true`                             |
-| `keywords`          | Mots-clés de recherche | `["persil", "boulghour", "تبولة"]` |
-| `prep_time_minutes` | Temps de préparation   | `30`                               |
-| `main_ingredients`  | Ingrédients principaux | `["persil", "tomates", "oignons"]` |
-| `occasion`          | Occasion de service    | `["quotidien", "ete", "buffet"]`   |
-| `mood`              | Qualités émotionnelles | `["frais", "leger", "healthy"]`    |
-| `dietary`           | Régimes alimentaires   | `["vegetarien", "vegan"]`          |
-
-Ces champs permettent une recherche plus précise :
-
-- "recette fraîche pour l'été"
-- "dessert pour le ramadan"
-- "plat végétarien rapide"
+```bash
+curl -X POST "https://sahten-mvp-production.up.railway.app/api/webhook/recipe" \
+  -H "Content-Type: application/json" \
+  -H "X-Webhook-Secret: votre-secret" \
+  -d '{
+    "article_id": 1227694,
+    "action": "delete"
+  }'
+```
 
 ## Vérification de l'état
 
 ```bash
-# Vérifier que le webhook est prêt
-curl "https://your-sahten-instance.railway.app/api/webhook/health"
+curl "https://sahten-mvp-production.up.railway.app/api/webhook/health"
 ```
 
 Réponse :
@@ -169,67 +168,78 @@ Réponse :
 {
   "status": "ready",
   "auto_enrich": true,
-  "webhook_configured": true
+  "webhook_configured": true,
+  "olj_api_configured": true
 }
 ```
 
-## Responsabilités
+## Configuration côté Sahten (Railway)
 
-| Composant                         | Responsable   |
-| --------------------------------- | ------------- |
-| Endpoint `/api/webhook/recipe`    | Équipe Sahten |
-| Enrichissement automatique        | Équipe Sahten |
-| Appel du webhook à la publication | Équipe CMS    |
-| Génération et stockage du secret  | Coordination  |
-
-## Configuration requise
-
-### Côté Sahten (Railway/Vercel)
-
-Variables d'environnement :
+Variables d'environnement requises :
 
 ```
-WEBHOOK_SECRET=votre-secret-partage-securise
 OPENAI_API_KEY=sk-...
+WEBHOOK_SECRET=votre-secret-partage-securise
+OLJ_API_KEY=d3037095bcd8ad824767518cf83b9440bf7dc14a17a150f1398c9d8f63a7e623
+OLJ_API_BASE=https://api.lorientlejour.com/cms
 AUTO_ENRICH_ON_WEBHOOK=true
 ```
 
-### Côté CMS
+## Enrichissement automatique
 
-- Stocker le secret de manière sécurisée
-- Appeler le webhook après publication/mise à jour
-- Gérer les retries en cas d'erreur réseau
+Quand Sahten reçoit une notification :
+1. Récupère les données via `GET /cms/content/{article_id}`
+2. Extrait : titre, contenu, auteur, catégorie, keywords, image
+3. Enrichit via LLM (catégorie, ingrédients, tags)
+4. Indexe pour la recherche
+
+| Champ enrichi       | Description            | Exemple                            |
+| ------------------- | ---------------------- | ---------------------------------- |
+| `category_canonical`| Type de plat           | `"mezze_froid"`, `"dessert"`       |
+| `is_lebanese`       | Cuisine libanaise ?    | `true`                             |
+| `tags`              | Mots-clés de recherche | `["persil", "boulghour", "mezzé"]` |
+| `main_ingredients`  | Ingrédients principaux | `["persil", "tomates", "oignons"]` |
+
+## Responsabilités
+
+| Composant                           | Responsable   |
+| ----------------------------------- | ------------- |
+| Endpoint `/api/webhook/recipe`      | Équipe Sahten |
+| Appel API `/cms/content/{id}`       | Équipe Sahten |
+| Enrichissement automatique          | Équipe Sahten |
+| Appel du webhook à la publication   | Équipe CMS    |
+| Génération et partage du secret     | Coordination  |
+
+## Données initiales
+
+Les 151 recettes du CSV export ont été importées. Le webhook est pour les **nouvelles** publications uniquement.
 
 ## FAQ
 
 ### Quand appeler le webhook ?
 
 - ✅ À la **publication** d'une nouvelle recette
-- ✅ À la **mise à jour** d'une recette existante (sera ignorée si déjà présente)
+- ✅ À la **mise à jour** d'une recette existante
+- ✅ À la **suppression** d'une recette
 - ❌ Ne pas appeler pour les brouillons
 
-### Que se passe-t-il si le webhook échoue ?
+### Que se passe-t-il si l'API OLJ est indisponible ?
 
-La recette n'est pas indexée. Implémentez un système de retry côté CMS ou contactez l'équipe Sahten.
+Sahten retourne une erreur 502. Implémentez un système de retry côté CMS.
 
-### Les anciennes recettes sont-elles incluses ?
+### Comment tester en développement ?
 
-Oui, les 145 recettes existantes sont déjà indexées. Le webhook est pour les **nouvelles** publications.
-
-### Puis-je tester en développement ?
-
-Oui, utilisez l'endpoint local :
-
-```
+```bash
+# Local (sans secret requis en mode dev)
 POST http://localhost:8000/api/webhook/recipe
 ```
 
-Sans `WEBHOOK_SECRET` configuré, le webhook accepte toutes les requêtes (mode dev).
+### Comment vérifier qu'une recette est indexée ?
+
+Utilisez le chat pour rechercher la recette par son titre.
 
 ## Contact
 
-Pour toute question technique :
-
-- Endpoint `/api/status` pour l'état du système
-- Endpoint `/api/traces` pour voir les conversations récentes
-
+- Endpoint `/api/health` - état du système
+- Endpoint `/api/status` - statistiques détaillées
+- Endpoint `/api/webhook/health` - état du webhook

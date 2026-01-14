@@ -86,6 +86,15 @@ class Settings(BaseSettings):
     auto_enrich_on_webhook: bool = True
     
     # ============================================================================
+    # OLJ CMS API CONFIGURATION
+    # ============================================================================
+    # Base URL for OLJ CMS API
+    olj_api_base: str = "https://api.lorientlejour.com/cms"
+    
+    # API key for authentication (set via OLJ_API_KEY env var)
+    olj_api_key: str = ""
+    
+    # ============================================================================
     # API SETTINGS
     # ============================================================================
     api_host: str = "0.0.0.0"
