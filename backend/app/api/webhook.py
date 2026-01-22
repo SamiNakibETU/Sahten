@@ -14,7 +14,9 @@ Integration Flow (Two-Step):
   7. Recipe is immediately searchable
 
 Authentication:
-  - X-Webhook-Secret header must match WEBHOOK_SECRET env var
+  - X-Webhook-Signature header contains HMAC SHA256 signature
+  - Format: sha256=<hex_digest>
+  - Signature is computed over the raw JSON payload using WEBHOOK_SECRET
   
 Payload Format (from CMS):
   {
@@ -25,6 +27,8 @@ Payload Format (from CMS):
 
 from __future__ import annotations
 
+import hashlib
+import hmac
 import json
 import logging
 import os
@@ -34,7 +38,7 @@ from typing import Optional
 import re
 import httpx
 
-from fastapi import APIRouter, Header, HTTPException, status
+from fastapi import APIRouter, Header, HTTPException, Request, status
 from pydantic import BaseModel
 
 from ..bot import get_bot
@@ -82,6 +86,42 @@ class WebhookError(BaseModel):
     """Webhook error response."""
     error: str
     detail: str
+
+
+# ============================================================================
+# SIGNATURE VALIDATION (WhiteBeard HMAC SHA256)
+# ============================================================================
+
+def verify_webhook_signature(payload: bytes, signature_header: str, secret: str) -> bool:
+    """
+    Validate WhiteBeard webhook signature (HMAC SHA256).
+    
+    WhiteBeard CMS signs webhooks using HMAC SHA256:
+    - Header: X-Webhook-Signature
+    - Format: sha256=<hex_digest>
+    
+    Args:
+        payload: Raw request body (bytes)
+        signature_header: Value of X-Webhook-Signature header
+        secret: Configured WEBHOOK_SECRET
+        
+    Returns:
+        True if signature is valid, False otherwise
+        
+    Reference: https://docs.whitebeard.net/marketingguides/setting_up_automations/#webhook-secret
+    """
+    if not signature_header or not secret:
+        return False
+    
+    # Calculate expected signature
+    expected_sig = "sha256=" + hmac.new(
+        secret.encode("utf-8"),
+        payload,
+        hashlib.sha256
+    ).hexdigest()
+    
+    # Use timing-safe comparison to prevent timing attacks
+    return hmac.compare_digest(expected_sig, signature_header)
 
 
 # ============================================================================
@@ -281,14 +321,14 @@ def recipe_data_to_canonical(recipe: RecipeData) -> dict:
 
 @router.post("/recipe", response_model=WebhookResponse)
 async def receive_recipe(
-    payload: WebhookPayload,
-    x_webhook_secret: str = Header(..., description="Webhook authentication secret"),
+    request: Request,
+    x_webhook_signature: Optional[str] = Header(None, alias="X-Webhook-Signature", description="HMAC SHA256 signature"),
 ):
     """
     Receive notification of new/updated recipe from CMS.
     
     Flow:
-    1. Validates webhook secret
+    1. Validates HMAC signature (WhiteBeard format: sha256=<hash>)
     2. Fetches full recipe data from OLJ API
     3. Enriches recipe via LLM (optional)
     4. Adds to canonical dataset
@@ -299,22 +339,42 @@ async def receive_recipe(
         WebhookResponse with status and enrichment details
     
     Raises:
-        401: Invalid webhook secret
+        401: Invalid webhook signature
         404: Recipe not found in OLJ API
         500: Enrichment or storage failed
     """
     settings = get_settings()
     
-    # 1. Validate webhook secret
+    # 1. Get raw body for signature verification
+    body = await request.body()
+    
+    # 2. Validate HMAC signature (WhiteBeard format)
     expected_secret = settings.webhook_secret or os.getenv("WEBHOOK_SECRET", "")
     
     if not expected_secret:
         logger.warning("WEBHOOK_SECRET not configured - accepting any request (DEV MODE)")
-    elif x_webhook_secret != expected_secret:
-        log_webhook_event(payload.article_id, "auth_failed")
+    elif not verify_webhook_signature(body, x_webhook_signature or "", expected_secret):
+        # Try to parse article_id for logging (best effort)
+        try:
+            payload_data = json.loads(body)
+            article_id = payload_data.get("article_id", 0)
+        except Exception:
+            article_id = 0
+        log_webhook_event(article_id, "auth_failed", {"reason": "invalid_signature"})
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid webhook secret",
+            detail="Invalid webhook signature",
+        )
+    
+    # 3. Parse payload after signature validation
+    try:
+        payload_data = json.loads(body)
+        payload = WebhookPayload(**payload_data)
+    except Exception as e:
+        logger.error("Failed to parse webhook payload: %s", e)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid payload format: {e}",
         )
     
     log_webhook_event(payload.article_id, "received", {"action": payload.action})
