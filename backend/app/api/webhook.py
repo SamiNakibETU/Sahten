@@ -62,6 +62,28 @@ class WebhookPayload(BaseModel):
     action: str = "publish"  # publish, update, delete
 
 
+class WhiteBeardPayload(BaseModel):
+    """
+    WhiteBeard automation webhook payload.
+    
+    WhiteBeard sends automation data, we need to extract article_id from it.
+    The exact field names depend on how OLJ configured their automation.
+    
+    Possible fields where article_id might be:
+    - automationId (but this is the automation ID, not article)
+    - subject (might contain article ID or title)
+    - Custom fields configured in WhiteBeard
+    """
+    
+    automationId: Optional[str] = None
+    subject: Optional[str] = None
+    # Add other fields as we discover them
+    # These are optional to capture any structure
+    
+    class Config:
+        extra = "allow"  # Accept any additional fields
+
+
 class RecipeData(BaseModel):
     """Recipe data fetched from OLJ API."""
 
@@ -364,7 +386,7 @@ async def receive_recipe(request: Request):
     # WhiteBeard sends: x-webhook-signature (lowercase)
     headers_lower = {k.lower(): v for k, v in request.headers.items()}
     x_webhook_signature = headers_lower.get("x-webhook-signature")
-    
+
     # Log received headers for debugging
     logger.info("Webhook received - Headers: %s", dict(request.headers))
     logger.info("Webhook signature value: %s", x_webhook_signature)
@@ -389,16 +411,93 @@ async def receive_recipe(request: Request):
             detail="Invalid webhook signature",
         )
 
-    # 3. Parse payload after signature validation
+    # 4. Parse payload after signature validation
     try:
         payload_data = json.loads(body)
-        payload = WebhookPayload(**payload_data)
     except Exception as e:
-        logger.error("Failed to parse webhook payload: %s", e)
+        logger.error("Failed to parse JSON payload: %s", e)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Invalid payload format: {e}",
+            detail=f"Invalid JSON: {e}",
         )
+
+    # Log the complete payload for debugging (helps understand WhiteBeard format)
+    logger.info("Webhook payload received: %s", json.dumps(payload_data, ensure_ascii=False))
+    print(f"[WEBHOOK DEBUG] Full payload: {json.dumps(payload_data, ensure_ascii=False)}")
+
+    # 5. Extract article_id from payload (handle both formats)
+    article_id = None
+    action = "publish"
+
+    # Format 1: Direct article_id field (our expected format)
+    if "article_id" in payload_data:
+        article_id = payload_data["article_id"]
+        action = payload_data.get("action", "publish")
+    
+    # Format 2: WhiteBeard automation format - extract from various possible fields
+    elif "automationId" in payload_data:
+        # WhiteBeard format - we need to find the article_id
+        # It might be in 'subject', 'contentId', 'articleId', or other fields
+        
+        # Try common field names where article ID might be
+        possible_id_fields = [
+            "contentId", "content_id", 
+            "articleId", "article_id",
+            "id", "postId", "post_id",
+            "objectId", "object_id",
+            "recordId", "record_id",
+        ]
+        
+        for field in possible_id_fields:
+            if field in payload_data and payload_data[field]:
+                try:
+                    article_id = int(payload_data[field])
+                    break
+                except (ValueError, TypeError):
+                    continue
+        
+        # If still not found, try to extract from 'subject' if it looks like an ID
+        if not article_id and payload_data.get("subject"):
+            subject = str(payload_data["subject"]).strip()
+            # Check if subject is a numeric ID
+            if subject.isdigit():
+                article_id = int(subject)
+            # Or extract ID from URL-like pattern
+            elif "/article/" in subject:
+                match = re.search(r"/article/(\d+)", subject)
+                if match:
+                    article_id = int(match.group(1))
+
+        # Determine action from payload
+        action_field = payload_data.get("action") or payload_data.get("type") or payload_data.get("event")
+        if action_field:
+            action_lower = str(action_field).lower()
+            if "delete" in action_lower or "unpublish" in action_lower:
+                action = "delete"
+            elif "update" in action_lower or "edit" in action_lower:
+                action = "update"
+            else:
+                action = "publish"
+
+    if not article_id:
+        # Log the payload so the team can identify the correct field
+        logger.error(
+            "Could not extract article_id from payload. "
+            "Please check the payload structure and update the code. "
+            "Received: %s", 
+            json.dumps(payload_data, ensure_ascii=False)
+        )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                f"Could not extract article_id from payload. "
+                f"Received fields: {list(payload_data.keys())}. "
+                f"Please configure the automation to include 'article_id' or 'contentId'."
+            ),
+        )
+
+    # Create our internal payload object
+    payload = WebhookPayload(article_id=article_id, action=action)
 
     log_webhook_event(payload.article_id, "received", {"action": payload.action})
 
