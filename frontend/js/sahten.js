@@ -1,17 +1,50 @@
 /**
- * SAHTEN CLIENT (MVP)
+ * SAHTEN CLIENT (v2.1)
  * Persona: Editorial Chef from L'Orient-Le Jour
  * 
  * Features:
  * - Model selection (nano/mini/auto)
  * - A/B testing support
  * - Response model tracking
+ * - XSS Protection via DOMPurify
+ * - Feedback collection (👍/👎)
  * 
  * Configuration:
  * - Set window.SAHTEN_API_BASE before loading to override API URL
  * - Or pass { apiBase: "https://..." } to constructor
  * - Pass { modelSelector: element } for model dropdown support
+ * 
+ * Security:
+ * - All HTML responses are sanitized via DOMPurify before rendering
+ * - Only whitelisted tags/attributes are allowed
  */
+
+// Allowed HTML elements for sanitization
+const ALLOWED_TAGS = [
+    'div', 'p', 'span', 'strong', 'em', 'u', 'br', 
+    'a', 'article', 'h3', 
+    'ul', 'li', 'ol'
+];
+
+const ALLOWED_ATTR = ['class', 'href', 'target', 'style', 'aria-label'];
+
+/**
+ * Sanitize HTML using DOMPurify (if available) or strip all tags
+ */
+function sanitizeHTML(html) {
+    if (typeof DOMPurify !== 'undefined') {
+        return DOMPurify.sanitize(html, {
+            ALLOWED_TAGS: ALLOWED_TAGS,
+            ALLOWED_ATTR: ALLOWED_ATTR,
+            ALLOW_DATA_ATTR: false,
+        });
+    }
+    // Fallback: strip all HTML (nuclear option if DOMPurify not loaded)
+    console.warn('DOMPurify not loaded, stripping all HTML');
+    const temp = document.createElement('div');
+    temp.textContent = html;
+    return temp.innerHTML;
+}
 
 export class SahtenChat {
     constructor(config = {}) {
@@ -45,6 +78,7 @@ export class SahtenChat {
             size: 'window',
             touchStartY: 0,
             lastModelUsed: null,  // Track model used in last response
+            sessionId: this.generateSessionId(),  // For conversation memory
         };
 
         this.dom = {
@@ -68,7 +102,23 @@ export class SahtenChat {
         if (!this.dom.container) return; 
         this.bindEvents();
         this.loadModels();
-        console.log(`Sahten MVP initialized. Backend: ${this.config.apiBase}`);
+        console.log(`Sahten v2.1 initialized. Backend: ${this.config.apiBase}, Session: ${this.state.sessionId}`);
+    }
+
+    generateSessionId() {
+        /**
+         * Generate a unique session ID for conversation memory.
+         * Persists in sessionStorage so refreshing page keeps the session.
+         */
+        const storageKey = 'sahten_session_id';
+        let sessionId = sessionStorage.getItem(storageKey);
+        
+        if (!sessionId) {
+            sessionId = 'ses_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 8);
+            sessionStorage.setItem(storageKey, sessionId);
+        }
+        
+        return sessionId;
     }
 
     async loadModels() {
@@ -196,6 +246,7 @@ export class SahtenChat {
             const payload = { 
                 message: text, 
                 debug: false,
+                session_id: this.state.sessionId,  // For conversation memory
             };
             
             // Add model if specified (not auto)
@@ -261,9 +312,111 @@ export class SahtenChat {
     appendBotMessage(data) {
         const div = document.createElement('div');
         div.className = 'msg msg-bot';
-        div.innerHTML = data.html; 
+        // Sanitize HTML to prevent XSS attacks
+        div.innerHTML = sanitizeHTML(data.html);
+        
+        // Add feedback buttons if we have a request_id
+        if (data.request_id) {
+            const feedbackDiv = this.createFeedbackButtons(data.request_id);
+            div.appendChild(feedbackDiv);
+        }
+        
         this.dom.body.appendChild(div);
         this.scrollToBottom();
+    }
+
+    createFeedbackButtons(requestId) {
+        /**
+         * Create feedback buttons (👍/👎) for a response.
+         */
+        const container = document.createElement('div');
+        container.className = 'feedback-container';
+        container.innerHTML = `
+            <div class="feedback-buttons" data-request-id="${requestId}">
+                <span class="feedback-prompt">Cette réponse vous a-t-elle aidé ?</span>
+                <button class="feedback-btn feedback-positive" data-rating="positive" title="Utile">👍</button>
+                <button class="feedback-btn feedback-negative" data-rating="negative" title="Pas utile">👎</button>
+            </div>
+            <div class="feedback-reason" style="display: none;">
+                <input type="text" class="feedback-reason-input" placeholder="Pourquoi ? (optionnel)" maxlength="200">
+                <button class="feedback-submit-btn">Envoyer</button>
+            </div>
+            <div class="feedback-thanks" style="display: none;">
+                <span>Merci pour votre retour !</span>
+            </div>
+        `;
+        
+        // Add event listeners
+        const buttons = container.querySelectorAll('.feedback-btn');
+        buttons.forEach(btn => {
+            btn.addEventListener('click', (e) => this.handleFeedbackClick(e, container, requestId));
+        });
+        
+        const submitBtn = container.querySelector('.feedback-submit-btn');
+        if (submitBtn) {
+            submitBtn.addEventListener('click', () => this.submitFeedbackWithReason(container, requestId));
+        }
+        
+        return container;
+    }
+
+    handleFeedbackClick(event, container, requestId) {
+        const rating = event.target.dataset.rating;
+        const buttonsDiv = container.querySelector('.feedback-buttons');
+        const reasonDiv = container.querySelector('.feedback-reason');
+        const thanksDiv = container.querySelector('.feedback-thanks');
+        
+        // Highlight selected button
+        container.querySelectorAll('.feedback-btn').forEach(btn => btn.classList.remove('selected'));
+        event.target.classList.add('selected');
+        
+        if (rating === 'negative') {
+            // Show reason input for negative feedback
+            reasonDiv.style.display = 'flex';
+            this.pendingFeedback = { requestId, rating };
+        } else {
+            // Submit positive feedback immediately
+            this.submitFeedback(requestId, rating, null);
+            buttonsDiv.style.display = 'none';
+            thanksDiv.style.display = 'block';
+        }
+    }
+
+    submitFeedbackWithReason(container, requestId) {
+        const reasonInput = container.querySelector('.feedback-reason-input');
+        const reason = reasonInput ? reasonInput.value.trim() : null;
+        const rating = this.pendingFeedback?.rating || 'negative';
+        
+        this.submitFeedback(requestId, rating, reason);
+        
+        // Update UI
+        container.querySelector('.feedback-buttons').style.display = 'none';
+        container.querySelector('.feedback-reason').style.display = 'none';
+        container.querySelector('.feedback-thanks').style.display = 'block';
+    }
+
+    async submitFeedback(requestId, rating, reason) {
+        /**
+         * Submit feedback to the API.
+         */
+        try {
+            const payload = {
+                request_id: requestId,
+                rating: rating,
+                reason: reason,
+                session_id: this.state.sessionId,
+            };
+            
+            console.log('Submitting feedback:', payload);
+            
+            await fetch(`${this.config.apiBase}/feedback`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+        } catch (error) {
+            console.error('Failed to submit feedback:', error);
+        }
     }
 
     setLoading(loading) {

@@ -125,6 +125,20 @@ async def root():
     }
 
 
+@app.get("/dashboard")
+async def dashboard():
+    """Serve the analytics dashboard."""
+    dashboard_path = FRONTEND_PATH / "dashboard.html"
+    
+    if dashboard_path.exists():
+        return FileResponse(dashboard_path)
+    
+    return {
+        "error": "Dashboard not found",
+        "message": "Please create frontend/dashboard.html",
+    }
+
+
 @app.get("/health")
 async def health():
     return {

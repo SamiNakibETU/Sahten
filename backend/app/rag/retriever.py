@@ -516,15 +516,25 @@ class HybridRetriever:
         return cards, dbg
 
     async def search_with_rerank(
-        self, analysis: QueryAnalysis, *, raw_query: str, debug: bool = False
+        self, analysis: QueryAnalysis, *, raw_query: str, debug: bool = False,
+        exclude_urls: Optional[List[str]] = None
     ) -> Tuple[List[RecipeCard], bool, Optional[dict]]:
-        """Async search with LLM reranking."""
+        """
+        Async search with LLM reranking.
+        
+        Args:
+            analysis: Query analysis from LLM
+            raw_query: Original user query
+            debug: Include debug info
+            exclude_urls: URLs to exclude (e.g., already proposed in session)
+        """
         settings = get_settings()
+        exclude_set = set(exclude_urls or [])
 
         # Menu composition: category-constrained searches
         if analysis.intent == "menu_composition":
             picked: List[RecipeCard] = []
-            used: set[str] = set()
+            used: set[str] = set(exclude_set)  # Include session exclusions
 
             async def pick_one(cat_allow: set[str], query_hint: str) -> Optional[RecipeCard]:
                 local_query = f"{raw_query} {query_hint}".strip()
@@ -617,6 +627,7 @@ class HybridRetriever:
             reranked,
             max_results=max(analysis.recipe_count, settings.max_results),
             category_allowlist=allowlist,
+            exclude_urls=exclude_set,  # Exclude already-proposed recipes from session
         )
 
         dbg = None
@@ -628,6 +639,7 @@ class HybridRetriever:
                 "rrf_top": [(str(self.olj_docs[i].url), s) for i, s in fused[:10]] if isinstance(fused, list) else [],
                 "reranked": [(it.url, it.score) for it in reranked],
                 "selected": [c.url for c in cards if c.url],
+                "excluded_from_session": list(exclude_set),
             }
 
         if cards:

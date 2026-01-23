@@ -1,6 +1,6 @@
 """
-Sahten Bot (MVP)
-================
+Sahten Bot (v2.1)
+=================
 
 The core application logic for Sahten.
 Implements the durable RAG pipeline:
@@ -12,6 +12,11 @@ Supports flexible model selection via:
   - Environment variable (OPENAI_MODEL)
   - API request parameter
   - A/B testing
+
+Session Memory:
+  - Short-term memory via SessionManager (TTL 30 min)
+  - Avoids re-proposing same recipes
+  - Tracks conversation context for continuations
 """
 
 from __future__ import annotations
@@ -19,14 +24,15 @@ from __future__ import annotations
 import logging
 from functools import lru_cache
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, List
 
 from .core.config import get_settings
 from .core.model_selector import get_model_for_request
 from .llm.query_analyzer import QueryAnalyzer
 from .llm.response_generator import ResponseGenerator
 from .rag.retriever import HybridRetriever
-from .schemas.responses import RecipeNarrative, SahtenResponse
+from .rag.session_manager import SessionManager, is_continuation
+from .schemas.responses import RecipeNarrative, SahtenResponse, RecipeCard
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +48,7 @@ class SahtenBot:
     Main Sahten chatbot.
     
     Supports dynamic model selection per-request.
+    Includes session memory to avoid repeating recipes.
     """
     
     def __init__(self, config: Optional[SahtenConfig] = None):
@@ -55,8 +62,11 @@ class SahtenBot:
         self.analyzer = QueryAnalyzer(model=self.default_model)
         self.retriever = HybridRetriever()
         self.generator = ResponseGenerator(model=self.default_model)
+        
+        # Session memory (TTL 30 min, max 2000 sessions)
+        self.session_manager = SessionManager(max_sessions=2000, ttl_minutes=30)
 
-        logger.info("SahtenBot initialized (default_model=%s)", self.default_model)
+        logger.info("SahtenBot initialized (default_model=%s, session_memory=enabled)", self.default_model)
 
     def _get_analyzer(self, model: str) -> QueryAnalyzer:
         """Get analyzer for specific model (cached or new)."""
@@ -77,6 +87,7 @@ class SahtenBot:
         debug: bool = False,
         model: Optional[str] = None,
         request_id: Optional[str] = None,
+        session_id: Optional[str] = None,
     ) -> tuple[SahtenResponse, Optional[dict]]:
         """
         Process a chat message.
@@ -86,6 +97,7 @@ class SahtenBot:
             debug: Include debug info in response
             model: Override model selection (None = use default/A/B)
             request_id: Request ID for A/B testing
+            session_id: Session ID for conversation memory
         
         Returns:
             (SahtenResponse, debug_info)
@@ -99,6 +111,13 @@ class SahtenBot:
         # Get components for this model
         analyzer = self._get_analyzer(effective_model)
         generator = self._get_generator(effective_model)
+        
+        # Get or create session for memory
+        session = None
+        if session_id:
+            session = self.session_manager.get_or_create(session_id)
+            logger.debug("Session %s: %d turns, %d recipes proposed", 
+                        session_id, len(session.conversation_history), len(session.recipes_proposed))
         
         # 1) Analyze query
         analysis = await analyzer.analyze(message)
@@ -163,8 +182,11 @@ class SahtenBot:
             )
 
         # 2) Retrieve + rerank
+        # Exclude recipes already proposed in this session
+        exclude_urls = session.recipes_proposed if session else []
+        
         recipes, is_base2, retrieval_debug = await self.retriever.search_with_rerank(
-            analysis, raw_query=message, debug=debug
+            analysis, raw_query=message, debug=debug, exclude_urls=exclude_urls
         )
 
         if not recipes:
@@ -230,6 +252,20 @@ class SahtenBot:
             confidence=analysis.intent_confidence,
             model_used=effective_model,
         )
+        
+        # Save session with new recipes
+        if session and recipes:
+            primary_url = recipes[0].url if recipes else None
+            session.add_turn(
+                user_message=message,
+                intent=analysis.intent,
+                primary_dish=analysis.dish_name,
+                ingredients=analysis.ingredients,
+                recipe_url=primary_url,
+                response_summary=f"{len(recipes)} recettes proposées",
+            )
+            self.session_manager.save(session)
+        
         dbg = (
             {"analysis": analysis.model_dump(), "retrieval": retrieval_debug, "model": effective_model}
             if debug
