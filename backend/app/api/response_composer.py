@@ -92,7 +92,7 @@ def _format_text(text: str) -> str:
 
 def _format_recipe_card(card: RecipeCard) -> str:
     """
-    Format a single recipe card.
+    Format a single recipe card with optional grounding/citation.
     """
     title = card.title or "Recette sans titre"
     url = card.url or "#"
@@ -106,12 +106,20 @@ def _format_recipe_card(card: RecipeCard) -> str:
     category_html = ""
     if card.category:
         cat_display = card.category.replace("_", " ").upper()
-        # Use a safe color class or inline style if needed, but CSS handles .recipe-category
         category_html = f'<span class="recipe-category">{cat_display}</span>'
 
     chef_html = ""
     if card.chef:
         chef_html = f'<span class="recipe-chef">Par {card.chef}</span>'
+
+    # Grounding: show cited passage if available
+    citation_html = ""
+    if card.cited_passage:
+        # Escape and truncate citation for display
+        citation_text = card.cited_passage[:200]
+        if len(card.cited_passage) > 200:
+            citation_text += "..."
+        citation_html = f'<blockquote class="recipe-citation">&ldquo;{citation_text}&rdquo;</blockquote>'
 
     html = f"""
     <article class="recipe-card">
@@ -120,6 +128,7 @@ def _format_recipe_card(card: RecipeCard) -> str:
             <div class="recipe-content">
                 {category_html}
                 <h3 class="recipe-title">{title}</h3>
+                {citation_html}
                 <div class="recipe-meta">
                     {chef_html}
                 </div>

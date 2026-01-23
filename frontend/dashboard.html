@@ -213,6 +213,18 @@
             <div class="stat-value" id="stat-conversations">-</div>
         </div>
         <div class="stat-card">
+            <div class="stat-label">Impressions</div>
+            <div class="stat-value" id="stat-impressions">-</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Clicks</div>
+            <div class="stat-value" id="stat-clicks">-</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">CTR</div>
+            <div class="stat-value" id="stat-ctr">-</div>
+        </div>
+        <div class="stat-card">
             <div class="stat-label">Feedback Positif</div>
             <div class="stat-value positive" id="stat-positive">-</div>
         </div>
@@ -224,6 +236,10 @@
             <div class="stat-label">Taux de satisfaction</div>
             <div class="stat-value" id="stat-rate">-</div>
         </div>
+        <div class="stat-card">
+            <div class="stat-label">Taux Fallback Base2</div>
+            <div class="stat-value" id="stat-fallback">-</div>
+        </div>
     </div>
     
     <!-- Recent Traces -->
@@ -233,6 +249,14 @@
             <button class="refresh-btn" onclick="loadData()">Actualiser</button>
         </div>
         <div id="traces-container">
+            <div class="loading">Chargement...</div>
+        </div>
+    </div>
+    
+    <!-- Top Recipes -->
+    <div class="section">
+        <h2>Recettes les plus cliquées</h2>
+        <div id="top-recipes-container">
             <div class="loading">Chargement...</div>
         </div>
     </div>
@@ -255,7 +279,65 @@
             await Promise.all([
                 loadTraces(),
                 loadFeedbackStats(),
+                loadAnalytics(),
             ]);
+        }
+        
+        async function loadAnalytics() {
+            try {
+                const response = await fetch(`${API_BASE}/analytics`);
+                const data = await response.json();
+                
+                if (data.status !== 'ok') {
+                    console.warn('Analytics not available:', data.message);
+                    return;
+                }
+                
+                // Update stats
+                document.getElementById('stat-impressions').textContent = data.events?.impressions || 0;
+                document.getElementById('stat-clicks').textContent = data.events?.clicks || 0;
+                document.getElementById('stat-ctr').textContent = data.rates?.ctr ? `${data.rates.ctr}%` : '-';
+                document.getElementById('stat-fallback').textContent = data.rates?.fallback_rate ? `${data.rates.fallback_rate}%` : '-';
+                
+                // Top recipes
+                const topRecipesContainer = document.getElementById('top-recipes-container');
+                if (data.top_recipes && data.top_recipes.length > 0) {
+                    topRecipesContainer.innerHTML = `
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>URL</th>
+                                    <th>Clicks</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.top_recipes.map(r => `
+                                    <tr>
+                                        <td><a href="${r.url}" target="_blank">${truncateUrl(r.url)}</a></td>
+                                        <td>${r.clicks}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                } else {
+                    topRecipesContainer.innerHTML = '<div class="no-data">Aucun click enregistré</div>';
+                }
+                
+            } catch (error) {
+                console.error('Failed to load analytics:', error);
+            }
+        }
+        
+        function truncateUrl(url) {
+            if (!url) return '-';
+            try {
+                const parsed = new URL(url);
+                const path = parsed.pathname.split('/').pop();
+                return path.length > 50 ? path.substring(0, 50) + '...' : path;
+            } catch {
+                return url.substring(0, 50);
+            }
         }
         
         async function loadTraces() {
