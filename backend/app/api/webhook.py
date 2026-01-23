@@ -426,58 +426,70 @@ async def receive_recipe(request: Request):
     print(f"[WEBHOOK DEBUG] Full payload: {json.dumps(payload_data, ensure_ascii=False)}")
 
     # 5. Extract article_id from payload (handle both formats)
+    # 
+    # WhiteBeard webhook format (from docs):
+    # {
+    #   "automationId": "...",
+    #   "queueId": "...",
+    #   "parameters": {
+    #     "trigger_id": "content_publish",
+    #     "article_id": 1234567,       <-- article_id is HERE
+    #     "visitor_id": ...,
+    #     ...
+    #   },
+    #   "timestamp": "YYYY-mm-dd HH:mm:ss",
+    #   "subject": "..."
+    # }
+    # 
+    # Reference: https://docs.whitebeard.net/marketingguides/setting_up_automations/#webhooks
+    
     article_id = None
     action = "publish"
 
-    # Format 1: Direct article_id field (our expected format)
+    # Format 1: Direct article_id field (simple format for testing)
     if "article_id" in payload_data:
         article_id = payload_data["article_id"]
         action = payload_data.get("action", "publish")
     
-    # Format 2: WhiteBeard automation format - extract from various possible fields
+    # Format 2: WhiteBeard automation format
+    # article_id is inside the "parameters" object
     elif "automationId" in payload_data:
-        # WhiteBeard format - we need to find the article_id
-        # It might be in 'subject', 'contentId', 'articleId', or other fields
+        parameters = payload_data.get("parameters", {})
         
-        # Try common field names where article ID might be
-        possible_id_fields = [
-            "contentId", "content_id", 
-            "articleId", "article_id",
-            "id", "postId", "post_id",
-            "objectId", "object_id",
-            "recordId", "record_id",
-        ]
+        # Log parameters for debugging
+        logger.info("WhiteBeard parameters: %s", json.dumps(parameters, ensure_ascii=False))
         
-        for field in possible_id_fields:
-            if field in payload_data and payload_data[field]:
-                try:
-                    article_id = int(payload_data[field])
-                    break
-                except (ValueError, TypeError):
-                    continue
+        # Extract article_id from parameters
+        # WhiteBeard uses "article_id" for content triggers
+        if "article_id" in parameters:
+            try:
+                article_id = int(parameters["article_id"])
+            except (ValueError, TypeError):
+                pass
         
-        # If still not found, try to extract from 'subject' if it looks like an ID
-        if not article_id and payload_data.get("subject"):
-            subject = str(payload_data["subject"]).strip()
-            # Check if subject is a numeric ID
-            if subject.isdigit():
-                article_id = int(subject)
-            # Or extract ID from URL-like pattern
-            elif "/article/" in subject:
-                match = re.search(r"/article/(\d+)", subject)
-                if match:
-                    article_id = int(match.group(1))
-
-        # Determine action from payload
-        action_field = payload_data.get("action") or payload_data.get("type") or payload_data.get("event")
-        if action_field:
-            action_lower = str(action_field).lower()
-            if "delete" in action_lower or "unpublish" in action_lower:
+        # Also try alternate field names just in case
+        if not article_id:
+            for field in ["articleId", "content_id", "contentId", "id"]:
+                if field in parameters:
+                    try:
+                        article_id = int(parameters[field])
+                        break
+                    except (ValueError, TypeError):
+                        continue
+        
+        # Determine action from trigger_id
+        # Triggers: content_create, content_update, content_publish, content_unpublish, content_delete
+        trigger_id = parameters.get("trigger_id", "")
+        if trigger_id:
+            if "delete" in trigger_id or "unpublish" in trigger_id:
                 action = "delete"
-            elif "update" in action_lower or "edit" in action_lower:
+            elif "update" in trigger_id:
                 action = "update"
             else:
                 action = "publish"
+        
+        logger.info("Extracted from WhiteBeard: article_id=%s, action=%s, trigger_id=%s", 
+                   article_id, action, trigger_id)
 
     if not article_id:
         # Log the payload so the team can identify the correct field
