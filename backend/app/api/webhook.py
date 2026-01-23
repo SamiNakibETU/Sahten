@@ -427,69 +427,70 @@ async def receive_recipe(request: Request):
 
     # 5. Extract article_id from payload (handle both formats)
     # 
-    # WhiteBeard webhook format (from docs):
+    # WhiteBeard webhook format (actual from OLJ logs):
     # {
-    #   "automationId": "...",
+    #   "automationId": "2",
     #   "queueId": "...",
-    #   "parameters": {
-    #     "trigger_id": "content_publish",
-    #     "article_id": 1234567,       <-- article_id is HERE
-    #     "visitor_id": ...,
-    #     ...
-    #   },
-    #   "timestamp": "YYYY-mm-dd HH:mm:ss",
-    #   "subject": "..."
+    #   "timestamp": "2026-01-23 12:23:37",
+    #   "subject": "",
+    #   "user_id": "56",
+    #   "article_id": "1488083",      <-- AT ROOT LEVEL (as string!)
+    #   "parent_automation_id": "2",
+    #   "trigger_id": "content_publish"
     # }
     # 
+    # Note: article_id is a STRING, not int!
     # Reference: https://docs.whitebeard.net/marketingguides/setting_up_automations/#webhooks
     
     article_id = None
     action = "publish"
 
-    # Format 1: Direct article_id field (simple format for testing)
+    # Helper to safely convert to int (handles strings like "1488083")
+    def safe_int(value):
+        if value is None:
+            return None
+        try:
+            return int(value)
+        except (ValueError, TypeError):
+            return None
+
+    # WhiteBeard format: article_id at root level (as string)
+    # Also handles our simple test format
     if "article_id" in payload_data:
-        article_id = payload_data["article_id"]
-        action = payload_data.get("action", "publish")
+        article_id = safe_int(payload_data["article_id"])
+        logger.info("Found article_id at root: %s -> %s", payload_data["article_id"], article_id)
     
-    # Format 2: WhiteBeard automation format
-    # article_id is inside the "parameters" object
-    elif "automationId" in payload_data:
+    # Fallback: check inside "parameters" object (per WhiteBeard docs, though OLJ sends at root)
+    if not article_id and "parameters" in payload_data:
         parameters = payload_data.get("parameters", {})
-        
-        # Log parameters for debugging
-        logger.info("WhiteBeard parameters: %s", json.dumps(parameters, ensure_ascii=False))
-        
-        # Extract article_id from parameters
-        # WhiteBeard uses "article_id" for content triggers
         if "article_id" in parameters:
-            try:
-                article_id = int(parameters["article_id"])
-            except (ValueError, TypeError):
-                pass
-        
-        # Also try alternate field names just in case
-        if not article_id:
-            for field in ["articleId", "content_id", "contentId", "id"]:
-                if field in parameters:
-                    try:
-                        article_id = int(parameters[field])
-                        break
-                    except (ValueError, TypeError):
-                        continue
-        
-        # Determine action from trigger_id
-        # Triggers: content_create, content_update, content_publish, content_unpublish, content_delete
-        trigger_id = parameters.get("trigger_id", "")
-        if trigger_id:
-            if "delete" in trigger_id or "unpublish" in trigger_id:
-                action = "delete"
-            elif "update" in trigger_id:
-                action = "update"
-            else:
-                action = "publish"
-        
-        logger.info("Extracted from WhiteBeard: article_id=%s, action=%s, trigger_id=%s", 
-                   article_id, action, trigger_id)
+            article_id = safe_int(parameters["article_id"])
+            logger.info("Found article_id in parameters: %s -> %s", parameters["article_id"], article_id)
+    
+    # Fallback: try alternate field names
+    if not article_id:
+        for field in ["articleId", "content_id", "contentId"]:
+            if field in payload_data:
+                article_id = safe_int(payload_data[field])
+                if article_id:
+                    logger.info("Found article_id via %s: %s", field, article_id)
+                    break
+    
+    # Determine action from trigger_id (at root or in parameters)
+    trigger_id = payload_data.get("trigger_id") or payload_data.get("parameters", {}).get("trigger_id", "")
+    if trigger_id:
+        if "delete" in trigger_id or "unpublish" in trigger_id:
+            action = "delete"
+        elif "update" in trigger_id:
+            action = "update"
+        else:
+            action = "publish"
+    
+    # Also check explicit "action" field
+    if "action" in payload_data:
+        action = payload_data["action"]
+    
+    logger.info("Extracted: article_id=%s, action=%s, trigger_id=%s", article_id, action, trigger_id)
 
     if not article_id:
         # Log the payload so the team can identify the correct field
