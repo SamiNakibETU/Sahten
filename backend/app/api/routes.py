@@ -128,10 +128,11 @@ def log_chat_trace(
 # ============================================================================
 
 class ChatRequest(BaseModel):
-    """Chat request with optional model override."""
+    """Chat request with optional model override and session tracking."""
     message: str
     debug: bool = False
     model: Optional[str] = None  # "auto", "gpt-4.1-nano", "gpt-4o-mini"
+    session_id: Optional[str] = None  # For conversation memory
 
 
 class ChatResponseAPI(BaseModel):
@@ -142,6 +143,7 @@ class ChatResponseAPI(BaseModel):
     confidence: Optional[float] = None
     recipe_count: int = 0
     model_used: Optional[str] = None
+    request_id: Optional[str] = None  # For feedback reference
     debug_info: Optional[dict] = None
 
 
@@ -165,8 +167,15 @@ async def chat(request: ChatRequest):
     - model="auto" or None: Use default or A/B testing
     - model="gpt-4.1-nano": Force nano model (economique)
     - model="gpt-4o-mini": Force mini model (qualite)
+    
+    Supports session memory:
+    - session_id: Optional client-generated ID for conversation continuity
+    - Avoids re-proposing same recipes within a session
     """
     request_id = str(uuid.uuid4())[:8]
+    
+    # Use provided session_id or generate one
+    session_id = request.session_id or request_id
     
     try:
         bot = get_bot()
@@ -175,6 +184,7 @@ async def chat(request: ChatRequest):
             debug=request.debug,
             model=request.model,
             request_id=request_id,
+            session_id=session_id,
         )
         html = compose_html_response(response)
 
@@ -195,6 +205,7 @@ async def chat(request: ChatRequest):
             confidence=response.confidence,
             recipe_count=response.recipe_count,
             model_used=response.model_used,
+            request_id=request_id,  # For feedback reference
             debug_info=debug_info if request.debug else None,
         )
     except Exception as e:
@@ -335,3 +346,120 @@ async def get_traces(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to retrieve traces: {str(e)}",
         )
+
+
+# ============================================================================
+# FEEDBACK ENDPOINT
+# ============================================================================
+
+class FeedbackRequest(BaseModel):
+    """User feedback on a response."""
+    request_id: str
+    rating: str  # "positive" or "negative"
+    reason: Optional[str] = None  # Optional text reason
+    session_id: Optional[str] = None
+
+
+class FeedbackResponse(BaseModel):
+    """Feedback confirmation."""
+    status: str
+    request_id: str
+
+
+@router.post("/feedback", response_model=FeedbackResponse)
+async def submit_feedback(request: FeedbackRequest):
+    """
+    Submit user feedback on a response.
+    
+    This helps improve the system by tracking:
+    - Which responses users find helpful
+    - What types of queries need improvement
+    - User-provided reasons for negative feedback
+    """
+    try:
+        feedback = {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "request_id": request.request_id,
+            "rating": request.rating,
+            "reason": request.reason,
+            "session_id": request.session_id,
+        }
+        
+        # Log to stdout
+        print(f"[FEEDBACK] {json.dumps(feedback, ensure_ascii=False)}")
+        
+        # Persist to Redis if available
+        redis = get_redis()
+        if redis:
+            try:
+                # Store individual feedback
+                key = f"feedback:{request.request_id}"
+                redis.set(key, json.dumps(feedback, ensure_ascii=False), ex=60*60*24*90)  # 90 days
+                
+                # Add to recent feedback list
+                redis.lpush("sahten:feedback:recent", json.dumps(feedback, ensure_ascii=False))
+                redis.ltrim("sahten:feedback:recent", 0, 999)  # Keep last 1000
+                
+                # Increment counters for analytics
+                if request.rating == "positive":
+                    redis.incr("sahten:feedback:positive_count")
+                else:
+                    redis.incr("sahten:feedback:negative_count")
+                    
+                logger.info("Feedback saved: %s -> %s", request.request_id, request.rating)
+            except Exception as e:
+                logger.warning("Failed to save feedback to Redis: %s", e)
+        
+        return FeedbackResponse(status="received", request_id=request.request_id)
+        
+    except Exception as e:
+        logger.error("Failed to process feedback: %s", e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to process feedback",
+        )
+
+
+@router.get("/feedback/stats")
+async def get_feedback_stats():
+    """Get feedback statistics for analytics."""
+    redis = get_redis()
+    
+    if not redis:
+        return {
+            "status": "no_redis",
+            "message": "Feedback stats require Redis connection",
+        }
+    
+    try:
+        positive = int(redis.get("sahten:feedback:positive_count") or 0)
+        negative = int(redis.get("sahten:feedback:negative_count") or 0)
+        total = positive + negative
+        
+        # Get recent feedback reasons (for negative)
+        recent_raw = redis.lrange("sahten:feedback:recent", 0, 49)
+        recent_negative_reasons = []
+        
+        for raw in recent_raw:
+            try:
+                fb = json.loads(raw) if isinstance(raw, str) else raw
+                if fb.get("rating") == "negative" and fb.get("reason"):
+                    recent_negative_reasons.append({
+                        "reason": fb["reason"],
+                        "timestamp": fb.get("timestamp"),
+                    })
+            except:
+                continue
+        
+        return {
+            "status": "ok",
+            "total_feedback": total,
+            "positive": positive,
+            "negative": negative,
+            "positive_rate": round(positive / total * 100, 1) if total > 0 else 0,
+            "recent_negative_reasons": recent_negative_reasons[:10],
+        }
+        
+    except Exception as e:
+        logger.error("Failed to get feedback stats: %s", e)
+        return {"status": "error", "message": str(e)}

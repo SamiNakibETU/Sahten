@@ -4,10 +4,14 @@ Sahten MVP Configuration
 
 Centralized application settings with flexible model selection,
 A/B testing support, and optional embeddings.
+
+This is the SINGLE source of truth for all configuration.
+Do NOT create additional config files.
 """
 
 from functools import lru_cache
-from typing import Optional, List
+from pathlib import Path
+from typing import Optional, List, Literal
 from pydantic_settings import BaseSettings
 
 
@@ -18,7 +22,7 @@ class Settings(BaseSettings):
     # APP INFO
     # ============================================================================
     app_name: str = "Sahten"
-    app_version: str = "2.0.0-mvp"
+    app_version: str = "2.1.0-dev"
     
     # ============================================================================
     # OPENAI CONFIGURATION
@@ -28,6 +32,13 @@ class Settings(BaseSettings):
     # Default model - can be overridden via API request or A/B testing
     # Options: "gpt-4.1-nano" (economique), "gpt-4o-mini" (qualite)
     openai_model: str = "gpt-4.1-nano"
+    
+    # LLM settings (for legacy compatibility with loaders/llm_client)
+    llm_provider: Literal["openai", "anthropic", "mock"] = "openai"
+    llm_model: str = "gpt-4o-mini"
+    llm_temperature: float = 0.1
+    llm_max_tokens: int = 500
+    anthropic_api_key: str = ""
     
     # ============================================================================
     # MODEL SELECTION & A/B TESTING
@@ -48,6 +59,30 @@ class Settings(BaseSettings):
     olj_data_path: str = "data_base_OLJ_enriched.json"
     base2_data_path: str = "Data_base_2.json"
     olj_canonical_path: str = "data/olj_canonical.json"
+    
+    # Legacy compatibility paths (computed properties would be cleaner but Pydantic...)
+    @property
+    def data_dir(self) -> Path:
+        """Root directory for data files."""
+        return Path(__file__).parent.parent.parent.parent
+    
+    @property
+    def olj_recipes_path(self) -> Path:
+        """Path to OLJ recipes JSON."""
+        return self.data_dir / self.olj_data_path
+    
+    @property
+    def base2_recipes_path(self) -> Path:
+        """Path to Base2 recipes JSON."""
+        return self.data_dir / self.base2_data_path
+    
+    @property
+    def golden_examples_path(self) -> Path:
+        """Path to golden examples (for evaluation)."""
+        return self.data_dir / "golden_data_base.json"
+    
+    # Feature flags for legacy loaders
+    use_enriched_data: bool = True
     
     # ============================================================================
     # FEATURE FLAGS

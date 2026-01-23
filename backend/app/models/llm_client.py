@@ -8,7 +8,9 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Any, Literal, Optional
 
-from app.models.config import settings
+from app.core.config import get_settings
+
+settings = get_settings()
 
 logger = logging.getLogger(__name__)
 
