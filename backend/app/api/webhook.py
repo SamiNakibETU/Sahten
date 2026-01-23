@@ -424,6 +424,11 @@ async def receive_recipe(request: Request):
     # Log the complete payload for debugging (helps understand WhiteBeard format)
     logger.info("Webhook payload received: %s", json.dumps(payload_data, ensure_ascii=False))
     print(f"[WEBHOOK DEBUG] Full payload: {json.dumps(payload_data, ensure_ascii=False)}")
+    
+    # Log parameters specifically (this is where article_id should be)
+    parameters_obj = payload_data.get("parameters", {})
+    logger.info("Webhook parameters object: %s (type: %s)", parameters_obj, type(parameters_obj).__name__)
+    print(f"[WEBHOOK DEBUG] Parameters: {parameters_obj}")
 
     # 5. Extract article_id from payload (handle both formats)
     # 
@@ -454,20 +459,28 @@ async def receive_recipe(request: Request):
         except (ValueError, TypeError):
             return None
 
-    # WhiteBeard format: article_id at root level (as string)
-    # Also handles our simple test format
-    if "article_id" in payload_data:
+    # WhiteBeard confirmed format (from OLJ team):
+    # {
+    #   "automationId": 10,
+    #   "queueId": 123,
+    #   "condition": "condition_success",
+    #   "parameters": {"user_id": "123", "article_id": "123"},  <-- HERE!
+    #   "timestamp": "2026-01-01 00:00:00",
+    #   "subject": ""
+    # }
+    
+    # Priority 1: Check inside "parameters" object (WhiteBeard confirmed format)
+    parameters = payload_data.get("parameters", {})
+    if isinstance(parameters, dict) and "article_id" in parameters:
+        article_id = safe_int(parameters["article_id"])
+        logger.info("Found article_id in parameters: %s -> %s", parameters["article_id"], article_id)
+    
+    # Priority 2: Check at root level (for simple testing or alternate format)
+    if not article_id and "article_id" in payload_data:
         article_id = safe_int(payload_data["article_id"])
         logger.info("Found article_id at root: %s -> %s", payload_data["article_id"], article_id)
     
-    # Fallback: check inside "parameters" object (per WhiteBeard docs, though OLJ sends at root)
-    if not article_id and "parameters" in payload_data:
-        parameters = payload_data.get("parameters", {})
-        if "article_id" in parameters:
-            article_id = safe_int(parameters["article_id"])
-            logger.info("Found article_id in parameters: %s -> %s", parameters["article_id"], article_id)
-    
-    # Fallback: try alternate field names
+    # Priority 3: Try alternate field names at root
     if not article_id:
         for field in ["articleId", "content_id", "contentId"]:
             if field in payload_data:
@@ -476,8 +489,21 @@ async def receive_recipe(request: Request):
                     logger.info("Found article_id via %s: %s", field, article_id)
                     break
     
-    # Determine action from trigger_id (at root or in parameters)
-    trigger_id = payload_data.get("trigger_id") or payload_data.get("parameters", {}).get("trigger_id", "")
+    # Priority 4: Try alternate field names in parameters
+    if not article_id and isinstance(parameters, dict):
+        for field in ["articleId", "content_id", "contentId"]:
+            if field in parameters:
+                article_id = safe_int(parameters[field])
+                if article_id:
+                    logger.info("Found article_id in parameters.%s: %s", field, article_id)
+                    break
+    
+    # Determine action from trigger_id (check parameters first, then root)
+    trigger_id = ""
+    if isinstance(parameters, dict):
+        trigger_id = parameters.get("trigger_id", "")
+    if not trigger_id:
+        trigger_id = payload_data.get("trigger_id", "")
     if trigger_id:
         if "delete" in trigger_id or "unpublish" in trigger_id:
             action = "delete"
