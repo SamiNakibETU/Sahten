@@ -387,6 +387,27 @@
 }
 
 /* ----------------------------------
+   RECIPE CITATIONS (Grounding)
+   ---------------------------------- */
+.recipe-citation {
+  font-size: 12px;
+  font-style: italic;
+  font-family: var(--font-family-serif);
+  color: var(--color-text-secondary);
+  margin: 8px 0;
+  padding: 8px 12px;
+  background: linear-gradient(to right, rgba(148, 194, 174, 0.08), transparent);
+  border-left: 2px solid var(--color-liban);
+  line-height: 1.5;
+}
+
+.recipe-citation::before,
+.recipe-citation::after {
+  color: var(--color-liban);
+  opacity: 0.6;
+}
+
+/* ----------------------------------
    FOOTER
    ---------------------------------- */
 .sahten-footer {

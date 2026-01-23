@@ -17,7 +17,7 @@ from dataclasses import dataclass
 from typing import Any, List, Optional
 
 from openai import AsyncOpenAI
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, Field, ValidationError, field_validator
 
 from ..core.config import get_settings
 
@@ -27,6 +27,10 @@ logger = logging.getLogger(__name__)
 class RerankItem(BaseModel):
     url: str
     score: float = Field(ge=0.0, le=1.0)
+    cited_passage: Optional[str] = Field(
+        default=None,
+        description="Passage pertinent extrait du document qui justifie sa pertinence"
+    )
 
 
 class RerankResult(BaseModel):
@@ -45,16 +49,15 @@ class RerankCandidate:
 
 RERANK_SYSTEM_PROMPT = """Tu es un reranker de documents pour un assistant culinaire de L'Orient-Le Jour.
 
-Objectif: classer les documents selon leur pertinence pour la requête utilisateur.
+Objectif: classer les documents selon leur pertinence pour la requête utilisateur et extraire un passage justificatif.
 
 Règles:
 - Privilégie les RECETTES et les résultats directement pertinents.
 - Si l'utilisateur demande cuisine libanaise ou contexte libanais, privilégie is_lebanese=true.
 - Si la requête mentionne un ingrédient, favorise les recettes qui le contiennent (ou en parlent clairement).
 - Donne un score entre 0 et 1 (1 = parfait).
-- Réponds UNIQUEMENT en JSON valide (minifié, sans texte autour) au format EXACT:
-{ \"items\": [ {\"url\": \"...\", \"score\": 0.0}, ... ] }
-- N'ajoute PAS d'autres champs.
+- Pour chaque résultat, extrais un passage court (1-2 phrases, max 150 caractères) de l'excerpt qui justifie pourquoi ce document est pertinent pour la requête.
+- Le passage doit être une citation directe de l'excerpt, pas une reformulation.
 """
 
 
@@ -118,7 +121,7 @@ class LLMReranker:
             "type": "function",
             "function": {
                 "name": "rerank_result",
-                "description": "Return the reranked items with scores.",
+                "description": "Return the reranked items with scores and cited passages.",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -129,6 +132,10 @@ class LLMReranker:
                                 "properties": {
                                     "url": {"type": "string"},
                                     "score": {"type": "number", "minimum": 0.0, "maximum": 1.0},
+                                    "cited_passage": {
+                                        "type": "string",
+                                        "description": "Passage court (1-2 phrases) extrait de l'excerpt justifiant la pertinence"
+                                    },
                                 },
                                 "required": ["url", "score"],
                                 "additionalProperties": False,
