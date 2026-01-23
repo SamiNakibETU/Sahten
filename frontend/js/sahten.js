@@ -23,7 +23,8 @@
 const ALLOWED_TAGS = [
     'div', 'p', 'span', 'strong', 'em', 'u', 'br', 
     'a', 'article', 'h3', 
-    'ul', 'li', 'ol'
+    'ul', 'li', 'ol',
+    'blockquote'  // For recipe citations/grounding
 ];
 
 const ALLOWED_ATTR = ['class', 'href', 'target', 'style', 'aria-label'];
@@ -315,14 +316,82 @@ export class SahtenChat {
         // Sanitize HTML to prevent XSS attacks
         div.innerHTML = sanitizeHTML(data.html);
         
-        // Add feedback buttons if we have a request_id
+        // Track impressions for recipe cards
         if (data.request_id) {
+            this.trackImpressions(div, data);
+            
+            // Add click tracking to recipe links
+            this.addClickTracking(div, data);
+            
+            // Add feedback buttons
             const feedbackDiv = this.createFeedbackButtons(data.request_id);
             div.appendChild(feedbackDiv);
         }
         
         this.dom.body.appendChild(div);
         this.scrollToBottom();
+    }
+
+    trackImpressions(container, data) {
+        /**
+         * Track impression events for each recipe card displayed.
+         */
+        const recipeCards = container.querySelectorAll('.recipe-card');
+        recipeCards.forEach(card => {
+            const link = card.querySelector('a');
+            const titleEl = card.querySelector('.recipe-title');
+            if (link && titleEl) {
+                this.trackEvent('impression', {
+                    request_id: data.request_id,
+                    recipe_url: link.href,
+                    recipe_title: titleEl.textContent,
+                    intent: data.intent,
+                    model_used: data.model_used,
+                });
+            }
+        });
+    }
+
+    addClickTracking(container, data) {
+        /**
+         * Add click tracking to recipe card links.
+         */
+        const recipeLinks = container.querySelectorAll('.recipe-card a');
+        recipeLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                const titleEl = link.querySelector('.recipe-title');
+                this.trackEvent('click', {
+                    request_id: data.request_id,
+                    recipe_url: link.href,
+                    recipe_title: titleEl ? titleEl.textContent : '',
+                    intent: data.intent,
+                    model_used: data.model_used,
+                });
+            });
+        });
+    }
+
+    async trackEvent(eventType, eventData) {
+        /**
+         * Send event to the analytics API.
+         */
+        try {
+            const payload = {
+                event_type: eventType,
+                session_id: this.state.sessionId,
+                ...eventData,
+            };
+            
+            // Fire and forget (don't wait for response)
+            fetch(`${this.config.apiBase}/events`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            }).catch(err => console.warn('Event tracking failed:', err));
+            
+        } catch (error) {
+            console.warn('Failed to track event:', error);
+        }
     }
 
     createFeedbackButtons(requestId) {

@@ -10,6 +10,9 @@ Endpoints:
   - GET  /status       - Detailed status
   - GET  /traces       - Team review of conversations
   - GET  /models       - Available models list
+  - POST /events       - Track user events (impression, click, feedback)
+  - GET  /analytics    - Aggregated metrics
+  - GET  /evaluate     - Run evaluation suite (golden dataset)
 """
 
 from __future__ import annotations
@@ -77,6 +80,7 @@ def log_chat_trace(
     debug: bool,
     debug_info: Optional[dict],
     model_used: Optional[str] = None,
+    is_base2_fallback: bool = False,
 ) -> None:
     """Log conversation trace to stdout and optionally Upstash Redis."""
     try:
@@ -90,6 +94,7 @@ def log_chat_trace(
             "confidence": response.confidence,
             "recipe_count": response.recipe_count,
             "model_used": model_used or response.model_used,
+            "is_base2_fallback": is_base2_fallback,
             "metadata": {
                 "source": "api",
                 "debug": debug,
@@ -104,6 +109,7 @@ def log_chat_trace(
             "intent": response.intent_detected,
             "recipes": response.recipe_count,
             "model": model_used or response.model_used,
+            "base2": is_base2_fallback,
         }
         print(f"[TRACE] {json.dumps(compact_trace, ensure_ascii=False)}")
         
@@ -115,6 +121,23 @@ def log_chat_trace(
                 redis.set(key, json.dumps(trace, ensure_ascii=False), ex=60*60*24*30)
                 redis.lpush("sahten:traces:recent", json.dumps(trace, ensure_ascii=False))
                 redis.ltrim("sahten:traces:recent", 0, 499)
+                
+                # Track metrics
+                redis.incr("sahten:metrics:total_requests")
+                
+                # Track fallback rate
+                if is_base2_fallback:
+                    redis.incr("sahten:metrics:base2_fallback_count")
+                
+                # Track by model
+                if model_used or response.model_used:
+                    model_key = (model_used or response.model_used).replace(".", "_")
+                    redis.incr(f"sahten:metrics:model:{model_key}:count")
+                
+                # Track by intent
+                if response.intent_detected:
+                    redis.incr(f"sahten:metrics:intent:{response.intent_detected}:count")
+                
                 logger.debug("Trace %s saved to Redis", request_id)
             except Exception as e:
                 logger.warning("Redis write failed: %s", e)
@@ -196,6 +219,7 @@ async def chat(request: ChatRequest):
             debug=request.debug,
             debug_info=debug_info,
             model_used=response.model_used,
+            is_base2_fallback=(response.response_type == "recipe_base2"),
         )
 
         return ChatResponseAPI(
@@ -349,9 +373,122 @@ async def get_traces(
 
 
 # ============================================================================
-# FEEDBACK ENDPOINT
+# EVENTS ENDPOINT - Unified event tracking (impression, click, feedback)
 # ============================================================================
 
+class EventRequest(BaseModel):
+    """
+    Unified event schema for analytics.
+    
+    Event types:
+    - impression: Recipe card was shown to user
+    - click: User clicked on a recipe link
+    - feedback: User gave thumbs up/down
+    """
+    event_type: str  # "impression", "click", "feedback"
+    request_id: str
+    session_id: Optional[str] = None
+    
+    # For click events
+    recipe_url: Optional[str] = None
+    recipe_title: Optional[str] = None
+    
+    # For feedback events
+    rating: Optional[str] = None  # "positive" or "negative"
+    reason: Optional[str] = None
+    
+    # Optional context
+    intent: Optional[str] = None
+    model_used: Optional[str] = None
+
+
+class EventResponse(BaseModel):
+    """Event confirmation."""
+    status: str
+    event_type: str
+    request_id: str
+
+
+@router.post("/events", response_model=EventResponse)
+async def track_event(request: EventRequest):
+    """
+    Track user events for analytics.
+    
+    Supports:
+    - impression: When recipe cards are displayed
+    - click: When user clicks a recipe link
+    - feedback: When user gives thumbs up/down
+    """
+    try:
+        event = {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "event_type": request.event_type,
+            "request_id": request.request_id,
+            "session_id": request.session_id,
+            "recipe_url": request.recipe_url,
+            "recipe_title": request.recipe_title,
+            "rating": request.rating,
+            "reason": request.reason,
+            "intent": request.intent,
+            "model_used": request.model_used,
+        }
+        
+        # Log to stdout
+        print(f"[EVENT:{request.event_type.upper()}] {json.dumps(event, ensure_ascii=False)}")
+        
+        # Persist to Redis if available
+        redis = get_redis()
+        if redis:
+            try:
+                # Store in event stream
+                redis.lpush(f"sahten:events:{request.event_type}", json.dumps(event, ensure_ascii=False))
+                redis.ltrim(f"sahten:events:{request.event_type}", 0, 4999)  # Keep last 5000 per type
+                
+                # Increment counters
+                redis.incr(f"sahten:events:{request.event_type}:count")
+                
+                # For impressions, track per-recipe counts
+                if request.event_type == "impression" and request.recipe_url:
+                    redis.hincrby("sahten:recipe:impressions", request.recipe_url, 1)
+                
+                # For clicks, track CTR data
+                if request.event_type == "click" and request.recipe_url:
+                    redis.hincrby("sahten:recipe:clicks", request.recipe_url, 1)
+                
+                # For feedback, maintain counters
+                if request.event_type == "feedback" and request.rating:
+                    if request.rating == "positive":
+                        redis.incr("sahten:feedback:positive_count")
+                    else:
+                        redis.incr("sahten:feedback:negative_count")
+                        
+                        # Store negative reasons for review
+                        if request.reason:
+                            redis.lpush("sahten:feedback:negative_reasons", json.dumps({
+                                "reason": request.reason,
+                                "request_id": request.request_id,
+                                "timestamp": event["timestamp"],
+                            }, ensure_ascii=False))
+                            redis.ltrim("sahten:feedback:negative_reasons", 0, 199)
+                
+            except Exception as e:
+                logger.warning("Failed to persist event to Redis: %s", e)
+        
+        return EventResponse(
+            status="received",
+            event_type=request.event_type,
+            request_id=request.request_id,
+        )
+        
+    except Exception as e:
+        logger.error("Failed to track event: %s", e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to track event",
+        )
+
+
+# Legacy feedback endpoint (redirects to events)
 class FeedbackRequest(BaseModel):
     """User feedback on a response."""
     request_id: str
@@ -369,55 +506,20 @@ class FeedbackResponse(BaseModel):
 @router.post("/feedback", response_model=FeedbackResponse)
 async def submit_feedback(request: FeedbackRequest):
     """
-    Submit user feedback on a response.
-    
-    This helps improve the system by tracking:
-    - Which responses users find helpful
-    - What types of queries need improvement
-    - User-provided reasons for negative feedback
+    Submit user feedback on a response (legacy endpoint).
+    Internally uses the unified events system.
     """
-    try:
-        feedback = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "request_id": request.request_id,
-            "rating": request.rating,
-            "reason": request.reason,
-            "session_id": request.session_id,
-        }
-        
-        # Log to stdout
-        print(f"[FEEDBACK] {json.dumps(feedback, ensure_ascii=False)}")
-        
-        # Persist to Redis if available
-        redis = get_redis()
-        if redis:
-            try:
-                # Store individual feedback
-                key = f"feedback:{request.request_id}"
-                redis.set(key, json.dumps(feedback, ensure_ascii=False), ex=60*60*24*90)  # 90 days
-                
-                # Add to recent feedback list
-                redis.lpush("sahten:feedback:recent", json.dumps(feedback, ensure_ascii=False))
-                redis.ltrim("sahten:feedback:recent", 0, 999)  # Keep last 1000
-                
-                # Increment counters for analytics
-                if request.rating == "positive":
-                    redis.incr("sahten:feedback:positive_count")
-                else:
-                    redis.incr("sahten:feedback:negative_count")
-                    
-                logger.info("Feedback saved: %s -> %s", request.request_id, request.rating)
-            except Exception as e:
-                logger.warning("Failed to save feedback to Redis: %s", e)
-        
-        return FeedbackResponse(status="received", request_id=request.request_id)
-        
-    except Exception as e:
-        logger.error("Failed to process feedback: %s", e)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to process feedback",
-        )
+    # Convert to event format
+    event_req = EventRequest(
+        event_type="feedback",
+        request_id=request.request_id,
+        session_id=request.session_id,
+        rating=request.rating,
+        reason=request.reason,
+    )
+    
+    await track_event(event_req)
+    return FeedbackResponse(status="received", request_id=request.request_id)
 
 
 @router.get("/feedback/stats")
@@ -437,17 +539,13 @@ async def get_feedback_stats():
         total = positive + negative
         
         # Get recent feedback reasons (for negative)
-        recent_raw = redis.lrange("sahten:feedback:recent", 0, 49)
+        recent_raw = redis.lrange("sahten:feedback:negative_reasons", 0, 9)
         recent_negative_reasons = []
         
         for raw in recent_raw:
             try:
                 fb = json.loads(raw) if isinstance(raw, str) else raw
-                if fb.get("rating") == "negative" and fb.get("reason"):
-                    recent_negative_reasons.append({
-                        "reason": fb["reason"],
-                        "timestamp": fb.get("timestamp"),
-                    })
+                recent_negative_reasons.append(fb)
             except:
                 continue
         
@@ -457,9 +555,211 @@ async def get_feedback_stats():
             "positive": positive,
             "negative": negative,
             "positive_rate": round(positive / total * 100, 1) if total > 0 else 0,
-            "recent_negative_reasons": recent_negative_reasons[:10],
+            "recent_negative_reasons": recent_negative_reasons,
         }
         
     except Exception as e:
         logger.error("Failed to get feedback stats: %s", e)
+        return {"status": "error", "message": str(e)}
+
+
+# ============================================================================
+# ANALYTICS ENDPOINT - Aggregated metrics
+# ============================================================================
+
+@router.get("/analytics")
+async def get_analytics():
+    """
+    Get aggregated analytics metrics.
+    
+    Includes:
+    - Total conversations
+    - Event counts (impressions, clicks, feedback)
+    - CTR (Click-Through Rate)
+    - Satisfaction rate
+    - Fallback rate (Base2 vs OLJ)
+    - Model distribution
+    - Intent distribution
+    - Top recipes by clicks
+    """
+    redis = get_redis()
+    
+    if not redis:
+        return {
+            "status": "no_redis",
+            "message": "Analytics require Redis connection",
+        }
+    
+    try:
+        # Get event counts
+        impressions = int(redis.get("sahten:events:impression:count") or 0)
+        clicks = int(redis.get("sahten:events:click:count") or 0)
+        feedback_count = int(redis.get("sahten:events:feedback:count") or 0)
+        
+        # Get feedback breakdown
+        positive = int(redis.get("sahten:feedback:positive_count") or 0)
+        negative = int(redis.get("sahten:feedback:negative_count") or 0)
+        
+        # Calculate CTR
+        ctr = round(clicks / impressions * 100, 2) if impressions > 0 else 0
+        
+        # Calculate satisfaction rate
+        total_feedback = positive + negative
+        satisfaction_rate = round(positive / total_feedback * 100, 1) if total_feedback > 0 else 0
+        
+        # Get conversation count and fallback rate
+        total_requests = int(redis.get("sahten:metrics:total_requests") or 0)
+        base2_fallbacks = int(redis.get("sahten:metrics:base2_fallback_count") or 0)
+        fallback_rate = round(base2_fallbacks / total_requests * 100, 1) if total_requests > 0 else 0
+        
+        trace_count = redis.llen("sahten:traces:recent")
+        
+        # Get model distribution
+        model_stats = {}
+        for model_key in ["gpt-4_1-nano", "gpt-4o-mini"]:
+            count = int(redis.get(f"sahten:metrics:model:{model_key}:count") or 0)
+            if count > 0:
+                model_stats[model_key.replace("_", ".")] = count
+        
+        # Get intent distribution (top 5)
+        intent_keys = [
+            "recipe_specific", "recipe_by_ingredient", "recipe_by_mood",
+            "menu_composition", "multi_recipe", "greeting", "clarification",
+            "off_topic", "redirect"
+        ]
+        intent_stats = {}
+        for intent in intent_keys:
+            count = int(redis.get(f"sahten:metrics:intent:{intent}:count") or 0)
+            if count > 0:
+                intent_stats[intent] = count
+        
+        # Get top recipes by clicks (top 10)
+        top_clicks_raw = redis.hgetall("sahten:recipe:clicks") or {}
+        top_recipes = sorted(
+            [{"url": k, "clicks": int(v)} for k, v in top_clicks_raw.items()],
+            key=lambda x: -x["clicks"]
+        )[:10]
+        
+        return {
+            "status": "ok",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "conversations": {
+                "total": total_requests or trace_count,
+                "recent_traces": trace_count,
+            },
+            "events": {
+                "impressions": impressions,
+                "clicks": clicks,
+                "feedback": feedback_count,
+            },
+            "rates": {
+                "ctr": ctr,
+                "satisfaction": satisfaction_rate,
+                "fallback_rate": fallback_rate,
+            },
+            "fallback": {
+                "total_requests": total_requests,
+                "base2_count": base2_fallbacks,
+            },
+            "feedback": {
+                "positive": positive,
+                "negative": negative,
+                "total": total_feedback,
+            },
+            "models": model_stats,
+            "intents": intent_stats,
+            "top_recipes": top_recipes,
+        }
+        
+    except Exception as e:
+        logger.error("Failed to get analytics: %s", e)
+        return {"status": "error", "message": str(e)}
+
+
+# ============================================================================
+# EVALUATION ENDPOINT - Run golden dataset tests
+# ============================================================================
+
+@router.get("/evaluate")
+async def run_evaluation(limit: int = Query(default=5, ge=1, le=20)):
+    """
+    Run evaluation on a subset of the golden dataset.
+    
+    This is a lightweight evaluation that runs a few test cases
+    to validate the pipeline is working correctly.
+    
+    For full evaluation, use: python scripts/evaluate.py
+    """
+    import json as json_mod
+    from pathlib import Path
+    
+    try:
+        bot = get_bot()
+        
+        # Load golden dataset
+        tests_dir = Path(__file__).parent.parent.parent / "tests"
+        golden_path = tests_dir / "golden_dataset.json"
+        
+        if not golden_path.exists():
+            # Fallback to test_matrix
+            golden_path = tests_dir / "test_matrix.json"
+        
+        if not golden_path.exists():
+            return {"status": "error", "message": "No test dataset found"}
+        
+        dataset = json_mod.loads(golden_path.read_text(encoding="utf-8"))
+        cases = dataset.get("cases", [])[:limit]
+        
+        results = []
+        passed = 0
+        
+        for case in cases:
+            try:
+                response, _ = await bot.chat(case["query"], debug=False)
+                
+                # Check basic constraints
+                constraints = case.get("constraints", {})
+                case_passed = True
+                
+                # Response type check
+                if "response_type" in constraints:
+                    if response.response_type != constraints["response_type"]:
+                        case_passed = False
+                
+                # Min recipes check
+                if "min_recipes" in constraints:
+                    if response.recipe_count < int(constraints["min_recipes"]):
+                        case_passed = False
+                
+                if case_passed:
+                    passed += 1
+                
+                results.append({
+                    "case_id": case["id"],
+                    "query": case["query"][:50],
+                    "passed": case_passed,
+                    "response_type": response.response_type,
+                    "recipe_count": response.recipe_count,
+                })
+                
+            except Exception as e:
+                results.append({
+                    "case_id": case["id"],
+                    "query": case["query"][:50],
+                    "passed": False,
+                    "error": str(e)[:100],
+                })
+        
+        return {
+            "status": "ok",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "total": len(results),
+            "passed": passed,
+            "failed": len(results) - passed,
+            "pass_rate": round(passed / len(results) * 100, 1) if results else 0,
+            "results": results,
+        }
+        
+    except Exception as e:
+        logger.error("Evaluation failed: %s", e)
         return {"status": "error", "message": str(e)}

@@ -391,7 +391,7 @@ class HybridRetriever:
         category_allowlist: Optional[set[str]] = None,
         exclude_urls: Optional[set[str]] = None,
     ) -> List[RecipeCard]:
-        """Select final recipe cards with deduplication."""
+        """Select final recipe cards with deduplication and grounding."""
         used_urls = set()
         if exclude_urls:
             used_urls |= set(exclude_urls)
@@ -418,6 +418,7 @@ class HybridRetriever:
                     url=str(doc.url),
                     chef=doc.chef_name,
                     category=doc.category_canonical,
+                    cited_passage=it.cited_passage,  # Grounding: passage justificatif
                 )
             )
             if len(cards) >= max_results:
