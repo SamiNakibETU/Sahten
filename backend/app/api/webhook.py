@@ -381,6 +381,9 @@ async def receive_recipe(request: Request):
 
     # 1. Get raw body for signature verification
     body = await request.body()
+    
+    # DEBUG: Log raw body to understand WhiteBeard payload structure
+    print(f"[WEBHOOK DEBUG] Raw body received: {body.decode('utf-8', 'ignore')[:2000]}")
 
     # 2. Extract signature from headers (case-insensitive lookup)
     # WhiteBeard sends: x-webhook-signature (lowercase)
@@ -487,11 +490,15 @@ async def receive_recipe(request: Request):
         if candidate:
             containers.append(candidate)
 
+    # DEBUG: Log containers for debugging
+    print(f"[WEBHOOK DEBUG] Containers built: {len(containers)} - Keys: {[list(c.keys()) if isinstance(c,dict) else str(type(c)) for c in containers]}")
+    
     # Extract article_id from any container
     for container in containers:
         for field in ["article_id", "articleId", "content_id", "contentId", "id"]:
             if field in container:
                 article_id = safe_int(container[field])
+                print(f"[WEBHOOK DEBUG] Found {field}={container[field]} -> parsed as {article_id}")
                 if article_id:
                     logger.info("Found article_id in %s: %s -> %s", field, container[field], article_id)
                     break
@@ -540,6 +547,7 @@ async def receive_recipe(request: Request):
             "Received: %s", 
             json.dumps(payload_data, ensure_ascii=False)
         )
+        print(f"[WEBHOOK ERROR] Could not extract article_id. Full payload: {json.dumps(payload_data, ensure_ascii=False)}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=(
