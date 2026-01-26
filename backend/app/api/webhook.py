@@ -58,8 +58,8 @@ router = APIRouter(prefix="/webhook", tags=["webhook"])
 class WebhookPayload(BaseModel):
     """Webhook payload from CMS (minimal - just article_id)."""
 
-    article_id: int
-    action: str = "publish"  # publish, update, delete
+    article_id: Optional[int] = None
+    action: Optional[str] = "publish"  # publish, update, delete
 
 
 class WhiteBeardPayload(BaseModel):
@@ -469,41 +469,53 @@ async def receive_recipe(request: Request):
     #   "subject": ""
     # }
     
-    # Priority 1: Check inside "parameters" object (WhiteBeard confirmed format)
-    parameters = payload_data.get("parameters", {})
-    if isinstance(parameters, dict) and "article_id" in parameters:
-        article_id = safe_int(parameters["article_id"])
-        logger.info("Found article_id in parameters: %s -> %s", parameters["article_id"], article_id)
-    
-    # Priority 2: Check at root level (for simple testing or alternate format)
-    if not article_id and "article_id" in payload_data:
-        article_id = safe_int(payload_data["article_id"])
-        logger.info("Found article_id at root: %s -> %s", payload_data["article_id"], article_id)
-    
-    # Priority 3: Try alternate field names at root
+    def as_dict(value):
+        if isinstance(value, dict):
+            return value
+        if isinstance(value, str):
+            try:
+                parsed = json.loads(value)
+                return parsed if isinstance(parsed, dict) else None
+            except Exception:
+                return None
+        return None
+
+    # Collect possible containers where WhiteBeard may place fields
+    containers = [payload_data]
+    for key in ["parameters", "data", "payload", "record"]:
+        candidate = as_dict(payload_data.get(key))
+        if candidate:
+            containers.append(candidate)
+
+    # Extract article_id from any container
+    for container in containers:
+        for field in ["article_id", "articleId", "content_id", "contentId", "id"]:
+            if field in container:
+                article_id = safe_int(container[field])
+                if article_id:
+                    logger.info("Found article_id in %s: %s -> %s", field, container[field], article_id)
+                    break
+        if article_id:
+            break
+
+    # Fallback: regex scan raw payload (covers edge cases with stringified blobs)
     if not article_id:
-        for field in ["articleId", "content_id", "contentId"]:
-            if field in payload_data:
-                article_id = safe_int(payload_data[field])
+        try:
+            body_text = body.decode("utf-8", errors="ignore")
+            match = re.search(r'\"article_id\"\\s*:\\s*\"?(\\d+)\"?', body_text)
+            if match:
+                article_id = safe_int(match.group(1))
                 if article_id:
-                    logger.info("Found article_id via %s: %s", field, article_id)
-                    break
-    
-    # Priority 4: Try alternate field names in parameters
-    if not article_id and isinstance(parameters, dict):
-        for field in ["articleId", "content_id", "contentId"]:
-            if field in parameters:
-                article_id = safe_int(parameters[field])
-                if article_id:
-                    logger.info("Found article_id in parameters.%s: %s", field, article_id)
-                    break
-    
-    # Determine action from trigger_id (check parameters first, then root)
+                    logger.info("Found article_id via regex scan: %s", article_id)
+        except Exception:
+            pass
+
+    # Determine action from trigger_id (check containers first)
     trigger_id = ""
-    if isinstance(parameters, dict):
-        trigger_id = parameters.get("trigger_id", "")
-    if not trigger_id:
-        trigger_id = payload_data.get("trigger_id", "")
+    for container in containers:
+        trigger_id = container.get("trigger_id", "") or container.get("triggerId", "")
+        if trigger_id:
+            break
     if trigger_id:
         if "delete" in trigger_id or "unpublish" in trigger_id:
             action = "delete"
@@ -511,10 +523,12 @@ async def receive_recipe(request: Request):
             action = "update"
         else:
             action = "publish"
-    
-    # Also check explicit "action" field
-    if "action" in payload_data:
-        action = payload_data["action"]
+
+    # Also check explicit "action" field (highest priority)
+    for container in containers:
+        if "action" in container:
+            action = container["action"]
+            break
     
     logger.info("Extracted: article_id=%s, action=%s, trigger_id=%s", article_id, action, trigger_id)
 
