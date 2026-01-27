@@ -264,6 +264,46 @@ async def health():
     }
 
 
+@router.get("/recipes")
+async def get_recipes():
+    """
+    Get all canonical recipes for admin panel.
+    
+    Returns the full list of recipes from olj_canonical.json.
+    """
+    try:
+        bot = get_bot()
+        recipes = []
+        
+        for doc in bot.retriever.olj_docs:
+            recipes.append({
+                "url": str(doc.url),
+                "title": doc.title,
+                "chef_name": doc.chef_name,
+                "cuisine_type": doc.cuisine_type,
+                "is_lebanese": doc.is_lebanese,
+                "category_canonical": doc.category_canonical,
+                "difficulty_canonical": doc.difficulty_canonical,
+                "tags": doc.tags,
+                "main_ingredients": doc.main_ingredients,
+                "_image_url": doc.image_url,
+                "search_text": doc.search_text[:200] if doc.search_text else "",
+            })
+        
+        return {
+            "status": "ok",
+            "count": len(recipes),
+            "recipes": recipes,
+        }
+        
+    except Exception as e:
+        logger.error("Failed to get recipes: %s", e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to load recipes: {str(e)}",
+        )
+
+
 @router.get("/status")
 async def get_status():
     """Detailed status with component info."""
