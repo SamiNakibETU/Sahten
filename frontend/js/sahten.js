@@ -42,7 +42,7 @@ function sanitizeHTML(html) {
     }
     // Fallback: basic sanitization using browser's DOM parser
     // This preserves HTML structure while removing scripts
-    console.warn('DOMPurify not loaded, using basic sanitization');
+    // DOMPurify not loaded, using basic sanitization
     const temp = document.createElement('div');
     temp.innerHTML = html;
     
@@ -118,7 +118,7 @@ export class SahtenChat {
         if (!this.dom.container) return; 
         this.bindEvents();
         this.loadModels();
-        console.log(`Sahten v2.1 initialized. Backend: ${this.config.apiBase}, Session: ${this.state.sessionId}`);
+        // Sahten v2.1 initialized
     }
 
     generateSessionId() {
@@ -147,15 +147,11 @@ export class SahtenChat {
             const response = await fetch(`${this.config.apiBase}/models`);
             if (response.ok) {
                 const data = await response.json();
-                console.log('Available models:', data.models);
-                console.log('Default model:', data.default);
-                console.log('A/B testing:', data.ab_testing_enabled ? 'ON' : 'OFF');
-                
-                // Update dropdown options if needed
+                // Available models loaded from API
                 // (keeping static options for now as they match the API)
             }
         } catch (e) {
-            console.log('Could not fetch models (will use static list)');
+            // Could not fetch models (will use static list)
         }
     }
 
@@ -270,8 +266,6 @@ export class SahtenChat {
                 payload.model = model;
             }
             
-            console.log(`Sending to ${this.config.apiBase}/chat`, payload);
-            
             const response = await fetch(`${this.config.apiBase}/chat`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -293,7 +287,7 @@ export class SahtenChat {
             this.appendBotMessage(data);
 
         } catch (error) {
-            console.error(error);
+            // API error occurred
             this.appendBotMessage({
                 html: `<div class="sahten-narrative" style="color: var(--color-accent);">
                     <p><em>Mille excuses, un petit incident en cuisine...</em></p>
@@ -312,7 +306,7 @@ export class SahtenChat {
         /**
          * Add a small model indicator to the response HTML (for testing).
          */
-        const modelName = modelUsed.includes('nano') ? '⚡ nano' : '✨ mini';
+        const modelName = modelUsed.includes('nano') ? 'nano' : 'mini';
         const indicator = `<div style="font-size: 9px; opacity: 0.5; text-align: right; margin-top: 8px; font-family: monospace;">${modelName}</div>`;
         return html + indicator;
     }
@@ -402,10 +396,10 @@ export class SahtenChat {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
-            }).catch(err => console.warn('Event tracking failed:', err));
+            }).catch(() => { /* Event tracking failed silently */ });
             
         } catch (error) {
-            console.warn('Failed to track event:', error);
+            // Failed to track event silently
         }
     }
 
@@ -418,8 +412,8 @@ export class SahtenChat {
         container.innerHTML = `
             <div class="feedback-buttons" data-request-id="${requestId}">
                 <span class="feedback-prompt">Cette réponse vous a-t-elle aidé ?</span>
-                <button class="feedback-btn feedback-positive" data-rating="positive" title="Utile">👍</button>
-                <button class="feedback-btn feedback-negative" data-rating="negative" title="Pas utile">👎</button>
+                <button class="feedback-btn feedback-positive" data-rating="positive" title="Utile">Oui</button>
+                <button class="feedback-btn feedback-negative" data-rating="negative" title="Pas utile">Non</button>
             </div>
             <div class="feedback-reason" style="display: none;">
                 <input type="text" class="feedback-reason-input" placeholder="Pourquoi ? (optionnel)" maxlength="200">
@@ -491,15 +485,13 @@ export class SahtenChat {
                 session_id: this.state.sessionId,
             };
             
-            console.log('Submitting feedback:', payload);
-            
             await fetch(`${this.config.apiBase}/feedback`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
         } catch (error) {
-            console.error('Failed to submit feedback:', error);
+            // Failed to submit feedback silently
         }
     }
 

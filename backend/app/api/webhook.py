@@ -44,6 +44,7 @@ from pydantic import BaseModel
 from ..bot import get_bot
 from ..core.config import get_settings
 from ..enrichment.enricher import RecipeEnricher, enriched_to_canonical
+from ..schemas.canonical import CanonicalRecipeDoc
 
 logger = logging.getLogger(__name__)
 
@@ -638,7 +639,25 @@ async def receive_recipe(request: Request):
             logger.error("Enrichment failed for %s: %s", payload.article_id, e)
             # Continue with non-enriched data
 
-    # 6. Add/update in canonical
+    # 6. Ensure search_text is never empty (fallback to title)
+    if not canonical_data.get("search_text") or len(canonical_data.get("search_text", "").strip()) == 0:
+        canonical_data["search_text"] = canonical_data.get("title", "Recipe")
+        logger.warning("Empty search_text for article %s, using title as fallback", payload.article_id)
+
+    # 7. Validate with CanonicalRecipeDoc schema before saving
+    try:
+        validated_doc = CanonicalRecipeDoc(**canonical_data)
+        # Convert back to dict for JSON serialization, using aliases
+        canonical_data = validated_doc.model_dump(by_alias=True, exclude_none=False)
+        log_webhook_event(payload.article_id, "validated", {"schema": "CanonicalRecipeDoc"})
+    except Exception as e:
+        logger.error("Schema validation failed for article %s: %s", payload.article_id, e)
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Recipe data validation failed: {str(e)}",
+        )
+
+    # 8. Add/update in canonical
     if payload.action == "update":
         # Remove old version first
         canonical = [r for r in canonical if r.get("url") != url]
@@ -655,7 +674,7 @@ async def receive_recipe(request: Request):
             detail=f"Failed to save recipe: {str(e)}",
         )
 
-    # 7. Reload retriever
+    # 9. Reload retriever
     try:
         bot = get_bot()
         bot.retriever.reload()
