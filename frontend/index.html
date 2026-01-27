@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>L'Orient-Le Jour - Sahten MVP</title>
+    <title>L'Orient-Le Jour - Sahten (Test Mode)</title>
 
     <!-- Fonts: Inter (Variable) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -13,11 +13,11 @@
       rel="stylesheet"
     />
 
-    <!-- DOMPurify for XSS Protection -->
+    <!-- DOMPurify for XSS Protection (with fallback) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.8/purify.min.js" 
-            integrity="sha512-5FpXL0R5r5D5xqjN5B1tHlBxqo1E8KRbZPB+TPHC8M+E8MXL0bsG+lQZDLF1sVY8n0T5hbvXvBW0yxR+wHXKfg==" 
             crossorigin="anonymous" 
-            referrerpolicy="no-referrer"></script>
+            referrerpolicy="no-referrer"
+            onerror="this.onerror=null; this.src='https://unpkg.com/dompurify@3.0.8/dist/purify.min.js'"></script>
 
     <!-- Design System -->
     <link rel="stylesheet" href="css/sahten.css" />
@@ -43,13 +43,19 @@
         margin-bottom: 8px;
       }
       
-      /* Model Selector Styles */
+      /* Test Controls Styles */
+      .test-controls-container {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-right: auto;
+        padding-left: 12px;
+      }
+      
       .model-selector-container {
         display: flex;
         align-items: center;
-        gap: 8px;
-        margin-right: auto;
-        padding-left: 12px;
+        gap: 6px;
       }
       
       .model-selector-label {
@@ -93,7 +99,7 @@
   <body>
     <div class="page-context">
       <h1>L'Orient-Le Jour</h1>
-      <p>Simulation d'intégration (Widget MVP)</p>
+      <p>Mode Test - Comparer modèles et options</p>
     </div>
 
     <!-- SAHTEN WIDGET -->
@@ -104,14 +110,16 @@
 
       <!-- Header -->
       <div class="sahten-header">
-        <!-- Model Selector (for testing) -->
-        <div class="model-selector-container">
-          <label class="model-selector-label" for="model-select">Modèle</label>
-          <select id="model-select" class="model-selector">
-            <option value="auto">Auto</option>
-            <option value="gpt-4.1-nano">Nano (économique)</option>
-            <option value="gpt-4o-mini">Mini (qualité)</option>
-          </select>
+        <!-- Test Controls -->
+        <div class="test-controls-container">
+          <div class="model-selector-container">
+            <label class="model-selector-label" for="model-select">Modèle</label>
+            <select id="model-select" class="model-selector">
+              <option value="auto">Auto</option>
+              <option value="gpt-4.1-nano">Nano ⚡</option>
+              <option value="gpt-4o-mini">Mini ✨</option>
+            </select>
+          </div>
         </div>
         
         <div class="sahten-title">Sahten</div>

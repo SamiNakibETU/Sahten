@@ -97,11 +97,12 @@ def _format_recipe_card(card: RecipeCard) -> str:
     title = card.title or "Recette sans titre"
     url = card.url or "#"
     
+    image_class = "recipe-image"
     image_style = ""
     if card.image_url:
         image_style = f'style="background-image: url(\'{card.image_url}\')"'
     else:
-        image_style = 'class="recipe-image no-image"'
+        image_class = "recipe-image no-image"
 
     category_html = ""
     if card.category:
@@ -124,7 +125,7 @@ def _format_recipe_card(card: RecipeCard) -> str:
     html = f"""
     <article class="recipe-card">
         <a href="{url}" target="_blank" class="recipe-card-link-wrapper">
-            <div class="recipe-image" {image_style}></div>
+            <div class="{image_class}" {image_style}></div>
             <div class="recipe-content">
                 {category_html}
                 <h3 class="recipe-title">{title}</h3>

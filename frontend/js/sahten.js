@@ -30,7 +30,7 @@ const ALLOWED_TAGS = [
 const ALLOWED_ATTR = ['class', 'href', 'target', 'style', 'aria-label'];
 
 /**
- * Sanitize HTML using DOMPurify (if available) or strip all tags
+ * Sanitize HTML using DOMPurify (if available) or basic sanitization
  */
 function sanitizeHTML(html) {
     if (typeof DOMPurify !== 'undefined') {
@@ -40,10 +40,25 @@ function sanitizeHTML(html) {
             ALLOW_DATA_ATTR: false,
         });
     }
-    // Fallback: strip all HTML (nuclear option if DOMPurify not loaded)
-    console.warn('DOMPurify not loaded, stripping all HTML');
+    // Fallback: basic sanitization using browser's DOM parser
+    // This preserves HTML structure while removing scripts
+    console.warn('DOMPurify not loaded, using basic sanitization');
     const temp = document.createElement('div');
-    temp.textContent = html;
+    temp.innerHTML = html;
+    
+    // Remove potentially dangerous elements
+    const dangerous = temp.querySelectorAll('script, iframe, object, embed, form, input, button');
+    dangerous.forEach(el => el.remove());
+    
+    // Remove event handlers from all elements
+    temp.querySelectorAll('*').forEach(el => {
+        Array.from(el.attributes).forEach(attr => {
+            if (attr.name.startsWith('on')) {
+                el.removeAttribute(attr.name);
+            }
+        });
+    });
+    
     return temp.innerHTML;
 }
 
