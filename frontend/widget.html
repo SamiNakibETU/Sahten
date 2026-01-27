@@ -42,9 +42,50 @@
         letter-spacing: -0.03em;
         margin-bottom: 8px;
       }
+      
+      /* Mode Switcher */
+      .mode-switcher {
+        position: fixed;
+        top: 16px;
+        left: 16px;
+        display: flex;
+        gap: 8px;
+        z-index: 1000;
+      }
+      
+      .mode-btn {
+        padding: 8px 14px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        background: white;
+        font-size: 12px;
+        font-family: inherit;
+        cursor: pointer;
+        text-decoration: none;
+        color: #666;
+        transition: all 0.2s;
+      }
+      
+      .mode-btn:hover {
+        border-color: #94C2AE;
+        color: #333;
+      }
+      
+      .mode-btn.active {
+        background: #94C2AE;
+        border-color: #94C2AE;
+        color: white;
+      }
     </style>
   </head>
   <body>
+    <!-- Mode Switcher -->
+    <nav class="mode-switcher">
+      <a href="index.html" class="mode-btn">🧪 Test</a>
+      <a href="widget.html" class="mode-btn active">📱 Widget</a>
+      <a href="admin.html" class="mode-btn">📊 Admin</a>
+    </nav>
+    
     <div class="page-context">
       <h1>L'Orient-Le Jour</h1>
       <p>Widget Sahten - Production</p>
