@@ -65,3 +65,9 @@ class CanonicalRecipeDoc(BaseModel):
     raw_category: Optional[str] = None
     raw_difficulty: Optional[str] = None
     raw_enrichment_present: bool = True
+    
+    # Media
+    image_url: Optional[str] = Field(default=None, alias="_image_url")
+    
+    class Config:
+        populate_by_name = True  # Accept both _image_url and image_url
