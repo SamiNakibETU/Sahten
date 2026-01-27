@@ -302,10 +302,10 @@
   <header class="header">
     <h1>Sahten Admin</h1>
     <nav class="nav-tabs">
-      <a href="index.html" class="nav-tab">🧪 Test Mode</a>
-      <a href="widget.html" class="nav-tab">📱 Widget</a>
-      <a href="admin.html" class="nav-tab active">📊 Admin</a>
-      <a href="dashboard.html" class="nav-tab">📈 Analytics</a>
+      <a href="index.html" class="nav-tab">Test Mode</a>
+      <a href="widget.html" class="nav-tab">Widget</a>
+      <a href="admin.html" class="nav-tab active">Admin</a>
+      <a href="dashboard.html" class="nav-tab">Analytics</a>
     </nav>
   </header>
   
@@ -356,21 +356,46 @@
     let allRecipes = [];
     
     async function loadRecipes() {
+      const grid = document.getElementById('recipes-grid');
+      
       try {
-        // Fetch from local JSON or API
-        const response = await fetch('../data/olj_canonical.json');
-        if (!response.ok) throw new Error('Failed to load');
-        allRecipes = await response.json();
+        // Try local JSON first (for development)
+        let response = await fetch('../data/olj_canonical.json');
+        
+        // If local fails, try API endpoint
+        if (!response.ok) {
+          response = await fetch(`${API_BASE}/recipes`);
+        }
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        
+        const data = await response.json();
+        // Handle both direct array and { recipes: [...] } format
+        allRecipes = Array.isArray(data) ? data : (data.recipes || []);
+        
+        if (allRecipes.length === 0) {
+          grid.innerHTML = `
+            <div class="empty-state">
+              <h3>Aucune recette</h3>
+              <p>La base de donnees est vide.</p>
+            </div>
+          `;
+          return;
+        }
         
         updateStats();
         populateFilters();
         renderRecipes(allRecipes);
       } catch (error) {
-        console.error('Error loading recipes:', error);
-        document.getElementById('recipes-grid').innerHTML = `
+        grid.innerHTML = `
           <div class="empty-state">
             <h3>Erreur de chargement</h3>
-            <p>Impossible de charger les recettes. Vérifiez que olj_canonical.json existe.</p>
+            <p>Impossible de charger les recettes.</p>
+            <p style="font-size: 12px; margin-top: 8px; color: #888;">
+              Verifiez que olj_canonical.json existe ou que l'API est accessible.
+            </p>
           </div>
         `;
       }
@@ -426,13 +451,13 @@
           <div class="recipe-item-header">
             ${recipe._image_url 
               ? `<div class="recipe-thumb" style="background-image: url('${recipe._image_url}')"></div>`
-              : `<div class="recipe-thumb no-img">🍽️</div>`
+              : `<div class="recipe-thumb no-img"></div>`
             }
             <div class="recipe-info">
               <h4><a href="${recipe.url}" target="_blank">${recipe.title}</a></h4>
               <div class="recipe-meta">
-                ${recipe.chef_name ? `<span>👨‍🍳 ${recipe.chef_name}</span>` : ''}
-                ${recipe.is_lebanese ? '<span>🇱🇧 Libanais</span>' : ''}
+                ${recipe.chef_name ? `<span>Chef: ${recipe.chef_name}</span>` : ''}
+                ${recipe.is_lebanese ? '<span>Libanais</span>' : ''}
               </div>
             </div>
           </div>
