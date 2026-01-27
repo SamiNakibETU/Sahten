@@ -418,6 +418,7 @@ class HybridRetriever:
                     url=str(doc.url),
                     chef=doc.chef_name,
                     category=doc.category_canonical,
+                    image_url=doc.image_url,  # Image de la recette
                     cited_passage=it.cited_passage,  # Grounding: passage justificatif
                 )
             )
