@@ -223,12 +223,17 @@ async def fetch_recipe_from_api(article_id: int) -> Optional[RecipeData]:
     Fetch recipe data from OLJ CMS API.
 
     API Endpoint: GET https://api.lorientlejour.com/cms/content/{article_id}
-    Headers: X-API-Key: {olj_api_key}
+    Headers: API-Key: {olj_api_key}
 
     Returns:
         RecipeData object or None if not found
     """
     settings = get_settings()
+
+    # #region agent log - H2: Check if OLJ_API_KEY is loaded
+    print(f"[DEBUG H2] OLJ_API_KEY loaded: {bool(settings.olj_api_key)}, length: {len(settings.olj_api_key) if settings.olj_api_key else 0}, first 8 chars: {settings.olj_api_key[:8] if settings.olj_api_key else 'EMPTY'}")
+    print(f"[DEBUG H2] OLJ_API_BASE: {settings.olj_api_base}")
+    # #endregion
 
     if not settings.olj_api_key:
         logger.error("OLJ_API_KEY not configured")
@@ -239,14 +244,22 @@ async def fetch_recipe_from_api(article_id: int) -> Optional[RecipeData]:
 
     url = f"{settings.olj_api_base}/content/{article_id}"
 
+    # #region agent log - H1: Log the exact headers being sent
+    # Try with "API-Key" header (as per Joseph's email format)
     headers = {
-        "X-API-Key": settings.olj_api_key,
+        "API-Key": settings.olj_api_key,
         "Accept": "application/json",
     }
+    print(f"[DEBUG H1] Request URL: {url}")
+    print(f"[DEBUG H1] Headers being sent: API-Key={settings.olj_api_key[:8]}..., Accept=application/json")
+    # #endregion
 
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.get(url, headers=headers)
+            # #region agent log - H1/H3: Log response status
+            print(f"[DEBUG H1/H3] Response status: {response.status_code}, headers: {dict(response.headers)}")
+            # #endregion
 
             if response.status_code == 404:
                 logger.warning("Recipe not found in API: %s", article_id)
