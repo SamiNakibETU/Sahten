@@ -184,8 +184,14 @@ def save_canonical(recipes: list) -> None:
     path = get_canonical_path()
     path.parent.mkdir(parents=True, exist_ok=True)
 
+    def json_serializer(obj):
+        """Handle non-serializable types like Pydantic HttpUrl."""
+        if hasattr(obj, '__str__'):
+            return str(obj)
+        raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
+
     with open(path, "w", encoding="utf-8") as f:
-        json.dump(recipes, f, ensure_ascii=False, indent=2)
+        json.dump(recipes, f, ensure_ascii=False, indent=2, default=json_serializer)
 
 
 def log_webhook_event(
