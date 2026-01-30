@@ -236,10 +236,10 @@ async def fetch_recipe_from_api(article_id: int) -> Optional[RecipeData]:
     """
     settings = get_settings()
 
-    # #region agent log - H2: Check if OLJ_API_KEY is loaded
-    print(f"[DEBUG H2] OLJ_API_KEY loaded: {bool(settings.olj_api_key)}, length: {len(settings.olj_api_key) if settings.olj_api_key else 0}, first 8 chars: {settings.olj_api_key[:8] if settings.olj_api_key else 'EMPTY'}")
-    print(f"[DEBUG H2] OLJ_API_BASE: {settings.olj_api_base}")
-    # #endregion
+    # OLJ API configuration check (no sensitive data logged)
+    if settings.olj_api_key:
+        logger.debug("OLJ API key configured (length: %d)", len(settings.olj_api_key))
+    logger.debug("OLJ API base: %s", settings.olj_api_base)
 
     if not settings.olj_api_key:
         logger.error("OLJ_API_KEY not configured")
@@ -250,22 +250,17 @@ async def fetch_recipe_from_api(article_id: int) -> Optional[RecipeData]:
 
     url = f"{settings.olj_api_base}/content/{article_id}"
 
-    # #region agent log - H1: Log the exact headers being sent
-    # Try with "API-Key" header (as per Joseph's email format)
+    # Headers for OLJ CMS API (API-Key format per WhiteBeard docs)
     headers = {
         "API-Key": settings.olj_api_key,
         "Accept": "application/json",
     }
-    print(f"[DEBUG H1] Request URL: {url}")
-    print(f"[DEBUG H1] Headers being sent: API-Key={settings.olj_api_key[:8]}..., Accept=application/json")
-    # #endregion
+    logger.info("Fetching article %d from OLJ API", article_id)
 
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.get(url, headers=headers)
-            # #region agent log - H1/H3: Log response status
-            print(f"[DEBUG H1/H3] Response status: {response.status_code}, headers: {dict(response.headers)}")
-            # #endregion
+            logger.info("OLJ API response: %d", response.status_code)
 
             if response.status_code == 404:
                 logger.warning("Recipe not found in API: %s", article_id)
@@ -276,23 +271,19 @@ async def fetch_recipe_from_api(article_id: int) -> Optional[RecipeData]:
             
             # WhiteBeard API returns { "data": [...] } structure
             # See: https://docs.whitebeard.net/api/operations/d68912ffb167a021bbfac4780cf30512/
-            print(f"[DEBUG API] Response keys: {list(response_data.keys())}")
             
             # Extract the content item from data array
             data_array = response_data.get("data", [])
             if not data_array:
                 logger.warning("Empty data array in API response for article %s", article_id)
-                print(f"[DEBUG API] Empty data array! Full response: {str(response_data)[:2000]}")
                 return None
             
             # Get first item from data array
             item = data_array[0] if isinstance(data_array, list) else data_array
-            print(f"[DEBUG API] Item keys: {list(item.keys())}")
-            print(f"[DEBUG API] Item (first 2000 chars): {str(item)[:2000]}")
             
             # Extract title (required field in WhiteBeard API)
             title = item.get("title") or f"Recipe {article_id}"
-            print(f"[DEBUG API] Extracted title: '{title}'")
+            logger.info("Fetched recipe: %s", title.strip()[:50])
             
             # Extract author from authors array
             authors = item.get("authors", [])

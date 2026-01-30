@@ -59,12 +59,13 @@ async def lifespan(app: FastAPI):
 
 
 # Create FastAPI application
+# Disable Swagger docs in production for security
 app = FastAPI(
     title=settings.app_name,
     version=settings.app_version,
     description="Lebanese culinary chatbot powered by LLM with flexible model selection",
     lifespan=lifespan,
-    docs_url="/docs",
+    docs_url="/docs" if settings.debug else None,
     redoc_url=None,
 )
 
