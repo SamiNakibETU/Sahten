@@ -266,37 +266,70 @@ async def fetch_recipe_from_api(article_id: int) -> Optional[RecipeData]:
                 return None
 
             response.raise_for_status()
-            data = response.json()
+            response_data = response.json()
             
-            # DEBUG: Log the full API response structure to understand field names
-            print(f"[DEBUG API] Response keys: {list(data.keys())}")
-            print(f"[DEBUG API] Full response (first 2000 chars): {str(data)[:2000]}")
-
-            # Map API response to our RecipeData model
-            # Try multiple possible field names for each field
-            title = (
-                data.get("Title") or 
-                data.get("title") or 
-                data.get("name") or 
-                data.get("headline") or
-                data.get("Headline") or
-                f"Recipe {article_id}"  # Fallback to prevent empty title
-            )
+            # WhiteBeard API returns { "data": [...] } structure
+            # See: https://docs.whitebeard.net/api/operations/d68912ffb167a021bbfac4780cf30512/
+            print(f"[DEBUG API] Response keys: {list(response_data.keys())}")
             
-            # Log what title we found
+            # Extract the content item from data array
+            data_array = response_data.get("data", [])
+            if not data_array:
+                logger.warning("Empty data array in API response for article %s", article_id)
+                print(f"[DEBUG API] Empty data array! Full response: {str(response_data)[:2000]}")
+                return None
+            
+            # Get first item from data array
+            item = data_array[0] if isinstance(data_array, list) else data_array
+            print(f"[DEBUG API] Item keys: {list(item.keys())}")
+            print(f"[DEBUG API] Item (first 2000 chars): {str(item)[:2000]}")
+            
+            # Extract title (required field in WhiteBeard API)
+            title = item.get("title") or f"Recipe {article_id}"
             print(f"[DEBUG API] Extracted title: '{title}'")
+            
+            # Extract author from authors array
+            authors = item.get("authors", [])
+            author_name = None
+            if authors and len(authors) > 0:
+                author_name = authors[0].get("name")
+            
+            # Extract content - can be string or object with html field
+            contents = item.get("contents", "")
+            if isinstance(contents, dict):
+                content_text = contents.get("html", "")
+            else:
+                content_text = str(contents) if contents else ""
+            
+            # Extract image from attachments array
+            attachments = item.get("attachments", [])
+            image_url = None
+            if attachments and len(attachments) > 0:
+                image_url = attachments[0].get("url")
+            
+            # Extract category from categories array
+            categories = item.get("categories", [])
+            category_name = None
+            if categories and len(categories) > 0:
+                category_name = categories[0].get("name")
+            
+            # Extract keywords from keywords array
+            keywords_list = item.get("keywords", [])
+            keywords_str = None
+            if keywords_list:
+                keywords_str = ", ".join([kw.get("name", "") for kw in keywords_list if kw.get("name")])
             
             return RecipeData(
                 id=str(article_id),
                 title=title,
-                url=f"https://www.lorientlejour.com/article/{article_id}",
-                author=data.get("Author", data.get("author")),
-                published_date=data.get("Publish date", data.get("publish_date", data.get("publishDate"))),
-                content=data.get("Contents", data.get("content", data.get("body", ""))),
-                ingredients=data.get("Summary", data.get("ingredients", data.get("summary", ""))),
-                image_url=data.get("Image", data.get("image_url", data.get("image", data.get("imageUrl")))),
-                category=data.get("Category", data.get("category")),
-                keywords=data.get("Keyword", data.get("keywords", data.get("tags"))),
+                url=item.get("url") or f"https://www.lorientlejour.com/article/{article_id}",
+                author=author_name,
+                published_date=item.get("firstPublished"),
+                content=content_text,
+                ingredients=item.get("summary", ""),
+                image_url=image_url,
+                category=category_name,
+                keywords=keywords_str,
             )
 
     except httpx.HTTPStatusError as e:
