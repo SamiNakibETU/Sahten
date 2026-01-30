@@ -138,12 +138,18 @@ class Settings(BaseSettings):
     debug: bool = False
     
     # ============================================================================
-    # CORS - Allow all origins for Vercel/Railway deployment
+    # CORS - Production: restrict to L'Orient-Le Jour domains
     # ============================================================================
-    cors_origins: list = ["*"]
+    cors_origins: list = [
+        "https://www.lorientlejour.com",
+        "https://lorientlejour.com",
+        "https://web-production-73152.up.railway.app",
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+    ]
     cors_allow_credentials: bool = False
-    cors_allow_methods: list = ["*"]
-    cors_allow_headers: list = ["*"]
+    cors_allow_methods: list = ["GET", "POST", "OPTIONS"]
+    cors_allow_headers: list = ["Content-Type", "Authorization", "X-Webhook-Signature", "X-Webhook-Timestamp"]
     
     # ============================================================================
     # UPSTASH REDIS (for persistent logging)
