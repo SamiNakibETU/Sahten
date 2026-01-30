@@ -267,20 +267,36 @@ async def fetch_recipe_from_api(article_id: int) -> Optional[RecipeData]:
 
             response.raise_for_status()
             data = response.json()
+            
+            # DEBUG: Log the full API response structure to understand field names
+            print(f"[DEBUG API] Response keys: {list(data.keys())}")
+            print(f"[DEBUG API] Full response (first 2000 chars): {str(data)[:2000]}")
 
             # Map API response to our RecipeData model
-            # Adjust field names based on actual API response structure
+            # Try multiple possible field names for each field
+            title = (
+                data.get("Title") or 
+                data.get("title") or 
+                data.get("name") or 
+                data.get("headline") or
+                data.get("Headline") or
+                f"Recipe {article_id}"  # Fallback to prevent empty title
+            )
+            
+            # Log what title we found
+            print(f"[DEBUG API] Extracted title: '{title}'")
+            
             return RecipeData(
                 id=str(article_id),
-                title=data.get("Title", data.get("title", "")),
+                title=title,
                 url=f"https://www.lorientlejour.com/article/{article_id}",
                 author=data.get("Author", data.get("author")),
-                published_date=data.get("Publish date", data.get("publish_date")),
-                content=data.get("Contents", data.get("content", "")),
-                ingredients=data.get("Summary", data.get("ingredients", "")),
-                image_url=data.get("Image", data.get("image_url")),
+                published_date=data.get("Publish date", data.get("publish_date", data.get("publishDate"))),
+                content=data.get("Contents", data.get("content", data.get("body", ""))),
+                ingredients=data.get("Summary", data.get("ingredients", data.get("summary", ""))),
+                image_url=data.get("Image", data.get("image_url", data.get("image", data.get("imageUrl")))),
                 category=data.get("Category", data.get("category")),
-                keywords=data.get("Keyword", data.get("keywords")),
+                keywords=data.get("Keyword", data.get("keywords", data.get("tags"))),
             )
 
     except httpx.HTTPStatusError as e:
