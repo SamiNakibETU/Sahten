@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A table - Recettes libanaises, chefs et restos | L'Orient-Le Jour</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- DOMPurify for XSS Protection -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.8/purify.min.js" 
+            crossorigin="anonymous" 
+            referrerpolicy="no-referrer"
+            onerror="this.onerror=null; this.src='https://unpkg.com/dompurify@3.0.8/dist/purify.min.js'"></script>
+    
+    <!-- Demo OLJ Styles -->
+    <link rel="stylesheet" href="css/demo-olj.css">
+    
+    <!-- Sahten Widget Styles -->
+    <link rel="stylesheet" href="css/sahten.css">
+</head>
+<body>
+    <!-- ========================================
+         OLJ HEADER
+         ======================================== -->
+    <header class="olj-header">
+        <div class="olj-top-bar">
+            <div class="olj-top-nav">
+                <a href="#">L'ORIENT-LE JOUR</a>
+                <span class="separator">.</span>
+                <a href="#">L'ORIENT TODAY</a>
+                <span class="separator">.</span>
+                <a href="#">L'ORIENT LITTERAIRE</a>
+                <span class="separator">.</span>
+                <a href="#" class="active">A TABLE !</a>
+            </div>
+        </div>
+        
+        <div class="olj-brand">
+            <a href="#" class="olj-logo">L'Orient-Le Jour</a>
+            <p class="olj-tagline">QUOTIDIEN LIBANAIS INDEPENDANT DEPUIS 1924</p>
+        </div>
+        
+        <nav class="olj-main-nav">
+            <a href="#" class="nav-item active">Recettes</a>
+            <a href="#" class="nav-item">Nos selections gourmandes</a>
+            <a href="#" class="nav-item">Chefs</a>
+            <a href="#" class="nav-item">Restaurants</a>
+            <a href="#" class="nav-item">Vins et plus</a>
+            <a href="#" class="nav-item cta">Mon carnet de recettes</a>
+        </nav>
+    </header>
+
+    <!-- ========================================
+         HERO SECTION
+         ======================================== -->
+    <section class="olj-hero">
+        <div class="hero-content">
+            <span class="hero-tag">A table !</span>
+            <h1>Decouvrez les saveurs du Liban</h1>
+            <p>Recettes traditionnelles, chefs talentueux et restaurants a decouvrir</p>
+        </div>
+    </section>
+
+    <!-- ========================================
+         MAIN CONTENT
+         ======================================== -->
+    <main class="olj-content">
+        <!-- Featured Article -->
+        <section class="featured-section">
+            <article class="featured-article">
+                <div class="featured-image">
+                    <img src="https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=800&h=500&fit=crop" alt="Plat libanais">
+                    <span class="article-tag">RECETTE DE CHEF</span>
+                </div>
+                <div class="featured-content">
+                    <h2>Le Msakhan de poulet d'Andrea Boueiz</h2>
+                    <p>Une recette traditionnelle palestinienne revisitee par la chef Andrea Boueiz, avec son melange d'epices unique et son pain saj croustillant.</p>
+                    <span class="article-meta">13 avis</span>
+                </div>
+            </article>
+        </section>
+
+        <!-- Recipe Grid -->
+        <section class="recipes-section">
+            <h2 class="section-title">Recettes</h2>
+            <div class="recipes-grid">
+                <article class="recipe-article">
+                    <div class="recipe-image">
+                        <img src="https://images.unsplash.com/photo-1529042410759-befb1204b468?w=400&h=300&fit=crop" alt="Taboule">
+                    </div>
+                    <div class="recipe-content">
+                        <span class="recipe-tag">RECETTE TRADITIONNELLE</span>
+                        <h3>Le "vrai" taboule de Kamal Mouzawak</h3>
+                        <p class="recipe-meta">Par Kamal Mouzawak - 28 avis</p>
+                    </div>
+                </article>
+
+                <article class="recipe-article">
+                    <div class="recipe-image">
+                        <img src="https://images.unsplash.com/photo-1547592180-85f173990554?w=400&h=300&fit=crop" alt="Houmous">
+                    </div>
+                    <div class="recipe-content">
+                        <span class="recipe-tag">RECETTE DE CHEF</span>
+                        <h3>Le houmous cremeux de Tara Khattar</h3>
+                        <p class="recipe-meta">Par Tara Khattar - 42 avis</p>
+                    </div>
+                </article>
+
+                <article class="recipe-article">
+                    <div class="recipe-image">
+                        <img src="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&h=300&fit=crop" alt="Manakish">
+                    </div>
+                    <div class="recipe-content">
+                        <span class="recipe-tag">RECETTE CREATIVE</span>
+                        <h3>Les manakish au zaatar de May Bsat</h3>
+                        <p class="recipe-meta">Par May Bsat - 19 avis</p>
+                    </div>
+                </article>
+
+                <article class="recipe-article">
+                    <div class="recipe-image">
+                        <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&h=300&fit=crop" alt="Kebbe">
+                    </div>
+                    <div class="recipe-content">
+                        <span class="recipe-tag">RECETTE TRADITIONNELLE</span>
+                        <h3>Le kebbe nayyeh de Maroun Chedid</h3>
+                        <p class="recipe-meta">Par Maroun Chedid - 35 avis</p>
+                    </div>
+                </article>
+            </div>
+        </section>
+
+        <!-- Chefs Section -->
+        <section class="chefs-section">
+            <h2 class="section-title">Chefs</h2>
+            <div class="chefs-grid">
+                <article class="chef-article">
+                    <div class="chef-image">
+                        <img src="https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=300&h=300&fit=crop" alt="Chef">
+                    </div>
+                    <div class="chef-content">
+                        <h3>Andrea Boueiz</h3>
+                        <p>Chef executif, cuisine libanaise contemporaine</p>
+                    </div>
+                </article>
+
+                <article class="chef-article">
+                    <div class="chef-image">
+                        <img src="https://images.unsplash.com/photo-1581299894007-aaa50297cf16?w=300&h=300&fit=crop" alt="Chef">
+                    </div>
+                    <div class="chef-content">
+                        <h3>Kamal Mouzawak</h3>
+                        <p>Fondateur de Souk el Tayeb, ambassadeur du terroir</p>
+                    </div>
+                </article>
+
+                <article class="chef-article">
+                    <div class="chef-image">
+                        <img src="https://images.unsplash.com/photo-1595273670150-bd0c3c392e46?w=300&h=300&fit=crop" alt="Chef">
+                    </div>
+                    <div class="chef-content">
+                        <h3>Tara Khattar</h3>
+                        <p>Chef et auteure, cuisine vegetarienne libanaise</p>
+                    </div>
+                </article>
+            </div>
+        </section>
+
+        <!-- Call to Action -->
+        <section class="cta-section">
+            <div class="cta-content">
+                <h2>Besoin d'inspiration culinaire ?</h2>
+                <p>Utilisez notre assistant Sahten pour trouver la recette parfaite selon vos envies et ingredients.</p>
+                <button class="cta-button" onclick="document.querySelector('.sahten-trigger').click()">
+                    Demander a Sahten
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <!-- ========================================
+         OLJ FOOTER
+         ======================================== -->
+    <footer class="olj-footer">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <span class="footer-logo">L'Orient-Le Jour</span>
+                <p>Quotidien Libanais independant depuis 1924</p>
+            </div>
+            <div class="footer-links">
+                <a href="#">Recettes</a>
+                <a href="#">Nos selections gourmandes</a>
+                <a href="#">Chefs</a>
+                <a href="#">Restaurants</a>
+                <a href="#">Vins et plus</a>
+            </div>
+            <div class="footer-credits">
+                <p>Design Datagif, developpement WhiteBeard, SEO Foxglove</p>
+                <p>2024 L'Orient-Le Jour. Tous droits reserves.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ========================================
+         SAHTEN WIDGET (Integrated)
+         ======================================== -->
+    <div class="sahten-backdrop"></div>
+    <div class="sahten-widget-container" data-size="window">
+        <!-- Drag Handle (Mobile) -->
+        <div class="sahten-drag-handle"></div>
+
+        <!-- Header -->
+        <div class="sahten-header">
+            <div class="sahten-title">Sahten</div>
+            <div class="sahten-controls">
+                <button class="sahten-size-btn" data-action="window" aria-label="Petit">
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4.5" y="3.5" width="7" height="9" rx="1.5"/></svg>
+                </button>
+                <button class="sahten-size-btn" data-action="mid" aria-label="Moyen">
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2.5" y="2.5" width="11" height="11" rx="1.5"/></svg>
+                </button>
+                <button class="sahten-size-btn" data-action="full" aria-label="Grand">
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="10 2 14 2 14 6"/><polyline points="6 14 2 14 2 10"/><line x1="14" y1="2" x2="9.5" y2="6.5"/><line x1="2" y1="14" x2="6.5" y2="9.5"/></svg>
+                </button>
+                <button class="sahten-close-btn" aria-label="Fermer">
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="4" y1="4" x2="12" y2="12"/><line x1="12" y1="4" x2="4" y2="12"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Chat Body -->
+        <div class="sahten-body">
+            <!-- Messages will be injected here via JS -->
+        </div>
+
+        <!-- Footer / Input -->
+        <form id="sahten-form" class="sahten-footer">
+            <div class="input-wrapper">
+                <input
+                    type="text"
+                    id="sahten-input"
+                    class="sahten-input"
+                    placeholder="Je cherche une recette..."
+                    autocomplete="off"
+                />
+                <button type="submit" class="send-btn" aria-label="Envoyer">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="3" y1="8" x2="13" y2="8"/><polyline points="9 4 13 8 9 12"/>
+                    </svg>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Trigger Button -->
+    <button class="sahten-trigger" aria-label="Ouvrir Sahten">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+    </button>
+
+    <!-- ========================================
+         SCRIPTS
+         ======================================== -->
+    <!-- API Configuration -->
+    <script>
+        // ============================================================
+        // API CONFIGURATION
+        // Pour le test local: http://127.0.0.1:8000/api
+        // Pour la production: https://web-production-73152.up.railway.app/api
+        // ============================================================
+        window.SAHTEN_API_BASE = "http://127.0.0.1:8000/api";
+        // ============================================================
+    </script>
+
+    <!-- Sahten Widget Logic -->
+    <script type="module">
+        import { SahtenChat } from "./js/sahten.js";
+        const chat = new SahtenChat();
+    </script>
+</body>
+</html>

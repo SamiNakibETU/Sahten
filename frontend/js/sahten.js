@@ -1,19 +1,70 @@
 /**
- * SAHTEN CLIENT (V3.1 Responsive)
+ * SAHTEN CLIENT (v2.1)
  * Persona: Editorial Chef from L'Orient-Le Jour
+ * 
+ * Features:
+ * - Model selection (nano/mini/auto)
+ * - A/B testing support
+ * - Response model tracking
+ * - XSS Protection via DOMPurify
+ * - Feedback collection (👍/👎)
  * 
  * Configuration:
  * - Set window.SAHTEN_API_BASE before loading to override API URL
  * - Or pass { apiBase: "https://..." } to constructor
+ * - Pass { modelSelector: element } for model dropdown support
+ * 
+ * Security:
+ * - All HTML responses are sanitized via DOMPurify before rendering
+ * - Only whitelisted tags/attributes are allowed
  */
+
+// Allowed HTML elements for sanitization
+const ALLOWED_TAGS = [
+    'div', 'p', 'span', 'strong', 'em', 'u', 'br', 
+    'a', 'article', 'h3', 
+    'ul', 'li', 'ol',
+    'blockquote'  // For recipe citations/grounding
+];
+
+const ALLOWED_ATTR = ['class', 'href', 'target', 'style', 'aria-label'];
+
+/**
+ * Sanitize HTML using DOMPurify (if available) or basic sanitization
+ */
+function sanitizeHTML(html) {
+    if (typeof DOMPurify !== 'undefined') {
+        return DOMPurify.sanitize(html, {
+            ALLOWED_TAGS: ALLOWED_TAGS,
+            ALLOWED_ATTR: ALLOWED_ATTR,
+            ALLOW_DATA_ATTR: false,
+        });
+    }
+    // Fallback: basic sanitization using browser's DOM parser
+    // This preserves HTML structure while removing scripts
+    // DOMPurify not loaded, using basic sanitization
+    const temp = document.createElement('div');
+    temp.innerHTML = html;
+    
+    // Remove potentially dangerous elements
+    const dangerous = temp.querySelectorAll('script, iframe, object, embed, form, input, button');
+    dangerous.forEach(el => el.remove());
+    
+    // Remove event handlers from all elements
+    temp.querySelectorAll('*').forEach(el => {
+        Array.from(el.attributes).forEach(attr => {
+            if (attr.name.startsWith('on')) {
+                el.removeAttribute(attr.name);
+            }
+        });
+    });
+    
+    return temp.innerHTML;
+}
 
 export class SahtenChat {
     constructor(config = {}) {
-        // API URL Resolution (priority order):
-        // 1. Constructor config.apiBase
-        // 2. Global window.SAHTEN_API_BASE
-        // 3. Auto-detect based on current host
-        
+        // API URL Resolution
         const host = window.location.hostname;
         const protocol = window.location.protocol;
         
@@ -23,27 +74,27 @@ export class SahtenChat {
         let defaultApiBase;
         
         if (window.SAHTEN_API_BASE) {
-            // Use global config (set in index.html for production)
             defaultApiBase = window.SAHTEN_API_BASE;
         } else if (isLocalDev || isFile) {
-            // Local development
             const apiHost = (host === '127.0.0.1') ? '127.0.0.1' : 'localhost';
             defaultApiBase = `http://${apiHost}:8000/api`;
         } else {
-            // Production: same origin
             defaultApiBase = '/api';
         }
 
         this.config = {
-            apiBase: defaultApiBase, 
+            apiBase: defaultApiBase,
+            modelSelector: null,  // Optional model dropdown element
             ...config
         };
 
         this.state = {
             isOpen: false,
             isLoading: false,
-            size: 'window', // window | mid | full
-            touchStartY: 0
+            size: 'window',
+            touchStartY: 0,
+            lastModelUsed: null,  // Track model used in last response
+            sessionId: this.generateSessionId(),  // For conversation memory
         };
 
         this.dom = {
@@ -56,7 +107,8 @@ export class SahtenChat {
             input: document.querySelector('#sahten-input'),
             sendBtn: document.querySelector('.send-btn'),
             sizeBtns: document.querySelectorAll('.sahten-size-btn'),
-            dragHandle: document.querySelector('.sahten-drag-handle')
+            dragHandle: document.querySelector('.sahten-drag-handle'),
+            modelSelector: this.config.modelSelector,
         };
 
         this.init();
@@ -65,7 +117,53 @@ export class SahtenChat {
     init() {
         if (!this.dom.container) return; 
         this.bindEvents();
-        console.log(`Sahten initialized. Backend URL: ${this.config.apiBase}`);
+        const initialSize = this.dom.container.dataset.size || this.state.size;
+        this.setSize(initialSize);
+        this.loadModels();
+        // Sahten v2.1 initialized
+    }
+
+    generateSessionId() {
+        /**
+         * Generate a unique session ID for conversation memory.
+         * Persists in sessionStorage so refreshing page keeps the session.
+         */
+        const storageKey = 'sahten_session_id';
+        let sessionId = sessionStorage.getItem(storageKey);
+        
+        if (!sessionId) {
+            sessionId = 'ses_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 8);
+            sessionStorage.setItem(storageKey, sessionId);
+        }
+        
+        return sessionId;
+    }
+
+    async loadModels() {
+        /**
+         * Fetch available models from API and update dropdown.
+         */
+        if (!this.dom.modelSelector) return;
+        
+        try {
+            const response = await fetch(`${this.config.apiBase}/models`);
+            if (response.ok) {
+                const data = await response.json();
+                // Available models loaded from API
+                // (keeping static options for now as they match the API)
+            }
+        } catch (e) {
+            // Could not fetch models (will use static list)
+        }
+    }
+
+    getSelectedModel() {
+        /**
+         * Get currently selected model from dropdown.
+         */
+        if (!this.dom.modelSelector) return null;
+        const value = this.dom.modelSelector.value;
+        return value === 'auto' ? null : value;
     }
 
     bindEvents() {
@@ -90,26 +188,33 @@ export class SahtenChat {
 
         // Mobile Drag/Slide Logic
         if (this.dom.dragHandle) {
+            let startY = 0;
+
             this.dom.dragHandle.addEventListener('touchstart', (e) => {
-                this.state.touchStartY = e.touches[0].clientY;
+                startY = e.touches[0].clientY;
             }, { passive: true });
 
             this.dom.dragHandle.addEventListener('touchend', (e) => {
-                const endY = e.changedTouches[0].clientY;
-                const diff = endY - this.state.touchStartY;
+                const diff = e.changedTouches[0].clientY - startY;
 
-                // Swipe Down (> 50px) -> Minimize or Close
-                if (diff > 50) {
+                if (diff > 40) {
+                    // Swipe down -> smaller or close
                     if (this.state.size === 'full') this.setSize('mid');
                     else if (this.state.size === 'mid') this.setSize('window');
                     else this.toggle(false);
-                } 
-                // Swipe Up (> 50px) -> Expand
-                else if (diff < -50) {
+                } else if (diff < -40) {
+                    // Swipe up -> bigger
                     if (this.state.size === 'window') this.setSize('mid');
                     else if (this.state.size === 'mid') this.setSize('full');
                 }
             }, { passive: true });
+
+            // Also allow tapping the handle area to cycle sizes
+            this.dom.dragHandle.addEventListener('click', () => {
+                if (this.state.size === 'window') this.setSize('mid');
+                else if (this.state.size === 'mid') this.setSize('full');
+                else this.setSize('window');
+            });
         }
     }
 
@@ -123,7 +228,7 @@ export class SahtenChat {
             this.dom.trigger.style.pointerEvents = 'none';
             setTimeout(() => this.dom.input.focus(), 100);
             
-            // Welcome Message - Editorial Chef Persona
+            // Welcome Message
             if (this.dom.body.children.length === 0) {
                 this.appendBotMessage({
                     html: `<div class="sahten-narrative">
@@ -138,19 +243,19 @@ export class SahtenChat {
             this.dom.backdrop.classList.remove('visible');
             this.dom.trigger.style.opacity = '1';
             this.dom.trigger.style.pointerEvents = 'auto';
-            // Reset size on close for consistency? Optional.
-            // this.setSize('window'); 
         }
     }
 
     setSize(size) {
-        this.state.size = size;
-        this.dom.container.setAttribute('data-size', size);
+        const allowedSizes = new Set(['window', 'mid', 'full']);
+        const nextSize = allowedSizes.has(size) ? size : 'window';
+        this.state.size = nextSize;
+        this.dom.container.setAttribute('data-size', nextSize);
         
-        // Update active button state
         this.dom.sizeBtns.forEach(btn => {
-            if (btn.dataset.action === size) btn.classList.add('active');
-            else btn.classList.remove('active');
+            const isActive = btn.dataset.action === nextSize;
+            btn.classList.toggle('active', isActive);
+            btn.setAttribute('aria-pressed', String(isActive));
         });
     }
 
@@ -163,35 +268,61 @@ export class SahtenChat {
         this.setLoading(true);
 
         try {
-            console.log(`Sending message to: ${this.config.apiBase}/chat`);
+            const model = this.getSelectedModel();
+            const payload = { 
+                message: text, 
+                debug: false,
+                session_id: this.state.sessionId,  // For conversation memory
+            };
+            
+            // Add model if specified (not auto)
+            if (model) {
+                payload.model = model;
+            }
+            
             const response = await fetch(`${this.config.apiBase}/chat`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: text, debug: false })
+                body: JSON.stringify(payload)
             });
 
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
             const data = await response.json();
+            
+            // Track model used
+            this.state.lastModelUsed = data.model_used;
+            
+            // Add model indicator to response if in debug/testing mode
+            if (data.model_used) {
+                data.html = this.addModelIndicator(data.html, data.model_used);
+            }
+            
             this.appendBotMessage(data);
 
         } catch (error) {
-            console.error(error);
-            // Polite, in-character error message with DEBUG info
+            // API error occurred
             this.appendBotMessage({
                 html: `<div class="sahten-narrative" style="color: var(--color-accent);">
                     <p><em>Mille excuses, un petit incident en cuisine...</em></p>
                     <p>Pourriez-vous répéter votre demande ?</p>
                     <p style="font-size: 11px; opacity: 0.7; margin-top: 10px;">
-                        (Debug: Impossible de joindre <code>${this.config.apiBase}</code>.<br>
-                        Page: <code>${window.location.origin}</code><br>
-                        Erreur: ${error.message || 'Réseau'})
+                        (Debug: ${this.config.apiBase} - ${error.message || 'Réseau'})
                     </p>
                 </div>`
             });
         } finally {
             this.setLoading(false);
         }
+    }
+
+    addModelIndicator(html, modelUsed) {
+        /**
+         * Add a small model indicator to the response HTML (for testing).
+         */
+        const modelName = modelUsed.includes('nano') ? 'nano' : 'mini';
+        const indicator = `<div style="font-size: 9px; opacity: 0.5; text-align: right; margin-top: 8px; font-family: monospace;">${modelName}</div>`;
+        return html + indicator;
     }
 
     appendUserMessage(text) {
@@ -205,15 +336,183 @@ export class SahtenChat {
     appendBotMessage(data) {
         const div = document.createElement('div');
         div.className = 'msg msg-bot';
-        div.innerHTML = data.html; 
+        // Sanitize HTML to prevent XSS attacks
+        div.innerHTML = sanitizeHTML(data.html);
+        
+        // Track impressions for recipe cards
+        if (data.request_id) {
+            this.trackImpressions(div, data);
+            
+            // Add click tracking to recipe links
+            this.addClickTracking(div, data);
+            
+            // Add feedback buttons
+            const feedbackDiv = this.createFeedbackButtons(data.request_id);
+            div.appendChild(feedbackDiv);
+        }
+        
         this.dom.body.appendChild(div);
         this.scrollToBottom();
+    }
+
+    trackImpressions(container, data) {
+        /**
+         * Track impression events for each recipe card displayed.
+         */
+        const recipeCards = container.querySelectorAll('.recipe-card');
+        recipeCards.forEach(card => {
+            const link = card.querySelector('a');
+            const titleEl = card.querySelector('.recipe-title');
+            if (link && titleEl) {
+                this.trackEvent('impression', {
+                    request_id: data.request_id,
+                    recipe_url: link.href,
+                    recipe_title: titleEl.textContent,
+                    intent: data.intent,
+                    model_used: data.model_used,
+                });
+            }
+        });
+    }
+
+    addClickTracking(container, data) {
+        /**
+         * Add click tracking to recipe card links.
+         */
+        const recipeLinks = container.querySelectorAll('.recipe-card a');
+        recipeLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                const titleEl = link.querySelector('.recipe-title');
+                this.trackEvent('click', {
+                    request_id: data.request_id,
+                    recipe_url: link.href,
+                    recipe_title: titleEl ? titleEl.textContent : '',
+                    intent: data.intent,
+                    model_used: data.model_used,
+                });
+            });
+        });
+    }
+
+    async trackEvent(eventType, eventData) {
+        /**
+         * Send event to the analytics API.
+         */
+        try {
+            const payload = {
+                event_type: eventType,
+                session_id: this.state.sessionId,
+                ...eventData,
+            };
+            
+            // Fire and forget (don't wait for response)
+            fetch(`${this.config.apiBase}/events`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            }).catch(() => { /* Event tracking failed silently */ });
+            
+        } catch (error) {
+            // Failed to track event silently
+        }
+    }
+
+    createFeedbackButtons(requestId) {
+        /**
+         * Create feedback buttons (👍/👎) for a response.
+         */
+        const container = document.createElement('div');
+        container.className = 'feedback-container';
+        container.innerHTML = `
+            <div class="feedback-buttons" data-request-id="${requestId}">
+                <span class="feedback-prompt">Cette réponse vous a-t-elle aidé ?</span>
+                <button class="feedback-btn feedback-positive" data-rating="positive" title="Utile">Oui</button>
+                <button class="feedback-btn feedback-negative" data-rating="negative" title="Pas utile">Non</button>
+            </div>
+            <div class="feedback-reason" style="display: none;">
+                <input type="text" class="feedback-reason-input" placeholder="Pourquoi ? (optionnel)" maxlength="200">
+                <button class="feedback-submit-btn">Envoyer</button>
+            </div>
+            <div class="feedback-thanks" style="display: none;">
+                <span>Merci pour votre retour !</span>
+            </div>
+        `;
+        
+        // Add event listeners
+        const buttons = container.querySelectorAll('.feedback-btn');
+        buttons.forEach(btn => {
+            btn.addEventListener('click', (e) => this.handleFeedbackClick(e, container, requestId));
+        });
+        
+        const submitBtn = container.querySelector('.feedback-submit-btn');
+        if (submitBtn) {
+            submitBtn.addEventListener('click', () => this.submitFeedbackWithReason(container, requestId));
+        }
+        
+        return container;
+    }
+
+    handleFeedbackClick(event, container, requestId) {
+        const rating = event.target.dataset.rating;
+        const buttonsDiv = container.querySelector('.feedback-buttons');
+        const reasonDiv = container.querySelector('.feedback-reason');
+        const thanksDiv = container.querySelector('.feedback-thanks');
+        
+        // Highlight selected button
+        container.querySelectorAll('.feedback-btn').forEach(btn => btn.classList.remove('selected'));
+        event.target.classList.add('selected');
+        
+        if (rating === 'negative') {
+            // Show reason input for negative feedback
+            reasonDiv.style.display = 'flex';
+            this.pendingFeedback = { requestId, rating };
+        } else {
+            // Submit positive feedback immediately
+            this.submitFeedback(requestId, rating, null);
+            buttonsDiv.style.display = 'none';
+            thanksDiv.style.display = 'block';
+        }
+    }
+
+    submitFeedbackWithReason(container, requestId) {
+        const reasonInput = container.querySelector('.feedback-reason-input');
+        const reason = reasonInput ? reasonInput.value.trim() : null;
+        const rating = this.pendingFeedback?.rating || 'negative';
+        
+        this.submitFeedback(requestId, rating, reason);
+        
+        // Update UI
+        container.querySelector('.feedback-buttons').style.display = 'none';
+        container.querySelector('.feedback-reason').style.display = 'none';
+        container.querySelector('.feedback-thanks').style.display = 'block';
+    }
+
+    async submitFeedback(requestId, rating, reason) {
+        /**
+         * Submit feedback to the API.
+         */
+        try {
+            const payload = {
+                request_id: requestId,
+                rating: rating,
+                reason: reason,
+                session_id: this.state.sessionId,
+            };
+            
+            await fetch(`${this.config.apiBase}/feedback`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+        } catch (error) {
+            // Failed to submit feedback silently
+        }
     }
 
     setLoading(loading) {
         this.state.isLoading = loading;
         this.dom.sendBtn.disabled = loading;
-        this.dom.input.disabled = loading; // Prevent double submit
+        this.dom.input.disabled = loading;
         
         if (loading) {
             const loader = document.createElement('div');
