@@ -66,6 +66,9 @@ class RecipeCard(BaseModel):
     Deux types:
     - OLJ: Lien vers l'article L'Orient-Le Jour
     - Base2: Recette complète avec ingrédients et étapes
+    
+    Grounding:
+    - cited_passage: Passage pertinent extrait du document source
     """
     
     source: Literal["olj", "base2"]
@@ -74,6 +77,12 @@ class RecipeCard(BaseModel):
     chef: Optional[str] = None
     category: str = ""
     image_url: Optional[str] = None
+    
+    # Grounding/Citation: passage pertinent du document source
+    cited_passage: Optional[str] = Field(
+        default=None,
+        description="Passage court extrait du document qui justifie la pertinence de cette recette"
+    )
     
     # Champs pour Base2 uniquement (recette complète)
     ingredients: Optional[List[str]] = None
@@ -155,6 +164,7 @@ class SahtenResponse(BaseModel):
     # Métadonnées pour debugging/analytics
     intent_detected: Optional[str] = None
     confidence: Optional[float] = None
+    model_used: Optional[str] = None  # Model used for this response (for A/B testing)
     
     @field_validator('recipes')
     @classmethod

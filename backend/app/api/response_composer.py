@@ -6,9 +6,17 @@ Formats structured LLM responses into clean, semantic HTML for the frontend.
 Follows "Editorial Chef" design principles: centered text, elegant typography.
 """
 
+import html
 import re
 from typing import List, Optional
 from ..schemas.responses import SahtenResponse, RecipeCard
+
+
+def _escape_html(text: str) -> str:
+    """Escape HTML special characters to prevent XSS."""
+    if not text:
+        return ""
+    return html.escape(text, quote=True)
 
 def compose_html_response(response: SahtenResponse) -> str:
     """Convert SahtenResponse to HTML string."""
@@ -92,34 +100,49 @@ def _format_text(text: str) -> str:
 
 def _format_recipe_card(card: RecipeCard) -> str:
     """
-    Format a single recipe card.
+    Format a single recipe card with optional grounding/citation.
+    All user-provided content is escaped to prevent XSS.
     """
-    title = card.title or "Recette sans titre"
-    url = card.url or "#"
+    # Escape all user-provided content
+    title = _escape_html(card.title) if card.title else "Recette sans titre"
+    url = _escape_html(card.url) if card.url else "#"
     
+    image_class = "recipe-image"
     image_style = ""
     if card.image_url:
-        image_style = f'style="background-image: url(\'{card.image_url}\')"'
+        escaped_image_url = _escape_html(card.image_url)
+        image_style = f'style="background-image: url(\'{escaped_image_url}\')"'
     else:
-        image_style = 'class="recipe-image no-image"'
+        image_class = "recipe-image no-image"
 
     category_html = ""
     if card.category:
-        cat_display = card.category.replace("_", " ").upper()
-        # Use a safe color class or inline style if needed, but CSS handles .recipe-category
+        cat_display = _escape_html(card.category.replace("_", " ").upper())
         category_html = f'<span class="recipe-category">{cat_display}</span>'
 
     chef_html = ""
     if card.chef:
-        chef_html = f'<span class="recipe-chef">Par {card.chef}</span>'
+        escaped_chef = _escape_html(card.chef)
+        chef_html = f'<span class="recipe-chef">Par {escaped_chef}</span>'
 
-    html = f"""
+    # Grounding: show cited passage if available
+    citation_html = ""
+    if card.cited_passage:
+        # Escape and truncate citation for display
+        citation_text = card.cited_passage[:200]
+        if len(card.cited_passage) > 200:
+            citation_text += "..."
+        escaped_citation = _escape_html(citation_text)
+        citation_html = f'<blockquote class="recipe-citation">&ldquo;{escaped_citation}&rdquo;</blockquote>'
+
+    card_html = f"""
     <article class="recipe-card">
         <a href="{url}" target="_blank" class="recipe-card-link-wrapper">
-            <div class="recipe-image" {image_style}></div>
+            <div class="{image_class}" {image_style}></div>
             <div class="recipe-content">
                 {category_html}
                 <h3 class="recipe-title">{title}</h3>
+                {citation_html}
                 <div class="recipe-meta">
                     {chef_html}
                 </div>
@@ -127,4 +150,4 @@ def _format_recipe_card(card: RecipeCard) -> str:
         </a>
     </article>
     """
-    return html
+    return card_html

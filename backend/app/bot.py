@@ -1,13 +1,22 @@
 """
-Sahten Bot (Main Application)
-==============================
+Sahten Bot (v2.1)
+=================
 
 The core application logic for Sahten.
 Implements the durable RAG pipeline:
   1) QueryAnalyzer (LLM): safety + intent + filters
-  2) HybridRetriever: retrieve (hybrid) -> rerank (LLM) -> select (dedup/diversity)
+  2) HybridRetriever: retrieve (hybrid) -> rerank (LLM) -> select
   3) ResponseGenerator (LLM): narrative generation
 
+Supports flexible model selection via:
+  - Environment variable (OPENAI_MODEL)
+  - API request parameter
+  - A/B testing
+
+Session Memory:
+  - Short-term memory via SessionManager (TTL 30 min)
+  - Avoids re-proposing same recipes
+  - Tracks conversation context for continuations
 """
 
 from __future__ import annotations
@@ -15,12 +24,15 @@ from __future__ import annotations
 import logging
 from functools import lru_cache
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, List
 
+from .core.config import get_settings
+from .core.model_selector import get_model_for_request
 from .llm.query_analyzer import QueryAnalyzer
 from .llm.response_generator import ResponseGenerator
 from .rag.retriever import HybridRetriever
-from .schemas.responses import RecipeNarrative, SahtenResponse
+from .rag.session_manager import SessionManager, is_continuation
+from .schemas.responses import RecipeNarrative, SahtenResponse, RecipeCard
 
 logger = logging.getLogger(__name__)
 
@@ -29,27 +41,89 @@ logger = logging.getLogger(__name__)
 class SahtenConfig:
     enable_safety_check: bool = True
     enable_narrative_generation: bool = True
-    model: str = "gpt-4o-mini"
 
 
 class SahtenBot:
+    """
+    Main Sahten chatbot.
+    
+    Supports dynamic model selection per-request.
+    Includes session memory to avoid repeating recipes.
+    """
+    
     def __init__(self, config: Optional[SahtenConfig] = None):
         self.config = config or SahtenConfig()
-
-        self.analyzer = QueryAnalyzer(model=self.config.model)
+        settings = get_settings()
+        
+        # Default model from settings
+        self.default_model = settings.openai_model
+        
+        # Initialize components with default model
+        self.analyzer = QueryAnalyzer(model=self.default_model)
         self.retriever = HybridRetriever()
-        self.generator = ResponseGenerator(model=self.config.model)
+        self.generator = ResponseGenerator(model=self.default_model)
+        
+        # Session memory (TTL 30 min, max 2000 sessions)
+        self.session_manager = SessionManager(max_sessions=2000, ttl_minutes=30)
 
-        logger.info("SahtenBot initialized (model=%s)", self.config.model)
+        logger.info("SahtenBot initialized (default_model=%s, session_memory=enabled)", self.default_model)
+
+    def _get_analyzer(self, model: str) -> QueryAnalyzer:
+        """Get analyzer for specific model (cached or new)."""
+        if model == self.default_model:
+            return self.analyzer
+        return QueryAnalyzer(model=model)
+    
+    def _get_generator(self, model: str) -> ResponseGenerator:
+        """Get generator for specific model (cached or new)."""
+        if model == self.default_model:
+            return self.generator
+        return ResponseGenerator(model=model)
 
     async def chat(
-        self, message: str, *, debug: bool = False
+        self,
+        message: str,
+        *,
+        debug: bool = False,
+        model: Optional[str] = None,
+        request_id: Optional[str] = None,
+        session_id: Optional[str] = None,
     ) -> tuple[SahtenResponse, Optional[dict]]:
-        # 1) Analyze
-        analysis = await self.analyzer.analyze(message)
+        """
+        Process a chat message.
+        
+        Args:
+            message: User's message
+            debug: Include debug info in response
+            model: Override model selection (None = use default/A/B)
+            request_id: Request ID for A/B testing
+            session_id: Session ID for conversation memory
+        
+        Returns:
+            (SahtenResponse, debug_info)
+        """
+        # Determine model to use
+        effective_model = get_model_for_request(
+            request_id or "default",
+            model
+        )
+        
+        # Get components for this model
+        analyzer = self._get_analyzer(effective_model)
+        generator = self._get_generator(effective_model)
+        
+        # Get or create session for memory
+        session = None
+        if session_id:
+            session = self.session_manager.get_or_create(session_id)
+            logger.debug("Session %s: %d turns, %d recipes proposed", 
+                        session_id, len(session.conversation_history), len(session.recipes_proposed))
+        
+        # 1) Analyze query
+        analysis = await analyzer.analyze(message)
 
         if not analysis.safety.is_safe:
-            narrative = self.generator.generate_redirect(analysis.redirect_suggestion)
+            narrative = generator.generate_redirect(analysis.redirect_suggestion)
             return (
                 SahtenResponse(
                     response_type="redirect",
@@ -58,25 +132,27 @@ class SahtenBot:
                     recipe_count=0,
                     intent_detected=analysis.intent,
                     confidence=analysis.intent_confidence,
+                    model_used=effective_model,
                 ),
-                {"analysis": analysis.model_dump()} if debug else None,
+                {"analysis": analysis.model_dump(), "model": effective_model} if debug else None,
             )
 
         if analysis.intent == "greeting":
             return (
                 SahtenResponse(
                     response_type="greeting",
-                    narrative=self.generator.generate_greeting(),
+                    narrative=generator.generate_greeting(),
                     recipes=[],
                     recipe_count=0,
                     intent_detected=analysis.intent,
                     confidence=analysis.intent_confidence,
+                    model_used=effective_model,
                 ),
-                {"analysis": analysis.model_dump()} if debug else None,
+                {"analysis": analysis.model_dump(), "model": effective_model} if debug else None,
             )
 
         if analysis.intent == "off_topic" or not analysis.is_culinary:
-            narrative = self.generator.generate_redirect(analysis.redirect_suggestion)
+            narrative = generator.generate_redirect(analysis.redirect_suggestion)
             return (
                 SahtenResponse(
                     response_type="redirect",
@@ -85,8 +161,9 @@ class SahtenBot:
                     recipe_count=0,
                     intent_detected=analysis.intent,
                     confidence=analysis.intent_confidence,
+                    model_used=effective_model,
                 ),
-                {"analysis": analysis.model_dump()} if debug else None,
+                {"analysis": analysis.model_dump(), "model": effective_model} if debug else None,
             )
 
         if analysis.intent == "clarification":
@@ -94,18 +171,22 @@ class SahtenBot:
             return (
                 SahtenResponse(
                     response_type="clarification",
-                    narrative=self.generator.generate_clarification(term),
+                    narrative=generator.generate_clarification(term),
                     recipes=[],
                     recipe_count=0,
                     intent_detected=analysis.intent,
                     confidence=analysis.intent_confidence,
+                    model_used=effective_model,
                 ),
-                {"analysis": analysis.model_dump()} if debug else None,
+                {"analysis": analysis.model_dump(), "model": effective_model} if debug else None,
             )
 
         # 2) Retrieve + rerank
+        # Exclude recipes already proposed in this session
+        exclude_urls = session.recipes_proposed if session else []
+        
         recipes, is_base2, retrieval_debug = await self.retriever.search_with_rerank(
-            analysis, raw_query=message, debug=debug
+            analysis, raw_query=message, debug=debug, exclude_urls=exclude_urls
         )
 
         if not recipes:
@@ -126,25 +207,26 @@ class SahtenBot:
                     recipe_count=0,
                     intent_detected=analysis.intent,
                     confidence=analysis.intent_confidence,
+                    model_used=effective_model,
                 ),
                 (
-                    {"analysis": analysis.model_dump(), "retrieval": retrieval_debug}
+                    {"analysis": analysis.model_dump(), "retrieval": retrieval_debug, "model": effective_model}
                     if debug
                     else None
                 ),
             )
 
-        # 3) Narrative
+        # 3) Generate narrative
         if self.config.enable_narrative_generation:
-            narrative = await self.generator.generate_narrative(
+            narrative = await generator.generate_narrative(
                 user_query=message,
                 analysis=analysis,
                 recipes=recipes,
                 is_base2_fallback=is_base2,
             )
         else:
-            narrative = self.generator.generate_redirect(
-                "Mode sans génération narrative activé. Dis-moi ce que tu cherches et je te propose une recette."
+            narrative = generator.generate_redirect(
+                "Mode sans génération narrative activé."
             )
 
         olj_reco = None
@@ -168,16 +250,44 @@ class SahtenBot:
             recipe_count=len(recipes),
             intent_detected=analysis.intent,
             confidence=analysis.intent_confidence,
+            model_used=effective_model,
         )
+        
+        # Save session with new recipes
+        if session and recipes:
+            primary_url = recipes[0].url if recipes else None
+            session.add_turn(
+                user_message=message,
+                intent=analysis.intent,
+                primary_dish=analysis.dish_name,
+                ingredients=analysis.ingredients,
+                recipe_url=primary_url,
+                response_summary=f"{len(recipes)} recettes proposées",
+            )
+            self.session_manager.save(session)
+        
         dbg = (
-            {"analysis": analysis.model_dump(), "retrieval": retrieval_debug}
+            {"analysis": analysis.model_dump(), "retrieval": retrieval_debug, "model": effective_model}
             if debug
             else None
         )
         return resp, dbg
 
 
-@lru_cache(maxsize=1)
+# Singleton instance
+_bot_instance: Optional[SahtenBot] = None
+
+
 def get_bot() -> SahtenBot:
-    """Singleton bot instance."""
-    return SahtenBot()
+    """Get singleton bot instance."""
+    global _bot_instance
+    if _bot_instance is None:
+        _bot_instance = SahtenBot()
+    return _bot_instance
+
+
+def reload_bot() -> SahtenBot:
+    """Force reload bot instance (after config change)."""
+    global _bot_instance
+    _bot_instance = SahtenBot()
+    return _bot_instance
