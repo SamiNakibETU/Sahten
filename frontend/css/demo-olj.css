@@ -1,0 +1,553 @@
+/*
+ * L'Orient-Le Jour Demo Page Styles
+ * Simulates the OLJ "A Table" section design
+ */
+
+/* ========================================
+   CSS VARIABLES (OLJ Color Palette)
+   ======================================== */
+:root {
+    --olj-bg: #f8f8f8;
+    --olj-white: #ffffff;
+    --olj-black: #1a1a1a;
+    --olj-gray: #666666;
+    --olj-light-gray: #e5e5e5;
+    --olj-green: #94C2AE;
+    --olj-green-dark: #7db09a;
+    --olj-red: #DD3B31;
+    --olj-yellow: #f5c842;
+    
+    --font-display: 'Playfair Display', Georgia, serif;
+    --font-body: 'Inter', -apple-system, sans-serif;
+}
+
+/* ========================================
+   RESET & BASE
+   ======================================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-body);
+    background: var(--olj-bg);
+    color: var(--olj-black);
+    line-height: 1.6;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* ========================================
+   HEADER
+   ======================================== */
+.olj-header {
+    background: var(--olj-white);
+    border-bottom: 1px solid var(--olj-light-gray);
+}
+
+.olj-top-bar {
+    background: var(--olj-black);
+    padding: 8px 24px;
+}
+
+.olj-top-nav {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+}
+
+.olj-top-nav a {
+    color: rgba(255,255,255,0.7);
+    transition: color 0.2s;
+}
+
+.olj-top-nav a:hover,
+.olj-top-nav a.active {
+    color: var(--olj-yellow);
+}
+
+.olj-top-nav .separator {
+    color: rgba(255,255,255,0.3);
+}
+
+.olj-brand {
+    text-align: center;
+    padding: 24px 20px;
+}
+
+.olj-logo {
+    font-family: var(--font-display);
+    font-size: 42px;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    color: var(--olj-black);
+}
+
+.olj-tagline {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--olj-gray);
+    margin-top: 4px;
+}
+
+.olj-main-nav {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 32px;
+    padding: 16px 24px;
+    border-top: 1px solid var(--olj-light-gray);
+    flex-wrap: wrap;
+}
+
+.olj-main-nav .nav-item {
+    font-size: 14px;
+    color: var(--olj-gray);
+    transition: color 0.2s;
+    position: relative;
+}
+
+.olj-main-nav .nav-item:hover,
+.olj-main-nav .nav-item.active {
+    color: var(--olj-black);
+}
+
+.olj-main-nav .nav-item.active::after {
+    content: '';
+    position: absolute;
+    bottom: -16px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--olj-green);
+}
+
+.olj-main-nav .nav-item.cta {
+    background: var(--olj-yellow);
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-weight: 500;
+    color: var(--olj-black);
+}
+
+/* ========================================
+   HERO SECTION
+   ======================================== */
+.olj-hero {
+    background: linear-gradient(135deg, var(--olj-green) 0%, var(--olj-green-dark) 100%);
+    padding: 60px 24px;
+    text-align: center;
+    color: var(--olj-white);
+}
+
+.hero-content {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.hero-tag {
+    display: inline-block;
+    background: rgba(255,255,255,0.2);
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    margin-bottom: 16px;
+}
+
+.olj-hero h1 {
+    font-family: var(--font-display);
+    font-size: 48px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    line-height: 1.2;
+}
+
+.olj-hero p {
+    font-size: 18px;
+    opacity: 0.9;
+}
+
+/* ========================================
+   MAIN CONTENT
+   ======================================== */
+.olj-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 24px;
+}
+
+.section-title {
+    font-family: var(--font-display);
+    font-size: 32px;
+    font-weight: 400;
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--olj-green);
+    display: inline-block;
+}
+
+/* Featured Article */
+.featured-section {
+    margin-bottom: 48px;
+}
+
+.featured-article {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    background: var(--olj-white);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+}
+
+.featured-image {
+    position: relative;
+    min-height: 350px;
+}
+
+.featured-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.article-tag {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    background: var(--olj-red);
+    color: white;
+    padding: 6px 12px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    border-radius: 3px;
+}
+
+.featured-content {
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.featured-content h2 {
+    font-family: var(--font-display);
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    line-height: 1.3;
+}
+
+.featured-content p {
+    color: var(--olj-gray);
+    margin-bottom: 16px;
+    line-height: 1.7;
+}
+
+.article-meta {
+    font-size: 13px;
+    color: var(--olj-green-dark);
+    font-weight: 500;
+}
+
+/* Recipes Grid */
+.recipes-section {
+    margin-bottom: 48px;
+}
+
+.recipes-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+}
+
+.recipe-article {
+    background: var(--olj-white);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.recipe-article:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+}
+
+.recipe-image {
+    aspect-ratio: 4/3;
+    overflow: hidden;
+}
+
+.recipe-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+}
+
+.recipe-article:hover .recipe-image img {
+    transform: scale(1.05);
+}
+
+.recipe-content {
+    padding: 16px;
+}
+
+.recipe-tag {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    color: var(--olj-red);
+    margin-bottom: 8px;
+}
+
+.recipe-content h3 {
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.4;
+    margin-bottom: 8px;
+}
+
+.recipe-meta {
+    font-size: 12px;
+    color: var(--olj-gray);
+}
+
+/* Chefs Section */
+.chefs-section {
+    margin-bottom: 48px;
+}
+
+.chefs-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+}
+
+.chef-article {
+    background: var(--olj-white);
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 20px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    transition: box-shadow 0.2s;
+}
+
+.chef-article:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+}
+
+.chef-image {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.chef-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.chef-content h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.chef-content p {
+    font-size: 13px;
+    color: var(--olj-gray);
+}
+
+/* CTA Section */
+.cta-section {
+    background: linear-gradient(135deg, var(--olj-black) 0%, #2a2a2a 100%);
+    border-radius: 12px;
+    padding: 48px;
+    text-align: center;
+    color: var(--olj-white);
+    margin-bottom: 48px;
+}
+
+.cta-content h2 {
+    font-family: var(--font-display);
+    font-size: 32px;
+    margin-bottom: 12px;
+}
+
+.cta-content p {
+    opacity: 0.8;
+    margin-bottom: 24px;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.cta-button {
+    background: var(--olj-green);
+    color: white;
+    border: none;
+    padding: 14px 32px;
+    font-size: 16px;
+    font-weight: 500;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+}
+
+.cta-button:hover {
+    background: var(--olj-green-dark);
+    transform: translateY(-2px);
+}
+
+/* ========================================
+   FOOTER
+   ======================================== */
+.olj-footer {
+    background: var(--olj-black);
+    color: var(--olj-white);
+    padding: 48px 24px;
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.footer-brand {
+    margin-bottom: 24px;
+}
+
+.footer-logo {
+    font-family: var(--font-display);
+    font-size: 28px;
+}
+
+.footer-brand p {
+    font-size: 12px;
+    opacity: 0.6;
+    margin-top: 4px;
+}
+
+.footer-links {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+}
+
+.footer-links a {
+    font-size: 14px;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.footer-links a:hover {
+    opacity: 1;
+}
+
+.footer-credits {
+    font-size: 12px;
+    opacity: 0.5;
+}
+
+.footer-credits p {
+    margin-bottom: 4px;
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+@media (max-width: 1024px) {
+    .recipes-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .olj-hero h1 {
+        font-size: 32px;
+    }
+    
+    .featured-article {
+        grid-template-columns: 1fr;
+    }
+    
+    .featured-image {
+        min-height: 250px;
+    }
+    
+    .featured-content {
+        padding: 24px;
+    }
+    
+    .featured-content h2 {
+        font-size: 24px;
+    }
+    
+    .recipes-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .chefs-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .olj-main-nav {
+        gap: 16px;
+    }
+    
+    .olj-main-nav .nav-item {
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .olj-logo {
+        font-size: 28px;
+    }
+    
+    .olj-hero {
+        padding: 40px 16px;
+    }
+    
+    .olj-hero h1 {
+        font-size: 28px;
+    }
+    
+    .cta-section {
+        padding: 32px 24px;
+    }
+    
+    .footer-links {
+        flex-direction: column;
+        gap: 12px;
+    }
+}

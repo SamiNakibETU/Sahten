@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>L'Orient-Le Jour - Sahten (Test Mode)</title>
+    <title>L'Orient-Le Jour - Sahten</title>
 
     <!-- Fonts: Inter (Variable) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -41,58 +41,6 @@
         color: #111;
         letter-spacing: -0.03em;
         margin-bottom: 8px;
-      }
-      
-      /* Test Controls Styles */
-      .test-controls-container {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-right: auto;
-        padding-left: 12px;
-      }
-      
-      .model-selector-container {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-      }
-      
-      .model-selector-label {
-        font-size: 10px;
-        color: var(--color-text-muted, #888);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-      }
-      
-      .model-selector {
-        font-size: 11px;
-        font-family: inherit;
-        padding: 4px 8px;
-        border: 1px solid rgba(0,0,0,0.1);
-        border-radius: 4px;
-        background: rgba(255,255,255,0.8);
-        color: var(--color-text-main, #1B1A1A);
-        cursor: pointer;
-        transition: border-color 0.2s;
-      }
-      
-      .model-selector:hover {
-        border-color: var(--color-accent, #94C2AE);
-      }
-      
-      .model-selector:focus {
-        outline: none;
-        border-color: var(--color-accent, #94C2AE);
-        box-shadow: 0 0 0 2px rgba(148, 194, 174, 0.2);
-      }
-      
-      .model-indicator {
-        font-size: 9px;
-        padding: 2px 6px;
-        border-radius: 3px;
-        background: rgba(148, 194, 174, 0.15);
-        color: var(--color-accent, #94C2AE);
       }
       
       /* Mode Switcher */
@@ -133,36 +81,24 @@
   <body>
     <!-- Mode Switcher -->
     <nav class="mode-switcher">
-      <a href="index.html" class="mode-btn active">Test</a>
-      <a href="widget.html" class="mode-btn">Widget</a>
+      <a href="index.html" class="mode-btn">Test</a>
+      <a href="widget.html" class="mode-btn active">Widget</a>
       <a href="admin.html" class="mode-btn">Admin</a>
     </nav>
     
     <div class="page-context">
       <h1>L'Orient-Le Jour</h1>
-      <p>Mode Test - Comparer modèles et options</p>
+      <p>Widget Sahten - Production</p>
     </div>
 
-    <!-- SAHTEN WIDGET -->
+    <!-- SAHTEN WIDGET (Production - Clean) -->
     <div class="sahten-backdrop"></div>
     <div class="sahten-widget-container" data-size="window">
       <!-- Drag Handle (Mobile) -->
       <div class="sahten-drag-handle"></div>
 
-      <!-- Header -->
+      <!-- Header (Clean - No Test Controls) -->
       <div class="sahten-header">
-        <!-- Test Controls -->
-        <div class="test-controls-container">
-          <div class="model-selector-container">
-            <label class="model-selector-label" for="model-select">Modèle</label>
-            <select id="model-select" class="model-selector">
-              <option value="auto">Auto</option>
-              <option value="gpt-4.1-nano">Nano</option>
-              <option value="gpt-4o-mini">Mini</option>
-            </select>
-          </div>
-        </div>
-        
         <div class="sahten-title">Sahten</div>
         <div class="sahten-controls">
           <button class="sahten-size-btn" data-action="window" aria-label="Petit">
@@ -206,17 +142,8 @@
 
     <!-- Trigger Button -->
     <button class="sahten-trigger" aria-label="Ouvrir Sahten">
-      <svg
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.5"
-      >
-        <path
-          d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
-        ></path>
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
       </svg>
     </button>
 
@@ -225,8 +152,7 @@
       // ============================================================
       // PRODUCTION: Set your Railway API URL here
       // ============================================================
-      // After deploying to Railway, uncomment and update this line:
-      // window.SAHTEN_API_BASE = "https://YOUR-APP.up.railway.app/api";
+      window.SAHTEN_API_BASE = "https://web-production-73152.up.railway.app/api";
       // ============================================================
     </script>
 
@@ -234,10 +160,8 @@
     <script type="module">
       import { SahtenChat } from "./js/sahten.js";
 
-      // Initialize with model selector support
-      const chat = new SahtenChat({
-        modelSelector: document.getElementById('model-select')
-      });
+      // Initialize without model selector (uses default model)
+      const chat = new SahtenChat();
     </script>
   </body>
 </html>
