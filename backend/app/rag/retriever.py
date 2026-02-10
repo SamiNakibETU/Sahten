@@ -1,6 +1,6 @@
 """
-Hybrid Retriever (Durable)
-==========================
+Hybrid Retriever (MVP)
+======================
 
 Implements a durable retrieval pipeline:
   1) Retrieve (high recall): lexical TF-IDF + optional embeddings
@@ -8,7 +8,8 @@ Implements a durable retrieval pipeline:
   3) Rerank (high precision): LLM reranker on topK
   4) Select: dedup + diversity rules (menu) + hard filters
 
-This avoids fragile ad-hoc boosts at runtime and makes decisions explainable.
+Embeddings are OFF by default (ENABLE_EMBEDDINGS=false).
+Enable when: 1000+ recipes OR frequent semantic queries.
 """
 
 from __future__ import annotations
@@ -16,9 +17,6 @@ from __future__ import annotations
 import json
 import logging
 from dataclasses import dataclass
-import hashlib
-import math
-import random
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -48,8 +46,11 @@ class HybridRetriever:
     """
     Retriever backed by a canonical dataset generated offline.
 
-    Returns:
-      (recipes, is_base2_fallback, debug_info)
+    Features:
+      - TF-IDF lexical search (always ON)
+      - Embeddings semantic search (optional, OFF by default)
+      - LLM reranking (high precision)
+      - Hot reload for CMS webhook integration
     """
 
     def __init__(
@@ -61,7 +62,7 @@ class HybridRetriever:
     ):
         settings = get_settings()
 
-        base_dir = Path(__file__).parent.parent.parent.parent  # v2/
+        base_dir = Path(__file__).parent.parent.parent.parent
         self.olj_canonical_path = olj_canonical_path or str(
             base_dir / settings.olj_canonical_path
         )
@@ -76,23 +77,49 @@ class HybridRetriever:
 
         self._tfidf: Optional[TfidfVectorizer] = None
         self._tfidf_matrix = None
+        
+        # Embeddings storage (populated if enable_embeddings=True)
+        self._embeddings_matrix: Optional[np.ndarray] = None
 
         self._load_data()
         self._build_lexical_index()
+        
+        # Build embeddings index if enabled
+        if settings.enable_embeddings:
+            self._build_semantic_index()
+
+    def reload(self) -> None:
+        """
+        Hot reload data and indices.
+        
+        Called after CMS webhook adds new recipes.
+        Thread-safe: builds new indices before swapping.
+        """
+        logger.info("Reloading retriever data and indices...")
+        
+        # Reload data
+        self._load_data()
+        
+        # Rebuild indices
+        self._build_lexical_index()
+        
+        settings = get_settings()
+        if settings.enable_embeddings:
+            self._build_semantic_index()
+        
+        logger.info("Retriever reloaded: %d docs", len(self.olj_docs))
 
     def _load_data(self) -> None:
+        """Load canonical OLJ docs and Base2 recipes."""
         # Load canonical OLJ docs
         try:
             raw = json.loads(Path(self.olj_canonical_path).read_text(encoding="utf-8"))
             self.olj_docs = [CanonicalRecipeDoc(**d) for d in raw]
             logger.info("Loaded %s canonical OLJ docs from %s", len(self.olj_docs), self.olj_canonical_path)
         except FileNotFoundError:
-            # Durable fallback: build a minimal canonical dataset in-memory from the raw OLJ JSON.
-            # This keeps system operational even before the offline backfill step is run.
             logger.warning(
-                "Canonical OLJ dataset not found: %s. Falling back to raw dataset: %s",
+                "Canonical OLJ dataset not found: %s. Falling back to raw dataset.",
                 self.olj_canonical_path,
-                self.olj_raw_path,
             )
             self.olj_docs = self._build_minimal_canonical_from_raw()
         except Exception as e:
@@ -110,13 +137,7 @@ class HybridRetriever:
             self.base2_recipes = {}
 
     def _build_minimal_canonical_from_raw(self) -> List[CanonicalRecipeDoc]:
-        """
-        Build a minimal CanonicalRecipeDoc list from `data_base_OLJ_enriched.json`.
-
-        This is a *runtime safety net* only:
-        - We do not attempt full backfill quality here
-        - We do ensure critical fields are non-empty to keep retrieval stable
-        """
+        """Build minimal CanonicalRecipeDoc list from raw OLJ data (fallback)."""
         try:
             raw = json.loads(Path(self.olj_raw_path).read_text(encoding="utf-8"))
             if not isinstance(raw, list):
@@ -133,7 +154,6 @@ class HybridRetriever:
 
             title = (item.get("title") or item.get("recipe_section_title") or "").strip()
             if not title:
-                # Last resort: derive from URL slug
                 slug = str(url).rstrip("/").split("/")[-1].replace("-", " ").strip()
                 title = slug[:1].upper() + slug[1:] if slug else "Sans titre"
 
@@ -143,34 +163,18 @@ class HybridRetriever:
             is_lebanese = bool(enrichment.get("is_lebanese", True))
             cuisine_type = enrichment.get("cuisine_type") or None
 
-            # Canonical category/difficulty: prefer enrichment, fallback to raw fields
             cat_raw = (enrichment.get("category") or item.get("category") or "").strip().lower()
             diff_raw = (enrichment.get("difficulty") or item.get("difficulty") or "").strip().lower()
 
             category_map = {
-                "mezze": "mezze_froid",
-                "mezze froid": "mezze_froid",
-                "mezze_chaud": "mezze_chaud",
-                "mezze chaud": "mezze_chaud",
-                "plat principal": "plat_principal",
-                "plat_principal": "plat_principal",
-                "dessert": "dessert",
-                "entrée": "entree",
-                "entree": "entree",
-                "salade": "salade",
-                "soupe": "soupe",
-                "sauce": "sauces",
-                "sauces": "sauces",
-                "cocktail": "boisson",
-                "apéro": "boisson",
-                "apero": "boisson",
-                "boisson": "boisson",
+                "mezze": "mezze_froid", "mezze froid": "mezze_froid",
+                "mezze_chaud": "mezze_chaud", "mezze chaud": "mezze_chaud",
+                "plat principal": "plat_principal", "plat_principal": "plat_principal",
+                "dessert": "dessert", "entrée": "entree", "entree": "entree",
+                "salade": "salade", "soupe": "soupe", "sauce": "sauces", "sauces": "sauces",
+                "cocktail": "boisson", "apéro": "boisson", "apero": "boisson", "boisson": "boisson",
             }
-            difficulty_map = {
-                "facile": "facile",
-                "moyenne": "moyenne",
-                "difficile": "difficile",
-            }
+            difficulty_map = {"facile": "facile", "moyenne": "moyenne", "difficile": "difficile"}
 
             category_canonical = category_map.get(cat_raw, "autre")
             difficulty_canonical = difficulty_map.get(diff_raw, "non_specifie")
@@ -180,7 +184,6 @@ class HybridRetriever:
             main_ingredients = enrichment.get("main_ingredients") or []
             aliases = enrichment.get("aliases") or []
 
-            # Single search_text (critical): use the same recipe fields everywhere
             desc = (item.get("recipe_description") or "").strip()
             ingredients = " ".join((item.get("ingredients") or [])[:80])
             instructions = " ".join((item.get("instructions") or [])[:120])
@@ -189,9 +192,7 @@ class HybridRetriever:
             mains_str = " ".join(main_ingredients) if isinstance(main_ingredients, list) else str(main_ingredients)
 
             search_text = " ".join(
-                x
-                for x in [title, chef_name or "", desc, ingredients, instructions, tags_str, alias_str, mains_str]
-                if x
+                x for x in [title, chef_name or "", desc, ingredients, instructions, tags_str, alias_str, mains_str] if x
             ).strip()
             if not search_text:
                 search_text = title
@@ -205,12 +206,10 @@ class HybridRetriever:
                         cuisine_type=cuisine_type,
                         is_lebanese=is_lebanese,
                         is_recipe=is_recipe,
-                        category_canonical=category_canonical,  # type: ignore[arg-type]
-                        difficulty_canonical=difficulty_canonical,  # type: ignore[arg-type]
+                        category_canonical=category_canonical,
+                        difficulty_canonical=difficulty_canonical,
                         tags=[t for t in tags if t] if isinstance(tags, list) else [],
-                        main_ingredients=[i for i in main_ingredients if i]
-                        if isinstance(main_ingredients, list)
-                        else [],
+                        main_ingredients=[i for i in main_ingredients if i] if isinstance(main_ingredients, list) else [],
                         aliases=[a for a in aliases if a] if isinstance(aliases, list) else [],
                         search_text=search_text,
                         raw_category=cat_raw or None,
@@ -219,23 +218,23 @@ class HybridRetriever:
                     )
                 )
             except Exception:
-                # Skip malformed items rather than failing startup
                 continue
 
-        # Dedup by URL (keep first)
+        # Dedup by URL
         by_url: Dict[str, CanonicalRecipeDoc] = {}
         for d in docs:
             by_url[str(d.url)] = by_url.get(str(d.url), d)
         return list(by_url.values())
 
     def _build_lexical_index(self) -> None:
+        """Build TF-IDF index for lexical search."""
         texts = [d.search_text for d in self.olj_docs]
         if not texts:
             self._tfidf = None
             self._tfidf_matrix = None
             return
 
-        # Robust for typos/transliteration: use word + char n-grams
+        # Word n-grams for phrase matching
         self._tfidf = TfidfVectorizer(
             lowercase=True,
             strip_accents="unicode",
@@ -245,7 +244,7 @@ class HybridRetriever:
         )
         word_matrix = self._tfidf.fit_transform(texts)
 
-        # Additional char-level signal
+        # Char n-grams for typo tolerance
         char_vectorizer = TfidfVectorizer(
             lowercase=True,
             strip_accents="unicode",
@@ -255,39 +254,47 @@ class HybridRetriever:
         )
         char_matrix = char_vectorizer.fit_transform(texts)
 
-        # Store both matrices and vectorizers
         self._tfidf_matrix = (word_matrix, char_matrix, char_vectorizer)
 
-    def search(
-        self, analysis: QueryAnalysis, *, raw_query: str, debug: bool = False
-    ) -> Tuple[List[RecipeCard], bool, Optional[dict]]:
+    def _build_semantic_index(self) -> None:
+        """
+        Build embeddings index for semantic search.
+        
+        Only called if settings.enable_embeddings=True.
+        Uses OpenAI embeddings API.
+        """
         settings = get_settings()
-
-        if analysis.intent == "menu_composition":
-            recipes, is_base2, dbg = self._search_menu(analysis, raw_query, debug=debug)
-            return recipes, is_base2, dbg
-
-        # 1) OLJ retrieve
-        olj_cards, dbg = self._search_olj(analysis, raw_query, debug=debug)
-
-        if olj_cards:
-            return olj_cards[: analysis.recipe_count], False, dbg
-
-        # 2) Base2 fallback
-        base2_cards = self._search_base2(analysis)
-        if base2_cards:
-            return base2_cards[: analysis.recipe_count], True, dbg
-
-        return [], False, dbg
+        
+        if settings.embedding_provider == "openai":
+            try:
+                from ..services.embedding_client import get_embeddings
+                
+                texts = [d.search_text for d in self.olj_docs]
+                if not texts:
+                    self._embeddings_matrix = None
+                    return
+                
+                logger.info("Building embeddings for %d documents...", len(texts))
+                embeddings = get_embeddings(texts)
+                self._embeddings_matrix = np.array(embeddings)
+                logger.info("Embeddings built: shape %s", self._embeddings_matrix.shape)
+                
+            except Exception as e:
+                logger.error("Failed to build embeddings: %s", e)
+                self._embeddings_matrix = None
+        else:
+            logger.warning("Unknown embedding provider: %s", settings.embedding_provider)
+            self._embeddings_matrix = None
 
     def _lexical_retrieve(self, query: str, top_k: int) -> List[Tuple[int, float]]:
+        """Retrieve documents using TF-IDF similarity."""
         if not self._tfidf or not self._tfidf_matrix:
             return []
+        
         word_matrix, char_matrix, char_vectorizer = self._tfidf_matrix
         q_word = self._tfidf.transform([query])
         q_char = char_vectorizer.transform([query])
 
-        # Combine cosine similarities (simple average)
         s_word = cosine_similarity(q_word, word_matrix).ravel()
         s_char = cosine_similarity(q_char, char_matrix).ravel()
         scores = (s_word + s_char) / 2.0
@@ -296,36 +303,43 @@ class HybridRetriever:
         return [(int(i), float(scores[i])) for i in idx if scores[i] > 0]
 
     def _semantic_retrieve(self, query: str, top_k: int) -> List[Tuple[int, float]]:
+        """
+        Retrieve documents using embedding similarity.
+        
+        Only active if settings.enable_embeddings=True.
+        Returns empty list otherwise.
+        """
         settings = get_settings()
+        
         if not settings.enable_embeddings:
             return []
-
-        # Deterministic, dependency-free embeddings (runtime stable).
-        def embed(text: str, dim: int = 128) -> np.ndarray:
-            seed = hashlib.sha256((text or "").encode("utf-8")).hexdigest()
-            rng = random.Random(int(seed, 16))
-            raw = np.array([rng.uniform(-1.0, 1.0) for _ in range(dim)], dtype=np.float32)
-            norm = float(np.linalg.norm(raw)) or 1.0
-            return raw / norm
-
-        docs = self.olj_docs
-        if not docs:
+        
+        if self._embeddings_matrix is None:
             return []
-
-        q = embed(query)
-        D = np.stack([embed(d.search_text) for d in docs], axis=0)
-        sims = (D @ q).ravel()
-        idx = np.argsort(-sims)[:top_k]
-        return [(int(i), float(sims[i])) for i in idx if sims[i] > 0]
+        
+        try:
+            from ..services.embedding_client import get_embeddings
+            
+            # Get query embedding
+            query_emb = get_embeddings([query])[0]
+            query_vec = np.array(query_emb)
+            
+            # Compute cosine similarity
+            sims = self._embeddings_matrix @ query_vec
+            sims = sims / (np.linalg.norm(self._embeddings_matrix, axis=1) * np.linalg.norm(query_vec) + 1e-9)
+            
+            idx = np.argsort(-sims)[:top_k]
+            return [(int(i), float(sims[i])) for i in idx if sims[i] > 0]
+            
+        except Exception as e:
+            logger.error("Semantic retrieval failed: %s", e)
+            return []
 
     @staticmethod
     def _rrf_fuse(
         ranked_lists: List[List[Tuple[int, float]]], *, k: int = 60
     ) -> List[Tuple[int, float]]:
-        """
-        Reciprocal Rank Fusion (RRF).
-        Uses ranks only -> reduces brittle weighting.
-        """
+        """Reciprocal Rank Fusion (RRF) - combines rankings without weight tuning."""
         scores: Dict[int, float] = {}
         for lst in ranked_lists:
             for rank, (idx, _) in enumerate(lst, start=1):
@@ -342,9 +356,9 @@ class HybridRetriever:
         category_allowlist: Optional[set[str]] = None,
         must_contain_any: Optional[set[str]] = None,
     ) -> List[RerankItem]:
+        """LLM-based reranking for high precision."""
         candidates: List[RerankCandidate] = []
-        # Important: when applying a category allowlist, scan deeper than top_k to
-        # ensure we collect enough candidates in the target category.
+        
         for idx, _ in fused if category_allowlist else fused[:top_k]:
             d = self.olj_docs[idx]
             if category_allowlist and d.category_canonical not in category_allowlist:
@@ -365,6 +379,7 @@ class HybridRetriever:
             )
             if len(candidates) >= top_k:
                 break
+        
         return await self.reranker.rerank(raw_query, candidates, max_items=min(10, len(candidates)))
 
     def _select_cards(
@@ -376,10 +391,12 @@ class HybridRetriever:
         category_allowlist: Optional[set[str]] = None,
         exclude_urls: Optional[set[str]] = None,
     ) -> List[RecipeCard]:
+        """Select final recipe cards with deduplication and grounding."""
         used_urls = set()
         if exclude_urls:
             used_urls |= set(exclude_urls)
         cards: List[RecipeCard] = []
+        
         for it in reranked:
             if it.url in used_urls:
                 continue
@@ -401,6 +418,8 @@ class HybridRetriever:
                     url=str(doc.url),
                     chef=doc.chef_name,
                     category=doc.category_canonical,
+                    image_url=doc.image_url,  # Image de la recette
+                    cited_passage=it.cited_passage,  # Grounding: passage justificatif
                 )
             )
             if len(cards) >= max_results:
@@ -409,10 +428,9 @@ class HybridRetriever:
 
     @staticmethod
     def _allowlist_for_intent(analysis: QueryAnalysis, raw_query: str) -> Optional[set[str]]:
-        """
-        Apply durable category constraints for intents that require them.
-        """
+        """Apply category constraints for specific intents."""
         q = (raw_query or "").lower()
+        
         if analysis.intent == "recipe_by_category" and analysis.category:
             return {analysis.category}
 
@@ -427,14 +445,35 @@ class HybridRetriever:
                 return {"dessert"}
         return None
 
+    def search(
+        self, analysis: QueryAnalysis, *, raw_query: str, debug: bool = False
+    ) -> Tuple[List[RecipeCard], bool, Optional[dict]]:
+        """Synchronous search (without LLM reranking)."""
+        settings = get_settings()
+
+        if analysis.intent == "menu_composition":
+            recipes, is_base2, dbg = self._search_menu(analysis, raw_query, debug=debug)
+            return recipes, is_base2, dbg
+
+        olj_cards, dbg = self._search_olj(analysis, raw_query, debug=debug)
+
+        if olj_cards:
+            return olj_cards[: analysis.recipe_count], False, dbg
+
+        base2_cards = self._search_base2(analysis)
+        if base2_cards:
+            return base2_cards[: analysis.recipe_count], True, dbg
+
+        return [], False, dbg
+
     def _search_olj(
         self, analysis: QueryAnalysis, raw_query: str, *, debug: bool
     ) -> Tuple[List[RecipeCard], Optional[dict]]:
+        """Search OLJ docs using hybrid retrieval."""
         settings = get_settings()
-
         top_k = settings.retrieve_top_k
 
-        # Build a retrieval query from analysis
+        # Build retrieval query
         parts: List[str] = [raw_query]
         if analysis.dish_name:
             parts.append(analysis.dish_name)
@@ -447,19 +486,16 @@ class HybridRetriever:
             parts.append(analysis.category)
         retrieval_query = " ".join(p for p in parts if p)
 
+        # Hybrid retrieval
         lexical = self._lexical_retrieve(retrieval_query, top_k=top_k)
         semantic = self._semantic_retrieve(retrieval_query, top_k=top_k)
-        fused = self._rrf_fuse([lexical, semantic])
+        fused = self._rrf_fuse([lexical, semantic]) if semantic else lexical
 
-        reranked: List[RerankItem] = []
-        if self.enable_llm_rerank and fused:
-            reranked = []
-
-        if not reranked:
-            reranked = [
-                RerankItem(url=str(self.olj_docs[idx].url), score=float(score))
-                for idx, score in fused[: settings.rerank_top_k]
-            ]
+        # Use fused scores directly (reranking happens in async variant)
+        reranked = [
+            RerankItem(url=str(self.olj_docs[idx].url), score=float(score))
+            for idx, score in (fused[:settings.rerank_top_k] if isinstance(fused, list) else fused)
+        ]
 
         allowlist = self._allowlist_for_intent(analysis, raw_query)
         cards = self._select_cards(
@@ -474,26 +510,33 @@ class HybridRetriever:
             dbg = {
                 "retrieval_query": retrieval_query,
                 "lexical_top": [(str(self.olj_docs[i].url), s) for i, s in lexical[:10]],
-                "semantic_top": [(str(self.olj_docs[i].url), s) for i, s in semantic[:10]],
-                "rrf_top": [(str(self.olj_docs[i].url), s) for i, s in fused[:10]],
+                "semantic_top": [(str(self.olj_docs[i].url), s) for i, s in semantic[:10]] if semantic else [],
+                "rrf_top": [(str(self.olj_docs[i].url), s) for i, s in fused[:10]] if isinstance(fused, list) else [],
                 "reranked": [(it.url, it.score) for it in reranked],
                 "selected": [c.url for c in cards if c.url],
             }
         return cards, dbg
 
     async def search_with_rerank(
-        self, analysis: QueryAnalysis, *, raw_query: str, debug: bool = False
+        self, analysis: QueryAnalysis, *, raw_query: str, debug: bool = False,
+        exclude_urls: Optional[List[str]] = None
     ) -> Tuple[List[RecipeCard], bool, Optional[dict]]:
         """
-        Async variant that actually runs LLM rerank before selecting.
-        Used by main bot.
+        Async search with LLM reranking.
+        
+        Args:
+            analysis: Query analysis from LLM
+            raw_query: Original user query
+            debug: Include debug info
+            exclude_urls: URLs to exclude (e.g., already proposed in session)
         """
         settings = get_settings()
+        exclude_set = set(exclude_urls or [])
 
-        # Menu composition: do 3 category-constrained searches
+        # Menu composition: category-constrained searches
         if analysis.intent == "menu_composition":
             picked: List[RecipeCard] = []
-            used: set[str] = set()
+            used: set[str] = set(exclude_set)  # Include session exclusions
 
             async def pick_one(cat_allow: set[str], query_hint: str) -> Optional[RecipeCard]:
                 local_query = f"{raw_query} {query_hint}".strip()
@@ -510,7 +553,7 @@ class HybridRetriever:
 
                 lexical = self._lexical_retrieve(retrieval_query, top_k=settings.retrieve_top_k)
                 semantic = self._semantic_retrieve(retrieval_query, top_k=settings.retrieve_top_k)
-                fused = self._rrf_fuse([lexical, semantic])
+                fused = self._rrf_fuse([lexical, semantic]) if semantic else lexical
 
                 reranked = await self._rerank(
                     raw_query,
@@ -542,7 +585,6 @@ class HybridRetriever:
                 picked.append(dessert)
                 used.add(dessert.url)
 
-            # If we couldn't fill all 3 from OLJ, fallback to Base2
             if len(picked) < 3:
                 base2_cards = self._search_base2(QueryAnalysis(**{**analysis.model_dump(), "recipe_count": 3}))
                 for c in base2_cards:
@@ -553,7 +595,7 @@ class HybridRetriever:
 
             return picked[:3], False, {"selected": [c.url for c in picked if c.url]} if debug else None
 
-        # Build retrieval query
+        # Regular search with rerank
         parts: List[str] = [raw_query]
         if analysis.dish_name:
             parts.append(analysis.dish_name)
@@ -568,12 +610,13 @@ class HybridRetriever:
 
         lexical = self._lexical_retrieve(retrieval_query, top_k=settings.retrieve_top_k)
         semantic = self._semantic_retrieve(retrieval_query, top_k=settings.retrieve_top_k)
-        fused = self._rrf_fuse([lexical, semantic])
+        fused = self._rrf_fuse([lexical, semantic]) if semantic else lexical
 
         allowlist = self._allowlist_for_intent(analysis, raw_query)
         must_any = None
         if analysis.intent == "recipe_by_ingredient" and analysis.ingredients:
             must_any = {i.lower() for i in analysis.ingredients if i}
+        
         reranked = await self._rerank(
             raw_query,
             fused,
@@ -586,6 +629,7 @@ class HybridRetriever:
             reranked,
             max_results=max(analysis.recipe_count, settings.max_results),
             category_allowlist=allowlist,
+            exclude_urls=exclude_set,  # Exclude already-proposed recipes from session
         )
 
         dbg = None
@@ -593,10 +637,11 @@ class HybridRetriever:
             dbg = {
                 "retrieval_query": retrieval_query,
                 "lexical_top": [(str(self.olj_docs[i].url), s) for i, s in lexical[:10]],
-                "semantic_top": [(str(self.olj_docs[i].url), s) for i, s in semantic[:10]],
-                "rrf_top": [(str(self.olj_docs[i].url), s) for i, s in fused[:10]],
+                "semantic_top": [(str(self.olj_docs[i].url), s) for i, s in semantic[:10]] if semantic else [],
+                "rrf_top": [(str(self.olj_docs[i].url), s) for i, s in fused[:10]] if isinstance(fused, list) else [],
                 "reranked": [(it.url, it.score) for it in reranked],
                 "selected": [c.url for c in cards if c.url],
+                "excluded_from_session": list(exclude_set),
             }
 
         if cards:
@@ -611,7 +656,7 @@ class HybridRetriever:
     def _search_menu(
         self, analysis: QueryAnalysis, raw_query: str, *, debug: bool
     ) -> Tuple[List[RecipeCard], bool, Optional[dict]]:
-        # Reuse OLJ search and then pick diverse categories
+        """Search for menu composition (entrée + plat + dessert)."""
         cards, dbg = self._search_olj(
             QueryAnalysis(**{**analysis.model_dump(), "recipe_count": max(10, analysis.recipe_count)}),
             raw_query,
@@ -660,7 +705,7 @@ class HybridRetriever:
         return picked[:3], False, dbg
 
     def _search_base2(self, analysis: QueryAnalysis) -> List[RecipeCard]:
-        # Reuse simple Base2 scoring
+        """Fallback search in Base2 dataset."""
         query_terms = " ".join([analysis.dish_name or "", *analysis.ingredients]).lower()
         results: List[Tuple[Dict[str, Any], float, str]] = []
 
@@ -714,7 +759,7 @@ class HybridRetriever:
     def get_olj_recommendation(
         self, analysis: QueryAnalysis, exclude_titles: Optional[List[str]] = None
     ) -> Optional[OLJRecommendation]:
-        # Simple recommendation
+        """Get a recommendation from OLJ docs."""
         exclude = {t.lower() for t in (exclude_titles or [])}
         target_cat = analysis.category
 
