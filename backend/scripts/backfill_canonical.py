@@ -143,7 +143,7 @@ def _call_llm_backfill(model: str, api_key: str, payload: dict) -> Optional[LLMB
             {"role": "user", "content": user},
         ],
         temperature=0,
-        max_tokens=500,
+        max_completion_tokens=500,
     )
 
     data = json.loads(resp.choices[0].message.content or "{}")

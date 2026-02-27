@@ -186,7 +186,7 @@ Génère une réponse narrative qui CONNECTE la demande de l'utilisateur aux rec
                     {"role": "user", "content": user_prompt}
                 ],
                 temperature=0.7,
-                max_tokens=350,
+                max_completion_tokens=350,
             )
             
             data = json.loads(response.choices[0].message.content)
