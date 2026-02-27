@@ -121,7 +121,7 @@ class OpenAIClient(LLMClient):
             messages=messages,
             response_format=response_format_param,
             temperature=temperature or settings.llm_temperature,
-            max_completion_tokens=max_tokens or settings.llm_max_tokens,
+            max_tokens=max_tokens or settings.llm_max_tokens,
         )
 
         return completion.choices[0].message.content or ""
@@ -164,7 +164,7 @@ class AnthropicClient(LLMClient):
 
         response = self.client.messages.create(
             model=self.model,
-            max_completion_tokens=max_tokens or settings.llm_max_tokens,
+            max_tokens=max_tokens or settings.llm_max_tokens,
             temperature=temperature or settings.llm_temperature,
             system=system_message or "",
             messages=user_messages,
