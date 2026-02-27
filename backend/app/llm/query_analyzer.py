@@ -190,7 +190,7 @@ class QueryAnalyzer:
                     {"role": "user", "content": query}
                 ],
                 temperature=0,  # Deterministic
-                max_completion_tokens=500,
+                max_tokens=500,
             )
             
             # Parse JSON response
