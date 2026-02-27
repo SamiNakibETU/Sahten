@@ -158,7 +158,7 @@ class LLMReranker:
                     {"role": "user", "content": user_prompt},
                 ],
                 temperature=0,
-                max_tokens=500,
+                max_completion_tokens=500,
             )
 
             msg = resp.choices[0].message
