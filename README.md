@@ -1,6 +1,8 @@
-# Sahten MVP
+# Sahten (Production v2.1)
 
 Chatbot culinaire libanais pour L'Orient-Le Jour avec sélection de modèle flexible et intégration CMS.
+
+**Version de production.** Widget frontend poli (desktop + mobile). Voir `INTEGRATION_GUIDE.md` pour l'intégration OLJ.
 
 ## Fonctionnalités MVP
 
@@ -16,7 +18,7 @@ Chatbot culinaire libanais pour L'Orient-Le Jour avec sélection de modèle flex
 ### 1. Installation
 
 ```bash
-cd Sahten_MVP/backend
+cd backend
 python -m venv venv
 .\venv\Scripts\Activate  # Windows
 # ou: source venv/bin/activate  # Linux/Mac
@@ -50,7 +52,7 @@ UPSTASH_REDIS_REST_TOKEN=...
 ### 3. Lancement
 
 ```bash
-cd Sahten_MVP/backend
+cd backend
 python main.py
 ```
 
@@ -120,7 +122,7 @@ curl -X POST "http://localhost:8000/api/webhook/recipe" \
 ### Script de re-enrichissement
 
 ```bash
-cd Sahten_MVP/backend
+cd backend
 python scripts/enrich_recipes.py --dry-run  # Prévisualisation
 python scripts/enrich_recipes.py            # Exécution
 ```
@@ -136,7 +138,7 @@ python scripts/enrich_recipes.py            # Exécution
 ## Structure du projet
 
 ```
-Sahten_MVP/
+sahten/
 ├── backend/
 │   ├── app/
 │   │   ├── api/
