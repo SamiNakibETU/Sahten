@@ -182,7 +182,7 @@
   width: var(--welcome-mascot-header);
   flex-shrink: 0;
   object-fit: contain;
-  border-radius: 50%;
+  display: block;
 }
 .sahten-logo {
   height: 20px;
@@ -360,7 +360,6 @@
 .msg-bot {
   width: 100%;
   padding-top: 0;
-  animation: msg-reveal 0.4s ease-out;
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -368,16 +367,6 @@
 }
 .msg-bot:has(.welcome-editorial) {
   gap: 0;
-}
-@keyframes msg-reveal {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 /* Corps bot : texte continu, léger relief typographique (pas d’encadré) */
 .sahten-narrative {
@@ -498,7 +487,6 @@
   height: var(--welcome-mascot-inline);
   margin: 0 2px 0 1px;
   vertical-align: -0.34em;
-  border-radius: 50%;
   object-fit: contain;
 }
 .welcome-lead-lockup .welcome-highlight {
@@ -530,7 +518,6 @@
   height: var(--welcome-mascot-inline);
   margin: 0 4px 0 4px;
   vertical-align: -0.32em;
-  border-radius: 50%;
   object-fit: contain;
 }
 /* Logo OLJ : hauteur liée au corps Playfair (em) */
@@ -1018,6 +1005,15 @@
   border-radius: 0;
   min-height: 46px;
   max-height: 200px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.sahten-input::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
 }
 .sahten-input:focus {
   outline: none;
@@ -1059,44 +1055,156 @@
   height: 15px;
 }
 
-.sahten-trigger {
+/* Lanceur : bulle + logo (position fixe sur le wrap) */
+.sahten-trigger-wrap {
   position: fixed;
-  bottom: 24px;
-  right: 24px;
+  bottom: 20px;
+  right: 20px;
   z-index: 9998;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.sahten-trigger-bubble {
+  position: relative;
+  max-width: min(240px, 78vw);
+  padding: 11px 15px 11px 14px;
+  margin-bottom: 6px;
   background: #ffffff;
-  color: #757575;
   border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 6px 28px rgba(0, 0, 0, 0.12);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0.01em;
+  color: var(--text);
+  pointer-events: none;
+}
+.sahten-trigger-bubble:empty {
+  padding: 0;
+  border: none;
+  box-shadow: none;
+  max-width: 0;
+  overflow: hidden;
+}
+.sahten-trigger-bubble:not(:empty) {
+  min-height: 1em;
+}
+/* Repère vers le logo */
+.sahten-trigger-bubble:not(:empty)::after {
+  content: "";
+  position: absolute;
+  right: -6px;
+  bottom: 16px;
+  width: 0;
+  height: 0;
+  border-top: 7px solid transparent;
+  border-bottom: 7px solid transparent;
+  border-left: 7px solid #ffffff;
+  filter: drop-shadow(1px 0 0 #e0e0e0);
+}
+
+.sahten-trigger {
+  position: relative;
+  width: auto;
+  height: auto;
+  min-width: 48px;
+  min-height: 48px;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  border: none;
   cursor: pointer;
-  box-shadow: var(--shadow-soft);
+  box-shadow: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: opacity 0.2s, border-color 0.2s, color 0.2s;
+  overflow: visible;
+  -webkit-tap-highlight-color: transparent;
 }
-.sahten-trigger:hover {
-  border-color: var(--accent);
-  color: var(--accent);
+.sahten-trigger:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 4px;
+  border-radius: 4px;
 }
-.sahten-trigger svg {
-  width: 20px;
-  height: 20px;
+
+.sahten-trigger-logo {
+  display: block;
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.12));
 }
+
+/* Annonce ouverture (lecteurs d'écran) — hors écran visuellement */
+.sahten-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 @media (max-width: 480px) {
-  .sahten-trigger {
-    bottom: 16px;
-    right: 16px;
-    width: 52px;
-    height: 52px;
+  .sahten-trigger-wrap {
+    bottom: 14px;
+    right: 14px;
+    gap: 8px;
   }
+  .sahten-trigger-bubble {
+    font-size: 12px;
+    padding: 9px 12px;
+    max-width: min(200px, 70vw);
+  }
+  .sahten-trigger-logo {
+    width: 54px;
+    height: 54px;
+  }
+}
+
+.sahten-thinking-block {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 6px 0 4px;
+}
+.sahten-thinking-mascot {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  object-fit: contain;
+}
+.sahten-thinking-main {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.sahten-thinking-line {
+  margin: 0;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: 0.02em;
 }
 
 .loading-indicator {
   display: flex;
   padding: 8px 0;
+}
+.loading-indicator.sahten-thinking-loader {
+  padding: 4px 0 10px;
 }
 .loading-dots {
   display: flex;
@@ -1107,23 +1215,6 @@
   height: 6px;
   border-radius: 50%;
   background: rgba(0, 0, 0, 0.28);
-  animation: dot-pulse 0.6s infinite alternate;
-}
-.loading-dots .dot:nth-child(2) {
-  animation-delay: 0.15s;
-}
-.loading-dots .dot:nth-child(3) {
-  animation-delay: 0.3s;
-}
-@keyframes dot-pulse {
-  from {
-    opacity: 0.4;
-    transform: scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
 }
 
 .feedback-container {
