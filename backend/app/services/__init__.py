@@ -1,2 +1,2 @@
-"""Service utilities for Sahtein (embeddings, etc.)."""
+"""Services (embeddings, etc.)."""
 

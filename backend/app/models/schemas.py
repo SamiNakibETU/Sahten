@@ -1,5 +1,5 @@
 """
-Pydantic schemas for Sahtein 3.0
+Schémas Pydantic (legacy / partagés).
 All data models used throughout the application
 """
 

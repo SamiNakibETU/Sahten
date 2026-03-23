@@ -1,22 +1,4 @@
-"""
-LLM Query Analyzer
-==================
-
-THE BRAIN of Sahten.
-
-Uses a single LLM call with structured output (via Instructor) to:
-1. Check safety (injection, toxicity)
-2. Classify intent
-3. Extract all filters
-4. Detect off-topic
-5. Provide confidence scores
-
-This replaces hundreds of lines of regex and keyword matching
-with a single, highly accurate LLM call.
-
-Cost: ~$0.0001 per query with GPT-4o-mini
-Accuracy: ~95-98%
-"""
+"""Analyse de requête utilisateur : appel OpenAI (JSON) puis validation Pydantic (QueryAnalysis)."""
 
 import logging
 from typing import Optional
@@ -179,13 +161,7 @@ class QueryAnalyzer:
     """
     
     def __init__(self, api_key: Optional[str] = None, model: str = "gpt-4.1-nano"):
-        """
-        Initialize analyzer.
-        
-        Args:
-            api_key: OpenAI API key (or from env)
-            model: Model to use (default: gpt-4.1-nano for cost efficiency)
-        """
+        """api_key : depuis l'argument ou la config ; model : identifiant OpenAI."""
         from ..core.config import get_settings
         settings = get_settings()
         

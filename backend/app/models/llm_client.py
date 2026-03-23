@@ -128,7 +128,7 @@ class OpenAIClient(LLMClient):
 
 
 class AnthropicClient(LLMClient):
-    """Anthropic (Claude) LLM client"""
+    """Client API Anthropic Messages."""
 
     def __init__(self, api_key: str | None = None):
         super().__init__()

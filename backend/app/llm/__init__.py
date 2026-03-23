@@ -1,10 +1,4 @@
-"""
-Sahtein V7.1 LLM Components
-===========================
-
-LLM-based query analysis and response generation.
-Uses Instructor for structured outputs.
-"""
+"""Couche appels modèle : analyse de requête, génération de réponses."""
 
 from .query_analyzer import QueryAnalyzer, ANALYZER_SYSTEM_PROMPT
 from .response_generator import ResponseGenerator
