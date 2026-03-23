@@ -216,7 +216,10 @@
 
         <!-- Header -->
         <div class="sahten-header">
-            <div class="sahten-title">Sahten</div>
+            <div class="sahten-brand">
+                <img class="sahten-logo-mascot" src="assets/v7_logo_sahten.svg" alt="Sahten" width="40" height="40" decoding="async" />
+                <span class="sahten-title sahten-title--brand">Sahten</span>
+            </div>
             <div class="sahten-controls">
                 <button class="sahten-size-btn" data-action="window" aria-label="Petit">
                     <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4.5" y="3.5" width="7" height="9" rx="1.5"/></svg>
@@ -233,18 +236,6 @@
             </div>
         </div>
 
-        <div class="sahten-cuisine-strip">
-            <img
-                class="sahten-cuisine-strip-img"
-                src="assets/header_cooking_img_desktop.png"
-                width="1040"
-                height="51"
-                alt="À table ! Rubrique cuisine Le Liban à table"
-                decoding="async"
-                fetchpriority="low"
-            />
-        </div>
-
         <!-- Chat Body -->
         <div class="sahten-body">
             <!-- Messages will be injected here via JS -->
@@ -257,7 +248,7 @@
                     type="text"
                     id="sahten-input"
                     class="sahten-input"
-                    placeholder="Je cherche une recette..."
+                    placeholder="Posez votre question : plat, ingrédient, chef…"
                     autocomplete="off"
                 />
                 <button type="submit" class="send-btn" aria-label="Envoyer">
@@ -268,13 +259,6 @@
             </div>
         </form>
     </div>
-
-    <!-- Trigger Button -->
-    <button class="sahten-trigger" aria-label="Ouvrir Sahten">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-        </svg>
-    </button>
 
     <!-- ========================================
          SCRIPTS
@@ -295,5 +279,15 @@
         import { SahtenChat } from "./js/sahten.js";
         const chat = new SahtenChat();
     </script>
+
+    <button
+        type="button"
+        class="sahten-trigger"
+        aria-label="Ouvrir Sahten — assistant recettes L'Orient-Le Jour"
+        title="Une idée recette ? Cliquez pour ouvrir Sahten."
+        aria-expanded="false"
+    >
+        <img class="sahten-trigger-logo" src="assets/v7_logo_sahten.svg" alt="" width="52" height="52" decoding="async" />
+    </button>
 </body>
 </html>

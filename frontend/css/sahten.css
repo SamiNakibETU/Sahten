@@ -36,14 +36,14 @@
   --welcome-body-size: 16px;
   --welcome-body-lh: 1.48;
   /* Header : texte remplit le rectangle (Aktiv Black, moins de « vide » vertical) */
-  --welcome-badge-header-fs: 25px;
-  --welcome-badge-header-pad-y: 4px;
-  --welcome-badge-header-pad-x: 14px;
+  --welcome-badge-header-fs: 19px;
+  --welcome-badge-header-pad-y: 3px;
+  --welcome-badge-header-pad-x: 9px;
   /* Chapô : pastilles — inset homogène (padding symétrique en em) */
   --welcome-badge-inline-fs: 14px;
   --welcome-badge-inline-inset: 0.22em;
   /* Exemples : même corps que le chapô (Playfair 16px) — voir .welcome-examples-list */
-  --welcome-mascot-header: 44px;
+  --welcome-mascot-header: 40px;
   --welcome-mascot-inline: 32px;
 }
 
@@ -294,51 +294,6 @@
   padding-left: 6px;
 }
 
-/* Bandeau officiel OLJ (doodles + « À table ! ») — référence pixel */
-.sahten-cuisine-strip {
-  flex-shrink: 0;
-  width: 100%;
-  background-color: var(--sahten-sage-strip-fallback);
-  overflow: hidden;
-  line-height: 0;
-}
-.sahten-cuisine-strip-img {
-  display: block;
-  width: 100%;
-  height: 52px;
-  object-fit: cover;
-  object-position: left center;
-}
-/* Variante texte seul (sans image) */
-.sahten-cuisine-strip-bg {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0.16;
-  background-image: radial-gradient(ellipse 14px 22px at 12% 45%, rgba(255, 255, 255, 0.95) 0%, transparent 55%),
-    radial-gradient(circle 5px at 28% 22%, rgba(255, 255, 255, 0.85) 0%, transparent 50%),
-    radial-gradient(ellipse 18px 10px at 72% 70%, rgba(255, 255, 255, 0.7) 0%, transparent 50%);
-}
-.sahten-cuisine-strip-title {
-  position: relative;
-  z-index: 1;
-  margin: 0;
-  padding: 12px 16px;
-  font-family: var(--font-ui);
-  font-size: 1.28rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  color: #ffffff;
-  line-height: 1.15;
-  text-align: center;
-  background: var(--sahten-sage);
-}
-@media (max-width: 480px) {
-  .sahten-cuisine-strip-img {
-    height: 46px;
-  }
-}
-
 .sahten-body {
   flex: 1;
   overflow-y: auto;
@@ -451,6 +406,17 @@
   flex-direction: column;
   gap: 0;
 }
+.welcome-entry {
+  display: flex;
+  justify-content: center;
+  margin: 0 0 0.65rem;
+}
+.welcome-entry-logo {
+  display: block;
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+}
 .welcome-intro {
   display: flex;
   flex-direction: column;
@@ -470,29 +436,6 @@
 .welcome-mockup-line--lead {
   line-height: var(--welcome-body-lh);
 }
-/* Groupe serré : icône + pastille « Sahten » sans grands écarts */
-.welcome-lead-lockup {
-  display: inline;
-  white-space: nowrap;
-  margin-left: 0.04em;
-}
-@media (max-width: 360px) {
-  .welcome-lead-lockup {
-    white-space: normal;
-  }
-}
-.welcome-lead-lockup .welcome-inline-mascot {
-  display: inline-block;
-  width: var(--welcome-mascot-inline);
-  height: var(--welcome-mascot-inline);
-  margin: 0 2px 0 1px;
-  vertical-align: -0.34em;
-  object-fit: contain;
-}
-.welcome-lead-lockup .welcome-highlight {
-  margin: 0 0 0 1px;
-  vertical-align: 0.06em;
-}
 /* Pastilles chapô : inset identique sur les 4 côtés (perçu identique pour tout mot) */
 .welcome-highlight {
   display: inline-flex;
@@ -511,14 +454,6 @@
   color: #ffffff;
   line-height: 1;
   vertical-align: 0.05em;
-}
-.welcome-inline-mascot {
-  display: inline-block;
-  width: var(--welcome-mascot-inline);
-  height: var(--welcome-mascot-inline);
-  margin: 0 4px 0 4px;
-  vertical-align: -0.32em;
-  object-fit: contain;
 }
 /* Logo OLJ : hauteur liée au corps Playfair (em) */
 .welcome-olj-logotype {
@@ -548,9 +483,9 @@
 }
 .welcome-examples-label {
   font-family: var(--font-ui);
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 700;
-  letter-spacing: 0.11em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: #6a6a6a;
   line-height: 1.2;
@@ -570,6 +505,9 @@
   gap: 0.35rem;
   margin: 0;
   padding: 0;
+}
+.welcome-examples-list--compact {
+  gap: 0.28rem;
 }
 .welcome-examples-list li {
   margin: 0;
@@ -593,6 +531,12 @@
   cursor: pointer;
   transition: border-color 0.15s ease, background 0.15s ease;
   -webkit-font-smoothing: antialiased;
+}
+.welcome-examples-list--compact .welcome-example-prompt {
+  padding: 0.3rem 0.4rem;
+  font-size: 13px;
+  line-height: 1.4;
+  border-radius: 5px;
 }
 .welcome-example-prompt:hover {
   border-color: color-mix(in srgb, var(--sahten-badge-green) 55%, #ccc);
@@ -1055,61 +999,12 @@
   height: 15px;
 }
 
-/* Lanceur : bulle + logo (position fixe sur le wrap) */
-.sahten-trigger-wrap {
+/* Lanceur flottant (logo seul) */
+.sahten-trigger {
   position: fixed;
   bottom: 20px;
   right: 20px;
   z-index: 9998;
-  display: flex;
-  flex-direction: row-reverse;
-  align-items: flex-end;
-  gap: 10px;
-}
-
-.sahten-trigger-bubble {
-  position: relative;
-  max-width: min(240px, 78vw);
-  padding: 11px 15px 11px 14px;
-  margin-bottom: 6px;
-  background: #ffffff;
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  box-shadow: 0 6px 28px rgba(0, 0, 0, 0.12);
-  font-family: var(--font-ui);
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1.4;
-  letter-spacing: 0.01em;
-  color: var(--text);
-  pointer-events: none;
-}
-.sahten-trigger-bubble:empty {
-  padding: 0;
-  border: none;
-  box-shadow: none;
-  max-width: 0;
-  overflow: hidden;
-}
-.sahten-trigger-bubble:not(:empty) {
-  min-height: 1em;
-}
-/* Repère vers le logo */
-.sahten-trigger-bubble:not(:empty)::after {
-  content: "";
-  position: absolute;
-  right: -6px;
-  bottom: 16px;
-  width: 0;
-  height: 0;
-  border-top: 7px solid transparent;
-  border-bottom: 7px solid transparent;
-  border-left: 7px solid #ffffff;
-  filter: drop-shadow(1px 0 0 #e0e0e0);
-}
-
-.sahten-trigger {
-  position: relative;
   width: auto;
   height: auto;
   min-width: 48px;
@@ -1156,15 +1051,9 @@
 }
 
 @media (max-width: 480px) {
-  .sahten-trigger-wrap {
+  .sahten-trigger {
     bottom: 14px;
     right: 14px;
-    gap: 8px;
-  }
-  .sahten-trigger-bubble {
-    font-size: 12px;
-    padding: 9px 12px;
-    max-width: min(200px, 70vw);
   }
   .sahten-trigger-logo {
     width: 54px;
