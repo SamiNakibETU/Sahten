@@ -1,54 +1,31 @@
 # Sahten
 
-Assistant culinaire pour **L’Orient-Le Jour** : recherche dans les recettes « Liban à Table », réponses en français, liens vers les fiches OLJ.
+Dépôt **Python (FastAPI)** + **frontend statique** : assistant recettes pour *L’Orient-Le Jour*, appuyé sur un index de fiches « Liban à Table ».  
+Le backend enchaîne analyse de requête, recherche dans le corpus, éventuellement rerank / LLM, et renvoie du HTML (cartes recette avec liens OLJ). Un webhook permet d’ingérer les publications CMS.
 
-## Intégration site (OLJ)
+## Arborescence
 
-1. Charger le widget (iframe ou script selon votre gabarit).
-2. Définir l’URL du backend :  
-   `window.SAHTEN_API_BASE = 'https://<votre-service>.up.railway.app/api';`  
-   (à adapter au domaine Railway réel du service.)
-3. CORS : le backend doit autoriser l’origine du site OLJ.
+| Élément | Rôle |
+|--------|------|
+| `backend/` | API (`main.py`, préfixe `/api`), bot, RAG, webhook, schémas Pydantic, tests. |
+| `frontend/` | `index.html` (page par défaut `/`), `widget.html` (`/embed`), `css/`, `js/`, `assets/`. |
+| `data/` | Données canoniques servies au retriever (ex. `olj_canonical.json`). |
+| `railway.toml`, `Procfile` | Déploiement type Railway. |
 
-Guides détaillés (webhook CMS, architecture, modèles) : dossier **`archive/`** — usage interne équipe technique.
-
-## Prérequis
-
-- Python 3.11+
-- Clé OpenAI (`OPENAI_API_KEY`)
-
-## Démarrage local
+## Exécution locale
 
 ```bash
 cd backend
-python -m venv .venv
-.\.venv\Scripts\activate
 pip install -r requirements.txt
-# Copier backend/.env.example vers backend/.env et renseigner OPENAI_API_KEY
+# Copier .env.example vers .env et renseigner au minimum OPENAI_API_KEY
 python main.py
 ```
 
-Interface : http://localhost:8000  
+URL : http://localhost:8000/ (démo). API : `/api/chat`, `/api/health`, etc.
 
-## API utiles
+## Configuration
 
-| Méthode | Chemin | Rôle |
-|--------|--------|------|
-| POST | `/api/chat` | Message utilisateur → HTML recette(s) |
-| GET | `/api/health` | Santé du service |
-| POST | `/api/webhook/recipe` | Réception publication CMS (configuré avec WhiteBeard) |
-
-Variables principales : voir `backend/.env.example`.
-
-## Déploiement Railway
-
-1. Connecter le dépôt GitHub au projet Railway.
-2. Renseigner les variables d’environnement (OpenAI, secrets webhook, Redis optionnel).
-3. Vérifier que l’URL publique correspond à celle configurée côté CMS.
-
-## Observabilité
-
-Sans **Upstash Redis**, traces et événements widget restent dans les **logs Railway**. Avec Redis configuré, persistance listée côté API (`/api/traces`, analytics dans `routes.py`). Voir `archive/README.md`.
+Voir `backend/.env.example` (clé OpenAI, CORS, Redis optionnel pour traces/analytics, secret webhook).
 
 ## Licence
 

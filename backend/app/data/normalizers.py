@@ -1,5 +1,5 @@
 """
-Text normalization utilities for Sahtein 3.0
+Normalisation de texte pour indexation / matching.
 Handles French text normalization for better matching
 """
 

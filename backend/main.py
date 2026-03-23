@@ -1,17 +1,4 @@
-"""
-Sahten MVP API
-==============
-
-Main entry point for the Lebanese culinary chatbot.
-
-Features:
-- RAG with Retrieve -> Rerank -> Select pipeline
-- Flexible model selection (env, API, A/B testing)
-- CMS webhook for new recipes
-- Optional embeddings (OFF by default)
-
-Author: L'Orient-Le Jour AI Team
-"""
+"""Point d'entrée FastAPI : API recettes, fichiers statiques frontend, webhook CMS."""
 
 import logging
 from contextlib import asynccontextmanager
@@ -63,7 +50,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title=settings.app_name,
     version=settings.app_version,
-    description="Lebanese culinary chatbot powered by LLM with flexible model selection",
+    description="API assistant recettes L'Orient-Le Jour",
     lifespan=lifespan,
     docs_url="/docs" if settings.debug else None,
     redoc_url=None,
@@ -130,16 +117,15 @@ async def get_assets(filename: str):
 
 @app.get("/")
 async def root():
-    """Serve the production widget UI by default."""
-    widget_index = FRONTEND_PATH / "widget.html"
-
-    if widget_index.exists():
-        return FileResponse(widget_index)
-
+    """Démo complète (même UI que le dev local sur index.html) : accueil + exemples + sélecteur de modèle."""
     frontend_index = FRONTEND_PATH / "index.html"
     if frontend_index.exists():
         return FileResponse(frontend_index)
-    
+
+    widget_index = FRONTEND_PATH / "widget.html"
+    if widget_index.exists():
+        return FileResponse(widget_index)
+
     return {
         "name": settings.app_name,
         "status": "running",
@@ -147,9 +133,18 @@ async def root():
     }
 
 
+@app.get("/embed")
+async def embed_widget():
+    """Référence widget allégée (intégration tiers) — préférer la copie du markup depuis frontend/widget.html."""
+    widget_index = FRONTEND_PATH / "widget.html"
+    if widget_index.exists():
+        return FileResponse(widget_index)
+    return {"error": "widget.html not found"}
+
+
 @app.get("/test")
 async def test_ui():
-    """Serve the local test UI."""
+    """Alias historique : même page que / (index.html)."""
     frontend_index = FRONTEND_PATH / "index.html"
 
     if frontend_index.exists():

@@ -1,20 +1,4 @@
-"""
-Query Analysis Schema
-=====================
-
-THE CORE of Sahten.
-
-This Pydantic schema is filled by a single LLM call using Instructor.
-It replaces ALL the keyword matching, regex patterns, and manual extraction
-with ~95%+ accuracy.
-
-The LLM analyzes the user query and returns:
-- Safety assessment (injection, toxicity)
-- Intent classification
-- All relevant filters
-- Confidence score
-- Redirect suggestion if blocked/off-topic
-"""
+"""Schémas Pydantic pour le résultat d'analyse de requête (sécurité, intention, filtres)."""
 
 from typing import Optional, List, Literal, Any
 from pydantic import BaseModel, Field, field_validator, model_validator
@@ -56,19 +40,7 @@ class SafetyCheck(BaseModel):
 
 
 class QueryAnalysis(BaseModel):
-    """
-    Complete analysis of a user query by the LLM.
-    
-    This single structured output replaces:
-    - Injection detection (regex patterns) → safety.is_safe
-    - Toxicity filtering (word lists) → safety.threat_type
-    - Intent classification (keyword matching) → intent
-    - Filter extraction (regex patterns) → dish_name, ingredients, category, etc.
-    - Off-topic detection (keyword lists) → is_culinary
-    
-    All done in ONE LLM call with ~95%+ accuracy.
-    Cost: ~$0.0001 per query with GPT-4o-mini
-    """
+    """Analyse structurée d'une requête utilisateur (remplie à partir du JSON modèle)."""
     
     # === SAFETY ===
     safety: SafetyCheck = Field(

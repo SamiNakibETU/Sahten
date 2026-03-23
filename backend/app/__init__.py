@@ -1,6 +1,2 @@
-"""
-Sahtein 3.0 Backend Application
-Lebanese culinary chatbot for L'Orient-Le Jour
-"""
-
+"""Package applicatif Sahten."""
 __version__ = "3.0.0"

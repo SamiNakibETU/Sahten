@@ -1,5 +1,5 @@
 """
-Data loaders for Sahtein 3.0
+Chargement des jeux de données recettes.
 Loads and processes JSON datasets from the repository
 """
 

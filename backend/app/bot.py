@@ -1,23 +1,4 @@
-"""
-Sahten Bot (v2.1)
-=================
-
-The core application logic for Sahten.
-Implements the durable RAG pipeline:
-  1) QueryAnalyzer (LLM): safety + intent + filters
-  2) HybridRetriever: retrieve (hybrid) -> rerank (LLM) -> select
-  3) ResponseGenerator (LLM): narrative generation
-
-Supports flexible model selection via:
-  - Environment variable (OPENAI_MODEL)
-  - API request parameter
-  - A/B testing
-
-Session Memory:
-  - Short-term memory via SessionManager (TTL 30 min)
-  - Avoids re-proposing same recipes
-  - Tracks conversation context for continuations
-"""
+"""Orchestration : analyse → retrieval/rerank → génération HTML ; mémoire de session optionnelle."""
 
 from __future__ import annotations
 

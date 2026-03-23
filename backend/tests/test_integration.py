@@ -1,5 +1,5 @@
 """
-Integration tests for Sahtein clean architecture.
+Tests d'intégration API.
 
 Nécessite un serveur local sur localhost:8000. Sinon les tests sont ignorés.
 """

@@ -1,10 +1,4 @@
-"""
-Sahtein V7.1 Core
-=================
-
-Core configuration and settings.
-"""
-
+"""Configuration (settings, chemins)."""
 from .config import Settings, get_settings
 
 __all__ = ["Settings", "get_settings"]

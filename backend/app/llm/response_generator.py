@@ -1,11 +1,4 @@
-"""
-Response Generator V9.0
-=======================
-
-- Structured Outputs (json_schema strict)
-- Prompts : consignes positives, liste d'interdits minimale (petits modeles)
-- Ton : conseiller culinaire, vouvoiement, serviable
-"""
+"""Génération de réponses narratives (OpenAI JSON schéma strict, repli si échec)."""
 
 import json
 import logging
@@ -82,7 +75,7 @@ Objectif : reponse courte, utile, professionnelle et chaleureuse — un detail c
 - Ne citez ni recette, ni chef, ni ingredient qui ne figurent pas dans le JSON utilisateur.
 - N'inventez pas d'accompagnement ni d'etape : seulement ce qui est dans les donnees.
 
-# A eviter (liste courte — les petits modeles saturent avec de longues interdictions)
+# A eviter (liste courte)
 
 - Generalites pays : formulations du type « Au Liban, on… », « La cuisine libanaise regorge… » — preferez parler de **la fiche** ou du **chef**.
 - Cours sur le plat mondial demande s'il n'est pas dans selected_recipes (pas d'article Wikipedia).
@@ -177,8 +170,7 @@ def _normalize_for_banned_substrings(text: str) -> str:
     return re.sub(r"\s+", " ", t).strip()
 
 
-# Filet leger (petits modeles : preferer consignes positives dans le prompt).
-# Les gardes principales restent : citation du titre, longueur max, detail alternatif.
+# Sous-chaines à rejeter dans le texte généré (validation).
 BANNED_PATTERNS = (
     "la cuisine libanaise regorge",
     "au liban on",
@@ -208,7 +200,7 @@ BANNED_PATTERNS = (
 
 
 class ResponseGenerator:
-    """Single LLM call with Structured Outputs + fallback."""
+    """Appel modèle pour hook/detail/cta ; repli déterministe si validation échoue."""
 
     def __init__(
         self,
@@ -522,7 +514,7 @@ class ResponseGenerator:
 
     def generate_greeting(self) -> RecipeNarrative:
         return RecipeNarrative(
-            hook="Je m'appelle Sahtein, je suis le chef robot de L'Orient-Le Jour.",
+            hook="Je m'appelle Sahten, je suis le chef robot de L'Orient-Le Jour.",
             cultural_context=(
                 "Si vous cherchez une recette libanaise, je veux vous aider : "
                 "dites-moi ce que vous voulez manger (plat précis, ingrédient, envie rapide ou végétarienne…)."
@@ -550,7 +542,7 @@ class ResponseGenerator:
     def generate_about_bot(self) -> RecipeNarrative:
         return RecipeNarrative(
             hook=(
-                "Je suis Sahtein, le robot de L'Orient-Le Jour à votre service pour toutes les questions "
+                "Je suis Sahten, le robot de L'Orient-Le Jour à votre service pour toutes les questions "
                 "relatives à la cuisine libanaise, ou aux recettes (libanaises ou non) que des chefs libanais, "
                 "professionnels ou amateurs, ont bien voulu partager avec nous."
             ),
