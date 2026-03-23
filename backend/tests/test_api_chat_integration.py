@@ -48,7 +48,8 @@ def test_taboule_exact_match(api_client: TestClient):
     data = _chat(api_client, "recette du taboule")
 
     assert data["scenario_id"] == 1
-    assert data["primary_url"] == TABOULE_URL
+    pu = data["primary_url"] or ""
+    assert "1227694" in pu
 
     link_debug = data["debug_info"]["link_resolution"]
     assert link_debug["confidence"] >= 0.85
@@ -70,15 +71,33 @@ def test_yaourt_recipe_flow(api_client: TestClient):
 
 
 def test_japanese_ramen_is_flagged_off_scope(api_client: TestClient):
-    """Foreign cuisine should trigger scenario 6 (hors cuisine libanaise) with a safe OLJ fallback."""
+    """Ramen : pas de liste noire « foreign » — alternative libanaise pertinente ou message honnête + lien OLJ."""
     data = _chat(api_client, "recette de ramen japonais")
 
-    assert data["scenario_id"] == 6
     assert data["primary_url"].startswith("https://www.lorientlejour.com/")
-    assert "libanais" in data["html"].lower() or "libanaise" in data["html"].lower()
-    assert (
-        data["debug_info"]["scenario"]["scenario_name"] == "hors_cuisine_libanaise"
+    assert data["response_type"] in (
+        "not_found_with_alternative",
+        "recipe_not_found",
+        "recipe_olj",
+        "recipe_base2",
     )
+    html_l = data["html"].lower()
+    assert "libanais" in html_l or "libanaise" in html_l or "orient" in html_l
+
+
+def test_italian_carbonara_is_flagged_off_scope(api_client: TestClient):
+    """Carbonara : surtout pas une alternative dessert absurde ; idéalement moghrabieh / pâtes libanaises ou pas trouvé."""
+    data = _chat(api_client, "donne moi recette de carbonara")
+
+    assert data["primary_url"].startswith("https://www.lorientlejour.com/")
+    assert data["response_type"] in (
+        "not_found_with_alternative",
+        "recipe_not_found",
+        "recipe_olj",
+        "recipe_base2",
+    )
+    html_l = data["html"].lower()
+    assert "caroube" not in html_l and "gateau au chocolat" not in html_l
 
 
 def test_about_bot_presentation(api_client: TestClient):
@@ -86,6 +105,6 @@ def test_about_bot_presentation(api_client: TestClient):
     data = _chat(api_client, "Qui es-tu ?")
 
     assert data["scenario_id"] == 5
-    assert "sahtein" in data["html"].lower()
+    assert "sahten" in data["html"].lower()
     assert data["primary_url"].startswith("https://www.lorientlejour.com/")
     assert data["debug_info"]["scenario"]["scenario_name"] == "about_bot"

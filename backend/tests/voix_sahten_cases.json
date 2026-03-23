@@ -1,0 +1,31 @@
+{
+  "version": "1.0",
+  "description": "Cas cibles pour itération voix éditoriale OLJ : claire, classe, précise",
+  "criteria": {
+    "brevity": "Réponse compacte (<= 500 caractères pour le bloc principal)",
+    "editorial": "Style rédactionnel sobre, pas de ton assistant générique",
+    "grounded": "Mention explicite du plat demandé + recette proposée + ingrédient commun",
+    "no_generic": "Bannir: incarne, raviver, expérience gustative, clichés vagues",
+    "conversational_bonus": "Pour alternatives: marqueurs oraux (tiens, regarde, yalla, je te propose, etc.)"
+  },
+  "cases": [
+    { "id": "fajitas", "query": "recette fajitas", "expected_type": "not_found_with_alternative" },
+    { "id": "pizza", "query": "recette pizza", "expected_type": "not_found_with_alternative" },
+    { "id": "ramen", "query": "recette ramen", "expected_type": "not_found_with_alternative" },
+    { "id": "boeuf_bourguignon", "query": "recette boeuf bourguignon", "expected_type": "not_found_with_alternative" },
+    { "id": "tacos", "query": "recette tacos", "expected_type": "not_found_with_alternative" },
+    { "id": "curry", "query": "recette curry", "expected_type": "not_found_with_alternative" },
+    { "id": "pad_thai", "query": "recette pad thai", "expected_type": "not_found_with_alternative" },
+    { "id": "burger", "query": "recette burger", "expected_type": "not_found_with_alternative" },
+    { "id": "sushi", "query": "recette sushi", "expected_type": "not_found_with_alternative" },
+    { "id": "croque_monsieur", "query": "recette croque-monsieur", "expected_type": "not_found_with_alternative" }
+  ],
+  "scoring_grid": {
+    "brevity": { "weight": 1, "max_chars": 500, "pass_threshold": 1 },
+    "mentions_query": { "weight": 1, "required": true },
+    "mentions_recipe": { "weight": 1, "required": true },
+    "mentions_ingredient": { "weight": 1, "required_when_proof": true },
+    "no_banned_phrases": { "weight": 2, "banned": ["partage au moins un ingrédient", "expérience gustative similaire", "savoureux et convivial", "incarne cette", "raviver", "plats colorés", "au liban, on aime"] },
+    "editorial_style": { "weight": 1, "avoid": ["ton guide culinaire", "chef dévoué"] }
+  }
+}

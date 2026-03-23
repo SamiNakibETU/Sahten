@@ -30,12 +30,15 @@ class Settings(BaseSettings):
     openai_api_key: str = ""
     
     # Default model - can be overridden via API request or A/B testing
-    # Options: "gpt-4.1-nano" (economique), "gpt-4o-mini" (qualite)
+    # Options: "gpt-4.1-nano" (economique), "gpt-4.1-mini" (qualite)
     openai_model: str = "gpt-4.1-nano"
+
+    # Model used when narrative generation fails validation (retry once)
+    fallback_model: str = "gpt-4.1-mini"
     
     # LLM settings (for legacy compatibility with loaders/llm_client)
     llm_provider: Literal["openai", "anthropic", "mock"] = "openai"
-    llm_model: str = "gpt-4o-mini"
+    llm_model: str = "gpt-4.1-mini"
     llm_temperature: float = 0.1
     llm_max_tokens: int = 500
     anthropic_api_key: str = ""
@@ -48,7 +51,7 @@ class Settings(BaseSettings):
     
     # Models to test (when A/B testing is enabled)
     ab_test_model_a: str = "gpt-4.1-nano"
-    ab_test_model_b: str = "gpt-4o-mini"
+    ab_test_model_b: str = "gpt-4.1-mini"
     
     # Ratio for A/B split (0.5 = 50% each)
     ab_test_ratio: float = 0.5
@@ -89,15 +92,20 @@ class Settings(BaseSettings):
     # ============================================================================
     enable_safety_check: bool = True
     enable_narrative_generation: bool = True
+
+    # In-memory response cache (same normalized query + model); skipped if session has history
+    enable_response_cache: bool = True
+    response_cache_max_size: int = 500
+    response_cache_ttl_seconds: int = 3600
     
     # ============================================================================
     # RETRIEVAL SETTINGS
     # ============================================================================
     max_results: int = 5
     olj_score_threshold: float = 0.5
-    retrieve_top_k: int = 20
-    rerank_top_k: int = 10
-    rerank_model: str = "gpt-4o-mini"
+    retrieve_top_k: int = 15
+    rerank_top_k: int = 8
+    rerank_model: str = "gpt-4.1-nano"
     
     # ============================================================================
     # EMBEDDINGS CONFIGURATION
@@ -146,6 +154,9 @@ class Settings(BaseSettings):
         "https://web-production-73152.up.railway.app",
         "http://localhost:8000",
         "http://127.0.0.1:8000",
+        "http://localhost:8001",
+        "http://127.0.0.1:8001",
+        "http://localhost:3000",
     ]
     cors_allow_credentials: bool = False
     cors_allow_methods: list = ["GET", "POST", "OPTIONS"]
@@ -171,4 +182,4 @@ def get_settings() -> Settings:
 
 def get_available_models() -> List[str]:
     """Return list of available models for UI dropdown."""
-    return ["gpt-4.1-nano", "gpt-4o-mini"]
+    return ["gpt-4.1-nano", "gpt-4.1-mini"]

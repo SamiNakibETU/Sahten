@@ -151,7 +151,7 @@ async def evaluate_case(bot, case: dict, verbose: bool = False) -> Dict[str, Any
     case_id = case["id"]
     
     try:
-        response, _ = await bot.chat(query, debug=True)
+        response, _, _ = await bot.chat(query, debug=True)
         
         urls = extract_urls_from_response(response)
         categories = extract_categories_from_response(response)

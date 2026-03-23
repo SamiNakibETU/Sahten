@@ -24,6 +24,7 @@ from typing import Optional
 from openai import AsyncOpenAI
 from unidecode import unidecode
 
+from ..core.safety import should_override_to_recipe_specific
 from ..schemas.query_analysis import QueryAnalysis, SafetyCheck
 
 logger = logging.getLogger(__name__)
@@ -56,6 +57,8 @@ TOXICITÉ (threat_type="toxicity"):
 1. recipe_specific: Recette PRÉCISE demandée
    - "recette de taboulé" → dish_name="taboulé"
    - "comment faire un houmous" → dish_name="houmous"
+   - "couscous", "paella", "sushi", "boeuf bourguignon", "lasagne" → TOUJOURS recipe_specific, is_culinary=true
+   - Même si le plat n'est pas libanais: intent=recipe_specific (on gère l'absence en base ailleurs)
    - Normalise: "tabbouleh"→"taboulé", "hummus"→"houmous", "man2oushe"→"manakish"
 
 2. recipe_by_ingredient: INGRÉDIENTS mentionnés
@@ -95,9 +98,10 @@ TOXICITÉ (threat_type="toxicity"):
     - "c'est quoi le zaatar" → is_culinary=true
     - "qu'est-ce que le sumac" → is_culinary=true
 
-11. off_topic: RIEN à voir avec la cuisine
+11. off_topic: RIEN à voir avec la cuisine (JAMAIS pour un nom de plat)
     - "quelle heure", "météo", "politique", "football"
-    - → is_culinary=false
+    - "couscous", "paella", "sushi" = recipe_specific, PAS off_topic
+    - → is_culinary=false UNIQUEMENT pour sujets non alimentaires
 
 # RÈGLES CRITIQUES
 
@@ -113,10 +117,33 @@ TOXICITÉ (threat_type="toxicity"):
   - "quelle heure" → "C'est l'heure du mezze ! Un houmous ?"
   - insulte → "La cuisine adoucit les cœurs ! Un maamoul ?"
 
+# INGRÉDIENTS INFÉRÉS (obligatoire si intent = recipe_specific)
+
+Quand l'utilisateur demande un plat précis, remplis `inferred_main_ingredients` avec
+les 1 à 4 ingrédients principaux TYPIQUES de ce plat (ta connaissance générale, pas
+les données OLJ).
+IMPORTANT : inclure l'ingrédient spécifique ET sa famille alimentaire (pour maximiser
+le matching avec le corpus) :
+- "fajitas" → ["poulet", "viande", "poivron"]
+- "sauté de veau" → ["veau", "viande"]
+- "blanquette de veau" → ["veau", "viande"]
+- "pad thai" → ["vermicelles", "crevette"]
+- "taboulé" → ["persil", "boulgour"]
+- "carbonara" → ["pâtes", "lardons", "viande"]
+- "ceviche" → ["poisson"]
+- "canard laqué" → ["canard", "viande"]
+Vide `inferred_main_ingredients` si l'intent n'est pas centré sur un plat précis.
+
 # EXEMPLES
 
 User: "recette tabbouleh libanais"
-→ intent="recipe_specific", dish_name="taboulé", dish_name_variants=["taboulé","tabbouleh","taboule"], is_culinary=true
+→ intent="recipe_specific", dish_name="taboulé", dish_name_variants=["taboulé","tabbouleh","taboule"], inferred_main_ingredients=["persil", "boulgour", "tomate"], is_culinary=true
+
+User: "fajitas"
+→ intent="recipe_specific", dish_name="fajitas", dish_name_variants=["fajitas"], inferred_main_ingredients=["poulet", "viande", "poivron"], is_culinary=true
+
+User: "sauté de veau"
+→ intent="recipe_specific", dish_name="sauté de veau", inferred_main_ingredients=["veau", "viande"], is_culinary=true
 
 User: "j'ai des courgettes et du yaourt"
 → intent="recipe_by_ingredient", ingredients=["courgettes","yaourt"], is_culinary=true
@@ -151,20 +178,20 @@ class QueryAnalyzer:
     Uses OpenAI with JSON mode + Pydantic validation.
     """
     
-    def __init__(self, api_key: Optional[str] = None, model: str = "gpt-4o-mini"):
+    def __init__(self, api_key: Optional[str] = None, model: str = "gpt-4.1-nano"):
         """
         Initialize analyzer.
         
         Args:
             api_key: OpenAI API key (or from env)
-            model: Model to use (default: gpt-4o-mini for cost efficiency)
+            model: Model to use (default: gpt-4.1-nano for cost efficiency)
         """
         from ..core.config import get_settings
         settings = get_settings()
         
         self.api_key = api_key or settings.openai_api_key
         self.model = model
-        self.client = AsyncOpenAI(api_key=self.api_key)
+        self.client = AsyncOpenAI(api_key=self.api_key, timeout=8.0)
     
     async def analyze(self, query: str) -> QueryAnalysis:
         """
@@ -189,22 +216,51 @@ class QueryAnalyzer:
                     {"role": "system", "content": ANALYZER_SYSTEM_PROMPT + "\n\nRéponds UNIQUEMENT en JSON valide correspondant au schema QueryAnalysis."},
                     {"role": "user", "content": query}
                 ],
-                temperature=0,  # Deterministic
-                max_tokens=500,
+                temperature=0,
+                max_tokens=180,
             )
             
             # Parse JSON response
             import json
             content = response.choices[0].message.content
             data = json.loads(content)
-            
-            # Handle nested safety object
+
+            if not isinstance(data, dict):
+                raise ValueError("Analyzer JSON root must be an object")
+
+            # LLM renvoie parfois null / valeurs invalides : normaliser avant Pydantic
+            if data.get("recipe_count") is None:
+                data["recipe_count"] = 1
+
+            # Objet safety : threat_type=null casse Literal si non coercé
             if "safety" in data and isinstance(data["safety"], dict):
-                data["safety"] = SafetyCheck(**data["safety"])
+                s = dict(data["safety"])
+                tt = s.get("threat_type")
+                if tt is None or tt not in ("injection", "toxicity", "none"):
+                    s["threat_type"] = "none"
+                if "is_safe" not in s or s.get("is_safe") is None:
+                    s["is_safe"] = True
+                if s.get("confidence") is None:
+                    s["confidence"] = 1.0
+                data["safety"] = SafetyCheck(**s)
             
             # Create QueryAnalysis with validation
             result = QueryAnalysis(**data)
-            
+
+            # Post-LLM guard: if LLM says off_topic but query contains food keywords,
+            # override to recipe_specific so the fallback flow can run (deterministic)
+            if should_override_to_recipe_specific(result.intent, result.is_culinary, query or ""):
+                result = result.model_copy(
+                    update={
+                        "intent": "recipe_specific",
+                        "is_culinary": True,
+                        "dish_name": query.strip() or result.dish_name,
+                        "dish_name_variants": [query.strip()] if query.strip() else (result.dish_name_variants or []),
+                        "reasoning": (result.reasoning or "") + " [IntentRouter: food keyword detected]",
+                    }
+                )
+                logger.info("IntentRouter: overrode off_topic to recipe_specific (food keyword in query)")
+
             logger.info(
                 "Query analyzed: intent=%s, confidence=%.2f, culinary=%s, safe=%s",
                 result.intent,
@@ -302,7 +358,7 @@ class QueryAnalyzer:
                 reasoning="Fallback: ingredient phrasing detected.",
             )
 
-        # Specific recipe
+        # Specific recipe (recette / comment faire)
         if "recette" in q or "comment faire" in q:
             # naive dish extraction: after 'recette' or after 'faire'
             dish = None
@@ -321,6 +377,20 @@ class QueryAnalyzer:
                 dish_name=dish_name or None,
                 dish_name_variants=[dish_name] if dish_name else [],
                 reasoning="Fallback: recipe-specific phrasing detected.",
+            )
+
+        # Short query = likely dish name seul (couscous, paella, taboulé, etc.)
+        _off_topic_words = {"météo", "heure", "politique", "football", "sport", "news"}
+        tokens = q.strip().split()
+        if len(tokens) <= 4 and tokens and tokens[0].lower() not in _off_topic_words:
+            return QueryAnalysis(
+                safety=SafetyCheck(is_safe=True, threat_type="none", confidence=0.5),
+                intent="recipe_specific",
+                intent_confidence=0.5,
+                is_culinary=True,
+                dish_name=q.strip(),
+                dish_name_variants=[q.strip()],
+                reasoning="Fallback: short query treated as dish name (couscous, paella, etc.).",
             )
 
         # Mood / general

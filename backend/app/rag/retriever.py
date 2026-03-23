@@ -14,6 +14,7 @@ Enable when: 1000+ recipes OR frequent semantic queries.
 
 from __future__ import annotations
 
+import difflib
 import json
 import logging
 from dataclasses import dataclass
@@ -22,15 +23,160 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
+from unidecode import unidecode
 from sklearn.metrics.pairwise import cosine_similarity
 
 from ..core.config import get_settings
+from ..data.ingredient_normalizer import ingredient_normalizer
+from ..data.normalizers import normalize_text
 from ..llm.reranker import LLMReranker, RerankCandidate, RerankItem
-from ..schemas.canonical import CanonicalRecipeDoc
+from ..schemas.canonical import CanonicalCategory, CanonicalRecipeDoc
 from ..schemas.query_analysis import QueryAnalysis
-from ..schemas.responses import OLJRecommendation, RecipeCard
+from ..schemas.responses import AlternativeMatch, OLJRecommendation, RecipeCard, SharedIngredientProof
 
 logger = logging.getLogger(__name__)
+
+GENERIC_QUERY_TOKENS = {
+    "recette",
+    "recettes",
+    "comment",
+    "faire",
+    "avec",
+    "plat",
+    "plats",
+    "cuisine",
+    "libanais",
+    "libanaise",
+    "libanaises",
+    "libanais",
+    "bonjour",
+    "salut",
+}
+
+MATCH_REASON_KEYWORDS = {
+    "shared_stewed_beef": {"boeuf", "beef", "viande", "viande hachee"},
+    "shared_wrap_like_format": {"pain", "bread", "galette"},
+    "shared_grilled_spiced_meat": {"poulet", "chicken", "agneau", "lamb", "boeuf"},
+    "shared_rice_base": {"riz", "rice", "semoule", "moghrabieh"},
+}
+
+# Trop fréquents pour prouver un lien recette seuls (sinon carbonara → gâteau au chocolat via « œuf »).
+WEAK_SHARED_INGREDIENTS: frozenset[str] = frozenset(
+    normalize_text(x)
+    for x in (
+        "oeuf",
+        "oeufs",
+        "lait",
+        "beurre",
+        "farine",
+        "sucre",
+        "sel",
+        "poivre",
+        "huile",
+        "huile dolive",
+        "ail",
+        "oignon",
+        "oignons",
+        "eau",
+        "creme",
+        "crème",
+        "citron",
+        "vanille",
+    )
+)
+
+# Ancres « plat libanais » : si l’une matche avec la requête (ex. moghrabieh via équivalence carbonara→pâtes), on garde l’alternative.
+_STRUCTURAL_INGREDIENTS: frozenset[str] = frozenset(
+    normalize_text(x)
+    for x in (
+        "moghrabieh",
+        "riz",
+        "semoule",
+        "poulet",
+        "agneau",
+        "boeuf",
+        "viande",
+        "viande hachee",
+        "poisson",
+        "halloumi",
+        "akkawi",
+        "labneh",
+        "houmous",
+        "taboule",
+        "falafel",
+        "freekeh",
+        "lentille",
+        "lentilles",
+        "kafta",
+        "kebbe",
+        "warak enab",
+        "manakish",
+        "pain",
+        "vermicelles",
+        "fromage",
+    )
+)
+
+_SAVORY_INFERRED: frozenset[CanonicalCategory] = frozenset(
+    {
+        "plat_principal",
+        "mezze_froid",
+        "mezze_chaud",
+        "entree",
+        "salade",
+        "soupe",
+        "sauces",
+    }
+)
+
+
+def _ingredient_overlap_is_meaningful(shared_terms: List[str]) -> bool:
+    """Évite les alternatives uniquement fondées sur sel / œuf / sucre, etc."""
+    norms = {normalize_text(t) for t in (shared_terms or []) if t}
+    if not norms:
+        return False
+    if norms & _STRUCTURAL_INGREDIENTS:
+        return True
+    return bool(norms - WEAK_SHARED_INGREDIENTS)
+
+
+def _doc_category_matches_inferred(
+    doc_cat: CanonicalCategory, inferred: CanonicalCategory
+) -> bool:
+    """Salé vs sucré : pas de dessert proposé pour une envie de plat (et inversement raisonnable)."""
+    if inferred == "dessert":
+        return doc_cat in ("dessert", "autre", "boisson")
+    if inferred in _SAVORY_INFERRED:
+        return doc_cat != "dessert"
+    return True
+
+
+def _extract_targeted_passage(text: str, term: str, max_chars: int) -> str:
+    """
+    Extract a passage containing the term when possible.
+    Splits on sentence boundaries (. ! ?) and prefers the sentence containing term.
+    Falls back to text start.
+    """
+    text_lower = text.lower()
+    term_ascii = unidecode(term)
+    term_lower = term.lower()
+    # Find first occurrence
+    pos = text_lower.find(term_lower)
+    if pos < 0:
+        pos = unidecode(text_lower).find(term_ascii)
+    if pos >= 0:
+        start = max(0, text.rfind(".", 0, pos), text.rfind("!", 0, pos), text.rfind("?", 0, pos)) + 1
+        end = len(text)
+        for sep in ".!?":
+            i = text.find(sep, pos + 1)
+            if i >= 0:
+                end = min(end, i + 1)
+        excerpt = text[start:end].strip()
+        if excerpt and len(excerpt) <= max_chars:
+            return excerpt
+        if len(excerpt) > max_chars:
+            return excerpt[:max_chars].rsplit(" ", 1)[0] + "…"
+    return text[:max_chars].strip() + ("…" if len(text) > max_chars else "")
 
 
 @dataclass
@@ -299,8 +445,9 @@ class HybridRetriever:
         s_char = cosine_similarity(q_char, char_matrix).ravel()
         scores = (s_word + s_char) / 2.0
 
+        MIN_LEXICAL_SCORE = 0.05
         idx = np.argsort(-scores)[:top_k]
-        return [(int(i), float(scores[i])) for i in idx if scores[i] > 0]
+        return [(int(i), float(scores[i])) for i in idx if scores[i] > MIN_LEXICAL_SCORE]
 
     def _semantic_retrieve(self, query: str, top_k: int) -> List[Tuple[int, float]]:
         """
@@ -437,10 +584,10 @@ class HybridRetriever:
         if analysis.intent == "multi_recipe":
             if analysis.category:
                 if analysis.category in {"mezze_froid", "mezze_chaud"}:
-                    return {"mezze_froid", "mezze_chaud", "entree"}
+                    return {"mezze_froid", "mezze_chaud"}
                 return {analysis.category}
             if "mezze" in q or "meze" in q:
-                return {"mezze_froid", "mezze_chaud", "entree"}
+                return {"mezze_froid", "mezze_chaud"}
             if "dessert" in q or "sucre" in q:
                 return {"dessert"}
         return None
@@ -532,6 +679,13 @@ class HybridRetriever:
         """
         settings = get_settings()
         exclude_set = set(exclude_urls or [])
+        rerank_top_k = settings.retrieve_top_k
+        if analysis.intent == "recipe_specific":
+            rerank_top_k = min(rerank_top_k, 8)
+        elif analysis.intent in {"recipe_by_ingredient", "recipe_by_category"}:
+            rerank_top_k = min(rerank_top_k, 10)
+        elif analysis.intent == "menu_composition":
+            rerank_top_k = min(rerank_top_k, 12)
 
         # Menu composition: category-constrained searches
         if analysis.intent == "menu_composition":
@@ -551,14 +705,14 @@ class HybridRetriever:
                     parts.append(analysis.chef_name)
                 retrieval_query = " ".join(p for p in parts if p)
 
-                lexical = self._lexical_retrieve(retrieval_query, top_k=settings.retrieve_top_k)
-                semantic = self._semantic_retrieve(retrieval_query, top_k=settings.retrieve_top_k)
+                lexical = self._lexical_retrieve(retrieval_query, top_k=rerank_top_k)
+                semantic = self._semantic_retrieve(retrieval_query, top_k=rerank_top_k)
                 fused = self._rrf_fuse([lexical, semantic]) if semantic else lexical
 
                 reranked = await self._rerank(
                     raw_query,
                     fused,
-                    top_k=settings.retrieve_top_k,
+                    top_k=rerank_top_k,
                     category_allowlist=cat_allow,
                 )
                 cards = self._select_cards(
@@ -608,28 +762,60 @@ class HybridRetriever:
             parts.append(analysis.category)
         retrieval_query = " ".join(p for p in parts if p)
 
-        lexical = self._lexical_retrieve(retrieval_query, top_k=settings.retrieve_top_k)
-        semantic = self._semantic_retrieve(retrieval_query, top_k=settings.retrieve_top_k)
+        lexical = self._lexical_retrieve(retrieval_query, top_k=rerank_top_k)
+        semantic = self._semantic_retrieve(retrieval_query, top_k=rerank_top_k)
         fused = self._rrf_fuse([lexical, semantic]) if semantic else lexical
 
         allowlist = self._allowlist_for_intent(analysis, raw_query)
         must_any = None
         if analysis.intent == "recipe_by_ingredient" and analysis.ingredients:
             must_any = {i.lower() for i in analysis.ingredients if i}
-        
-        reranked = await self._rerank(
-            raw_query,
-            fused,
-            top_k=settings.retrieve_top_k,
-            category_allowlist=allowlist,
-            must_contain_any=must_any,
-        )
+
+        rerank_shortcircuit = False
+        RERANK_SHORTCIRCUIT_LEX = 0.35
+        if (
+            analysis.intent in {"recipe_specific", "recipe_by_category"}
+            and lexical
+        ):
+            top_idx, lex_score = lexical[0]
+            if 0 <= top_idx < len(self.olj_docs):
+                top_doc = self.olj_docs[top_idx]
+                title_l = (top_doc.title or "").lower()
+                dish = (analysis.dish_name or "").lower()
+                variants = [dish] + [v.strip().lower() for v in (analysis.dish_name_variants or []) if v]
+                query_words = {w for w in raw_query.lower().split() if len(w) >= 4} - GENERIC_QUERY_TOKENS
+
+                dish_in_title = dish and any(v in title_l for v in variants if len(v) >= 3)
+                query_word_in_title = query_words and any(w in title_l for w in query_words)
+
+                if dish_in_title or (query_word_in_title and lex_score > RERANK_SHORTCIRCUIT_LEX):
+                    rerank_shortcircuit = True
+                    take_n = max(3, min(rerank_top_k, len(fused) if isinstance(fused, list) else 3))
+                    reranked = [
+                        RerankItem(url=str(self.olj_docs[i].url), score=float(s))
+                        for i, s in (fused[:take_n] if isinstance(fused, list) else [])
+                    ]
+                    logger.info("Rerank short-circuit: dish=%s found in title=%s (lex_score=%.3f)",
+                                dish, title_l[:60], lex_score)
+        if not rerank_shortcircuit:
+            reranked = await self._rerank(
+                raw_query,
+                fused,
+                top_k=rerank_top_k,
+                category_allowlist=allowlist,
+                must_contain_any=must_any,
+            )
+        # Filter low scores only when LLM reranker ran (scores on 0-1 scale)
+        MIN_RERANK_SCORE = 0.15
+        if not rerank_shortcircuit:
+            reranked = [it for it in reranked if it.score >= MIN_RERANK_SCORE]
+
         cards = self._select_cards(
             analysis,
             reranked,
             max_results=max(analysis.recipe_count, settings.max_results),
             category_allowlist=allowlist,
-            exclude_urls=exclude_set,  # Exclude already-proposed recipes from session
+            exclude_urls=exclude_set,
         )
 
         dbg = None
@@ -642,7 +828,11 @@ class HybridRetriever:
                 "reranked": [(it.url, it.score) for it in reranked],
                 "selected": [c.url for c in cards if c.url],
                 "excluded_from_session": list(exclude_set),
+                "rerank_top_k": rerank_top_k,
+                "rerank_shortcircuit": rerank_shortcircuit,
             }
+        elif rerank_shortcircuit:
+            dbg = {"rerank_shortcircuit": True}
 
         if cards:
             return cards[: analysis.recipe_count], False, dbg
@@ -706,7 +896,21 @@ class HybridRetriever:
 
     def _search_base2(self, analysis: QueryAnalysis) -> List[RecipeCard]:
         """Fallback search in Base2 dataset."""
-        query_terms = " ".join([analysis.dish_name or "", *analysis.ingredients]).lower()
+        from ..data.normalizers import normalize_text
+
+        parts = [analysis.dish_name or "", *(analysis.dish_name_variants or []), *(analysis.ingredients or [])]
+        norm_terms: list[str] = []
+        for p in parts:
+            if not p:
+                continue
+            np = normalize_text(p)
+            if np and len(np) >= 3:
+                norm_terms.append(np)
+            for w in str(p).split():
+                nw = normalize_text(w)
+                if nw and len(nw) >= 3:
+                    norm_terms.append(nw)
+        norm_terms = list(dict.fromkeys(norm_terms))
         results: List[Tuple[Dict[str, Any], float, str]] = []
 
         for cat_name, recipes in self.base2_recipes.items():
@@ -718,10 +922,23 @@ class HybridRetriever:
                         text += " " + (ing.get("nom") or "")
                     else:
                         text += " " + str(ing)
+                text_norm = normalize_text(text)
                 score = 0.0
-                for t in query_terms.split():
-                    if t and t in text.lower():
-                        score += 1.0
+                for nt in norm_terms:
+                    if nt in text_norm or text_norm in nt:
+                        score += 2.0
+                    else:
+                        for w in text_norm.split():
+                            if len(nt) >= 4 and len(w) >= 4:
+                                if difflib.SequenceMatcher(None, nt, w).ratio() >= 0.72:
+                                    score += 1.8
+                                    break
+                # Compat : tokens simples (ex. sous-chaînes courtes)
+                if score == 0:
+                    qlow = " ".join(parts).lower()
+                    for t in qlow.split():
+                        if t and len(t) >= 3 and t in text.lower():
+                            score += 1.0
                 if score > 0:
                     results.append((r, score, cat_name))
 
@@ -756,6 +973,89 @@ class HybridRetriever:
             )
         return cards
 
+    def get_grounding_for_term(self, term: str, max_chars: int = 400) -> Optional[Tuple[str, str, str]]:
+        """
+        Retrieve targeted OLJ passage for a term (clarification/recipe_info).
+        Returns (excerpt, title, url) or None. Grounds answers in articles only.
+        Prefers sentences containing the term for better relevance.
+        """
+        if not term or not term.strip():
+            return None
+        q = term.strip().lower()
+        lexical = self._lexical_retrieve(term.strip(), top_k=5)
+        for idx, score in lexical:
+            if idx >= len(self.olj_docs):
+                continue
+            d = self.olj_docs[idx]
+            if not d.search_text or not d.is_lebanese:
+                continue
+            text = (d.search_text or "").strip()
+            if not text:
+                continue
+            excerpt = _extract_targeted_passage(text, q, max_chars)
+            if excerpt:
+                return (excerpt, d.title, str(d.url))
+        return None
+
+    def resolve_exact_dish(
+        self,
+        dish_name: str,
+        dish_name_variants: Optional[List[str]] = None,
+        exclude_urls: Optional[set] = None,
+    ) -> Optional[RecipeCard]:
+        """
+        Deterministic exact match using canonical index (title_normalized, aliases_normalized, dish_name_normalized).
+        Used before full retrieval to guarantee OLJ recipe when dish is in base.
+        """
+        if not dish_name or not dish_name.strip():
+            return None
+        exclude = set(exclude_urls or [])
+        variants = {dish_name.strip()} | {v.strip() for v in (dish_name_variants or []) if v and v.strip()}
+        normalized_variants = {normalize_text(v) for v in variants if v and len(normalize_text(v)) >= 3}
+
+        for d in self.olj_docs:
+            if str(d.url) in exclude or not d.is_recipe or not d.is_lebanese:
+                continue
+            title_norm = d.title_normalized or normalize_text(d.title)
+            aliases_norm = d.aliases_normalized or [normalize_text(a) for a in (d.aliases or []) if a]
+            dish_norm = d.dish_name_normalized or title_norm
+            for v in normalized_variants:
+                if v in title_norm or title_norm in v:
+                    logger.info("ExactDishResolver: canonical match '%s' -> %s", dish_name[:30], d.title)
+                    return RecipeCard(
+                        source="olj",
+                        title=d.title,
+                        url=str(d.url),
+                        chef=d.chef_name,
+                        category=d.category_canonical,
+                        image_url=d.image_url,
+                        cited_passage=None,
+                    )
+                if v in dish_norm or dish_norm in v:
+                    logger.info("ExactDishResolver: dish_name match '%s' -> %s", dish_name[:30], d.title)
+                    return RecipeCard(
+                        source="olj",
+                        title=d.title,
+                        url=str(d.url),
+                        chef=d.chef_name,
+                        category=d.category_canonical,
+                        image_url=d.image_url,
+                        cited_passage=None,
+                    )
+                for a in aliases_norm:
+                    if v in a or a in v:
+                        logger.info("ExactDishResolver: alias match '%s' -> %s", dish_name[:30], d.title)
+                        return RecipeCard(
+                            source="olj",
+                            title=d.title,
+                            url=str(d.url),
+                            chef=d.chef_name,
+                            category=d.category_canonical,
+                            image_url=d.image_url,
+                            cited_passage=None,
+                        )
+        return None
+
     def get_olj_recommendation(
         self, analysis: QueryAnalysis, exclude_titles: Optional[List[str]] = None
     ) -> Optional[OLJRecommendation]:
@@ -781,3 +1081,280 @@ class HybridRetriever:
                 reason="Une recette à découvrir sur L'Orient-Le Jour",
             )
         return None
+
+    def _infer_category(self, analysis: QueryAnalysis, raw_query: str) -> CanonicalCategory:
+        """Infer recipe category from analysis and raw query for fallback when no ingredient match."""
+        q = (raw_query or "").lower() + " " + (analysis.dish_name or "").lower()
+        dessert_words = {"dessert", "gateau", "gâteau", "crepe", "crêpe", "tarte", "sucré", "doux", "chocolat"}
+        plat_words = {
+            "plat",
+            "viande",
+            "poisson",
+            "poulet",
+            "boeuf",
+            "agneau",
+            "couscous",
+            "paella",
+            "risotto",
+            "burger",
+            "pizza",
+            "lasagne",
+            "pates",
+            "pâte",
+            "pâtes",
+            "pasta",
+            "carbonara",
+            "spaghetti",
+            "curry",
+            "ramen",
+        }
+        mezze_words = {"mezze", "entree", "entrée", "houmous", "taboulé", "falafel"}
+        if any(w in q for w in dessert_words):
+            return "dessert"
+        if any(w in q for w in plat_words):
+            return "plat_principal"
+        if any(w in q for w in mezze_words):
+            return "mezze_froid"
+        if analysis.category and analysis.category in ("dessert", "mezze_froid", "mezze_chaud", "plat_principal", "entree", "soupe", "salade"):
+            return analysis.category  # type: ignore[return-value]
+        return "plat_principal"
+
+    def get_alternative_by_shared_ingredient(
+        self,
+        raw_query: str,
+        analysis: QueryAnalysis,
+        exclude_urls: Optional[set] = None,
+        inferred_ingredients: Optional[List[str]] = None,
+    ) -> Optional[AlternativeMatch]:
+        """
+        Find a Lebanese recipe that shares at least one main ingredient
+        with the user's request. Returns AlternativeMatch only when proof exists.
+        inferred_ingredients: from LLM (inferred_main_ingredients) — couvre tout plat
+        non listé sans heuristique statique.
+        """
+        exclude = set(exclude_urls or [])
+
+        # Normalisations issues du LLM (pour assouplir le filtre texte 2-termes)
+        llm_inferred_norms: set[str] = set()
+        if inferred_ingredients:
+            for ing in inferred_ingredients:
+                if not ing:
+                    continue
+                norm_list = ingredient_normalizer.normalize_ingredient_list([ing])
+                for n in norm_list:
+                    llm_inferred_norms.add(normalize_text(n.normalized))
+                    for e in ingredient_normalizer.get_equivalents(n.normalized):
+                        if e:
+                            llm_inferred_norms.add(normalize_text(e))
+
+        # Build searchable terms from query + analysis (including Lebanese alternatives)
+        query_terms: set[str] = set()
+        raw_ingredients: list[str] = list(inferred_ingredients or []) + list(
+            analysis.ingredients or []
+        )
+
+        # Extract from dish_name and raw_query (words 3+ chars)
+        for text in [analysis.dish_name, raw_query]:
+            if not text:
+                continue
+            words = text.lower().replace("-", " ").replace("'", " ").split()
+            for w in words:
+                if len(w) >= 3 and w.isalpha() and normalize_text(w) not in GENERIC_QUERY_TOKENS:
+                    raw_ingredients.append(w)
+
+        # Use normalizer to get equivalents AND Lebanese alternatives (e.g. pâtes -> moghrabieh)
+        for ing in raw_ingredients:
+            if not ing:
+                continue
+            norm_list = ingredient_normalizer.normalize_ingredient_list([ing])
+            for n in norm_list:
+                if n.normalized.lower() in GENERIC_QUERY_TOKENS:
+                    continue
+                query_terms.add(n.normalized.lower())
+                equivs = ingredient_normalizer.get_equivalents(n.normalized)
+                query_terms.update(
+                    e.lower()
+                    for e in equivs
+                    if e and e.lower() not in GENERIC_QUERY_TOKENS
+                )
+
+        # Score each OLJ doc by shared ingredient overlap (PROVEN match only)
+        # First pass: canonical main_ingredients_normalized (strict)
+        # Second pass: fallback on normalized text fields (plus strict : filtré ci-dessous)
+        query_norm = {normalize_text(t) for t in query_terms}
+        candidates: List[Tuple[CanonicalRecipeDoc, int, List[str], bool]] = []
+        for d in self.olj_docs:
+            if str(d.url) in exclude or not d.is_recipe or not d.is_lebanese:
+                continue
+            if not query_norm:
+                continue
+
+            canonical_ings = {
+                normalize_text(item)
+                for item in (d.main_ingredients_normalized or [])
+                if item
+            }
+            shared_canonical = [t for t in query_norm if t and t in canonical_ings]
+            if shared_canonical:
+                candidates.append((d, len(shared_canonical) + 10, shared_canonical, True))
+                continue
+
+            doc_text = normalize_text((d.search_text or "") + " " + " ".join(d.main_ingredients or []))
+            shared: List[str] = [t for t in query_norm if t and t in doc_text]
+            if shared:
+                candidates.append((d, len(shared), shared, False))
+
+        inferred_cat = self._infer_category(analysis, raw_query)
+        filtered: List[Tuple[CanonicalRecipeDoc, int, List[str], bool]] = []
+        for d, score, shared, from_canonical in candidates:
+            if not _ingredient_overlap_is_meaningful(shared):
+                continue
+            if not _doc_category_matches_inferred(d.category_canonical, inferred_cat):
+                continue
+            # Match texte plein : au moins 2 termes sauf si l'un vient des ingrédients inférés LLM
+            if not from_canonical:
+                shared_norms_set = {normalize_text(s) for s in shared}
+                has_llm_support = bool(shared_norms_set & llm_inferred_norms)
+                if len(shared_norms_set) < 2 and not has_llm_support:
+                    continue
+            filtered.append((d, score, shared, from_canonical))
+
+        if not filtered:
+            return None
+
+        def _sort_key(item: Tuple[CanonicalRecipeDoc, int, List[str], bool]) -> Tuple[int, int, int]:
+            d, score, shared, from_canonical = item
+            cat_bonus = 0
+            if d.category_canonical == inferred_cat:
+                cat_bonus = 1
+            return (1 if from_canonical else 0, cat_bonus, score)
+
+        filtered.sort(key=_sort_key, reverse=True)
+        best_doc, score, shared, _from_canonical = filtered[0]
+        meaningful_inputs = [
+            normalize_text(item)
+            for item in raw_ingredients
+            if item and normalize_text(item) not in GENERIC_QUERY_TOKENS
+        ]
+        query_ing = meaningful_inputs[0] if meaningful_inputs else raw_query[:30]
+        proof = SharedIngredientProof(
+            query_ingredient=query_ing,
+            normalized_ingredient=list(query_norm)[0] if query_norm else "",
+            shared_ingredients=shared[:10],
+            recipe_title=best_doc.title,
+            recipe_url=str(best_doc.url),
+            proof_score=score,
+        )
+        match_reason = self._infer_match_reason(shared)
+        logger.info(
+            "get_alternative: SharedIngredientProof for '%s' -> %s (shared=%s)",
+            raw_query[:50], best_doc.title, shared[:5],
+        )
+        passage_term = (
+            shared[0]
+            if shared
+            else (sorted(query_norm)[0] if query_norm else "")
+        )
+        cited = (
+            _extract_targeted_passage(
+                best_doc.search_text or "", passage_term, max_chars=200
+            )
+            if passage_term
+            else None
+        )
+        card = RecipeCard(
+            source="olj",
+            title=best_doc.title,
+            url=str(best_doc.url),
+            chef=best_doc.chef_name,
+            category=best_doc.category_canonical,
+            image_url=best_doc.image_url,
+            cited_passage=cited,
+        )
+        return AlternativeMatch(recipe_card=card, proof=proof, match_reason=match_reason)
+
+    def get_category_fallback_match(
+        self,
+        analysis: QueryAnalysis,
+        raw_query: str,
+        exclude_urls: Optional[set] = None,
+    ) -> Optional[AlternativeMatch]:
+        """
+        Dernier recours : une recette OLJ libanaise dans la catégorie inférée,
+        en privilégiant le chevauchement avec inferred_main_ingredients.
+        """
+        exclude = set(exclude_urls or [])
+        inferred_cat = self._infer_category(analysis, raw_query)
+        inferred = list(analysis.inferred_main_ingredients or [])
+
+        def score_doc(d: CanonicalRecipeDoc) -> Tuple[int, int]:
+            overlap = 0
+            doc_mains = {normalize_text(x) for x in (d.main_ingredients_normalized or []) if x}
+            doc_text = normalize_text(
+                (d.search_text or "") + " " + " ".join(d.main_ingredients or [])
+            )
+            for ing in inferred:
+                ni = normalize_text(ing)
+                if ni and (ni in doc_mains or ni in doc_text):
+                    overlap += 2
+            cat_bonus = 3 if d.category_canonical == inferred_cat else 0
+            return (cat_bonus + overlap, overlap)
+
+        candidates = [
+            d
+            for d in self.olj_docs
+            if str(d.url) not in exclude and d.is_recipe and d.is_lebanese
+        ]
+        if not candidates:
+            return None
+        candidates.sort(key=lambda d: score_doc(d), reverse=True)
+        best = candidates[0]
+
+        doc_mains_norm = list(best.main_ingredients_normalized or [])
+        shared: List[str] = []
+        inferred_norms = {normalize_text(x) for x in inferred if x}
+        for im in inferred_norms:
+            if im and im in doc_mains_norm:
+                shared.append(im)
+        if not shared and doc_mains_norm:
+            shared = [doc_mains_norm[0]]
+        elif not shared and best.main_ingredients:
+            shared = [normalize_text(best.main_ingredients[0])]
+
+        proof = SharedIngredientProof(
+            query_ingredient=(analysis.dish_name or raw_query[:50]).strip(),
+            normalized_ingredient=next(iter(inferred_norms), "") if inferred_norms else "",
+            shared_ingredients=shared[:10],
+            recipe_title=best.title,
+            recipe_url=str(best.url),
+            proof_score=score_doc(best)[0],
+        )
+        passage_term = shared[0] if shared else (
+            normalize_text(best.main_ingredients[0])
+            if best.main_ingredients
+            else ""
+        )
+        cited = (
+            _extract_targeted_passage(
+                best.search_text or "", passage_term, max_chars=200
+            )
+            if passage_term
+            else None
+        )
+        card = RecipeCard(
+            source="olj",
+            title=best.title,
+            url=str(best.url),
+            chef=best.chef_name,
+            category=best.category_canonical,
+            image_url=best.image_url,
+            cited_passage=cited,
+        )
+        return AlternativeMatch(recipe_card=card, proof=proof, match_reason="category_fallback")
+
+    def _infer_match_reason(self, shared_terms: List[str]) -> str:
+        shared_set = {normalize_text(term) for term in (shared_terms or []) if term}
+        for reason, keys in MATCH_REASON_KEYWORDS.items():
+            if shared_set & keys:
+                return reason
+        return "shared_ingredient_match"

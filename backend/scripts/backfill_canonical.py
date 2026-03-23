@@ -263,6 +263,12 @@ def main() -> int:
         aliases = merged.get("aliases") or []
         main_ingredients = merged.get("main_ingredients") or []
         tags = item.get("tags") or []
+        dish_canonical_name = merged.get("dish_canonical_name") or title
+
+        title_normalized = _norm_token(title)
+        aliases_normalized = [_norm_token(a) for a in aliases if a]
+        main_ingredients_normalized = [_norm_token(m) for m in main_ingredients if m]
+        dish_name_normalized = _norm_token(dish_canonical_name) if dish_canonical_name else title_normalized
 
         search_text = _build_search_text(item, merged)
         if not search_text:
@@ -282,6 +288,10 @@ def main() -> int:
                 "tags": [t for t in tags if t],
                 "main_ingredients": [i for i in main_ingredients if i],
                 "aliases": [a for a in aliases if a],
+                "title_normalized": title_normalized,
+                "aliases_normalized": aliases_normalized,
+                "main_ingredients_normalized": main_ingredients_normalized,
+                "dish_name_normalized": dish_name_normalized,
                 "search_text": search_text,
                 "source": "olj",
                 "raw_category": raw_category or None,

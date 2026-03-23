@@ -182,7 +182,7 @@ Variables d'environnement requises :
 ```
 OPENAI_API_KEY=sk-...
 WEBHOOK_SECRET=votre-secret-partage-securise
-OLJ_API_KEY=d3037095bcd8ad824767518cf83b9440bf7dc14a17a150f1398c9d8f63a7e623
+OLJ_API_KEY=<fourni-par-WhiteBeard-OLJ-ne-pas-committer>
 OLJ_API_BASE=https://api.lorientlejour.com/cms
 AUTO_ENRICH_ON_WEBHOOK=true
 ```

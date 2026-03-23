@@ -111,11 +111,32 @@ async def get_img(filename: str):
     return Response(status_code=404)
 
 
+@app.get("/assets/{filename}")
+async def get_assets(filename: str):
+    file_path = FRONTEND_PATH / "assets" / filename
+    if file_path.exists() and file_path.is_file():
+        suffix = file_path.suffix.lower()
+        media_types = {
+            ".svg": "image/svg+xml",
+            ".png": "image/png",
+            ".jpg": "image/jpeg",
+            ".jpeg": "image/jpeg",
+            ".webp": "image/webp",
+        }
+        media_type = media_types.get(suffix, "application/octet-stream")
+        return FileResponse(file_path, media_type=media_type)
+    return Response(status_code=404)
+
+
 @app.get("/")
 async def root():
-    """Serve the frontend UI."""
+    """Serve the production widget UI by default."""
+    widget_index = FRONTEND_PATH / "widget.html"
+
+    if widget_index.exists():
+        return FileResponse(widget_index)
+
     frontend_index = FRONTEND_PATH / "index.html"
-    
     if frontend_index.exists():
         return FileResponse(frontend_index)
     
@@ -123,6 +144,20 @@ async def root():
         "name": settings.app_name,
         "status": "running",
         "message": "Frontend index.html not found.",
+    }
+
+
+@app.get("/test")
+async def test_ui():
+    """Serve the local test UI."""
+    frontend_index = FRONTEND_PATH / "index.html"
+
+    if frontend_index.exists():
+        return FileResponse(frontend_index)
+
+    return {
+        "error": "Test UI not found",
+        "message": "Please create frontend/index.html",
     }
 
 

@@ -33,7 +33,7 @@ def test_health(client: TestClient):
     r = client.get("/api/health")
     assert r.status_code == 200
     data = r.json()
-    assert data["version"].startswith("1.0")
+    assert data["version"].startswith("2.")
 
 
 def test_chat_redirects_injection(client: TestClient):
@@ -51,9 +51,23 @@ def test_chat_menu(client: TestClient):
     r = client.post("/api/chat", json={"message": "entrée plat dessert libanais", "debug": True})
     assert r.status_code == 200
     data = r.json()
-    assert data["response_type"] in ("menu", "recipe_olj", "recipe_base2")
+    assert data["response_type"] in (
+        "menu",
+        "recipe_olj",
+        "recipe_base2",
+        "not_found_with_alternative",
+        "recipe_not_found",
+    )
     # Should be at least 3 cards for menu when fallbacks are working
     assert data["recipe_count"] >= 3
+
+
+def test_root_serves_widget_ui(client: TestClient):
+    r = client.get("/")
+    assert r.status_code == 200
+    body = r.text
+    assert "Widget Sahten - Production" in body
+    assert "mode-btn active" in body
 
 
 

@@ -1,10 +1,20 @@
 """
 Integration tests for Sahtein clean architecture.
+
+Nécessite un serveur local sur localhost:8000. Sinon les tests sont ignorés.
 """
 
 import asyncio
+import os
+
 import httpx
 import pytest
+
+
+pytestmark = pytest.mark.skipif(
+    os.getenv("RUN_SAHTEN_LIVE_SERVER") != "1",
+    reason="Définir RUN_SAHTEN_LIVE_SERVER=1 et lancer uvicorn pour exécuter ces tests.",
+)
 
 
 @pytest.fixture

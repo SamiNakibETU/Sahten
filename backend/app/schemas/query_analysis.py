@@ -16,8 +16,8 @@ The LLM analyzes the user query and returns:
 - Redirect suggestion if blocked/off-topic
 """
 
-from typing import Optional, List, Literal
-from pydantic import BaseModel, Field, field_validator
+from typing import Optional, List, Literal, Any
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 class SafetyCheck(BaseModel):
@@ -45,6 +45,14 @@ class SafetyCheck(BaseModel):
         le=1.0,
         description="Confiance dans l'évaluation de sécurité (0-1)"
     )
+
+    @field_validator("threat_type", mode="before")
+    @classmethod
+    def coerce_threat_type(cls, v):
+        """Coerce None or unknown values to 'none' to avoid Pydantic Literal errors."""
+        if v is None or v not in ("injection", "toxicity", "none"):
+            return "none"
+        return v
 
 
 class QueryAnalysis(BaseModel):
@@ -79,6 +87,7 @@ class QueryAnalysis(BaseModel):
         "menu_composition",     # Menu complet: "entrée plat dessert"
         "multi_recipe",         # Plusieurs: "3 mezze"
         "greeting",             # Salutation: "bonjour"
+        "about_bot",            # Présentation du bot ("qui es-tu ?")
         "clarification",        # Question: "c'est quoi le zaatar"
         "off_topic",            # Hors sujet culinaire
     ] = Field(
@@ -114,6 +123,17 @@ class QueryAnalysis(BaseModel):
     ingredients: List[str] = Field(
         default_factory=list,
         description="Ingrédients mentionnés, normalisés en français"
+    )
+
+    inferred_main_ingredients: List[str] = Field(
+        default_factory=list,
+        description=(
+            "Ingrédients principaux PROBABLES du plat demandé "
+            "(même si non mentionnés par l'utilisateur). "
+            "Ex: 'fajitas' → ['poulet', 'viande', 'poivron']. "
+            "'sauté de veau' → ['veau', 'viande']. "
+            "Vide si la requête ne cible pas un plat précis."
+        ),
     )
     
     category: Optional[Literal[
@@ -237,6 +257,25 @@ class QueryAnalysis(BaseModel):
         default=None,
         description="Si off-topic/blocked: suggestion de plat libanais en rapport avec le contexte"
     )
+
+    @model_validator(mode="before")
+    @classmethod
+    def coerce_llm_null_fields(cls, data: Any) -> Any:
+        """Le modèle renvoie parfois null pour listes / entiers : normaliser avant validation."""
+        if not isinstance(data, dict):
+            return data
+        for key in (
+            "ingredients",
+            "inferred_main_ingredients",
+            "dietary_restrictions",
+            "mood_tags",
+            "dish_name_variants",
+        ):
+            if data.get(key) is None:
+                data[key] = []
+        if data.get("recipe_count") is None:
+            data["recipe_count"] = 1
+        return data
     
     # === HELPERS ===
     
@@ -255,7 +294,7 @@ class QueryAnalysis(BaseModel):
         return (
             self.safety.is_safe and
             self.is_culinary and
-            self.intent not in ["greeting", "off_topic"]
+            self.intent not in ["greeting", "off_topic", "about_bot"]
         )
 
 
