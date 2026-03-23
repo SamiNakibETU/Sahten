@@ -39,6 +39,10 @@
   /* Chapô : pastilles — inset homogène (padding symétrique en em) */
   --welcome-badge-inline-fs: 14px;
   --welcome-badge-inline-inset: 0.22em;
+  /* Badge « Sahten » dans le header uniquement (plus lisible que les pastilles du chapô) */
+  --header-brand-badge-fs: 17px;
+  --header-brand-badge-pad-y: 0.32em;
+  --header-brand-badge-pad-x: 0.4em;
   /* Exemples : même corps que le chapô (Playfair 16px) — voir .welcome-examples-list */
   --welcome-mascot-header: 40px;
   --welcome-mascot-inline: 32px;
@@ -200,18 +204,18 @@
   line-height: 1.2;
   letter-spacing: -0.01em;
 }
-/* Même pastille que .welcome-highlight (corps) — largeur serrée au texte */
+/* Pastille header : plus grande que les surlignages du corps */
 .sahten-title.sahten-title--brand {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  padding: var(--welcome-badge-inline-inset) var(--welcome-badge-inline-inset);
+  padding: var(--header-brand-badge-pad-y) var(--header-brand-badge-pad-x);
   border-radius: 0;
   background: var(--sahten-badge-green);
   font-family: var(--font-ui);
   font-weight: 900;
-  font-size: var(--welcome-badge-inline-fs);
+  font-size: var(--header-brand-badge-fs);
   color: #ffffff;
   letter-spacing: 0.02em;
   line-height: 1;
@@ -988,12 +992,54 @@
   height: 15px;
 }
 
-/* Lanceur flottant (logo seul) */
-.sahten-trigger {
+/* Lanceur : bulle à gauche (toujours visible) + bouton logo */
+.sahten-trigger-wrap {
   position: fixed;
   bottom: 20px;
   right: 20px;
   z-index: 9998;
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: flex-end;
+  gap: 8px;
+  max-width: min(calc(100vw - 32px), 320px);
+}
+
+.sahten-trigger-bubble {
+  position: relative;
+  max-width: min(200px, 62vw);
+  margin-bottom: 5px;
+  padding: 8px 11px 8px 12px;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.1);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: 0.01em;
+  color: var(--text);
+  pointer-events: none;
+  text-align: left;
+}
+/* Queue vers le logo (à droite de la bulle) */
+.sahten-trigger-bubble::after {
+  content: "";
+  position: absolute;
+  right: -6px;
+  bottom: 14px;
+  width: 0;
+  height: 0;
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+  border-left: 6px solid #ffffff;
+  filter: drop-shadow(1px 0 0 #e8e8e8);
+}
+
+.sahten-trigger {
+  position: relative;
+  flex-shrink: 0;
   width: auto;
   height: auto;
   min-width: 48px;
@@ -1040,9 +1086,15 @@
 }
 
 @media (max-width: 480px) {
-  .sahten-trigger {
+  .sahten-trigger-wrap {
     bottom: 14px;
     right: 14px;
+    gap: 6px;
+  }
+  .sahten-trigger-bubble {
+    font-size: 11px;
+    padding: 7px 9px;
+    max-width: min(168px, 56vw);
   }
   .sahten-trigger-logo {
     width: 54px;

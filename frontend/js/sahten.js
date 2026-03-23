@@ -127,6 +127,8 @@ export class SahtenChat {
             container: document.querySelector('.sahten-widget-container'),
             backdrop: document.querySelector('.sahten-backdrop'),
             trigger: document.querySelector('.sahten-trigger'),
+            triggerWrap: null,
+            triggerBubble: null,
             closeBtn: document.querySelector('.sahten-close-btn'),
             body: document.querySelector('.sahten-body'),
             form: document.querySelector('#sahten-form'),
@@ -138,17 +140,48 @@ export class SahtenChat {
         };
 
         this._a11yLive = null;
+        /** Texte affiché à gauche du bouton flottant (sans survol). */
+        this.TRIGGER_HINT_TEXT = 'Une idée recette ?';
 
         this.init();
     }
 
     init() {
         if (!this.dom.container) return;
+        this.setupTriggerShell();
         this.bindEvents();
         this.ensureA11yLiveRegion();
         const initialSize = this.dom.container.dataset.size || this.state.size;
         this.setSize(initialSize);
         this.loadModels();
+    }
+
+    /**
+     * Bulle fixe à gauche du logo (texte permanent, pas seulement au survol).
+     */
+    setupTriggerShell() {
+        const btn = this.dom.trigger;
+        if (!btn) return;
+        const existing = btn.closest('.sahten-trigger-wrap');
+        if (existing) {
+            this.dom.triggerWrap = existing;
+            this.dom.triggerBubble = existing.querySelector('.sahten-trigger-bubble');
+            if (this.dom.triggerBubble) {
+                this.dom.triggerBubble.textContent = this.TRIGGER_HINT_TEXT;
+            }
+            return;
+        }
+        const wrap = document.createElement('div');
+        wrap.className = 'sahten-trigger-wrap';
+        const bubble = document.createElement('div');
+        bubble.className = 'sahten-trigger-bubble';
+        bubble.setAttribute('aria-hidden', 'true');
+        bubble.textContent = this.TRIGGER_HINT_TEXT;
+        btn.parentNode.insertBefore(wrap, btn);
+        wrap.appendChild(bubble);
+        wrap.appendChild(btn);
+        this.dom.triggerWrap = wrap;
+        this.dom.triggerBubble = bubble;
     }
 
     /** Zone lue par les lecteurs d'écran à l'ouverture du panneau. */
@@ -300,7 +333,10 @@ export class SahtenChat {
                 this.dom.backdrop.classList.add('visible');
                 this.dom.backdrop.setAttribute('data-size', this.state.size);
             }
-            if (this.dom.trigger) {
+            if (this.dom.triggerWrap) {
+                this.dom.triggerWrap.style.opacity = '0';
+                this.dom.triggerWrap.style.pointerEvents = 'none';
+            } else if (this.dom.trigger) {
                 this.dom.trigger.style.opacity = '0';
                 this.dom.trigger.style.pointerEvents = 'none';
             }
@@ -358,7 +394,10 @@ export class SahtenChat {
             if (this.dom.backdrop) {
                 this.dom.backdrop.classList.remove('visible');
             }
-            if (this.dom.trigger) {
+            if (this.dom.triggerWrap) {
+                this.dom.triggerWrap.style.opacity = '1';
+                this.dom.triggerWrap.style.pointerEvents = 'auto';
+            } else if (this.dom.trigger) {
                 this.dom.trigger.style.opacity = '1';
                 this.dom.trigger.style.pointerEvents = 'auto';
             }
