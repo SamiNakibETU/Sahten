@@ -29,6 +29,9 @@ logs/
 .coverage
 htmlcov/
 
+# Fichiers internes pouvant contenir clés API / secrets (exports email, etc.)
+backend/tests/conv_dev_team.txt
+
 # OS
 .DS_Store
 Thumbs.db

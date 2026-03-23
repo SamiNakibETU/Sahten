@@ -11,8 +11,8 @@ pydantic==2.10.3
 pydantic-settings==2.6.1
 
 # Data processing
-numpy==1.26.4
-scikit-learn==1.6.1
+numpy>=2.0.0
+scikit-learn>=1.4.0
 
 # HTTP client (for testing and async requests)
 httpx==0.28.1

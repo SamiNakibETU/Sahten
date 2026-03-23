@@ -9,7 +9,7 @@ Follows "Editorial Chef" design principles: centered text, elegant typography.
 import html
 import re
 from typing import List, Optional
-from ..schemas.responses import SahtenResponse, RecipeCard
+from ..schemas.responses import SahtenResponse, RecipeCard, ConversationBlock
 
 
 def _escape_html(text: str) -> str:
@@ -22,9 +22,11 @@ def compose_html_response(response: SahtenResponse) -> str:
     """Convert SahtenResponse to HTML string."""
     parts = []
     
-    # 1. Narrative (The "Voice" of the Chef)
-    # The CSS class .sahten-narrative handles the centered alignment and typography.
-    if response.narrative:
+    # 1. Conversation blocks (new format)
+    if response.conversation_blocks:
+        parts.append(_format_conversation_blocks(response.conversation_blocks))
+    # 1b. Legacy narrative fallback
+    elif response.narrative:
         # Check if it's a string (legacy/fallback) or RecipeNarrative object
         if isinstance(response.narrative, str):
             raw_text = response.narrative
@@ -49,12 +51,36 @@ def compose_html_response(response: SahtenResponse) -> str:
         for recipe in response.recipes:
             parts.append(_format_recipe_card(recipe))
         parts.append('</div>')
+
+    # 2b. OLJ CTA (clarification, recipe_not_found, recipe_base2)
+    if response.olj_recommendation:
+        rec = response.olj_recommendation
+        url_esc = _escape_html(rec.url) if rec.url else "#"
+        title_esc = _escape_html(rec.title) if rec.title else "L'Orient-Le Jour"
+        reason_esc = _escape_html(rec.reason) if rec.reason else "Découvre sur L'Orient-Le Jour"
+        parts.append(
+            f'<div class="sahten-olj-cta">'
+            f'<a href="{url_esc}" target="_blank" rel="noopener" class="olj-cta-link">'
+            f'{title_esc}</a>'
+            f'<p class="olj-cta-reason">{reason_esc}</p>'
+            f'</div>'
+        )
         
     # 3. Fallback / No Results
     if not response.recipes and response.intent_detected == "recipe_specific" and not response.narrative:
         parts.append('<div class="sahten-narrative"><em>Je n\'ai pas trouvé cette recette exacte dans mes archives, mais je serais ravi de vous proposer une alternative.</em></div>')
 
     return "".join(parts)
+
+
+def _format_conversation_blocks(blocks: List[ConversationBlock]) -> str:
+    """Render typed conversation blocks to HTML."""
+    html_parts: List[str] = []
+    for block in blocks:
+        css_class = f"sahten-block sahten-block-{block.block_type}"
+        text = _format_text(block.text)
+        html_parts.append(f'<div class="{css_class}">{text}</div>')
+    return "".join(html_parts)
 
 
 def _format_text(text: str) -> str:

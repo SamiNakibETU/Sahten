@@ -5,32 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>L'Orient-Le Jour - Sahten</title>
 
-    <!-- Fonts: Inter (Variable) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap"
       rel="stylesheet"
     />
+    <link rel="stylesheet" href="https://fonts.cdnfonts.com/css/aktiv-grotesk-cd-trial" crossorigin="anonymous" />
 
-    <!-- DOMPurify for XSS Protection (with fallback) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.8/purify.min.js" 
-            crossorigin="anonymous" 
-            referrerpolicy="no-referrer"
-            onerror="this.onerror=null; this.src='https://unpkg.com/dompurify@3.0.8/dist/purify.min.js'"></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.8/purify.min.js"
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+      onerror="this.onerror=null; this.src='https://unpkg.com/dompurify@3.0.8/dist/purify.min.js'"
+    ></script>
 
-    <!-- Design System -->
     <link rel="stylesheet" href="css/sahten.css" />
 
     <style>
-      /* Host Page Simulation */
       body {
         background-color: #f2f2f2;
-        font-family: "Inter", sans-serif;
+        font-family: "DM Sans", sans-serif;
         display: flex;
         align-items: center;
         justify-content: center;
         height: 100vh;
+        margin: 0;
         color: #999;
       }
       .page-context {
@@ -42,8 +42,6 @@
         letter-spacing: -0.03em;
         margin-bottom: 8px;
       }
-      
-      /* Mode Switcher */
       .mode-switcher {
         position: fixed;
         top: 16px;
@@ -52,7 +50,6 @@
         gap: 8px;
         z-index: 1000;
       }
-      
       .mode-btn {
         padding: 8px 14px;
         border: 1px solid #ddd;
@@ -65,103 +62,99 @@
         color: #666;
         transition: all 0.2s;
       }
-      
       .mode-btn:hover {
-        border-color: #94C2AE;
+        border-color: #94c2ae;
         color: #333;
       }
-      
       .mode-btn.active {
-        background: #94C2AE;
-        border-color: #94C2AE;
+        background: #94c2ae;
+        border-color: #94c2ae;
         color: white;
       }
     </style>
   </head>
   <body>
-    <!-- Mode Switcher -->
     <nav class="mode-switcher">
       <a href="index.html" class="mode-btn">Test</a>
       <a href="widget.html" class="mode-btn active">Widget</a>
       <a href="admin.html" class="mode-btn">Admin</a>
     </nav>
-    
+
     <div class="page-context">
       <h1>L'Orient-Le Jour</h1>
       <p>Widget Sahten - Production</p>
     </div>
 
-    <!-- SAHTEN WIDGET (Production - Clean) -->
     <div class="sahten-backdrop"></div>
     <div class="sahten-widget-container" data-size="window">
-      <!-- Drag Handle (Mobile) -->
       <div class="sahten-drag-handle"></div>
 
-      <!-- Header (Clean - No Test Controls) -->
       <div class="sahten-header">
-        <div class="sahten-title">Sahten</div>
+        <div class="sahten-brand">
+          <img class="sahten-logo-mascot" src="assets/sahten_logo_v2.svg" alt="Sahten" />
+          <span class="sahten-title sahten-title--brand">Sahten</span>
+        </div>
         <div class="sahten-controls">
           <button class="sahten-size-btn" data-action="window" aria-label="Petit">
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4.5" y="3.5" width="7" height="9" rx="1.5"/></svg>
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4.5" y="3.5" width="7" height="9" rx="1.5" /></svg>
           </button>
           <button class="sahten-size-btn" data-action="mid" aria-label="Moyen">
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2.5" y="2.5" width="11" height="11" rx="1.5"/></svg>
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2.5" y="2.5" width="11" height="11" rx="1.5" /></svg>
           </button>
           <button class="sahten-size-btn" data-action="full" aria-label="Grand">
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="10 2 14 2 14 6"/><polyline points="6 14 2 14 2 10"/><line x1="14" y1="2" x2="9.5" y2="6.5"/><line x1="2" y1="14" x2="6.5" y2="9.5"/></svg>
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="10 2 14 2 14 6" /><polyline points="6 14 2 14 2 10" /><line x1="14" y1="2" x2="9.5" y2="6.5" /><line x1="2" y1="14" x2="6.5" y2="9.5" /></svg>
           </button>
           <button class="sahten-close-btn" aria-label="Fermer">
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="4" y1="4" x2="12" y2="12"/><line x1="12" y1="4" x2="4" y2="12"/></svg>
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="4" y1="4" x2="12" y2="12" /><line x1="12" y1="4" x2="4" y2="12" /></svg>
           </button>
         </div>
       </div>
 
-      <!-- Chat Body -->
-      <div class="sahten-body">
-        <!-- Messages will be injected here via JS -->
+      <div class="sahten-cuisine-strip">
+        <img
+          class="sahten-cuisine-strip-img"
+          src="assets/header_cooking_img_desktop.png"
+          width="1040"
+          height="51"
+          alt="À table ! Rubrique cuisine Le Liban à table"
+          decoding="async"
+          fetchpriority="low"
+        />
       </div>
 
-      <!-- Footer / Input -->
+      <div class="sahten-body"></div>
+
       <form id="sahten-form" class="sahten-footer">
         <div class="input-wrapper">
-          <input
-            type="text"
+          <textarea
             id="sahten-input"
             class="sahten-input"
             placeholder="Je cherche une recette..."
             autocomplete="off"
-          />
+            rows="1"
+          ></textarea>
           <button type="submit" class="send-btn" aria-label="Envoyer">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="3" y1="8" x2="13" y2="8"/><polyline points="9 4 13 8 9 12"/>
+              <line x1="3" y1="8" x2="13" y2="8" /><polyline points="9 4 13 8 9 12" />
             </svg>
           </button>
         </div>
       </form>
     </div>
 
-    <!-- Trigger Button -->
     <button class="sahten-trigger" aria-label="Ouvrir Sahten">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
       </svg>
     </button>
 
-    <!-- API Configuration -->
     <script>
-      // ============================================================
-      // PRODUCTION: Set your Railway API URL here
-      // ============================================================
       window.SAHTEN_API_BASE = "https://web-production-73152.up.railway.app/api";
-      // ============================================================
     </script>
 
-    <!-- Logic -->
     <script type="module">
       import { SahtenChat } from "./js/sahten.js";
-
-      // Initialize without model selector (uses default model)
-      const chat = new SahtenChat();
+      new SahtenChat();
     </script>
   </body>
 </html>

@@ -6,30 +6,89 @@ Structured response schemas for Sahten.
 Ensures consistent, validated responses across the pipeline.
 """
 
-from typing import Optional, List, Literal
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from typing import Optional, List, Literal, Any
 from pydantic import BaseModel, Field, field_validator
+
+
+@dataclass
+class SharedIngredientProof:
+    """
+    Proof that an alternative recipe shares at least one main ingredient.
+    Used for audit and analytics.
+    """
+    query_ingredient: str
+    normalized_ingredient: str
+    shared_ingredients: List[str]
+    recipe_title: str
+    recipe_url: str
+    proof_score: int
+
+
+@dataclass
+class AlternativeMatch:
+    """Recipe card with explicit proof of shared ingredient."""
+    recipe_card: "RecipeCard"
+    proof: SharedIngredientProof
+    match_reason: str = "shared_ingredient_match"
+
+
+@dataclass
+class EvidenceBundle:
+    """
+    Facts-only bundle passed to LLM verbalization layers.
+    LLM can phrase these facts but must not invent new decisions.
+    """
+    response_type: str
+    intent_detected: Optional[str]
+    user_query: str
+    selected_recipe_cards: List["RecipeCard"] = field(default_factory=list)
+    shared_ingredient_proof: Optional[SharedIngredientProof] = None
+    exact_match: bool = False
+    grounded_excerpt: Optional[str] = None
+    grounded_title: Optional[str] = None
+    grounded_url: Optional[str] = None
+    olj_recommendation: Optional["OLJRecommendation"] = None
+    match_reason: Optional[str] = None
+    allowed_claims: List[str] = field(default_factory=list)
+    forbidden_claims: List[str] = field(default_factory=list)
+    session_context: dict[str, Any] = field(default_factory=dict)
+
+
+class ConversationBlock(BaseModel):
+    """Typed conversational block for richer front rendering."""
+    block_type: Literal[
+        "assistant_message",
+        "match_reason",
+        "grounded_snippet",
+        "follow_up_question",
+        "cta",
+    ]
+    text: str = Field(min_length=1)
 
 
 class RecipeNarrative(BaseModel):
     """
     Partie narrative de la réponse Sahten.
     
-    Structure engageante avec:
-    - hook: Phrase d'accroche enthousiaste
-    - cultural_context: Contexte historique/culturel
-    - teaser: Ce qui rend la recette spéciale
+    Structure éditoriale compacte avec:
+    - hook: angle principal
+    - cultural_context: justification concise
+    - teaser: précision additionnelle optionnelle
     - cta: Call to action vers OLJ
     - closing: Toujours "Sahten !"
     """
     
     hook: str = Field(
         min_length=10, 
-        description="Phrase d'accroche enthousiaste (ex: 'Ah le taboulé !')"
+        description="Angle principal clair et utile"
     )
     
     cultural_context: str = Field(
-        min_length=30, 
-        description="2-3 phrases sur l'histoire, la tradition, l'origine du plat"
+        min_length=16,
+        description="Justification concise, factuelle et lisible"
     )
     
     teaser: Optional[str] = Field(
@@ -53,9 +112,9 @@ class RecipeNarrative(BaseModel):
     @field_validator('cultural_context')
     @classmethod
     def context_must_be_rich(cls, v: str) -> str:
-        """Le contexte culturel doit être substantiel."""
-        if len(v) < 30:
-            raise ValueError("Le contexte culturel doit faire au moins 30 caractères")
+        """Le contexte doit rester informatif, sans imposer une longueur excessive."""
+        if len(v) < 16:
+            raise ValueError("Le contexte doit faire au moins 16 caractères")
         return v
 
 
@@ -145,15 +204,18 @@ class SahtenResponse(BaseModel):
     """
     
     response_type: Literal[
-        "recipe_olj", 
-        "recipe_base2", 
-        "menu", 
-        "greeting", 
-        "redirect", 
-        "clarification"
+        "recipe_olj",                      # recipe_olj_found: recette trouvée dans OLJ
+        "recipe_base2",                    # Fallback Base2
+        "menu",                            # Menu complet
+        "greeting",
+        "redirect",                        # Off-topic, blocage sécurité
+        "recipe_not_found",                # Recette absente, pas d'alternative prouvée
+        "clarification",
+        "not_found_with_alternative",      # recipe_not_found_with_proven_alternative
     ]
     
     narrative: RecipeNarrative
+    conversation_blocks: List[ConversationBlock] = Field(default_factory=list)
     
     recipes: List[RecipeCard] = Field(default_factory=list)
     

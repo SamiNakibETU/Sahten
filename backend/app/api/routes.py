@@ -6,6 +6,7 @@ Dedicated routes for the durable RAG pipeline with flexible model selection.
 
 Endpoints:
   - POST /chat         - Main chat endpoint (supports model override)
+  - POST /chat/stream  - SSE stream (blocks + final HTML payload)
   - GET  /health       - Health check
   - GET  /status       - Detailed status
   - GET  /traces       - Team review of conversations
@@ -25,10 +26,12 @@ from datetime import datetime, timezone
 from typing import Optional, List
 
 from fastapi import APIRouter, HTTPException, status, Query
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from ..bot import get_bot
 from ..core.config import get_settings, get_available_models
+from ..core.metrics import record_metrics
 from ..schemas.responses import SahtenResponse
 from .response_composer import compose_html_response
 
@@ -81,6 +84,7 @@ def log_chat_trace(
     debug_info: Optional[dict],
     model_used: Optional[str] = None,
     is_base2_fallback: bool = False,
+    trace_meta: Optional[dict] = None,
 ) -> None:
     """Log conversation trace to stdout and optionally Upstash Redis."""
     try:
@@ -100,6 +104,8 @@ def log_chat_trace(
                 "debug": debug,
             },
         }
+        if trace_meta:
+            trace["trace_meta"] = trace_meta
         
         # Always log to stdout
         compact_trace = {
@@ -154,7 +160,7 @@ class ChatRequest(BaseModel):
     """Chat request with optional model override and session tracking."""
     message: str
     debug: bool = False
-    model: Optional[str] = None  # "auto", "gpt-4.1-nano", "gpt-4o-mini"
+    model: Optional[str] = None  # "auto", "gpt-4.1-nano", "gpt-4.1-mini"
     session_id: Optional[str] = None  # For conversation memory
 
 
@@ -167,6 +173,9 @@ class ChatResponseAPI(BaseModel):
     recipe_count: int = 0
     model_used: Optional[str] = None
     request_id: Optional[str] = None  # For feedback reference
+    scenario_id: Optional[int] = None
+    scenario_name: Optional[str] = None
+    primary_url: Optional[str] = None
     debug_info: Optional[dict] = None
 
 
@@ -189,7 +198,7 @@ async def chat(request: ChatRequest):
     Supports model override:
     - model="auto" or None: Use default or A/B testing
     - model="gpt-4.1-nano": Force nano model (economique)
-    - model="gpt-4o-mini": Force mini model (qualite)
+    - model="gpt-4.1-mini": Force mini model (qualite)
     
     Supports session memory:
     - session_id: Optional client-generated ID for conversation continuity
@@ -202,7 +211,7 @@ async def chat(request: ChatRequest):
     
     try:
         bot = get_bot()
-        response, debug_info = await bot.chat(
+        response, debug_info, trace_meta = await bot.chat(
             request.message,
             debug=request.debug,
             model=request.model,
@@ -220,7 +229,14 @@ async def chat(request: ChatRequest):
             debug_info=debug_info,
             model_used=response.model_used,
             is_base2_fallback=(response.response_type == "recipe_base2"),
+            trace_meta=trace_meta,
         )
+        record_metrics(response_type=response.response_type, trace_meta=trace_meta)
+
+        api_scenario = trace_meta.get("api_scenario") or {}
+        primary_url = api_scenario.get("primary_url")
+        if not primary_url and response.recipes:
+            primary_url = str(response.recipes[0].url)
 
         return ChatResponseAPI(
             html=html,
@@ -230,6 +246,9 @@ async def chat(request: ChatRequest):
             recipe_count=response.recipe_count,
             model_used=response.model_used,
             request_id=request_id,  # For feedback reference
+            scenario_id=api_scenario.get("scenario_id"),
+            scenario_name=api_scenario.get("scenario_name"),
+            primary_url=primary_url,
             debug_info=debug_info if request.debug else None,
         )
     except Exception as e:
@@ -238,6 +257,70 @@ async def chat(request: ChatRequest):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Une erreur est survenue. Réessaie !",
         )
+
+
+@router.post("/chat/stream")
+async def chat_stream(request: ChatRequest):
+    """
+    SSE stream: status, optional block events, then final payload with full HTML (same as /chat).
+    """
+    request_id = str(uuid.uuid4())[:8]
+    session_id = request.session_id or request_id
+
+    async def event_generator():
+        yield f"data: {json.dumps({'type': 'status', 'message': 'typing'})}\n\n"
+        try:
+            bot = get_bot()
+            response, debug_info, trace_meta = await bot.chat(
+                request.message,
+                debug=request.debug,
+                model=request.model,
+                request_id=request_id,
+                session_id=session_id,
+            )
+            html = compose_html_response(response)
+            for block in response.conversation_blocks or []:
+                yield f"data: {json.dumps({'type': 'block', 'block': block.model_dump()}, ensure_ascii=False)}\n\n"
+            done_payload = {
+                "type": "done",
+                "html": html,
+                "response_type": response.response_type,
+                "intent": response.intent_detected,
+                "confidence": response.confidence,
+                "recipe_count": response.recipe_count,
+                "model_used": response.model_used,
+                "request_id": request_id,
+                "trace_meta": trace_meta,
+            }
+            if request.debug and debug_info is not None:
+                done_payload["debug_info"] = debug_info
+            yield f"data: {json.dumps(done_payload, ensure_ascii=False)}\n\n"
+
+            log_chat_trace(
+                request_id=request_id,
+                user_message=request.message,
+                response_html=html,
+                response=response,
+                debug=request.debug,
+                debug_info=debug_info,
+                model_used=response.model_used,
+                is_base2_fallback=(response.response_type == "recipe_base2"),
+                trace_meta=trace_meta,
+            )
+            record_metrics(response_type=response.response_type, trace_meta=trace_meta)
+        except Exception as e:
+            logger.error("[%s] chat_stream error: %s", request_id, e, exc_info=True)
+            yield f"data: {json.dumps({'type': 'error', 'detail': 'Une erreur est survenue.'})}\n\n"
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
 
 
 @router.get("/models", response_model=ModelsResponse)
@@ -656,7 +739,7 @@ async def get_analytics():
         
         # Get model distribution
         model_stats = {}
-        for model_key in ["gpt-4_1-nano", "gpt-4o-mini"]:
+        for model_key in ["gpt-4_1-nano", "gpt-4_1-mini"]:
             count = int(redis.get(f"sahten:metrics:model:{model_key}:count") or 0)
             if count > 0:
                 model_stats[model_key.replace("_", ".")] = count
@@ -679,6 +762,23 @@ async def get_analytics():
             [{"url": k, "clicks": int(v)} for k, v in top_clicks_raw.items()],
             key=lambda x: -x["clicks"]
         )[:10]
+
+        # Quality metrics (Sahten zéro gap)
+        exact_match_count = int(redis.get("sahten:metrics:exact_match_count") or 0)
+        proven_alternative_count = int(redis.get("sahten:metrics:proven_alternative_count") or 0)
+        recipe_not_found_count = int(redis.get("sahten:metrics:recipe_not_found_count") or 0)
+        safety_block_count = int(redis.get("sahten:metrics:safety_block_count") or 0)
+        response_type_keys = ["recipe_olj", "recipe_base2", "menu", "greeting", "redirect", "recipe_not_found", "clarification", "not_found_with_alternative"]
+        response_type_stats = {}
+        for rt in response_type_keys:
+            count = int(redis.get(f"sahten:metrics:response_type:{rt}:count") or 0)
+            if count > 0:
+                response_type_stats[rt] = count
+        routing_stats = {}
+        for src in ["deterministic", "llm"]:
+            count = int(redis.get(f"sahten:metrics:routing:{src}:count") or 0)
+            if count > 0:
+                routing_stats[src] = count
         
         return {
             "status": "ok",
@@ -709,6 +809,14 @@ async def get_analytics():
             "models": model_stats,
             "intents": intent_stats,
             "top_recipes": top_recipes,
+            "quality": {
+                "exact_match_count": exact_match_count,
+                "proven_alternative_count": proven_alternative_count,
+                "recipe_not_found_count": recipe_not_found_count,
+                "safety_block_count": safety_block_count,
+            },
+            "response_types": response_type_stats,
+            "routing": routing_stats,
         }
         
     except Exception as e:
@@ -755,7 +863,7 @@ async def run_evaluation(limit: int = Query(default=5, ge=1, le=20)):
         
         for case in cases:
             try:
-                response, _ = await bot.chat(case["query"], debug=False)
+                response, _, _ = await bot.chat(case["query"], debug=False)
                 
                 # Check basic constraints
                 constraints = case.get("constraints", {})

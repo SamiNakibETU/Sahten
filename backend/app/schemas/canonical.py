@@ -57,6 +57,12 @@ class CanonicalRecipeDoc(BaseModel):
     main_ingredients: List[str] = Field(default_factory=list)
     aliases: List[str] = Field(default_factory=list)
 
+    # Normalized fields for exact-match indexing (filled by backfill or at load)
+    title_normalized: Optional[str] = None
+    aliases_normalized: List[str] = Field(default_factory=list)
+    main_ingredients_normalized: List[str] = Field(default_factory=list)
+    dish_name_normalized: Optional[str] = None
+
     # Retrieval text (single source of truth for lexical retrieval)
     search_text: str = Field(min_length=1)
 
@@ -69,5 +75,25 @@ class CanonicalRecipeDoc(BaseModel):
     # Media
     image_url: Optional[str] = Field(default=None, alias="_image_url")
     
+    def model_post_init(self, __context) -> None:
+        """Fill normalized fields from raw fields when missing."""
+        from ..data.normalizers import normalize_text
+        if not self.title_normalized:
+            object.__setattr__(self, "title_normalized", normalize_text(self.title))
+        if not self.aliases_normalized:
+            object.__setattr__(
+                self,
+                "aliases_normalized",
+                [normalize_text(a) for a in (self.aliases or []) if a],
+            )
+        if not self.main_ingredients_normalized:
+            object.__setattr__(
+                self,
+                "main_ingredients_normalized",
+                [normalize_text(m) for m in (self.main_ingredients or []) if m],
+            )
+        if not self.dish_name_normalized and self.title:
+            object.__setattr__(self, "dish_name_normalized", normalize_text(self.title))
+
     class Config:
         populate_by_name = True  # Accept both _image_url and image_url

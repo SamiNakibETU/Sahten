@@ -162,7 +162,7 @@ Code production-ready avec retry, logging, progress bar, resume capability.
 1. **Avec GPT-4 Codex (API)**: Utilise le prompt complet dans `<task>...</task>`
 2. **Avec o1/o3**: Le format structuré aide le raisonnement
 3. **Avec Claude**: Ajoute `<thinking>` tags si nécessaire
-4. **Avec Cursor Agent**: Copie le prompt et demande l'exécution
+4. **Avec un assistant de code (IDE)** : colle le prompt et demande l’exécution pas à pas
 
 ## Dépendances requises
 

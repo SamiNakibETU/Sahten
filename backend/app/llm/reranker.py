@@ -56,7 +56,9 @@ Règles:
 - Si l'utilisateur demande cuisine libanaise ou contexte libanais, privilégie is_lebanese=true.
 - Si la requête mentionne un ingrédient, favorise les recettes qui le contiennent (ou en parlent clairement).
 - Donne un score entre 0 et 1 (1 = parfait).
-- Pour chaque résultat, extrais un passage court (1-2 phrases, max 150 caractères) de l'excerpt qui justifie pourquoi ce document est pertinent pour la requête.
+- RÈGLE CRITIQUE DE PERTINENCE: si un document ne correspond PAS du tout à la requête (ex: l'utilisateur demande "lasagne" et le document parle d'un autre plat), donne-lui un score INFÉRIEUR à 0.15. Un score < 0.15 signifie "non-pertinent" et le résultat sera écarté.
+- Ne propose jamais une recette libanaise comme substitut silencieux: si la requête est pour un plat non-libanais absent du corpus, mets tous les scores < 0.15 pour déclencher le flux "recette introuvable".
+- Pour chaque résultat pertinent (score ≥ 0.15), extrais un passage court (1-2 phrases, max 150 caractères) de l'excerpt qui justifie pourquoi ce document est pertinent pour la requête.
 - Le passage doit être une citation directe de l'excerpt, pas une reformulation.
 """
 
@@ -65,7 +67,7 @@ class LLMReranker:
     def __init__(self, api_key: Optional[str] = None, model: Optional[str] = None):
         settings = get_settings()
         self.api_key = api_key or settings.openai_api_key
-        self.client = AsyncOpenAI(api_key=self.api_key)
+        self.client = AsyncOpenAI(api_key=self.api_key, timeout=10.0)
         self.model = model or settings.rerank_model or settings.openai_model
 
     async def rerank(
@@ -93,7 +95,7 @@ class LLMReranker:
                 {
                     "url": c.url,
                     "title": c.title,
-                    "excerpt": c.search_text_excerpt[:350],
+                    "excerpt": c.search_text_excerpt[:250],
                     "category": c.category,
                     "cuisine_type": c.cuisine_type,
                     "is_lebanese": c.is_lebanese,
@@ -158,7 +160,7 @@ class LLMReranker:
                     {"role": "user", "content": user_prompt},
                 ],
                 temperature=0,
-                max_tokens=500,
+                max_tokens=300,
             )
 
             msg = resp.choices[0].message

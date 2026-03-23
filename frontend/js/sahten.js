@@ -21,13 +21,34 @@
 
 // Allowed HTML elements for sanitization
 const ALLOWED_TAGS = [
-    'div', 'p', 'span', 'strong', 'em', 'u', 'br', 
-    'a', 'article', 'h3', 
+    'div', 'p', 'span', 'strong', 'em', 'u', 'br',
+    'a', 'article', 'section', 'h2', 'h3', 'header',
     'ul', 'li', 'ol',
-    'blockquote'  // For recipe citations/grounding
+    'button',
+    'blockquote',  // For recipe citations/grounding
+    'img',  // For OLJ logo in welcome
 ];
 
-const ALLOWED_ATTR = ['class', 'href', 'target', 'style', 'aria-label'];
+const ALLOWED_ATTR = [
+    'id',
+    'class',
+    'href',
+    'target',
+    'style',
+    'aria-label',
+    'aria-labelledby',
+    'aria-describedby',
+    'aria-hidden',
+    'role',
+    'type',
+    'title',
+    'src',
+    'alt',
+    'width',
+    'height',
+    'data-markers',
+    'data-center',
+];
 
 /**
  * Sanitize HTML using DOMPurify (if available) or basic sanitization
@@ -47,7 +68,8 @@ function sanitizeHTML(html) {
     temp.innerHTML = html;
     
     // Remove potentially dangerous elements
-    const dangerous = temp.querySelectorAll('script, iframe, object, embed, form, input, button');
+    /* Pas de suppression des <button> : accueil (exemples de questions) ; handlers on* retirés ci-dessous */
+    const dangerous = temp.querySelectorAll('script, iframe, object, embed, form, input');
     dangerous.forEach(el => el.remove());
     
     // Remove event handlers from all elements
@@ -85,6 +107,8 @@ export class SahtenChat {
         this.config = {
             apiBase: defaultApiBase,
             modelSelector: null,  // Optional model dropdown element
+            // Streaming désactivé tant que POST /api/chat/stream n'est pas implémenté (évite 404 inutiles en prod).
+            useStream: false,
             ...config
         };
 
@@ -95,6 +119,7 @@ export class SahtenChat {
             touchStartY: 0,
             lastModelUsed: null,  // Track model used in last response
             sessionId: this.generateSessionId(),  // For conversation memory
+            debugMode: new URLSearchParams(window.location.search).get('debug') === '1',
         };
 
         this.dom = {
@@ -178,6 +203,31 @@ export class SahtenChat {
             this.sendMessage();
         });
 
+        // Accueil : exemples de questions → insertion dans le champ
+        if (this.dom.body) {
+            this.dom.body.addEventListener('click', (e) => {
+                const btn = e.target.closest('.welcome-example-prompt');
+                if (!btn || !this.dom.body.contains(btn)) return;
+                e.preventDefault();
+                const text = btn.textContent.replace(/\s+/g, ' ').trim();
+                if (!text || !this.dom.input) return;
+                this.dom.input.value = text;
+                this.dom.input.focus();
+                if (this.dom.input.tagName === 'TEXTAREA') this.autoResizeInput();
+            });
+        }
+
+        // Textarea: Enter = send, Shift+Enter = newline; auto-resize
+        if (this.dom.input && this.dom.input.tagName === 'TEXTAREA') {
+            this.dom.input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    this.sendMessage();
+                }
+            });
+            this.dom.input.addEventListener('input', () => this.autoResizeInput());
+        }
+
         // Size Switching (Desktop)
         this.dom.sizeBtns.forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -224,18 +274,51 @@ export class SahtenChat {
         if (this.state.isOpen) {
             this.dom.container.setAttribute('data-state', 'open');
             this.dom.backdrop.classList.add('visible');
+            this.dom.backdrop.setAttribute('data-size', this.state.size);
             this.dom.trigger.style.opacity = '0';
             this.dom.trigger.style.pointerEvents = 'none';
-            setTimeout(() => this.dom.input.focus(), 100);
+            this.dom.body.scrollTop = 0;
+            setTimeout(() => {
+                this.dom.input.focus();
+                if (this.dom.input.tagName === 'TEXTAREA') this.autoResizeInput();
+            }, 100);
             
             // Welcome Message
             if (this.dom.body.children.length === 0) {
                 this.appendBotMessage({
-                    html: `<div class="sahten-narrative">
-                        <p>Bienvenue à la table de <strong>L'Orient-Le Jour</strong>.</p>
-                        <p>Je suis <em>Sahten</em>, votre chef dévoué.</p>
-                        <p>Quelle saveur ou quel souvenir culinaire souhaitez-vous raviver aujourd'hui ?</p>
-                    </div>`
+                    html: `<article class="welcome-editorial welcome-editorial--mockup" lang="fr">
+                        <div class="welcome-intro">
+                            <p class="welcome-mockup-line welcome-mockup-line--lead">
+                                Bonjour, je suis <span class="welcome-lead-lockup"><img class="welcome-inline-mascot" src="assets/sahten_logo_v2.svg" alt="" width="32" height="32" /><span class="welcome-highlight">Sahten</span></span>.
+                            </p>
+                            <p class="welcome-mockup-line">
+                                Je suis le robot culinaire de
+                                <img src="assets/logo_2_olj.svg" alt="L'Orient-Le Jour" class="welcome-olj-logotype" width="168" height="18" />
+                            </p>
+                            <p class="welcome-mockup-line">
+                                J'ai plein de recettes dans mes carnets, et je serais ravi de te faire découvrir la
+                                <span class="welcome-highlight">table</span>
+                                libanaise.
+                            </p>
+                        </div>
+                        <div class="welcome-examples" role="region" aria-labelledby="welcome-examples-heading">
+                            <div class="welcome-examples-head">
+                                <span id="welcome-examples-heading" class="welcome-examples-label">Exemples de questions</span>
+                                <span id="welcome-examples-tip" class="welcome-examples-tip">cliquer pour insérer dans le champ</span>
+                            </div>
+                            <ul class="welcome-examples-list" aria-describedby="welcome-examples-tip">
+                                <li>
+                                    <button type="button" class="welcome-example-prompt" title="Insérer cette question dans le champ">Le taboulé de Kamal Mouzawak&nbsp;?</button>
+                                </li>
+                                <li>
+                                    <button type="button" class="welcome-example-prompt" title="Insérer cette question dans le champ">Un plat au poulet pour ce soir&nbsp;?</button>
+                                </li>
+                                <li>
+                                    <button type="button" class="welcome-example-prompt" title="Insérer cette question dans le champ">Une idée avec du boulgour et des herbes&nbsp;?</button>
+                                </li>
+                            </ul>
+                        </div>
+                    </article>`
                 });
             }
         } else {
@@ -246,11 +329,20 @@ export class SahtenChat {
         }
     }
 
+    autoResizeInput() {
+        const el = this.dom.input;
+        if (!el || el.tagName !== 'TEXTAREA') return;
+        el.style.height = '1px';
+        const h = Math.max(44, Math.min(el.scrollHeight, 200));
+        el.style.height = h + 'px';
+    }
+
     setSize(size) {
         const allowedSizes = new Set(['window', 'mid', 'full']);
         const nextSize = allowedSizes.has(size) ? size : 'window';
         this.state.size = nextSize;
         this.dom.container.setAttribute('data-size', nextSize);
+        if (this.dom.backdrop) this.dom.backdrop.setAttribute('data-size', nextSize);
         
         this.dom.sizeBtns.forEach(btn => {
             const isActive = btn.dataset.action === nextSize;
@@ -259,45 +351,95 @@ export class SahtenChat {
         });
     }
 
+    /**
+     * Consume SSE from POST /chat/stream; returns final "done" payload or null.
+     */
+    async sendMessageStream(text, model) {
+        try {
+            const payload = {
+                message: text,
+                debug: this.state.debugMode,
+                session_id: this.state.sessionId,
+            };
+            if (model) payload.model = model;
+            const res = await fetch(`${this.config.apiBase}/chat/stream`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'text/event-stream',
+                },
+                body: JSON.stringify(payload),
+            });
+            if (!res.ok || !res.body) return null;
+            const reader = res.body.getReader();
+            const decoder = new TextDecoder();
+            let buf = '';
+            let donePayload = null;
+            while (true) {
+                const { value, done } = await reader.read();
+                if (done) break;
+                buf += decoder.decode(value, { stream: true });
+                let sep;
+                while ((sep = buf.indexOf('\n\n')) !== -1) {
+                    const frame = buf.slice(0, sep);
+                    buf = buf.slice(sep + 2);
+                    for (const line of frame.split('\n')) {
+                        if (!line.startsWith('data:')) continue;
+                        const raw = line.startsWith('data: ') ? line.slice(6) : line.slice(5);
+                        try {
+                            const evt = JSON.parse(raw.trim());
+                            if (evt.type === 'done') donePayload = evt;
+                        } catch (_) {
+                            /* ignore partial JSON */
+                        }
+                    }
+                }
+            }
+            return donePayload && donePayload.html ? donePayload : null;
+        } catch (e) {
+            return null;
+        }
+    }
+
     async sendMessage() {
         const text = this.dom.input.value.trim();
         if (!text || this.state.isLoading) return;
 
         this.dom.input.value = '';
+        if (this.dom.input.tagName === 'TEXTAREA') this.autoResizeInput();
         this.appendUserMessage(text);
         this.setLoading(true);
 
         try {
             const model = this.getSelectedModel();
-            const payload = { 
-                message: text, 
-                debug: false,
-                session_id: this.state.sessionId,  // For conversation memory
-            };
-            
-            // Add model if specified (not auto)
-            if (model) {
-                payload.model = model;
+            let data = null;
+
+            if (this.config.useStream !== false) {
+                data = await this.sendMessageStream(text, model);
             }
-            
-            const response = await fetch(`${this.config.apiBase}/chat`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
 
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            if (!data) {
+                const payload = { 
+                    message: text, 
+                    debug: this.state.debugMode,
+                    session_id: this.state.sessionId,
+                };
+                if (model) payload.model = model;
+                const response = await fetch(`${this.config.apiBase}/chat`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                data = await response.json();
+            }
 
-            const data = await response.json();
-            
-            // Track model used
             this.state.lastModelUsed = data.model_used;
-            
-            // Add model indicator to response if in debug/testing mode
-            if (data.model_used) {
+
+            if (this.state.debugMode && data.model_used) {
                 data.html = this.addModelIndicator(data.html, data.model_used);
             }
-            
+
             this.appendBotMessage(data);
 
         } catch (error) {
@@ -329,6 +471,7 @@ export class SahtenChat {
         const div = document.createElement('div');
         div.className = 'msg msg-user';
         div.textContent = text;
+        div.setAttribute('data-user-msg', '');
         this.dom.body.appendChild(div);
         this.scrollToBottom();
     }
@@ -336,23 +479,73 @@ export class SahtenChat {
     appendBotMessage(data) {
         const div = document.createElement('div');
         div.className = 'msg msg-bot';
-        // Sanitize HTML to prevent XSS attacks
         div.innerHTML = sanitizeHTML(data.html);
-        
-        // Track impressions for recipe cards
+
         if (data.request_id) {
             this.trackImpressions(div, data);
-            
-            // Add click tracking to recipe links
             this.addClickTracking(div, data);
-            
-            // Add feedback buttons
-            const feedbackDiv = this.createFeedbackButtons(data.request_id);
-            div.appendChild(feedbackDiv);
+            div.appendChild(this.createFeedbackButtons(data.request_id));
         }
-        
+
         this.dom.body.appendChild(div);
-        this.scrollToBottom();
+        this.initializeRestaurantMap(div);
+        this.scrollToResponseStart();
+    }
+
+    initializeRestaurantMap(container) {
+        const mapEl = container.querySelector('#sahten-map');
+        if (!mapEl || typeof L === 'undefined') {
+            return;
+        }
+
+        let markers = [];
+        let center = null;
+        try {
+            const markersRaw = mapEl.dataset.markers || '[]';
+            markers = JSON.parse(markersRaw);
+        } catch (e) {
+            markers = [];
+        }
+        try {
+            const centerRaw = mapEl.dataset.center;
+            center = centerRaw ? JSON.parse(centerRaw) : null;
+        } catch (e) {
+            center = null;
+        }
+
+        const geocoded = markers.filter(m => typeof m.lat === 'number' && typeof m.lon === 'number');
+        const hasCenter = center && typeof center.lat === 'number' && typeof center.lon === 'number';
+        if (!geocoded.length && !hasCenter) {
+            return;
+        }
+
+        const initialLat = center?.lat ?? geocoded[0]?.lat;
+        const initialLon = center?.lon ?? geocoded[0]?.lon;
+        const initialZoom = center?.zoom ?? 13;
+        const map = L.map(mapEl).setView([initialLat, initialLon], initialZoom);
+
+        // Carte personnalisée Sahten : CartoDB Positron (fond épuré, moderne)
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            subdomains: 'abcd',
+        }).addTo(map);
+
+        // Marqueur personnalisé aux couleurs Sahten (#94C2AE)
+        const sahtenIcon = L.divIcon({
+            className: 'sahten-map-marker',
+            html: '<div class="sahten-marker-pin"></div>',
+            iconSize: [24, 36],
+            iconAnchor: [12, 36],
+        });
+
+        geocoded.forEach(marker => {
+            const pin = L.marker([marker.lat, marker.lon], { icon: sahtenIcon }).addTo(map);
+            const popup = [marker.title, marker.address].filter(Boolean).join('<br>');
+            if (popup) {
+                pin.bindPopup(popup);
+            }
+        });
     }
 
     trackImpressions(container, data) {
@@ -539,5 +732,19 @@ export class SahtenChat {
 
     scrollToBottom() {
         this.dom.body.scrollTop = this.dom.body.scrollHeight;
+    }
+
+    scrollToResponseStart() {
+        // Scroll so the user's last question + start of response are visible (not jump to bottom)
+        const userMsgs = this.dom.body.querySelectorAll('[data-user-msg]');
+        const lastUserMsg = userMsgs[userMsgs.length - 1];
+        const botMsgs = this.dom.body.querySelectorAll('.msg-bot');
+        const lastBotMsg = botMsgs[botMsgs.length - 1];
+        if (lastUserMsg && lastBotMsg) {
+            const scrollTarget = lastUserMsg.offsetTop - 20;
+            this.dom.body.scrollTo({ top: Math.max(0, scrollTarget), behavior: 'smooth' });
+        } else {
+            this.scrollToBottom();
+        }
     }
 }

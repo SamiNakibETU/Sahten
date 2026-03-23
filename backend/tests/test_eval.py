@@ -47,7 +47,7 @@ def _extract_urls(html: str) -> list[str]:
 def _extract_categories(html: str) -> list[str]:
     import re
 
-    return [c.strip().lower() for c in re.findall(r'class=\"sahtein-category\">([^<]+)<', html or "")]
+    return [c.strip().lower() for c in re.findall(r'class=\"recipe-category\">([^<]+)<', html or "")]
 
 
 @pytest.mark.asyncio
@@ -62,7 +62,7 @@ async def test_matrix():
         query = case["query"]
         constraints: Dict[str, Any] = case.get("constraints", {})
 
-        resp, debug = await bot.chat(query, debug=True)
+        resp, debug, _ = await bot.chat(query, debug=True)
         html = compose_html_response(resp)
 
         # Response type constraint

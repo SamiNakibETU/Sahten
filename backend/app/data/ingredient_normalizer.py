@@ -81,7 +81,7 @@ INGREDIENT_EQUIVALENCES = [
     ["huile d'olive", "olive oil", "huile olive"],
 
     # Meat
-    ["viande", "meat", "viande hachée", "ground meat", "minced meat"],
+    ["viande", "meat", "viande hachée", "ground meat", "minced meat", "boeuf", "beef", "bœuf"],
 
     # Chicken
     ["poulet", "chicken"],
@@ -205,10 +205,38 @@ INGREDIENT_EQUIVALENCES = [
 ]
 
 ALTERNATIVE_EQUIVALENCES = {
+    # Original mappings
     "mozzarella": "halloumi",
     "parmesan": "akkawi",
     "creme fraiche": "labneh",
     "pates": "moghrabieh",
+    "pâtes": "moghrabieh",
+    "pasta": "moghrabieh",
+    "couscous": "semoule",
+    # Extended: non-Lebanese dishes -> Lebanese equivalents
+    "pizza": "manakish",
+    "lasagne": "moghrabieh",
+    "lasagna": "moghrabieh",
+    "risotto": "riz",
+    "paella": "riz",
+    "hamburger": "kafta",
+    "burger": "kafta",
+    "sushi": "poisson",
+    "ramen": "vermicelles",
+    "curry": "poulet",
+    "tacos": "pain",
+    "fajitas": "poulet",
+    "burrito": "riz",
+    "quesadilla": "fromage",
+    "wrap": "pain",
+    "bolognaise": "viande hachée",
+    "bolognese": "viande hachée",
+    "carbonara": "moghrabieh",
+    "quiche": "fatayer",
+    "crepe": "atayef",
+    "crêpe": "atayef",
+    "gateau": "maamoul",
+    "gâteau": "maamoul",
 }
 
 

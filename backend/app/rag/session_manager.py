@@ -155,6 +155,7 @@ CONTINUATION_PATTERNS = [
     r"^avec\b",
     r"^sans\b",
     r"^et (?:si|avec|pour)",
+    r"^et sans\b",
     r"^la meme",
     r"^celle",
     r"^pareil",
