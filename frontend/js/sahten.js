@@ -46,6 +46,7 @@ const ALLOWED_ATTR = [
     'alt',
     'width',
     'height',
+    'decoding',
     'data-markers',
     'data-center',
 ];
@@ -126,8 +127,6 @@ export class SahtenChat {
             container: document.querySelector('.sahten-widget-container'),
             backdrop: document.querySelector('.sahten-backdrop'),
             trigger: document.querySelector('.sahten-trigger'),
-            triggerWrap: null,
-            triggerBubble: null,
             closeBtn: document.querySelector('.sahten-close-btn'),
             body: document.querySelector('.sahten-body'),
             form: document.querySelector('#sahten-form'),
@@ -140,56 +139,16 @@ export class SahtenChat {
 
         this._a11yLive = null;
 
-        this.HOVER_BUBBLE_TEXT = "Par ici pour l'assistant cuisine →";
-
         this.init();
     }
 
     init() {
         if (!this.dom.container) return;
-        this.setupTriggerShell();
         this.bindEvents();
         this.ensureA11yLiveRegion();
         const initialSize = this.dom.container.dataset.size || this.state.size;
         this.setSize(initialSize);
         this.loadModels();
-    }
-
-    /** Conteneur fixe : bulle (texte au survol) + bouton. */
-    setupTriggerShell() {
-        const btn = this.dom.trigger;
-        if (!btn) return;
-        const existing = btn.closest('.sahten-trigger-wrap');
-        if (existing) {
-            this.dom.triggerWrap = existing;
-            this.dom.triggerBubble = existing.querySelector('.sahten-trigger-bubble');
-            this.bindTriggerBubbleHover();
-            return;
-        }
-        const wrap = document.createElement('div');
-        wrap.className = 'sahten-trigger-wrap';
-        const bubble = document.createElement('div');
-        bubble.className = 'sahten-trigger-bubble';
-        bubble.setAttribute('aria-hidden', 'true');
-        btn.parentNode.insertBefore(wrap, btn);
-        wrap.appendChild(bubble);
-        wrap.appendChild(btn);
-        this.dom.triggerWrap = wrap;
-        this.dom.triggerBubble = bubble;
-        this.bindTriggerBubbleHover();
-    }
-
-    bindTriggerBubbleHover() {
-        const wrap = this.dom.triggerWrap;
-        const bubble = this.dom.triggerBubble;
-        if (!wrap || !bubble || wrap.dataset.bubbleHoverBound === '1') return;
-        wrap.dataset.bubbleHoverBound = '1';
-        wrap.addEventListener('mouseenter', () => {
-            bubble.textContent = this.HOVER_BUBBLE_TEXT;
-        });
-        wrap.addEventListener('mouseleave', () => {
-            bubble.textContent = '';
-        });
     }
 
     /** Zone lue par les lecteurs d'écran à l'ouverture du panneau. */
@@ -341,9 +300,9 @@ export class SahtenChat {
                 this.dom.backdrop.classList.add('visible');
                 this.dom.backdrop.setAttribute('data-size', this.state.size);
             }
-            if (this.dom.triggerWrap) {
-                this.dom.triggerWrap.style.opacity = '0';
-                this.dom.triggerWrap.style.pointerEvents = 'none';
+            if (this.dom.trigger) {
+                this.dom.trigger.style.opacity = '0';
+                this.dom.trigger.style.pointerEvents = 'none';
             }
             if (this.dom.trigger) {
                 this.dom.trigger.setAttribute('aria-expanded', 'true');
@@ -364,9 +323,12 @@ export class SahtenChat {
             if (this.dom.body.children.length === 0) {
                 this.appendBotMessage({
                     html: `<article class="welcome-editorial welcome-editorial--mockup" lang="fr">
+                        <div class="welcome-entry">
+                            <img class="welcome-entry-logo" src="assets/v7_logo_sahten.svg" alt="Sahten" width="72" height="72" decoding="async" />
+                        </div>
                         <div class="welcome-intro">
                             <p class="welcome-mockup-line welcome-mockup-line--lead">
-                                Bonjour, je suis <span class="welcome-lead-lockup"><img class="welcome-inline-mascot" src="assets/v6_sahten_logo.svg" alt="" width="32" height="32" /><span class="welcome-highlight">Sahten</span></span>.
+                                Bonjour, je suis <span class="welcome-highlight">Sahten</span>.
                             </p>
                             <p class="welcome-mockup-line">
                                 Je suis le robot culinaire de
@@ -382,15 +344,12 @@ export class SahtenChat {
                             <div class="welcome-examples-head">
                                 <span id="welcome-examples-heading" class="welcome-examples-label">Exemples de questions</span>
                             </div>
-                            <ul class="welcome-examples-list">
+                            <ul class="welcome-examples-list welcome-examples-list--compact">
                                 <li>
                                     <button type="button" class="welcome-example-prompt">Le taboulé de Kamal Mouzawak&nbsp;?</button>
                                 </li>
                                 <li>
                                     <button type="button" class="welcome-example-prompt">Un plat au poulet pour ce soir&nbsp;?</button>
-                                </li>
-                                <li>
-                                    <button type="button" class="welcome-example-prompt">Une idée avec du boulgour et des herbes&nbsp;?</button>
                                 </li>
                             </ul>
                         </div>
@@ -402,9 +361,9 @@ export class SahtenChat {
             if (this.dom.backdrop) {
                 this.dom.backdrop.classList.remove('visible');
             }
-            if (this.dom.triggerWrap) {
-                this.dom.triggerWrap.style.opacity = '1';
-                this.dom.triggerWrap.style.pointerEvents = 'auto';
+            if (this.dom.trigger) {
+                this.dom.trigger.style.opacity = '1';
+                this.dom.trigger.style.pointerEvents = 'auto';
             }
             if (this.dom.trigger) {
                 this.dom.trigger.setAttribute('aria-expanded', 'false');
@@ -798,7 +757,7 @@ export class SahtenChat {
             loader.className = 'msg msg-bot loading-indicator sahten-thinking-loader';
             loader.innerHTML = `
                 <div class="sahten-thinking-block">
-                    <img class="sahten-thinking-mascot" src="assets/v6_sahten_logo.svg" alt="" width="40" height="40" decoding="async" />
+                    <img class="sahten-thinking-mascot" src="assets/v7_logo_sahten.svg" alt="" width="40" height="40" decoding="async" />
                     <div class="sahten-thinking-main">
                         <p class="sahten-thinking-line">Sahten parcourt les recettes…</p>
                         <div class="loading-dots" aria-hidden="true">

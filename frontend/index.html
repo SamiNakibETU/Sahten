@@ -64,7 +64,7 @@
 
       <div class="sahten-header">
         <div class="sahten-brand">
-          <img class="sahten-logo-mascot" src="assets/sahten_logo_v2.svg" alt="Sahten" />
+          <img class="sahten-logo-mascot" src="assets/v7_logo_sahten.svg" alt="Sahten" width="40" height="40" decoding="async" />
           <span class="sahten-title sahten-title--brand">Sahten</span>
         </div>
 
@@ -90,18 +90,6 @@
         </div>
       </div>
 
-      <div class="sahten-cuisine-strip">
-        <img
-          class="sahten-cuisine-strip-img"
-          src="assets/header_cooking_img_desktop.png"
-          width="1040"
-          height="51"
-          alt="À table ! Rubrique cuisine Le Liban à table"
-          decoding="async"
-          fetchpriority="low"
-        />
-      </div>
-
       <div class="sahten-body"></div>
 
       <form id="sahten-form" class="sahten-footer">
@@ -109,7 +97,7 @@
           <textarea
             id="sahten-input"
             class="sahten-input"
-            placeholder="Je cherche une recette..."
+            placeholder="Posez votre question : plat, ingrédient, chef…"
             autocomplete="off"
             rows="1"
           ></textarea>
@@ -122,12 +110,6 @@
       </form>
     </div>
 
-    <button class="sahten-trigger" aria-label="Ouvrir Sahten">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-      </svg>
-    </button>
-
     <script>
       window.SAHTEN_API_BASE = window.location.origin + "/api";
     </script>
@@ -138,5 +120,15 @@
         modelSelector: document.getElementById("model-select"),
       });
     </script>
+
+    <button
+      type="button"
+      class="sahten-trigger"
+      aria-label="Ouvrir Sahten — assistant recettes L'Orient-Le Jour"
+      title="Une idée recette ? Cliquez pour ouvrir Sahten."
+      aria-expanded="false"
+    >
+      <img class="sahten-trigger-logo" src="assets/v7_logo_sahten.svg" alt="" width="52" height="52" decoding="async" />
+    </button>
   </body>
 </html>
