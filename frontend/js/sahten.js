@@ -445,7 +445,7 @@ export class SahtenChat {
         } catch (error) {
             // API error occurred
             this.appendBotMessage({
-                html: `<div class="sahten-narrative" style="color: var(--color-accent);">
+                html: `<div class="sahten-narrative">
                     <p><em>Mille excuses, un petit incident en cuisine...</em></p>
                     <p>Pourriez-vous répéter votre demande ?</p>
                     <p style="font-size: 11px; opacity: 0.7; margin-top: 10px;">
