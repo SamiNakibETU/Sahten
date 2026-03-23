@@ -35,10 +35,7 @@
    */
   --welcome-body-size: 16px;
   --welcome-body-lh: 1.48;
-  /* Header : texte remplit le rectangle (Aktiv Black, moins de « vide » vertical) */
-  --welcome-badge-header-fs: 19px;
-  --welcome-badge-header-pad-y: 3px;
-  --welcome-badge-header-pad-x: 9px;
+  /* Pastilles vertes (header « Sahten » + chapô) : même échelle */
   /* Chapô : pastilles — inset homogène (padding symétrique en em) */
   --welcome-badge-inline-fs: 14px;
   --welcome-badge-inline-inset: 0.22em;
@@ -203,16 +200,18 @@
   line-height: 1.2;
   letter-spacing: -0.01em;
 }
-/* Header : grand rectangle #94C2AE, Aktiv Black */
+/* Même pastille que .welcome-highlight (corps) — largeur serrée au texte */
 .sahten-title.sahten-title--brand {
-  display: inline-block;
-  padding: var(--welcome-badge-header-pad-y) var(--welcome-badge-header-pad-x)
-    calc(var(--welcome-badge-header-pad-y) + 2px);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: var(--welcome-badge-inline-inset) var(--welcome-badge-inline-inset);
   border-radius: 0;
   background: var(--sahten-badge-green);
   font-family: var(--font-ui);
   font-weight: 900;
-  font-size: var(--welcome-badge-header-fs);
+  font-size: var(--welcome-badge-inline-fs);
   color: #ffffff;
   letter-spacing: 0.02em;
   line-height: 1;
@@ -406,17 +405,6 @@
   flex-direction: column;
   gap: 0;
 }
-.welcome-entry {
-  display: flex;
-  justify-content: center;
-  margin: 0 0 0.65rem;
-}
-.welcome-entry-logo {
-  display: block;
-  width: 64px;
-  height: 64px;
-  object-fit: contain;
-}
 .welcome-intro {
   display: flex;
   flex-direction: column;
@@ -466,11 +454,11 @@
   object-fit: contain;
   object-position: left center;
 }
-/* Exemples : séparation légère + libellé UI + pastilles cliquables (champ en bas) */
+/* Exemples : sans trait de séparation (flux continu avec le chapô) */
 .welcome-examples {
-  margin-top: 0.75rem;
-  padding: 0.55rem 0 0 0;
-  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  margin-top: 0.55rem;
+  padding: 0;
+  border-top: none;
   background: transparent;
 }
 .welcome-examples-head {
@@ -924,21 +912,22 @@
 }
 
 .sahten-footer {
-  padding: 12px 22px 14px;
+  padding: 10px 18px 12px;
   flex-shrink: 0;
-  background: #fff;
-  border-top: 1px solid var(--border);
-  border-bottom: 3px solid var(--sahten-badge-green);
+  background: #fafafa;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  /* Trait vert fin (remplace l’ancienne barre 3px) */
+  border-bottom: 1px solid rgba(148, 194, 174, 0.38);
 }
 .input-wrapper {
   display: flex;
   align-items: stretch;
   position: relative;
-  min-height: 46px;
+  min-height: 44px;
 }
 .sahten-input {
   width: 100%;
-  padding: 13px 50px 13px 0;
+  padding: 11px 50px 11px 0;
   border: none;
   background: transparent;
   font-family: "Playfair Display", Georgia, "Times New Roman", serif;
@@ -947,7 +936,7 @@
   color: var(--text);
   resize: none;
   border-radius: 0;
-  min-height: 46px;
+  min-height: 44px;
   max-height: 200px;
   overflow-y: auto;
   overflow-x: hidden;
