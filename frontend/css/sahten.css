@@ -361,11 +361,13 @@
   width: 100%;
   padding-top: 0;
   animation: msg-reveal 0.4s ease-out;
-}
-.msg-bot:has(.welcome-editorial) {
   display: flex;
   flex-direction: column;
   align-items: stretch;
+  gap: 0.65rem;
+}
+.msg-bot:has(.welcome-editorial) {
+  gap: 0;
 }
 @keyframes msg-reveal {
   from {
@@ -377,6 +379,7 @@
     transform: translateY(0);
   }
 }
+/* Corps bot : texte continu, léger relief typographique (pas d’encadré) */
 .sahten-narrative {
   font-family: "Playfair Display", Georgia, "Times New Roman", serif;
   font-size: var(--welcome-body-size);
@@ -384,6 +387,8 @@
   font-style: normal;
   line-height: var(--welcome-body-lh);
   color: #1c1c1c;
+  letter-spacing: 0.012em;
+  -webkit-font-smoothing: antialiased;
 }
 .sahten-narrative p {
   margin-bottom: 10px;
@@ -398,26 +403,49 @@
   font-style: italic;
 }
 
+/* Blocs API : même rendu que la narrative (flux texte, pas de carte) */
 .sahten-block {
-  background: #fff;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 12px 14px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--welcome-body-size);
+  font-weight: 400;
+  line-height: var(--welcome-body-lh);
+  color: #1c1c1c;
+  letter-spacing: 0.012em;
+  -webkit-font-smoothing: antialiased;
 }
 .sahten-block p {
-  margin: 0 0 8px 0;
+  margin: 0 0 0.55em 0;
 }
 .sahten-block p:last-child {
   margin-bottom: 0;
 }
-.sahten-block-assistant_message {
-  border-left: 3px solid var(--accent);
+.sahten-block strong {
+  font-weight: 600;
+}
+.sahten-block em {
+  font-style: italic;
 }
 .sahten-block-cta {
-  background: #f8fcfa;
+  margin-top: 0.15em;
 }
 .sahten-block-cta a {
   color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: rgba(0, 0, 0, 0.35);
+  transition: text-decoration-color 0.15s ease, color 0.15s ease;
+}
+.sahten-block-cta a:hover {
+  text-decoration-color: var(--text);
 }
 
 /* Accueil — échelle unique (--welcome-*) : corps, logos, pastilles, exemples */
@@ -705,7 +733,7 @@
   border-radius: var(--radius-sm);
 }
 .recipe-card:hover {
-  border-color: var(--accent);
+  border-color: rgba(0, 0, 0, 0.14);
 }
 .recipe-card-link-wrapper:hover {
   opacity: 0.95;
@@ -770,19 +798,21 @@
 .sahten-olj-cta {
   margin-top: 16px;
   padding: 14px 18px;
-  background: rgba(148, 194, 174, 0.12);
-  border: 1px solid rgba(148, 194, 174, 0.35);
+  background: #fff;
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
 }
 .olj-cta-link {
   font-family: var(--font-display);
   font-size: 15px;
   font-weight: 600;
-  color: var(--accent);
-  text-decoration: none;
+  color: var(--text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: rgba(0, 0, 0, 0.35);
 }
 .olj-cta-link:hover {
-  text-decoration: underline;
+  text-decoration-color: var(--text);
 }
 .olj-cta-reason {
   font-family: var(--font-ui);
@@ -816,7 +846,7 @@
   border-radius: var(--radius-sm);
 }
 .restaurant-card:hover {
-  border-color: var(--accent);
+  border-color: rgba(0, 0, 0, 0.14);
 }
 .restaurant-card-link-wrapper:hover {
   opacity: 0.95;
@@ -1076,7 +1106,7 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--accent);
+  background: rgba(0, 0, 0, 0.28);
   animation: dot-pulse 0.6s infinite alternate;
 }
 .loading-dots .dot:nth-child(2) {
