@@ -248,19 +248,38 @@
             border-color: var(--color-liban);
             color: white;
         }
+
+        .config-banner {
+            display: none;
+            margin-bottom: 24px;
+            padding: 14px 18px;
+            background: #fff8e6;
+            border: 1px solid #e8d4a8;
+            border-radius: 8px;
+            color: #5c4a21;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .config-banner code {
+            font-size: 12px;
+            background: rgba(0,0,0,0.06);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
+    <div id="config-banner" class="config-banner" role="status"></div>
     <header class="header">
         <div class="header-title">
             <h1>Sahten Dashboard</h1>
             <p class="subtitle">Analytics et feedback en temps réel</p>
         </div>
         <nav class="nav-tabs">
-            <a href="index.html" class="nav-tab">Test Mode</a>
-            <a href="widget.html" class="nav-tab">Widget</a>
-            <a href="admin.html" class="nav-tab">Admin</a>
-            <a href="dashboard.html" class="nav-tab active">Analytics</a>
+            <a href="/" class="nav-tab">Démo</a>
+            <a href="/embed" class="nav-tab">Widget</a>
+            <a href="/admin" class="nav-tab">Admin</a>
+            <a href="/dashboard" class="nav-tab active">Analytics</a>
         </nav>
     </header>
     
@@ -341,11 +360,26 @@
             ]);
         }
         
+        function showRedisBanner(detail) {
+            const el = document.getElementById('config-banner');
+            el.style.display = 'block';
+            const hint =
+                '<strong>Redis / analytics.</strong> Il faut <strong>Upstash REST</strong> : ' +
+                '<code>UPSTASH_REDIS_REST_URL</code> (URL en <code>https://…upstash.io</code>) et ' +
+                '<code>UPSTASH_REDIS_REST_TOKEN</code>. Ne pas utiliser <code>REDIS_URL</code> en ' +
+                '<code>redis://</code> (TCP) — ce backend parle à Upstash en HTTPS. ';
+            el.innerHTML = hint + (detail ? '<br><span style="opacity:0.85">' + detail + '</span>' : '');
+        }
+
         async function loadAnalytics() {
             try {
                 const response = await fetch(`${API_BASE}/analytics`);
                 const data = await response.json();
-                
+
+                if (data.status === 'no_redis' || data.status === 'redis_unreachable' || data.status === 'error') {
+                    showRedisBanner(data.message ? String(data.message) : '');
+                    return;
+                }
                 if (data.status !== 'ok') {
                     console.warn('Analytics not available:', data.message);
                     return;
@@ -402,12 +436,26 @@
             const container = document.getElementById('traces-container');
             try {
                 const response = await fetch(`${API_BASE}/traces?limit=50`);
-                const data = await response.json();
-                
-                document.getElementById('trace-count').textContent = data.count;
-                document.getElementById('stat-conversations').textContent = data.count;
-                
-                if (data.traces.length === 0) {
+                let data = {};
+                try {
+                    data = await response.json();
+                } catch (e) {
+                    data = {};
+                }
+
+                const traces = Array.isArray(data.traces) ? data.traces : [];
+                const count = typeof data.count === 'number' ? data.count : traces.length;
+
+                document.getElementById('trace-count').textContent = count;
+                document.getElementById('stat-conversations').textContent = count;
+
+                if (!response.ok) {
+                    container.innerHTML =
+                        '<div class="no-data">Traces indisponibles (Redis). Vérifie Upstash REST sur Railway.</div>';
+                    return;
+                }
+
+                if (traces.length === 0) {
                     container.innerHTML = '<div class="no-data">Aucune conversation enregistrée</div>';
                     return;
                 }
@@ -424,7 +472,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            ${data.traces.map(t => `
+                            ${traces.map(t => `
                                 <tr>
                                     <td>${formatTime(t.timestamp)}</td>
                                     <td>${escapeHtml(truncate(t.user_message, 60))}</td>
@@ -446,10 +494,20 @@
             try {
                 const response = await fetch(`${API_BASE}/feedback/stats`);
                 const data = await response.json();
-                
-                document.getElementById('stat-positive').textContent = data.positive || 0;
-                document.getElementById('stat-negative').textContent = data.negative || 0;
-                document.getElementById('stat-rate').textContent = data.positive_rate ? `${data.positive_rate}%` : '-';
+
+                if (data.status === 'no_redis' || data.status === 'redis_unreachable' || data.status === 'error') {
+                    document.getElementById('stat-positive').textContent = '-';
+                    document.getElementById('stat-negative').textContent = '-';
+                    document.getElementById('stat-rate').textContent = '-';
+                    container.innerHTML =
+                        '<div class="no-data">Feedback stats nécessitent Redis (Upstash REST).</div>';
+                    return;
+                }
+
+                document.getElementById('stat-positive').textContent = data.positive ?? 0;
+                document.getElementById('stat-negative').textContent = data.negative ?? 0;
+                document.getElementById('stat-rate').textContent =
+                    data.positive_rate != null ? `${data.positive_rate}%` : '-';
                 
                 if (!data.recent_negative_reasons || data.recent_negative_reasons.length === 0) {
                     container.innerHTML = '<div class="no-data">Aucun feedback négatif récent</div>';

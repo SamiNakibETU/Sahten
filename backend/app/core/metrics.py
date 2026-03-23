@@ -15,21 +15,9 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict, Optional
 
+from .redis_client import get_redis, invalidate_redis_client, redis_connection_error
+
 logger = logging.getLogger(__name__)
-
-
-def get_redis():
-    """Lazy Redis client for metrics."""
-    import os
-    try:
-        url = os.getenv("UPSTASH_REDIS_REST_URL")
-        token = os.getenv("UPSTASH_REDIS_REST_TOKEN")
-        if url and token:
-            from upstash_redis import Redis
-            return Redis(url=url, token=token)
-    except Exception:
-        pass
-    return None
 
 
 def record_metrics(
@@ -60,3 +48,5 @@ def record_metrics(
             redis.incr(f"sahten:metrics:routing:{trace_meta['routing_source']}:count")
     except Exception as e:
         logger.warning("Metrics record failed: %s", e)
+        if redis_connection_error(e):
+            invalidate_redis_client()

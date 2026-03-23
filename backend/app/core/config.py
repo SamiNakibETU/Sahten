@@ -151,6 +151,7 @@ class Settings(BaseSettings):
     cors_origins: list = [
         "https://www.lorientlejour.com",
         "https://lorientlejour.com",
+        "https://sahten.up.railway.app",
         "https://web-production-73152.up.railway.app",
         "http://localhost:8000",
         "http://127.0.0.1:8000",

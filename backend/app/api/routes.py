@@ -20,7 +20,6 @@ from __future__ import annotations
 
 import json
 import logging
-import os
 import uuid
 from datetime import datetime, timezone
 from typing import Optional, List
@@ -32,46 +31,13 @@ from pydantic import BaseModel
 from ..bot import get_bot
 from ..core.config import get_settings, get_available_models
 from ..core.metrics import record_metrics
+from ..core.redis_client import get_redis, invalidate_redis_client, redis_connection_error
 from ..schemas.responses import SahtenResponse
 from .response_composer import compose_html_response
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["chat"])
-
-
-# ============================================================================
-# UPSTASH REDIS CONFIGURATION
-# ============================================================================
-
-_redis_client = None
-
-
-def get_redis():
-    """Lazy initialization of Upstash Redis client."""
-    global _redis_client
-    if _redis_client is not None:
-        return _redis_client
-    
-    url = os.getenv("UPSTASH_REDIS_REST_URL")
-    token = os.getenv("UPSTASH_REDIS_REST_TOKEN")
-    
-    if url and token:
-        try:
-            from upstash_redis import Redis
-            _redis_client = Redis(url=url, token=token)
-            logger.info("Upstash Redis connected successfully")
-        except ImportError:
-            logger.warning("upstash-redis not installed, traces will be stdout only")
-            _redis_client = False
-        except Exception as e:
-            logger.warning("Failed to connect to Upstash Redis: %s", e)
-            _redis_client = False
-    else:
-        logger.info("Upstash not configured, using stdout logging")
-        _redis_client = False
-    
-    return _redis_client if _redis_client else None
 
 
 def log_chat_trace(
@@ -147,7 +113,9 @@ def log_chat_trace(
                 logger.debug("Trace %s saved to Redis", request_id)
             except Exception as e:
                 logger.warning("Redis write failed: %s", e)
-                
+                if redis_connection_error(e):
+                    invalidate_redis_client()
+
     except Exception as e:
         logger.warning("Failed to log trace: %s", e)
 
@@ -489,9 +457,12 @@ async def get_traces(
         
     except Exception as e:
         logger.error("Failed to retrieve traces: %s", e)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to retrieve traces: {str(e)}",
+        if redis_connection_error(e):
+            invalidate_redis_client()
+        return TracesResponse(
+            count=0,
+            logging_backend="unavailable",
+            traces=[],
         )
 
 
@@ -596,7 +567,9 @@ async def track_event(request: EventRequest):
                 
             except Exception as e:
                 logger.warning("Failed to persist event to Redis: %s", e)
-        
+                if redis_connection_error(e):
+                    invalidate_redis_client()
+
         return EventResponse(
             status="received",
             event_type=request.event_type,
@@ -683,7 +656,16 @@ async def get_feedback_stats():
         
     except Exception as e:
         logger.error("Failed to get feedback stats: %s", e)
-        return {"status": "error", "message": str(e)}
+        if redis_connection_error(e):
+            invalidate_redis_client()
+        return {
+            "status": "redis_unreachable",
+            "message": str(e),
+            "positive": 0,
+            "negative": 0,
+            "positive_rate": 0,
+            "recent_negative_reasons": [],
+        }
 
 
 # ============================================================================
@@ -821,7 +803,12 @@ async def get_analytics():
         
     except Exception as e:
         logger.error("Failed to get analytics: %s", e)
-        return {"status": "error", "message": str(e)}
+        if redis_connection_error(e):
+            invalidate_redis_client()
+        return {
+            "status": "redis_unreachable",
+            "message": str(e),
+        }
 
 
 # ============================================================================

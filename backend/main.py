@@ -170,6 +170,15 @@ async def dashboard():
     }
 
 
+@app.get("/admin")
+async def admin_panel():
+    """Panneau admin recettes (liste canonique)."""
+    admin_path = FRONTEND_PATH / "admin.html"
+    if admin_path.exists():
+        return FileResponse(admin_path)
+    return {"error": "admin.html not found"}
+
+
 @app.get("/health")
 async def health():
     return {
