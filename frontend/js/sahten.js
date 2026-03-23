@@ -323,9 +323,6 @@ export class SahtenChat {
             if (this.dom.body.children.length === 0) {
                 this.appendBotMessage({
                     html: `<article class="welcome-editorial welcome-editorial--mockup" lang="fr">
-                        <div class="welcome-entry">
-                            <img class="welcome-entry-logo" src="assets/v7_logo_sahten.svg" alt="Sahten" width="72" height="72" decoding="async" />
-                        </div>
                         <div class="welcome-intro">
                             <p class="welcome-mockup-line welcome-mockup-line--lead">
                                 Bonjour, je suis <span class="welcome-highlight">Sahten</span>.

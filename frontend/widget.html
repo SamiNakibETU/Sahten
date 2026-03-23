@@ -95,11 +95,6 @@
           <span class="sahten-title sahten-title--brand">Sahten</span>
         </div>
         <div class="sahten-controls">
-          <select id="model-select" class="sahten-model-select" title="Modèle LLM">
-            <option value="auto">Auto</option>
-            <option value="gpt-4.1-nano">Nano</option>
-            <option value="gpt-4.1-mini">Mini</option>
-          </select>
           <button class="sahten-size-btn" data-action="window" aria-label="Petit">
             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4.5" y="3.5" width="7" height="9" rx="1.5" /></svg>
           </button>
@@ -141,9 +136,8 @@
 
     <script type="module">
       import { SahtenChat } from "./js/sahten.js";
-      new SahtenChat({
-        modelSelector: document.getElementById("model-select"),
-      });
+      /* Production : pas de sélecteur de modèle (réglage côté API / dev uniquement) */
+      new SahtenChat();
     </script>
 
     <button
