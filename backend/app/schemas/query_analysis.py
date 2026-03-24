@@ -193,6 +193,7 @@ class QueryAnalysis(BaseModel):
         "ete",
         "facile",
         "chaud",
+        "convivial",
         "froid",
         "leger",
         "copieux"

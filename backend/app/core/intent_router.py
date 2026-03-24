@@ -16,6 +16,10 @@ from typing import List, Optional
 
 from unidecode import unidecode
 
+from .mood_intent_patterns import (
+    tail_is_mood_or_season_context_only,
+    try_recipe_by_mood_or_season,
+)
 from .safety import (
     FOOD_KEYWORDS,
     OFF_TOPIC_STRONG,
@@ -69,7 +73,10 @@ def _dish_tail_after_recette(q_ascii: str) -> Optional[str]:
     tail = _strip_leading_articles(tail)
     if not tail:
         return None
-    return " ".join(tail.split()[:6]).strip() or None
+    dish_candidate = " ".join(tail.split()[:6]).strip() or None
+    if dish_candidate and tail_is_mood_or_season_context_only(dish_candidate):
+        return None
+    return dish_candidate
 
 
 def _expand_dish_variants(dish: str) -> List[str]:
@@ -170,23 +177,6 @@ def route_intent_deterministic(query: str) -> Optional[QueryAnalysis]:
             reasoning="IntentRouter: faim + rapide/facile",
         )
 
-    # 1d. Plat d'été / envie estivale
-    if "plat" in q and (
-        "ete" in q
-        or "été" in q_raw.lower()
-        or "estiv" in q
-        or "summer" in q
-    ):
-        return QueryAnalysis(
-            safety=SafetyCheck(is_safe=True, threat_type="none"),
-            intent="recipe_by_mood",
-            intent_confidence=0.88,
-            is_culinary=True,
-            recipe_count=1,
-            mood_tags=["ete", "frais", "leger"],
-            reasoning="IntentRouter: plat d'été",
-        )
-
     # 2. Plusieurs mezze / idées chiffrées
     if ("mezze" in q or "mezzé" in q_raw.lower()) and any(
         w in q for w in ("plusieurs", "quelques", "divers", "varies", "variees", "plusieur")
@@ -271,6 +261,11 @@ def route_intent_deterministic(query: str) -> Optional[QueryAnalysis]:
                     reasoning="IntentRouter: avec [ingrédient]",
                 )
 
+    # 6b. Saison / humeur / moment + intention recette (voir mood_intent_patterns)
+    mood_hit = try_recipe_by_mood_or_season(q, q_raw)
+    if mood_hit is not None:
+        return mood_hit
+
     # 7. Recette précise : « recette (du) X », avant requête courte
     if is_culinary_by_rules(q_raw):
         dish_r = _dish_tail_after_recette(q)
@@ -284,7 +279,7 @@ def route_intent_deterministic(query: str) -> Optional[QueryAnalysis]:
             tail = _strip_leading_articles(tail)
             if tail:
                 d = " ".join(tail.split()[:6]).strip()
-                if d:
+                if d and not tail_is_mood_or_season_context_only(d):
                     return _recipe_specific_from_dish(
                         d, reasoning="IntentRouter: comment faire X"
                     )
@@ -293,7 +288,7 @@ def route_intent_deterministic(query: str) -> Optional[QueryAnalysis]:
             tail = _strip_leading_articles(tail)
             if tail:
                 d = " ".join(tail.split()[:6]).strip()
-                if d:
+                if d and not tail_is_mood_or_season_context_only(d):
                     return _recipe_specific_from_dish(
                         d, reasoning="IntentRouter: comment preparer X"
                     )

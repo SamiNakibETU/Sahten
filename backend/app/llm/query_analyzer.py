@@ -6,6 +6,11 @@ from typing import Optional
 from unidecode import unidecode
 
 from ..core.llm_routing import async_openai_client_for_model, provider_credentials_ok
+from ..core.mood_intent_patterns import (
+    has_substantive_dish_after_recette,
+    tail_is_mood_or_season_context_only,
+    try_recipe_by_mood_or_season,
+)
 from ..core.safety import should_override_to_recipe_specific
 from ..schemas.query_analysis import QueryAnalysis, SafetyCheck
 
@@ -47,10 +52,12 @@ TOXICITÉ (threat_type="toxicity"):
    - "j'ai du poulet" → ingredients=["poulet"]
    - "que faire avec courgettes et yaourt" → ingredients=["courgettes", "yaourt"]
 
-3. recipe_by_mood: ENVIE/AMBIANCE décrite
+3. recipe_by_mood: ENVIE/AMBIANCE décrite (saison, moment, humeur)
    - "réconfortant" → mood_tags=["reconfortant"]
    - "frais pour l'été" → mood_tags=["frais", "ete"]
    - "rapide ce soir" → mood_tags=["rapide"]
+   - "convivial" / "entre amis" → inclure mood_tags=["convivial"] quand pertinent
+   - "recette pour l'hiver" / "plat d'automne" (sans nom de plat précis) → recipe_by_mood + tags saison, PAS recipe_specific
 
 4. recipe_by_diet: RESTRICTIONS alimentaires
    - "végétarien" → dietary_restrictions=["vegetarien"]
@@ -132,6 +139,19 @@ User: "j'ai des courgettes et du yaourt"
 
 User: "un truc réconfortant pour l'hiver"
 → intent="recipe_by_mood", mood_tags=["reconfortant","hiver"], is_culinary=true
+
+User: "recette pour l'hiver"
+→ intent="recipe_by_mood", mood_tags=["hiver","reconfortant","chaud"], dish_name=null, is_culinary=true
+(Pas recipe_specific : ce n'est pas un nom de plat.)
+
+User: "idée de plat léger pour ce soir"
+→ intent="recipe_by_mood", mood_tags=["leger","frais","rapide"], is_culinary=true
+
+User: "recette automne" ou "plat d'automne"
+→ intent="recipe_by_mood", mood_tags=["reconfortant","traditionnel","chaud"], is_culinary=true
+
+User: "recette taboulé pour ce soir"
+→ intent="recipe_specific", dish_name="taboulé", … (plat nommé + contrainte temps : garder l'intent plat principal)
 
 User: "dessert sans gluten"
 → intent="recipe_by_category", category="dessert", dietary_restrictions=["sans_gluten"]
@@ -339,10 +359,39 @@ class QueryAnalyzer:
                 reasoning="Fallback: ingredient phrasing detected.",
             )
 
-        # Specific recipe (recette / comment faire)
+        mood_fb = try_recipe_by_mood_or_season(q, q_raw)
+        if mood_fb is not None:
+            return mood_fb
+
+        # Specific recipe (recette / comment faire) — pas si queue = contexte saison/moment seul
         if "recette" in q or "comment faire" in q:
-            # naive dish extraction: after 'recette' or after 'faire'
             dish = None
+            tail_raw = ""
+            if "recette" in q:
+                tail_raw = q.split("recette", 1)[1].strip()
+            elif "faire" in q:
+                tail_raw = q.split("faire", 1)[1].strip()
+            if tail_raw and tail_is_mood_or_season_context_only(tail_raw):
+                return QueryAnalysis(
+                    safety=SafetyCheck(is_safe=True, threat_type="none", confidence=0.58),
+                    intent="recipe_by_mood",
+                    intent_confidence=0.6,
+                    is_culinary=True,
+                    mood_tags=["hiver", "reconfortant", "chaud"]
+                    if "hiver" in tail_raw or "hiver" in q
+                    else (["ete", "frais", "leger"] if ("ete" in q or "été" in q_raw.lower()) else ["reconfortant", "chaud"]),
+                    reasoning="Fallback: recette + contexte saison/moment (sans nom de plat).",
+                )
+            if "recette" in q and not has_substantive_dish_after_recette(q_raw):
+                if any(w in q for w in ("rapide", "vite", "facile")):
+                    return QueryAnalysis(
+                        safety=SafetyCheck(is_safe=True, threat_type="none", confidence=0.58),
+                        intent="recipe_by_mood",
+                        intent_confidence=0.58,
+                        is_culinary=True,
+                        mood_tags=["rapide", "facile"],
+                        reasoning="Fallback: recette + rapide (sans plat nommé).",
+                    )
             if "recette" in q:
                 tail = q.split("recette", 1)[1].strip()
                 dish = tail.split()[:3]
