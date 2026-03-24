@@ -5,10 +5,14 @@ import logging
 import re
 from typing import Any, List, Optional
 
-from openai import AsyncOpenAI
 from unidecode import unidecode
 
 from ..core.config import get_settings
+from ..core.llm_routing import (
+    async_openai_client_for_model,
+    provider_credentials_ok,
+    uses_openai_json_schema,
+)
 from ..schemas.query_analysis import QueryAnalysis
 from ..schemas.responses import (
     RecipeNarrative,
@@ -18,6 +22,12 @@ from ..schemas.responses import (
 )
 
 logger = logging.getLogger(__name__)
+
+# Groq : pas de json_schema strict ; renforcer le format en fin de system prompt.
+GROQ_JSON_SUFFIX = (
+    "\n\nRéponds par un unique objet JSON avec exactement les clés "
+    '"hook", "detail", "cta" (chaînes UTF-8). Aucun texte hors JSON.'
+)
 
 # Accroche contractuelle produit (recette demandée absente + alternative prouvée).
 EXACT_ALTERNATIVE_HOOK = (
@@ -33,7 +43,7 @@ RESPONSE_JSON_SCHEMA = {
         "properties": {
             "hook": {
                 "type": "string",
-                "description": "Pour response_type not_found_with_alternative : le serveur remplace par la phrase contractuelle EXACT_ALTERNATIVE_HOOK ; vous pouvez mettre un placeholder court. Sinon : accroche au vous, 1 phrase.",
+                "description": "not_found_with_alternative : placeholder court (serveur remplace par EXACT_ALTERNATIVE_HOOK). Sinon : 1 phrase d'accroche CONCRETE (titre, chef, ingredient ou fait tire des donnees). INTERDIT : formules vides du type reference du site, voici une option sur le site, voici une suggestion generique.",
             },
             "detail": {
                 "type": "string",
@@ -81,6 +91,7 @@ Objectif : reponse courte, utile, professionnelle et chaleureuse — un detail c
 - Cours sur le plat mondial demande s'il n'est pas dans selected_recipes (pas d'article Wikipedia).
 - Etiqueter un plat international comme « classique libanais » s'il ne l'est pas.
 - Adjectifs creux sans fait : authentique, inoubliable, explosion de saveurs, experience culinaire.
+- **Accroche `hook` (hors alternative)** : une phrase qui accroche par un **fait precis** ou le **nom du plat / du chef** — jamais « voici une reference du site », « voici une option sur le site », « voici une suggestion », ou toute formulation qui ne dit rien sur la recette.
 
 # Format de sortie
 
@@ -90,11 +101,11 @@ JSON strict : `hook`, `detail`, `cta` — tous les champs en francais avec vouvo
 
 ## Plat exact
 User: {"user_query": "taboule", "selected_recipes": [{"title": "Le vrai taboule de Kamal Mouzawak", "chef": "Kamal Mouzawak"}]}
-Response: {"hook": "Pour le taboule, voici une reference du site.", "detail": "Kamal Mouzawak met le persil au centre : peu de boulgour, beaucoup d'herbes fraiches — c'est sa signature.", "cta": "Retrouvez la recette sur L'Orient-Le Jour"}
+Response: {"hook": "Le taboulé de Kamal Mouzawak met le persil et les herbes au premier plan.", "detail": "Peu de boulgour, beaucoup d'herbes fraiches coupees fin — c'est la signature de cette fiche.", "cta": "Retrouvez la recette sur L'Orient-Le Jour"}
 
 ## Plat exact + facile
 User: {"user_query": "recette facile a faire", "selected_recipes": [{"title": "Les crevettes guacamole a la libanaise de Liza Asseily", "chef": "Liza Asseily"}]}
-Response: {"hook": "Voici une option simple sur le site.", "detail": "Les crevettes guacamole de Liza Asseily : peu de cuisson, avocat et crevettes au citron et a la grenade — les etapes sont dans l'article.", "cta": "Consultez la recette sur L'Orient-Le Jour"}
+Response: {"hook": "Les crevettes guacamole de Liza Asseily demandent peu de cuisson.", "detail": "Avocat, crevettes, citron et grenade : les etapes sont detaillees dans l'article.", "cta": "Consultez la recette sur L'Orient-Le Jour"}
 
 ## Alternative
 User: {"user_query": "blanquette de veau", "selected_recipes": [{"title": "La Mouloukhiye de Tara Khattar", "chef": "Tara Khattar"}], "shared_ingredient_proof": {"shared_ingredients": ["viande mijotee"]}}
@@ -106,7 +117,7 @@ Response: {"hook": "Je suis désolé, mais je n'ai pas cette recette dans mes ca
 
 ## Requete vague
 User: {"user_query": "un plat facile a faire", "selected_recipes": [{"title": "Les courgettes aux tomates de teta de Karim Haidar", "chef": "Karim Haidar"}]}
-Response: {"hook": "Voici un plat peu charge en technique.", "detail": "Les courgettes aux tomates de teta de Karim Haidar : trois legumes, une poele, recette de famille telle qu'elle est publiee.", "cta": "Les etapes sont sur L'Orient-Le Jour"}
+Response: {"hook": "Les courgettes aux tomates de teta de Karim Haidar tiennent en une poele.", "detail": "Trois legumes, peu d'etapes : recette de famille publiee telle quelle sur le site.", "cta": "Les etapes sont sur L'Orient-Le Jour"}
 
 ## Menu
 User: {"user_query": "un menu libanais", "intent": "menu_composition", "recipe_count": 3, "selected_recipes": [{"title": "Salade fattouch", "category": "entree"}, {"title": "Daoud Bacha", "category": "plat_principal"}, {"title": "Maamoul", "category": "dessert"}]}
@@ -196,6 +207,13 @@ BANNED_PATTERNS = (
     "veritable classique",
     "parfait pour",
     "ideal pour",
+    "reference du site",
+    "voici une reference",
+    "une reference du",
+    "voici une option sur le site",
+    "voici une option simple",
+    "voici une suggestion issue",
+    "suggestion issue de nos recettes",
 )
 
 
@@ -209,10 +227,13 @@ class ResponseGenerator:
         fallback_model: Optional[str] = None,
     ):
         settings = get_settings()
-        self.api_key = settings.openai_api_key if api_key is None else api_key
+        self._offline_only = api_key == ""
+        if api_key is not None:
+            self.api_key = api_key
+        else:
+            self.api_key = settings.openai_api_key
         self.model = model or settings.openai_model
         self.fallback_model = fallback_model or settings.fallback_model
-        self.client = AsyncOpenAI(api_key=self.api_key, timeout=12.0)
 
     def _build_user_payload(
         self, evidence: EvidenceBundle, analysis: Optional[QueryAnalysis] = None
@@ -253,14 +274,21 @@ class ResponseGenerator:
         max_tokens: int = 220,
     ) -> dict:
         model = model_override or self.model
-        resp = await self.client.chat.completions.create(
-            model=model,
-            response_format={
+        client = async_openai_client_for_model(model)
+        sys_content = system
+        if uses_openai_json_schema(model):
+            response_format: dict = {
                 "type": "json_schema",
                 "json_schema": RESPONSE_JSON_SCHEMA,
-            },
+            }
+        else:
+            response_format = {"type": "json_object"}
+            sys_content = system + GROQ_JSON_SUFFIX
+        resp = await client.chat.completions.create(
+            model=model,
+            response_format=response_format,
             messages=[
-                {"role": "system", "content": system},
+                {"role": "system", "content": sys_content},
                 {"role": "user", "content": user_content},
             ],
             temperature=0.25,
@@ -276,7 +304,7 @@ class ResponseGenerator:
             # Phrase contractuelle produit (independante de la sortie LLM).
             hook = EXACT_ALTERNATIVE_HOOK
         else:
-            hook = data.get("hook", "Voici une suggestion issue de nos recettes publiées.")
+            hook = data.get("hook", "Une fiche de nos carnets correspond à votre recherche.")
         return RecipeNarrative(
             hook=hook,
             cultural_context=detail,
@@ -352,7 +380,9 @@ class ResponseGenerator:
         is_alternative: bool = False,
         analysis: Optional[QueryAnalysis] = None,
     ) -> RecipeNarrative:
-        if not self.api_key:
+        if self._offline_only:
+            return fallback_fn()
+        if not provider_credentials_ok(self.model) and not provider_credentials_ok(self.fallback_model):
             return fallback_fn()
 
         user_content = self._build_user_payload(evidence, analysis)
@@ -360,6 +390,9 @@ class ResponseGenerator:
         max_tok = 360 if n_cards > 1 or evidence.response_type == "menu" else 220
 
         for model_name in [self.model, self.fallback_model]:
+            if not provider_credentials_ok(model_name):
+                logger.debug("Skip model %s (clé provider absente)", model_name)
+                continue
             try:
                 data = await self._call_llm(
                     system,

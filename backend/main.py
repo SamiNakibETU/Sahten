@@ -29,6 +29,7 @@ async def lifespan(app: FastAPI):
     """Application lifespan events."""
     logger.info(f"Starting {settings.app_name} v{settings.app_version}")
     logger.info(f"Default Model: {settings.openai_model}")
+    logger.info(f"Groq: {'configured' if settings.groq_api_key else 'off (set GROQ_API_KEY for llama / gpt-oss)'}")
     logger.info(f"A/B Testing: {'ON' if settings.enable_ab_testing else 'OFF'}")
     logger.info(f"Embeddings: {'ON' if settings.enable_embeddings else 'OFF'}")
     

@@ -28,6 +28,8 @@ class Settings(BaseSettings):
     # OPENAI CONFIGURATION
     # ============================================================================
     openai_api_key: str = ""
+    # Groq (OpenAI-compatible) : https://console.groq.com/docs/openai
+    groq_api_key: str = ""
     
     # Default model - can be overridden via API request or A/B testing
     # Options: "gpt-4.1-nano" (economique), "gpt-4.1-mini" (qualite)
@@ -182,5 +184,15 @@ def get_settings() -> Settings:
 
 
 def get_available_models() -> List[str]:
-    """Return list of available models for UI dropdown."""
-    return ["gpt-4.1-nano", "gpt-4.1-mini"]
+    """Return list of available models for UI dropdown (OpenAI + Groq si clé configurée)."""
+    models: List[str] = ["gpt-4.1-nano", "gpt-4.1-mini"]
+    s = get_settings()
+    if s.groq_api_key:
+        models.extend(
+            [
+                "llama-3.1-8b-instant",
+                "llama-3.3-70b-versatile",
+                "openai/gpt-oss-20b",
+            ]
+        )
+    return models

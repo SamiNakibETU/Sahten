@@ -128,7 +128,7 @@ class ChatRequest(BaseModel):
     """Chat request with optional model override and session tracking."""
     message: str
     debug: bool = False
-    model: Optional[str] = None  # "auto", "gpt-4.1-nano", "gpt-4.1-mini"
+    model: Optional[str] = None  # "auto", OpenAI (gpt-4.1-*), Groq (llama-3.*, openai/gpt-oss-*)
     session_id: Optional[str] = None  # For conversation memory
 
 
@@ -164,9 +164,11 @@ async def chat(request: ChatRequest):
     Main chat endpoint.
     
     Supports model override:
-    - model="auto" or None: Use default or A/B testing
-    - model="gpt-4.1-nano": Force nano model (economique)
-    - model="gpt-4.1-mini": Force mini model (qualite)
+    - model="auto" or None: default / A/B testing
+    - OpenAI: gpt-4.1-nano, gpt-4.1-mini
+    - Groq (GROQ_API_KEY): llama-3.1-8b-instant, llama-3.3-70b-versatile, openai/gpt-oss-20b
+    
+    Avec debug=true, debug_info inclut timings_ms (analysis, retrieval, generation, total).
     
     Supports session memory:
     - session_id: Optional client-generated ID for conversation continuity
@@ -187,6 +189,11 @@ async def chat(request: ChatRequest):
             session_id=session_id,
         )
         html = compose_html_response(response)
+
+        if request.debug and debug_info is not None:
+            tm = trace_meta.get("timings_ms")
+            if tm:
+                debug_info = {**debug_info, "timings_ms": tm}
 
         log_chat_trace(
             request_id=request_id,
@@ -261,7 +268,11 @@ async def chat_stream(request: ChatRequest):
                 "trace_meta": trace_meta,
             }
             if request.debug and debug_info is not None:
-                done_payload["debug_info"] = debug_info
+                di = dict(debug_info)
+                tm = trace_meta.get("timings_ms")
+                if tm:
+                    di["timings_ms"] = tm
+                done_payload["debug_info"] = di
             yield f"data: {json.dumps(done_payload, ensure_ascii=False)}\n\n"
 
             log_chat_trace(

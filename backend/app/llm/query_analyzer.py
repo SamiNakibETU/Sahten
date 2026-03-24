@@ -3,9 +3,9 @@
 import logging
 from typing import Optional
 
-from openai import AsyncOpenAI
 from unidecode import unidecode
 
+from ..core.llm_routing import async_openai_client_for_model, provider_credentials_ok
 from ..core.safety import should_override_to_recipe_specific
 from ..schemas.query_analysis import QueryAnalysis, SafetyCheck
 
@@ -161,13 +161,16 @@ class QueryAnalyzer:
     """
     
     def __init__(self, api_key: Optional[str] = None, model: str = "gpt-4.1-nano"):
-        """api_key : depuis l'argument ou la config ; model : identifiant OpenAI."""
+        """api_key explicite vide (\"\") = mode offline (tests). Sinon clés lues selon le provider du model."""
         from ..core.config import get_settings
         settings = get_settings()
-        
-        self.api_key = api_key or settings.openai_api_key
+
+        self._offline_only = api_key == ""
+        if api_key is not None:
+            self.api_key = api_key
+        else:
+            self.api_key = settings.openai_api_key
         self.model = model
-        self.client = AsyncOpenAI(api_key=self.api_key, timeout=8.0)
     
     async def analyze(self, query: str) -> QueryAnalysis:
         """
@@ -180,12 +183,14 @@ class QueryAnalyzer:
             QueryAnalysis with complete structured analysis
         """
         try:
-            # Durable offline fallback: if no API key configured, don't even attempt a network call.
-            if not self.api_key:
+            if self._offline_only:
+                return self._fallback_analysis(query)
+            if not provider_credentials_ok(self.model):
                 return self._fallback_analysis(query)
 
+            client = async_openai_client_for_model(self.model)
             # Use JSON mode with structured output
-            response = await self.client.chat.completions.create(
+            response = await client.chat.completions.create(
                 model=self.model,
                 response_format={"type": "json_object"},
                 messages=[
