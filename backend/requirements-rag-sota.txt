@@ -1,0 +1,4 @@
+# Optionnel : rerank cross-encoder local (ENABLE_CROSS_ENCODER_RERANK=true)
+# Installation : pip install -r requirements-rag-sota.txt
+sentence-transformers>=3.0.0
+torch>=2.2.0

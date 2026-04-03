@@ -93,3 +93,9 @@ def get_embedding_client(provider: str | None = None) -> EmbeddingClient:
     # Default to mock embeddings (deterministic, offline-friendly)
     return MockEmbeddingClient()
 
+
+def get_embeddings(texts: list[str]) -> list[list[float]]:
+    """Embeddings pour une liste de textes (provider selon settings.embedding_provider)."""
+    client = get_embedding_client()
+    return client.embed(texts)
+
