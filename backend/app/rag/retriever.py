@@ -29,126 +29,19 @@ from sklearn.metrics.pairwise import cosine_similarity
 from ..core.config import get_settings
 from ..data.ingredient_normalizer import ingredient_normalizer
 from ..data.normalizers import normalize_text
+from .citation_quality import sanitize_cited_passage, title_suggests_non_recipe_article
+from .retrieval_constants import (
+    GENERIC_QUERY_TOKENS,
+    MATCH_REASON_KEYWORDS,
+    doc_category_matches_inferred,
+    ingredient_overlap_is_meaningful,
+)
 from ..llm.reranker import LLMReranker, RerankCandidate, RerankItem
 from ..schemas.canonical import CanonicalCategory, CanonicalRecipeDoc
 from ..schemas.query_analysis import QueryAnalysis
 from ..schemas.responses import AlternativeMatch, OLJRecommendation, RecipeCard, SharedIngredientProof
 
 logger = logging.getLogger(__name__)
-
-GENERIC_QUERY_TOKENS = {
-    "recette",
-    "recettes",
-    "comment",
-    "faire",
-    "avec",
-    "plat",
-    "plats",
-    "cuisine",
-    "libanais",
-    "libanaise",
-    "libanaises",
-    "libanais",
-    "bonjour",
-    "salut",
-}
-
-MATCH_REASON_KEYWORDS = {
-    "shared_stewed_beef": {"boeuf", "beef", "viande", "viande hachee"},
-    "shared_wrap_like_format": {"pain", "bread", "galette"},
-    "shared_grilled_spiced_meat": {"poulet", "chicken", "agneau", "lamb", "boeuf"},
-    "shared_rice_base": {"riz", "rice", "semoule", "moghrabieh"},
-}
-
-# Trop fréquents pour prouver un lien recette seuls (sinon carbonara → gâteau au chocolat via « œuf »).
-WEAK_SHARED_INGREDIENTS: frozenset[str] = frozenset(
-    normalize_text(x)
-    for x in (
-        "oeuf",
-        "oeufs",
-        "lait",
-        "beurre",
-        "farine",
-        "sucre",
-        "sel",
-        "poivre",
-        "huile",
-        "huile dolive",
-        "ail",
-        "oignon",
-        "oignons",
-        "eau",
-        "creme",
-        "crème",
-        "citron",
-        "vanille",
-    )
-)
-
-# Ancres « plat libanais » : si l’une matche avec la requête (ex. moghrabieh via équivalence carbonara→pâtes), on garde l’alternative.
-_STRUCTURAL_INGREDIENTS: frozenset[str] = frozenset(
-    normalize_text(x)
-    for x in (
-        "moghrabieh",
-        "riz",
-        "semoule",
-        "poulet",
-        "agneau",
-        "boeuf",
-        "viande",
-        "viande hachee",
-        "poisson",
-        "halloumi",
-        "akkawi",
-        "labneh",
-        "houmous",
-        "taboule",
-        "falafel",
-        "freekeh",
-        "lentille",
-        "lentilles",
-        "kafta",
-        "kebbe",
-        "warak enab",
-        "manakish",
-        "pain",
-        "vermicelles",
-        "fromage",
-    )
-)
-
-_SAVORY_INFERRED: frozenset[CanonicalCategory] = frozenset(
-    {
-        "plat_principal",
-        "mezze_froid",
-        "mezze_chaud",
-        "entree",
-        "salade",
-        "soupe",
-        "sauces",
-    }
-)
-
-
-def _ingredient_overlap_is_meaningful(shared_terms: List[str]) -> bool:
-    """Évite les alternatives uniquement fondées sur sel / œuf / sucre, etc."""
-    norms = {normalize_text(t) for t in (shared_terms or []) if t}
-    if not norms:
-        return False
-    if norms & _STRUCTURAL_INGREDIENTS:
-        return True
-    return bool(norms - WEAK_SHARED_INGREDIENTS)
-
-
-def _doc_category_matches_inferred(
-    doc_cat: CanonicalCategory, inferred: CanonicalCategory
-) -> bool:
-    """Salé vs sucré : pas de dessert proposé pour une envie de plat (et inversement raisonnable)."""
-    if inferred == "dessert":
-        return doc_cat in ("dessert", "autre", "boisson")
-    if inferred in _SAVORY_INFERRED:
-        return doc_cat != "dessert"
-    return True
 
 
 def _extract_targeted_passage(text: str, term: str, max_chars: int) -> str:
@@ -405,31 +298,52 @@ class HybridRetriever:
     def _build_semantic_index(self) -> None:
         """
         Build embeddings index for semantic search.
-        
+
         Only called if settings.enable_embeddings=True.
-        Uses OpenAI embeddings API.
+        OpenAI, mock, etc. via embedding_client.get_embeddings.
         """
         settings = get_settings()
-        
-        if settings.embedding_provider == "openai":
-            try:
-                from ..services.embedding_client import get_embeddings
-                
-                texts = [d.search_text for d in self.olj_docs]
-                if not texts:
-                    self._embeddings_matrix = None
-                    return
-                
-                logger.info("Building embeddings for %d documents...", len(texts))
-                embeddings = get_embeddings(texts)
-                self._embeddings_matrix = np.array(embeddings)
-                logger.info("Embeddings built: shape %s", self._embeddings_matrix.shape)
-                
-            except Exception as e:
-                logger.error("Failed to build embeddings: %s", e)
+
+        try:
+            from ..services.embedding_client import get_embeddings
+            from ..services.embedding_cache import (
+                save_embedding_matrix,
+                try_load_embedding_matrix,
+            )
+
+            texts = [d.search_text for d in self.olj_docs]
+            urls = [str(d.url) for d in self.olj_docs]
+            if not texts:
                 self._embeddings_matrix = None
-        else:
-            logger.warning("Unknown embedding provider: %s", settings.embedding_provider)
+                return
+
+            cache_key_model = f"{settings.embedding_provider}:{settings.embedding_model}"
+            cache_dir = settings.data_dir / settings.embedding_cache_dir
+            if settings.embedding_cache_enabled and settings.embedding_provider == "openai":
+                loaded = try_load_embedding_matrix(
+                    cache_dir=cache_dir,
+                    urls=urls,
+                    embedding_model=cache_key_model,
+                    expected_shape_n=len(texts),
+                )
+                if loaded is not None:
+                    self._embeddings_matrix = loaded
+                    return
+
+            logger.info("Building embeddings for %d documents...", len(texts))
+            embeddings = get_embeddings(texts)
+            self._embeddings_matrix = np.array(embeddings)
+            logger.info("Embeddings built: shape %s", self._embeddings_matrix.shape)
+            if settings.embedding_cache_enabled and settings.embedding_provider == "openai":
+                save_embedding_matrix(
+                    cache_dir=cache_dir,
+                    urls=urls,
+                    embedding_model=cache_key_model,
+                    matrix=self._embeddings_matrix,
+                )
+
+        except Exception as e:
+            logger.error("Failed to build embeddings: %s", e)
             self._embeddings_matrix = None
 
     def _lexical_retrieve(self, query: str, top_k: int) -> List[Tuple[int, float]]:
@@ -502,11 +416,15 @@ class HybridRetriever:
         *,
         category_allowlist: Optional[set[str]] = None,
         must_contain_any: Optional[set[str]] = None,
+        rerank_user_query: Optional[str] = None,
     ) -> List[RerankItem]:
-        """LLM-based reranking for high precision."""
+        """Rerank : cross-encoder optionnel puis LLM (ou CE seul si configuré)."""
+        settings = get_settings()
+        scan_cap = top_k * 3 if settings.enable_cross_encoder_rerank else top_k
+        fused_slice = fused if category_allowlist else fused[:scan_cap]
+
         candidates: List[RerankCandidate] = []
-        
-        for idx, _ in fused if category_allowlist else fused[:top_k]:
+        for idx, _ in fused_slice:
             d = self.olj_docs[idx]
             if category_allowlist and d.category_canonical not in category_allowlist:
                 continue
@@ -524,10 +442,43 @@ class HybridRetriever:
                     is_lebanese=d.is_lebanese,
                 )
             )
-            if len(candidates) >= top_k:
+            if len(candidates) >= scan_cap:
                 break
-        
-        return await self.reranker.rerank(raw_query, candidates, max_items=min(10, len(candidates)))
+
+        q = (rerank_user_query or raw_query).strip()
+
+        if settings.enable_cross_encoder_rerank and candidates:
+            from ..llm.cross_encoder_rerank import score_pairs
+
+            texts = [f"{c.title}\n{c.search_text_excerpt}" for c in candidates]
+            ce_scores = score_pairs(q, texts, model_name=settings.cross_encoder_model)
+            if ce_scores and len(ce_scores) == len(candidates):
+                order = sorted(range(len(ce_scores)), key=lambda i: -ce_scores[i])
+                candidates = [candidates[i] for i in order]
+                ce_scores = [ce_scores[i] for i in order]
+                if not settings.rerank_llm_after_cross_encoder:
+                    mx = max(ce_scores) if ce_scores else 1e-9
+                    items: List[RerankItem] = []
+                    for c, s in zip(candidates, ce_scores):
+                        doc = next((d for d in self.olj_docs if str(d.url) == c.url), None)
+                        term = (c.title or "recette").split()[0] if c.title else "recette"
+                        excerpt = (
+                            _extract_targeted_passage(doc.search_text or "", term, max_chars=180)
+                            if doc
+                            else None
+                        )
+                        items.append(
+                            RerankItem(
+                                url=c.url,
+                                score=float(min(1.0, max(0.15, s / mx))),
+                                cited_passage=excerpt,
+                            )
+                        )
+                    return items[:top_k]
+
+                candidates = candidates[: max(8, min(top_k, 10))]
+
+        return await self.reranker.rerank(q, candidates, max_items=min(10, len(candidates)))
 
     def _select_cards(
         self,
@@ -555,8 +506,16 @@ class HybridRetriever:
 
             if not doc.is_recipe:
                 continue
+            if title_suggests_non_recipe_article(doc.title):
+                logger.debug("Skip non-recipe-looking title for card: %s", doc.title[:80])
+                continue
             if category_allowlist and doc.category_canonical not in category_allowlist:
                 continue
+
+            safe_passage = sanitize_cited_passage(
+                it.cited_passage,
+                title=doc.title,
+            )
 
             cards.append(
                 RecipeCard(
@@ -566,7 +525,7 @@ class HybridRetriever:
                     chef=doc.chef_name,
                     category=doc.category_canonical,
                     image_url=doc.image_url,  # Image de la recette
-                    cited_passage=it.cited_passage,  # Grounding: passage justificatif
+                    cited_passage=safe_passage or it.cited_passage,
                 )
             )
             if len(cards) >= max_results:
@@ -590,6 +549,26 @@ class HybridRetriever:
                 return {"mezze_froid", "mezze_chaud"}
             if "dessert" in q or "sucre" in q:
                 return {"dessert"}
+        if analysis.intent == "recipe_by_mood":
+            tags = {unidecode(t).lower() for t in (analysis.mood_tags or [])}
+            if "liban" in tags and not any(
+                x in q
+                for x in (
+                    "dessert",
+                    "sucre",
+                    "sucré",
+                    "sucree",
+                    "gateau",
+                    "gâteau",
+                    "cookie",
+                    "biscuit",
+                    "patisserie",
+                    "pâtisserie",
+                    "douceur",
+                    "chocolat",
+                )
+            ):
+                return {"plat_principal", "mezze_froid", "mezze_chaud", "entree"}
         return None
 
     def search(
@@ -614,7 +593,12 @@ class HybridRetriever:
         return [], False, dbg
 
     def _search_olj(
-        self, analysis: QueryAnalysis, raw_query: str, *, debug: bool
+        self,
+        analysis: QueryAnalysis,
+        raw_query: str,
+        *,
+        debug: bool,
+        conversation_context: Optional[str] = None,
     ) -> Tuple[List[RecipeCard], Optional[dict]]:
         """Search OLJ docs using hybrid retrieval."""
         settings = get_settings()
@@ -632,6 +616,10 @@ class HybridRetriever:
         if analysis.category:
             parts.append(analysis.category)
         retrieval_query = " ".join(p for p in parts if p)
+        if conversation_context:
+            retrieval_query = (
+                f"{retrieval_query}\n\nContexte conversation récent:\n{conversation_context}"
+            )
 
         # Hybrid retrieval
         lexical = self._lexical_retrieve(retrieval_query, top_k=top_k)
@@ -665,8 +653,14 @@ class HybridRetriever:
         return cards, dbg
 
     async def search_with_rerank(
-        self, analysis: QueryAnalysis, *, raw_query: str, debug: bool = False,
-        exclude_urls: Optional[List[str]] = None
+        self,
+        analysis: QueryAnalysis,
+        *,
+        raw_query: str,
+        debug: bool = False,
+        exclude_urls: Optional[List[str]] = None,
+        conversation_context: Optional[str] = None,
+        retrieval_query_boost: Optional[str] = None,
     ) -> Tuple[List[RecipeCard], bool, Optional[dict]]:
         """
         Async search with LLM reranking.
@@ -676,10 +670,18 @@ class HybridRetriever:
             raw_query: Original user query
             debug: Include debug info
             exclude_urls: URLs to exclude (e.g., already proposed in session)
+            conversation_context: Résumé des derniers tours (même onglet) pour retrieve + rerank.
+            retrieval_query_boost: Phrase additionnelle (ex. sortie query rewriter LLM).
         """
         settings = get_settings()
         exclude_set = set(exclude_urls or [])
         rerank_top_k = settings.retrieve_top_k
+        rerank_user_query: Optional[str] = None
+        if conversation_context:
+            rerank_user_query = (
+                "Contexte (échanges précédents dans la même conversation):\n"
+                f"{conversation_context}\n\nQuestion actuelle:\n{raw_query}"
+            )
         if analysis.intent == "recipe_specific":
             rerank_top_k = min(rerank_top_k, 8)
         elif analysis.intent in {"recipe_by_ingredient", "recipe_by_category"}:
@@ -694,6 +696,8 @@ class HybridRetriever:
 
             async def pick_one(cat_allow: set[str], query_hint: str) -> Optional[RecipeCard]:
                 local_query = f"{raw_query} {query_hint}".strip()
+                if conversation_context:
+                    local_query = f"{local_query}\n\nContexte conversation récent:\n{conversation_context}"
 
                 parts: List[str] = [local_query]
                 if analysis.dish_name:
@@ -714,6 +718,7 @@ class HybridRetriever:
                     fused,
                     top_k=rerank_top_k,
                     category_allowlist=cat_allow,
+                    rerank_user_query=rerank_user_query,
                 )
                 cards = self._select_cards(
                     analysis,
@@ -750,17 +755,23 @@ class HybridRetriever:
             return picked[:3], False, {"selected": [c.url for c in picked if c.url]} if debug else None
 
         # Regular search with rerank
-        parts: List[str] = [raw_query]
+        parts_rw: List[str] = [raw_query]
         if analysis.dish_name:
-            parts.append(analysis.dish_name)
-        parts.extend(analysis.dish_name_variants or [])
-        parts.extend(analysis.ingredients or [])
-        parts.extend(analysis.mood_tags or [])
+            parts_rw.append(analysis.dish_name)
+        parts_rw.extend(analysis.dish_name_variants or [])
+        parts_rw.extend(analysis.ingredients or [])
+        parts_rw.extend(analysis.mood_tags or [])
         if analysis.chef_name:
-            parts.append(analysis.chef_name)
+            parts_rw.append(analysis.chef_name)
         if analysis.category:
-            parts.append(analysis.category)
-        retrieval_query = " ".join(p for p in parts if p)
+            parts_rw.append(analysis.category)
+        retrieval_query = " ".join(p for p in parts_rw if p)
+        if retrieval_query_boost:
+            retrieval_query = f"{retrieval_query}\n{retrieval_query_boost}".strip()
+        if conversation_context:
+            retrieval_query = (
+                f"{retrieval_query}\n\nContexte conversation récent:\n{conversation_context}"
+            )
 
         lexical = self._lexical_retrieve(retrieval_query, top_k=rerank_top_k)
         semantic = self._semantic_retrieve(retrieval_query, top_k=rerank_top_k)
@@ -776,6 +787,7 @@ class HybridRetriever:
         if (
             analysis.intent in {"recipe_specific", "recipe_by_category"}
             and lexical
+            and not conversation_context
         ):
             top_idx, lex_score = lexical[0]
             if 0 <= top_idx < len(self.olj_docs):
@@ -804,6 +816,7 @@ class HybridRetriever:
                 top_k=rerank_top_k,
                 category_allowlist=allowlist,
                 must_contain_any=must_any,
+                rerank_user_query=rerank_user_query,
             )
         # Filter low scores only when LLM reranker ran (scores on 0-1 scale)
         MIN_RERANK_SCORE = 0.15
@@ -822,6 +835,7 @@ class HybridRetriever:
         if debug:
             dbg = {
                 "retrieval_query": retrieval_query,
+                "retrieval_query_boost": retrieval_query_boost,
                 "lexical_top": [(str(self.olj_docs[i].url), s) for i, s in lexical[:10]],
                 "semantic_top": [(str(self.olj_docs[i].url), s) for i, s in semantic[:10]] if semantic else [],
                 "rrf_top": [(str(self.olj_docs[i].url), s) for i, s in fused[:10]] if isinstance(fused, list) else [],
@@ -1207,9 +1221,9 @@ class HybridRetriever:
         inferred_cat = self._infer_category(analysis, raw_query)
         filtered: List[Tuple[CanonicalRecipeDoc, int, List[str], bool]] = []
         for d, score, shared, from_canonical in candidates:
-            if not _ingredient_overlap_is_meaningful(shared):
+            if not ingredient_overlap_is_meaningful(shared):
                 continue
-            if not _doc_category_matches_inferred(d.category_canonical, inferred_cat):
+            if not doc_category_matches_inferred(d.category_canonical, inferred_cat):
                 continue
             # Match texte plein : au moins 2 termes sauf si l'un vient des ingrédients inférés LLM
             if not from_canonical:

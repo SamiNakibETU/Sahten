@@ -54,6 +54,7 @@ Objectif: classer les documents selon leur pertinence pour la requête utilisate
 Règles:
 - Privilégie les RECETTES et les résultats directement pertinents.
 - Si l'utilisateur demande cuisine libanaise ou contexte libanais, privilégie is_lebanese=true.
+- Si la requête est une recherche large (ex. « recette libanaise », « plat typique », « pour ma famille ») sans demande explicite de dessert, favorise plats principaux, mezze ou entrées ; pénalise fortement les seuls desserts ou pâtisseries sauf si la requête le demande.
 - Si la requête mentionne un ingrédient, favorise les recettes qui le contiennent (ou en parlent clairement).
 - Donne un score entre 0 et 1 (1 = parfait).
 - RÈGLE CRITIQUE DE PERTINENCE: si un document ne correspond PAS du tout à la requête (ex: l'utilisateur demande "lasagne" et le document parle d'un autre plat), donne-lui un score INFÉRIEUR à 0.15. Un score < 0.15 signifie "non-pertinent" et le résultat sera écarté.

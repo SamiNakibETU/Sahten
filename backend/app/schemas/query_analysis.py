@@ -196,7 +196,8 @@ class QueryAnalysis(BaseModel):
         "convivial",
         "froid",
         "leger",
-        "copieux"
+        "copieux",
+        "liban",
     ]] = Field(
         default_factory=list,
         description="Tags d'humeur/occasion détectés"

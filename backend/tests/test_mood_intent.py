@@ -5,6 +5,7 @@ from __future__ import annotations
 import pytest
 
 from app.core.intent_router import route_intent_deterministic
+from app.core.mood_intent_patterns import has_substantive_dish_after_recette, is_lebanese_corpus_browse_tail
 from app.llm.query_analyzer import QueryAnalyzer
 
 
@@ -27,6 +28,31 @@ def test_route_mood_or_season(query: str, expected_intent: str, key_tags: list[s
     tags = r.mood_tags or []
     for t in key_tags:
         assert t in tags, f"missing tag {t!r} in {tags!r} for {query!r}"
+
+
+@pytest.mark.parametrize(
+    "query",
+    [
+        "recette libanaise",
+        "plat libanais",
+        "recette typique libanaise à cuisiner pour ma famille française",
+        "idée recette traditionnelle libanaise",
+    ],
+)
+def test_route_lebanese_corpus_browse_is_mood_not_specific(query: str) -> None:
+    r = route_intent_deterministic(query)
+    assert r is not None
+    assert r.intent == "recipe_by_mood"
+    assert r.mood_tags
+    assert "liban" in r.mood_tags
+
+
+def test_lebanese_browse_tail_detection() -> None:
+    assert is_lebanese_corpus_browse_tail("libanaise")
+    assert is_lebanese_corpus_browse_tail("typique libanaise pour ma famille")
+    assert not is_lebanese_corpus_browse_tail("taboulé libanais")
+    assert not has_substantive_dish_after_recette("recette libanaise")
+    assert has_substantive_dish_after_recette("recette taboulé libanais")
 
 
 def test_route_recette_with_named_dish_stays_specific() -> None:

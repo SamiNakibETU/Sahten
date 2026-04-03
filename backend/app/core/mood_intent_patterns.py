@@ -108,6 +108,53 @@ def _strip_leading_articles(fragment: str) -> str:
     return s
 
 
+def is_lebanese_corpus_browse_tail(tail: str) -> bool:
+    """
+    True si la queue après « recette » décrit une recherche large « cuisine libanaise »
+    sans nom de plat (évite recipe_specific → garde sémantique → alternative forcée).
+    """
+    t = unidecode(tail).lower().strip()
+    t = re.sub(r"[?!.,;:]+$", "", t).strip()
+    if not t:
+        return True
+    if not any(s in t for s in ("liban", "libanais", "libanaise", "libanaises")):
+        return False
+    tokens = [re.sub(r"^[^\w]+|[^\w]+$", "", unidecode(w).lower()) for w in t.split() if w.strip()]
+    if not tokens:
+        return False
+    # « taboulé libanais », « poulet libanais » : le premier jeton est le plat
+    if tokens[0] not in {
+        "libanaise",
+        "libanais",
+        "libanaises",
+        "typique",
+        "traditionnelle",
+        "traditionnel",
+        "authentique",
+        "classique",
+        "vraie",
+        "vrai",
+        "grande",
+    }:
+        return False
+    if len(tokens) == 1 and tokens[0] in {"libanaise", "libanais", "libanaises"}:
+        return True
+    qual = {"typique", "traditionnelle", "traditionnel", "authentique", "classique", "vraie", "vrai", "grande"}
+    if len(tokens) >= 2 and tokens[0] in qual:
+        if any("liban" in x for x in tokens[1 : min(4, len(tokens))]):
+            return True
+    if tokens[0] in {"libanaise", "libanais", "libanaises"}:
+        fillers = {
+            "pour", "ma", "mon", "mes", "ta", "sa", "a", "au", "aux", "de", "du", "des", "la", "le", "les",
+            "un", "une", "ce", "cette", "cet", "comme", "avec", "sans", "et", "ou", "facile", "simple",
+            "rapide", "famille", "francais", "français", "francaise", "française", "amis", "plats", "plat",
+            "cuisiner", "cuisine", "idee", "idée", "idees", "idées", "table", "typique", "soir", "midi",
+        }
+        if len(tokens) <= 10 and all(x in fillers or "liban" in x for x in tokens[1:]):
+            return True
+    return False
+
+
 def has_substantive_dish_after_recette(q_ascii: str) -> bool:
     """
     True si la queue après « recette » ressemble à un plat (ex. taboulé, pas seulement « rapide »).
@@ -121,6 +168,8 @@ def has_substantive_dish_after_recette(q_ascii: str) -> bool:
     if not tail:
         return False
     if tail_is_mood_or_season_context_only(tail):
+        return False
+    if is_lebanese_corpus_browse_tail(tail):
         return False
     tokens = [re.sub(r"^[^\w]+|[^\w]+$", "", unidecode(w).lower()) for w in tail.split() if w.strip()]
     if not tokens:
@@ -278,6 +327,18 @@ def try_recipe_by_mood_or_season(q_ascii: str, q_raw: str) -> Optional[QueryAnal
     # Ci-dessous : humeur / moment — éviter d’écraser « recette [plat] … »
     if has_substantive_dish_after_recette(q_ascii):
         return None
+
+    # Recherche large « cuisine libanaise » (sans plat nommé) — retrieval + rerank, pas d’alternative
+    if any(w in q for w in ("libanais", "libanaise", "libanaises")) or re.search(r"\bliban\b", q):
+        return QueryAnalysis(
+            safety=safe,
+            intent="recipe_by_mood",
+            intent_confidence=0.9,
+            is_culinary=True,
+            recipe_count=1,
+            mood_tags=["traditionnel", "convivial", "copieux", "liban"],
+            reasoning="IntentRouter: parcours corpus cuisine libanaise (sans plat nommé)",
+        )
 
     # Léger / frais avant « ce soir » pour « idée légère pour ce soir »
     if any(w in q for w in ("leger", "léger", "pas lourd", "fraicheur", "rafraichissant")):

@@ -17,6 +17,7 @@ from typing import List, Optional
 from unidecode import unidecode
 
 from .mood_intent_patterns import (
+    is_lebanese_corpus_browse_tail,
     tail_is_mood_or_season_context_only,
     try_recipe_by_mood_or_season,
 )
@@ -73,9 +74,11 @@ def _dish_tail_after_recette(q_ascii: str) -> Optional[str]:
     tail = _strip_leading_articles(tail)
     if not tail:
         return None
-    dish_candidate = " ".join(tail.split()[:6]).strip() or None
-    if dish_candidate and tail_is_mood_or_season_context_only(dish_candidate):
+    if tail_is_mood_or_season_context_only(tail):
         return None
+    if is_lebanese_corpus_browse_tail(tail):
+        return None
+    dish_candidate = " ".join(tail.split()[:6]).strip() or None
     return dish_candidate
 
 
