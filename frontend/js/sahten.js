@@ -551,8 +551,11 @@ export class SahtenChat {
     appendUserMessage(text) {
         const div = document.createElement('div');
         div.className = 'msg msg-user';
-        div.textContent = text;
         div.setAttribute('data-user-msg', '');
+        const bubble = document.createElement('span');
+        bubble.className = 'msg-user-bubble';
+        bubble.textContent = text;
+        div.appendChild(bubble);
         this.dom.body.appendChild(div);
         this.scrollToBottom();
     }
