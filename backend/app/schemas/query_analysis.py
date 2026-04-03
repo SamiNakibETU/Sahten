@@ -1,7 +1,11 @@
 """Schémas Pydantic pour le résultat d'analyse de requête (sécurité, intention, filtres)."""
 
+from __future__ import annotations
+
 from typing import Optional, List, Literal, Any
 from pydantic import BaseModel, Field, field_validator, model_validator
+
+from .query_plan import QueryPlan
 
 
 class SafetyCheck(BaseModel):
@@ -232,6 +236,11 @@ class QueryAnalysis(BaseModel):
         description="Si off-topic/blocked: suggestion de plat libanais en rapport avec le contexte"
     )
 
+    plan: Optional[QueryPlan] = Field(
+        default=None,
+        description="Plan SOTA LLM (QueryPlan) lorsque l'analyse passe par json_schema strict",
+    )
+
     @model_validator(mode="before")
     @classmethod
     def coerce_llm_null_fields(cls, data: Any) -> Any:
@@ -270,5 +279,11 @@ class QueryAnalysis(BaseModel):
             self.is_culinary and
             self.intent not in ["greeting", "off_topic", "about_bot"]
         )
+
+    def effective_retrieval_focus(self) -> Optional[str]:
+        """Phrase de retrieval produite par le QueryPlan (LLM), si présente."""
+        if self.plan is not None and self.plan.retrieval_focus.strip():
+            return self.plan.retrieval_focus.strip()
+        return None
 
 

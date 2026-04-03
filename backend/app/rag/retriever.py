@@ -532,11 +532,52 @@ class HybridRetriever:
                 break
         return cards
 
+    _DESSERT_HINTS = (
+        "dessert",
+        "sucre",
+        "sucré",
+        "sucree",
+        "gateau",
+        "gâteau",
+        "cookie",
+        "biscuit",
+        "patisserie",
+        "pâtisserie",
+        "douceur",
+        "chocolat",
+    )
+
+    @staticmethod
+    def _plan_rerank_prefix(analysis: QueryAnalysis) -> str:
+        p = analysis.plan
+        if p is None:
+            return ""
+        rf = (p.retrieval_focus or "").strip()
+        rf_bit = f" retrieval_focus={rf[:140]}" if rf else ""
+        return f"[QueryPlan] task={p.task} cuisine_scope={p.cuisine_scope} course={p.course}{rf_bit}"
+
     @staticmethod
     def _allowlist_for_intent(analysis: QueryAnalysis, raw_query: str) -> Optional[set[str]]:
-        """Apply category constraints for specific intents."""
-        q = (raw_query or "").lower()
-        
+        """Contraintes de catégorie : priorité au QueryPlan, sinon heuristiques legacy."""
+        q = unidecode(raw_query or "").lower()
+        p = analysis.plan
+
+        if p is not None:
+            if p.course == "dessert":
+                return {"dessert"}
+            if p.course == "plat":
+                return {"plat_principal"}
+            if p.course == "entree":
+                return {"entree"}
+            if p.course == "mezze":
+                return {"mezze_froid", "mezze_chaud"}
+            if p.task == "browse_corpus" and p.cuisine_scope == "lebanese_olj":
+                if p.course == "dessert":
+                    return {"dessert"}
+                if p.course in ("any", "plat") and not any(x in q for x in HybridRetriever._DESSERT_HINTS):
+                    return {"plat_principal", "mezze_froid", "mezze_chaud", "entree"}
+            return None
+
         if analysis.intent == "recipe_by_category" and analysis.category:
             return {analysis.category}
 
@@ -551,23 +592,7 @@ class HybridRetriever:
                 return {"dessert"}
         if analysis.intent == "recipe_by_mood":
             tags = {unidecode(t).lower() for t in (analysis.mood_tags or [])}
-            if "liban" in tags and not any(
-                x in q
-                for x in (
-                    "dessert",
-                    "sucre",
-                    "sucré",
-                    "sucree",
-                    "gateau",
-                    "gâteau",
-                    "cookie",
-                    "biscuit",
-                    "patisserie",
-                    "pâtisserie",
-                    "douceur",
-                    "chocolat",
-                )
-            ):
+            if "liban" in tags and not any(x in q for x in HybridRetriever._DESSERT_HINTS):
                 return {"plat_principal", "mezze_froid", "mezze_chaud", "entree"}
         return None
 
@@ -755,7 +780,11 @@ class HybridRetriever:
             return picked[:3], False, {"selected": [c.url for c in picked if c.url]} if debug else None
 
         # Regular search with rerank
-        parts_rw: List[str] = [raw_query]
+        parts_rw: List[str] = []
+        rf = analysis.effective_retrieval_focus()
+        if rf:
+            parts_rw.append(rf)
+        parts_rw.append(raw_query)
         if analysis.dish_name:
             parts_rw.append(analysis.dish_name)
         parts_rw.extend(analysis.dish_name_variants or [])
@@ -810,13 +839,18 @@ class HybridRetriever:
                     logger.info("Rerank short-circuit: dish=%s found in title=%s (lex_score=%.3f)",
                                 dish, title_l[:60], lex_score)
         if not rerank_shortcircuit:
+            plan_prefix = self._plan_rerank_prefix(analysis)
+            rr_uq = rerank_user_query
+            if plan_prefix:
+                base_q = rr_uq if rr_uq else raw_query
+                rr_uq = f"{plan_prefix}\n\n{base_q}"
             reranked = await self._rerank(
                 raw_query,
                 fused,
                 top_k=rerank_top_k,
                 category_allowlist=allowlist,
                 must_contain_any=must_any,
-                rerank_user_query=rerank_user_query,
+                rerank_user_query=rr_uq,
             )
         # Filter low scores only when LLM reranker ran (scores on 0-1 scale)
         MIN_RERANK_SCORE = 0.15

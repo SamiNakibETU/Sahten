@@ -1,73 +1,58 @@
-"""Tests intent saison / humeur / moment (recipe_by_mood vs recipe_specific)."""
+"""Tests routeur minimal + fallback offline + mapper QueryPlan."""
 
 from __future__ import annotations
 
 import pytest
 
 from app.core.intent_router import route_intent_deterministic
-from app.core.mood_intent_patterns import has_substantive_dish_after_recette, is_lebanese_corpus_browse_tail
 from app.llm.query_analyzer import QueryAnalyzer
+from app.schemas.query_plan import QueryPlan
+from app.schemas.query_plan_mapper import query_plan_to_analysis
 
 
-@pytest.mark.parametrize(
-    "query,expected_intent,key_tags",
-    [
-        ("recette pour l'hiver", "recipe_by_mood", ["hiver", "reconfortant"]),
-        ("recette pour l'hiver ", "recipe_by_mood", ["hiver"]),
-        ("idee plat automne", "recipe_by_mood", ["reconfortant"]),
-        ("plat pour le printemps", "recipe_by_mood", ["frais", "leger"]),
-        ("recette legere pour ce soir", "recipe_by_mood", ["leger", "frais"]),
-        ("recette pour ce midi", "recipe_by_mood", ["rapide", "frais"]),
-        ("plat pour dimanche", "recipe_by_mood", ["convivial", "festif"]),
-    ],
-)
-def test_route_mood_or_season(query: str, expected_intent: str, key_tags: list[str]) -> None:
-    r = route_intent_deterministic(query)
+def test_route_menu_and_greeting_still_deterministic() -> None:
+    r = route_intent_deterministic("menu entrée plat dessert")
     assert r is not None
-    assert r.intent == expected_intent
-    tags = r.mood_tags or []
-    for t in key_tags:
-        assert t in tags, f"missing tag {t!r} in {tags!r} for {query!r}"
+    assert r.intent == "menu_composition"
+    g = route_intent_deterministic("bonjour")
+    assert g is not None
+    assert g.intent == "greeting"
 
 
-@pytest.mark.parametrize(
-    "query",
-    [
-        "recette libanaise",
-        "plat libanais",
-        "recette typique libanaise à cuisiner pour ma famille française",
-        "idée recette traditionnelle libanaise",
-    ],
-)
-def test_route_lebanese_corpus_browse_is_mood_not_specific(query: str) -> None:
-    r = route_intent_deterministic(query)
-    assert r is not None
-    assert r.intent == "recipe_by_mood"
-    assert r.mood_tags
-    assert "liban" in r.mood_tags
+def test_route_culinary_ambiguous_returns_none() -> None:
+    """Saisons / plats : désormais résolus par QueryPlan (LLM)."""
+    assert route_intent_deterministic("recette pour l'hiver") is None
+    assert route_intent_deterministic("recette libanaise") is None
+    assert route_intent_deterministic("recette taboulé pour ce soir") is None
 
 
-def test_lebanese_browse_tail_detection() -> None:
-    assert is_lebanese_corpus_browse_tail("libanaise")
-    assert is_lebanese_corpus_browse_tail("typique libanaise pour ma famille")
-    assert not is_lebanese_corpus_browse_tail("taboulé libanais")
-    assert not has_substantive_dish_after_recette("recette libanaise")
-    assert has_substantive_dish_after_recette("recette taboulé libanais")
+def test_query_plan_browse_to_analysis() -> None:
+    plan = QueryPlan(
+        task="browse_corpus",
+        cuisine_scope="lebanese_olj",
+        course="plat",
+        retrieval_focus="plat libanais familial mezze grillade",
+        mood_tags=["convivial"],
+    )
+    a = query_plan_to_analysis(plan)
+    assert a.intent == "recipe_by_mood"
+    assert a.plan is not None
+    assert "liban" in (a.mood_tags or [])
 
 
-def test_route_recette_with_named_dish_stays_specific() -> None:
-    r = route_intent_deterministic("recette taboulé pour ce soir")
-    assert r is not None
-    assert r.intent == "recipe_specific"
-    assert r.dish_name
-
-
-def test_route_recette_poulet_hiver_not_pure_season_mood() -> None:
-    """Saison seule après un plat nommé : ne pas classer toute la requête en recipe_by_mood."""
-    r = route_intent_deterministic("recette de poulet pour l'hiver")
-    assert r is not None
-    assert r.intent == "recipe_specific"
-    assert "poulet" in (r.dish_name or "").lower()
+def test_query_plan_named_dish() -> None:
+    plan = QueryPlan(
+        task="named_dish",
+        cuisine_scope="non_lebanese_named",
+        course="any",
+        dish_name="fajitas",
+        dish_variants=["fajitas"],
+        inferred_main_ingredients=["poulet", "viande", "poivron"],
+        retrieval_focus="fajitas poulet poivron",
+    )
+    a = query_plan_to_analysis(plan)
+    assert a.intent == "recipe_specific"
+    assert a.dish_name == "fajitas"
 
 
 def test_fallback_offline_mood_hiver() -> None:

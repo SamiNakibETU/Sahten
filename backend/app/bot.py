@@ -14,9 +14,14 @@ from .core.model_selector import get_model_for_request
 from .core.intent_router import route_intent_deterministic
 from .core.safety import safety_gate_check
 from .llm.query_analyzer import QueryAnalyzer
+from .llm.query_rewriter import maybe_rewrite_for_retrieval
 from .llm.response_generator import ResponseGenerator
 from .rag.retriever import HybridRetriever
-from .rag.session_manager import SessionManager, is_continuation
+from .rag.session_manager import (
+    SessionManager,
+    format_recent_turns_for_retrieval,
+    is_continuation,
+)
 from .schemas.query_analysis import QueryAnalysis
 from .schemas.responses import (
     OLJRecommendation,
@@ -87,9 +92,14 @@ class SahtenBot:
         if narrative.teaser and evidence.response_type in {"not_found_with_alternative", "recipe_not_found"}:
             main_parts.append(narrative.teaser)
         assistant_text = " ".join(part.strip() for part in main_parts if part).strip()
-        # Salutation éditoriale — sauf alternative contractuelle : le brief exige que l'accroche
-        # « Je suis désolé… je peux te proposer » soit en tête du message (sans « Bonjour » devant).
-        if assistant_text and evidence.response_type != "not_found_with_alternative":
+        # Salutation éditoriale — pas si la conversation a déjà des tours (évite « Bonjour » à chaque message).
+        # Exception : accroche alternative contractuelle (pas de « Bonjour » devant le hook imposé).
+        prior = bool(evidence.session_context.get("has_prior_turns"))
+        if (
+            assistant_text
+            and evidence.response_type != "not_found_with_alternative"
+            and not prior
+        ):
             first_word = assistant_text.split(None, 1)[0].lower().rstrip(",!?.")
             if first_word not in {"bonjour", "marhaba", "salut"}:
                 assistant_text = f"{_EDITORIAL_SALUTATION}\n\n{assistant_text}"
@@ -100,6 +110,8 @@ class SahtenBot:
             max_chars = 820
         else:
             max_chars = 360
+        if evidence.session_context.get("has_prior_turns"):
+            max_chars = min(980, int(max_chars * 1.25))
         if len(assistant_text) > max_chars:
             assistant_text = assistant_text[: max_chars - 1].rstrip() + "…"
         if assistant_text:
@@ -275,7 +287,11 @@ class SahtenBot:
         trace_meta["routing_source"] = routing_source
         if analysis is None:
             analyze_started = time.perf_counter()
-            analysis = await analyzer.analyze(message)
+            conv_for_llm = format_recent_turns_for_retrieval(session_context) or None
+            analysis = await analyzer.analyze(
+                message,
+                conversation_context=conv_for_llm,
+            )
             step_timings_ms["analysis"] = int((time.perf_counter() - analyze_started) * 1000)
 
         if not analysis.safety.is_safe:
@@ -472,8 +488,23 @@ class SahtenBot:
 
         if not recipes:
             retrieval_started = time.perf_counter()
+            conv_for_retrieval = format_recent_turns_for_retrieval(session_context) or None
+
+            boost = await maybe_rewrite_for_retrieval(
+                message,
+                analysis,
+                conversation_context=conv_for_retrieval,
+                model=effective_model,
+            )
+            if boost:
+                trace_meta["retrieval_query_boost"] = boost[:300]
             recipes, is_base2, retrieval_debug = await self.retriever.search_with_rerank(
-                analysis, raw_query=message, debug=debug, exclude_urls=exclude_urls
+                analysis,
+                raw_query=message,
+                debug=debug,
+                exclude_urls=exclude_urls,
+                conversation_context=conv_for_retrieval,
+                retrieval_query_boost=boost,
             )
             step_timings_ms["retrieval"] = int((time.perf_counter() - retrieval_started) * 1000)
             if retrieval_debug and retrieval_debug.get("rerank_shortcircuit"):
@@ -593,6 +624,20 @@ class SahtenBot:
                     confidence=analysis.intent_confidence,
                     model_used=effective_model,
                 )
+                if session:
+                    summary_bits = [
+                        (narrative.hook or "").strip(),
+                        (narrative.cultural_context or "").strip()[:200],
+                    ]
+                    session.add_turn(
+                        user_message=message,
+                        intent=analysis.intent,
+                        primary_dish=analysis.dish_name,
+                        ingredients=analysis.ingredients,
+                        recipe_url=alternative.url,
+                        response_summary=" ".join(s for s in summary_bits if s).strip()[:400],
+                    )
+                    self.session_manager.save(session)
                 meta = finalize_trace()
                 self._apply_scenario_metadata(
                     message=message,
@@ -636,6 +681,16 @@ class SahtenBot:
                 confidence=analysis.intent_confidence,
                 model_used=effective_model,
             )
+            if session:
+                session.add_turn(
+                    user_message=message,
+                    intent=analysis.intent,
+                    primary_dish=analysis.dish_name,
+                    ingredients=analysis.ingredients,
+                    recipe_url=None,
+                    response_summary=(narrative.hook or "")[:400],
+                )
+                self.session_manager.save(session)
             dbg_nf = (
                 {"analysis": analysis.model_dump(), "retrieval": retrieval_debug, "model": effective_model}
                 if debug
@@ -708,13 +763,15 @@ class SahtenBot:
         # Save session with new recipes
         if session and recipes:
             primary_url = recipes[0].url if recipes else None
+            titles = " ; ".join((r.title or "") for r in recipes[:3])
+            hook_snip = (narrative.hook or "")[:180]
             session.add_turn(
                 user_message=message,
                 intent=analysis.intent,
                 primary_dish=analysis.dish_name,
                 ingredients=analysis.ingredients,
                 recipe_url=primary_url,
-                response_summary=f"{len(recipes)} recettes proposées",
+                response_summary=f"{titles}. {hook_snip}".strip()[:450],
             )
             self.session_manager.save(session)
         

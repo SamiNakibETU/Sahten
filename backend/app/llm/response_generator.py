@@ -78,6 +78,7 @@ Objectif : reponse courte, utile, professionnelle et chaleureuse — un detail c
 - **Accord chef / cheffe** : si le champ `chef` contient un prenom typiquement feminin (Carla, Liza, Tara, Yasmina, Joanna, Lea, Emilie, etc.), ecrivez **cheffe** ou tournure neutre (« la recette de Carla Rebeiz », « proposee par Carla Rebeiz ») — **interdit** : « un chef » pour une femme. Si le genre est ambigu, forme neutre sans « chef » : « par [Nom complet] ».
 - Si la demande est vague (« rapide », « leger »), reliez-la a un fait precis de la recette (temps, nombre d'ingredients, type de cuisson).
 - Si la requete est une recherche large « cuisine libanaise / pour la famille » (sans dessert demande) : accrochez-vous au plat OLJ propose (titre, chef, technique) ; ne presentez pas un dessert comme reponse principale sauf si c'est bien la fiche la plus pertinente parmi selected_recipes.
+- Si le JSON contient `query_plan` : respectez `task`, `course` et `cuisine_scope` pour le ton (ex. browse_corpus + plat = mettre en avant un plat de table OLJ, pas une digression sur la cuisine en general).
 - Si le JSON contient `conversation_recent` (tours precedents) : en tenir compte pour enchainer sans repetitions inutiles ; ne pas re-saluer comme un premier message.
 - Si plusieurs recettes : une phrase courte par fiche, chaque phrase commence par le titre (ou le chef) pour que le lecteur fasse le lien avec les cartes.
 - **Alternative** (plat demande absent des donnees) : le `hook` est **remplace cote serveur** par la phrase exacte (accents compris) : « Je suis desole, mais je n'ai pas cette recette dans mes carnets. Mais pour me faire pardonner je peux te proposer » — dans `detail` vous enchainez tout de suite avec la **recette libanaise** (titre + **cheffe/chef** correct selon le prenom, voir regle ci-dessus), ingredient principal en commun, lien concret. Pas d'encyclopedie sur le plat demande. **Ne commencez pas** le `detail` par une autre accroche type « Je vous propose » sans avoir laisse le serveur afficher le hook contractuel (le hook dans le JSON est ignore pour le texte final mais le `detail` doit suivre logiquement).
@@ -260,6 +261,15 @@ class ResponseGenerator:
             payload["recipe_count"] = analysis.recipe_count
             payload["category"] = analysis.category
             payload["dish_name"] = analysis.dish_name
+            if analysis.plan is not None:
+                pl = analysis.plan
+                payload["query_plan"] = {
+                    "task": pl.task,
+                    "cuisine_scope": pl.cuisine_scope,
+                    "course": pl.course,
+                    "retrieval_focus": pl.retrieval_focus,
+                    "constraints": list(pl.constraints or []),
+                }
         if evidence.shared_ingredient_proof:
             payload["shared_ingredient_proof"] = {
                 "shared_ingredients": evidence.shared_ingredient_proof.shared_ingredients[:4],

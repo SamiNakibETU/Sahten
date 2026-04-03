@@ -1,0 +1,131 @@
+# Jeu golden pour évaluation RAG Sahten (Phase 0 du plan SOTA).
+# expected_url_substring: fragment d’URL OLJ attendu dans le top résultat (optionnel).
+# expected_intent: intent QueryAnalysis attendu (optionnel, contrôle best-effort).
+# expected_task / expected_course / expected_cuisine_scope: champs QueryPlan (optionnels, si debug expose plan).
+# tags: libre (hiver, mood, plat_nommé, vague, etc.)
+
+queries:
+  - id: taboule_explicit
+    text: "recette de taboulé"
+    expected_url_substring: "1227694"
+    expected_intent: recipe_specific
+    tags: [plat_nommé]
+
+  - id: hiver_mood
+    text: "recette pour l'hiver"
+    expected_intent: recipe_by_mood
+    tags: [saison, mood]
+
+  - id: houmous
+    text: "comment faire du houmous"
+    expected_intent: recipe_specific
+    tags: [plat_nommé]
+
+  - id: idee_legere_soir
+    text: "idée de plat léger pour ce soir"
+    expected_intent: recipe_by_mood
+    tags: [mood, vague]
+
+  - id: automne
+    text: "plat d'automne libanais"
+    expected_intent: recipe_by_mood
+    tags: [saison]
+
+  - id: printemps
+    text: "recette pour le printemps"
+    expected_intent: recipe_by_mood
+    tags: [saison]
+
+  - id: famille_fr_vague
+    text: "recette libanaise typique pour cuisiner à ma famille française"
+    tags: [vague, conversationnel]
+
+  - id: poulet_ingredient
+    text: "que faire avec du poulet"
+    expected_intent: recipe_by_ingredient
+    tags: [ingredient]
+
+  - id: dessert
+    text: "un dessert libanais"
+    expected_intent: recipe_by_category
+    tags: [categorie]
+
+  - id: mezze_multi
+    text: "3 idées de mezze"
+    expected_intent: multi_recipe
+    expected_task: multi
+    expected_course: mezze
+    expected_cuisine_scope: lebanese_olj
+    tags: [multi]
+
+  - id: menu_complet
+    text: "menu entrée plat dessert libanais"
+    expected_intent: menu_composition
+    tags: [menu]
+
+  - id: fattouch
+    text: "fattouch"
+    expected_intent: recipe_specific
+    tags: [court]
+
+  - id: kafta
+    text: "recette kafta"
+    expected_intent: recipe_specific
+    tags: [plat_nommé]
+
+  - id: manakish
+    text: "manakish fromage"
+    expected_intent: recipe_specific
+    tags: [plat_nommé]
+
+  - id: moussaka
+    text: "moussaka libanaise"
+    tags: [plat_nommé]
+
+  - id: lasagne_foreign
+    text: "lasagne"
+    expected_intent: recipe_specific
+    tags: [etranger, garde_semantique]
+
+  - id: greeting
+    text: "bonjour"
+    expected_intent: greeting
+    tags: [non_rag]
+
+  - id: off_topic
+    text: "quel temps fait-il"
+    expected_intent: off_topic
+    tags: [non_rag]
+
+  - id: dimanche
+    text: "plat pour dimanche"
+    expected_intent: recipe_by_mood
+    tags: [moment]
+
+  - id: rapide
+    text: "recette rapide ce soir"
+    expected_intent: recipe_by_mood
+    tags: [mood]
+
+  - id: vegan
+    text: "recette vegan libanaise"
+    tags: [regime]
+
+  - id: chef_tara
+    text: "recette de Tara Khattar"
+    expected_intent: recipe_by_chef
+    tags: [chef]
+
+  - id: zaatar_clarif
+    text: "c'est quoi le zaatar"
+    expected_intent: clarification
+    tags: [clarification]
+
+  - id: warak
+    text: "feuilles de vigne farcies"
+    tags: [plat_nommé]
+
+  - id: kibbeh
+    text: "kibbeh"
+    expected_intent: recipe_specific
+    tags: [court]

@@ -38,6 +38,9 @@ async def maybe_rewrite_for_retrieval(
     if not provider_credentials_ok(model):
         return None
 
+    if analysis.effective_retrieval_focus():
+        return None
+
     intent = analysis.intent
     if intent not in (
         "recipe_by_mood",

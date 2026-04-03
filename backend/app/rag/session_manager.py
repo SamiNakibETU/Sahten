@@ -11,6 +11,10 @@ from typing import Any, Optional
 import re
 import threading
 
+# Derniers échanges utilisateur / assistant (fil de discussion dans l’onglet).
+MAX_HISTORY_TURNS = 4
+MAX_TURN_TEXT_CHARS = 280
+
 
 @dataclass
 class ConversationTurn:
@@ -68,17 +72,38 @@ class SessionState:
         return bool(url and url in self.recipes_proposed)
 
     def get_context_for_continuation(self) -> dict[str, Any]:
+        """Contexte pour la requête en cours (historique déjà enregistré, sans le message actuel)."""
         last = self.get_last_turn()
-        if not last:
-            return {}
-        return {
-            "last_intent": last.intent,
-            "last_dish": last.primary_dish,
-            "last_ingredients": last.ingredients,
-            "last_recipe_url": last.recipe_url,
-            "all_ingredients": list(self.ingredients_mentioned),
-            "preferences": self.preferences,
+        recent_turns: list[dict[str, str]] = []
+        for turn in self.conversation_history[-MAX_HISTORY_TURNS:]:
+            u = (turn.user_message or "").strip()
+            if u:
+                if len(u) > MAX_TURN_TEXT_CHARS:
+                    u = u[: MAX_TURN_TEXT_CHARS - 1] + "…"
+                recent_turns.append({"role": "user", "text": u})
+            s = (turn.bot_response_summary or "").strip()
+            if s:
+                if len(s) > MAX_TURN_TEXT_CHARS:
+                    s = s[: MAX_TURN_TEXT_CHARS - 1] + "…"
+                recent_turns.append({"role": "assistant", "text": s})
+
+        base: dict[str, Any] = {
+            "recent_turns": recent_turns,
+            "has_prior_turns": bool(self.conversation_history),
         }
+        if not last:
+            return base
+        base.update(
+            {
+                "last_intent": last.intent,
+                "last_dish": last.primary_dish,
+                "last_ingredients": last.ingredients,
+                "last_recipe_url": last.recipe_url,
+                "all_ingredients": list(self.ingredients_mentioned),
+                "preferences": self.preferences,
+            }
+        )
+        return base
 
 
 class SessionManager:
@@ -168,6 +193,27 @@ CONTINUATION_PATTERNS = [
 ]
 
 
+def format_recent_turns_for_retrieval(session_context: dict[str, Any], *, max_chars: int = 900) -> str:
+    """
+    Résume le fil récent pour le retrieveur / reranker (reformulation implicite multi-tours).
+    """
+    turns = session_context.get("recent_turns") or []
+    if not turns:
+        return ""
+    lines: list[str] = []
+    for t in turns:
+        role = t.get("role", "")
+        text = (t.get("text") or "").strip()
+        if not text:
+            continue
+        label = "Utilisateur" if role == "user" else "Assistant"
+        lines.append(f"{label}: {text}")
+    out = "\n".join(lines).strip()
+    if len(out) > max_chars:
+        return out[: max_chars - 1] + "…"
+    return out
+
+
 def is_continuation(message: str) -> bool:
     """Detect whether a short reply continues the previous discussion."""
     if not message:
@@ -188,4 +234,10 @@ def is_continuation(message: str) -> bool:
     return any(re.match(pattern, normalized) for pattern in CONTINUATION_PATTERNS)
 
 
-__all__ = ["SessionManager", "SessionState", "ConversationTurn", "is_continuation"]
+__all__ = [
+    "SessionManager",
+    "SessionState",
+    "ConversationTurn",
+    "format_recent_turns_for_retrieval",
+    "is_continuation",
+]

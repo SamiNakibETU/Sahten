@@ -120,6 +120,19 @@ class Settings(BaseSettings):
     embedding_provider: str = "openai"
     embedding_model: str = "text-embedding-3-small"
     embedding_dimension: int = 1536
+
+    # Cache disque pour la matrice document embeddings (sous data_dir / .cache)
+    embedding_cache_enabled: bool = True
+    embedding_cache_dir: str = ".cache"
+
+    # Rerank cross-encoder local (sentence-transformers) ; désactivé par défaut (dépendance lourde)
+    enable_cross_encoder_rerank: bool = False
+    cross_encoder_model: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
+    # Si True, le LLM rerank ne traite que le top après cross-encoder (réduit coût/latence)
+    rerank_llm_after_cross_encoder: bool = True
+
+    # Réécriture requête retrieval (un appel LLM léger) pour intents mood / vague
+    enable_retrieval_query_rewrite: bool = True
     
     # ============================================================================
     # CMS WEBHOOK CONFIGURATION
