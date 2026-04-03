@@ -144,6 +144,13 @@ User: "recette pour l'hiver"
 → intent="recipe_by_mood", mood_tags=["hiver","reconfortant","chaud"], dish_name=null, is_culinary=true
 (Pas recipe_specific : ce n'est pas un nom de plat.)
 
+User: "recette libanaise" / "plat libanais" / "idée recette typique libanaise"
+→ intent="recipe_by_mood", dish_name=null, mood_tags=["traditionnel","convivial","copieux","liban"], is_culinary=true
+(Pas recipe_specific : recherche large dans le corpus OLJ, pas un plat nommé.)
+
+User: "recette typique libanaise à cuisiner pour ma famille française"
+→ intent="recipe_by_mood", dish_name=null, mood_tags=["traditionnel","convivial","copieux","liban"], is_culinary=true
+
 User: "idée de plat léger pour ce soir"
 → intent="recipe_by_mood", mood_tags=["leger","frais","rapide"], is_culinary=true
 
@@ -192,21 +199,34 @@ class QueryAnalyzer:
             self.api_key = settings.openai_api_key
         self.model = model
     
-    async def analyze(self, query: str) -> QueryAnalysis:
+    async def analyze(
+        self,
+        query: str,
+        *,
+        conversation_context: Optional[str] = None,
+    ) -> QueryAnalysis:
         """
         Analyze user query with LLM.
         
         Args:
             query: Raw user query
+            conversation_context: Résumé des derniers tours (même onglet), pour coréférences.
             
         Returns:
             QueryAnalysis with complete structured analysis
         """
         try:
             if self._offline_only:
-                return self._fallback_analysis(query)
+                return self._fallback_analysis(query, conversation_context=conversation_context)
             if not provider_credentials_ok(self.model):
-                return self._fallback_analysis(query)
+                return self._fallback_analysis(query, conversation_context=conversation_context)
+
+            user_content = query
+            if conversation_context and conversation_context.strip():
+                user_content = (
+                    f"Contexte (échanges récents dans cette conversation — utilise-le pour interpréter la requête) :\n"
+                    f"{conversation_context.strip()}\n\n---\n\nRequête actuelle :\n{query}"
+                )
 
             client = async_openai_client_for_model(self.model)
             # Use JSON mode with structured output
@@ -215,7 +235,7 @@ class QueryAnalyzer:
                 response_format={"type": "json_object"},
                 messages=[
                     {"role": "system", "content": ANALYZER_SYSTEM_PROMPT + "\n\nRéponds UNIQUEMENT en JSON valide correspondant au schema QueryAnalysis."},
-                    {"role": "user", "content": query}
+                    {"role": "user", "content": user_content}
                 ],
                 temperature=0,
                 max_tokens=180,
@@ -275,9 +295,14 @@ class QueryAnalyzer:
         except Exception as e:
             logger.error(f"Query analysis failed: {e}")
             # Return safe fallback
-            return self._fallback_analysis(query)
+            return self._fallback_analysis(query, conversation_context=conversation_context)
     
-    def _fallback_analysis(self, query: str) -> QueryAnalysis:
+    def _fallback_analysis(
+        self,
+        query: str,
+        *,
+        conversation_context: Optional[str] = None,
+    ) -> QueryAnalysis:
         """
         Create fallback analysis when LLM fails.
 
@@ -434,9 +459,13 @@ class QueryAnalyzer:
 
 
 # Convenience function
-async def analyze_query(query: str) -> QueryAnalysis:
+async def analyze_query(
+    query: str,
+    *,
+    conversation_context: Optional[str] = None,
+) -> QueryAnalysis:
     """Convenience function to analyze a query."""
     analyzer = QueryAnalyzer()
-    return await analyzer.analyze(query)
+    return await analyzer.analyze(query, conversation_context=conversation_context)
 
 

@@ -77,6 +77,8 @@ Objectif : reponse courte, utile, professionnelle et chaleureuse — un detail c
 - Ancrez-vous dans **selected_recipes** et **cited_passage** : noms des plats, auteurs, ingredients ou techniques mentionnes dans les donnees.
 - **Accord chef / cheffe** : si le champ `chef` contient un prenom typiquement feminin (Carla, Liza, Tara, Yasmina, Joanna, Lea, Emilie, etc.), ecrivez **cheffe** ou tournure neutre (« la recette de Carla Rebeiz », « proposee par Carla Rebeiz ») — **interdit** : « un chef » pour une femme. Si le genre est ambigu, forme neutre sans « chef » : « par [Nom complet] ».
 - Si la demande est vague (« rapide », « leger »), reliez-la a un fait precis de la recette (temps, nombre d'ingredients, type de cuisson).
+- Si la requete est une recherche large « cuisine libanaise / pour la famille » (sans dessert demande) : accrochez-vous au plat OLJ propose (titre, chef, technique) ; ne presentez pas un dessert comme reponse principale sauf si c'est bien la fiche la plus pertinente parmi selected_recipes.
+- Si le JSON contient `conversation_recent` (tours precedents) : en tenir compte pour enchainer sans repetitions inutiles ; ne pas re-saluer comme un premier message.
 - Si plusieurs recettes : une phrase courte par fiche, chaque phrase commence par le titre (ou le chef) pour que le lecteur fasse le lien avec les cartes.
 - **Alternative** (plat demande absent des donnees) : le `hook` est **remplace cote serveur** par la phrase exacte (accents compris) : « Je suis desole, mais je n'ai pas cette recette dans mes carnets. Mais pour me faire pardonner je peux te proposer » — dans `detail` vous enchainez tout de suite avec la **recette libanaise** (titre + **cheffe/chef** correct selon le prenom, voir regle ci-dessus), ingredient principal en commun, lien concret. Pas d'encyclopedie sur le plat demande. **Ne commencez pas** le `detail` par une autre accroche type « Je vous propose » sans avoir laisse le serveur afficher le hook contractuel (le hook dans le JSON est ignore pour le texte final mais le `detail` doit suivre logiquement).
 
@@ -263,6 +265,11 @@ class ResponseGenerator:
                 "shared_ingredients": evidence.shared_ingredient_proof.shared_ingredients[:4],
                 "match_reason": evidence.match_reason,
             }
+        sc = evidence.session_context or {}
+        if sc.get("recent_turns"):
+            payload["conversation_recent"] = (sc.get("recent_turns") or [])[-8:]
+        if sc.get("has_prior_turns"):
+            payload["has_prior_turns"] = True
         return json.dumps(payload, ensure_ascii=False)
 
     async def _call_llm(
