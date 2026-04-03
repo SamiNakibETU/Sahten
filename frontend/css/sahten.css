@@ -38,11 +38,11 @@
   /* Pastilles vertes (header « Sahten » + chapô) : même échelle */
   /* Chapô : pastilles — inset homogène (padding symétrique en em) */
   --welcome-badge-inline-fs: 14px;
-  --welcome-badge-inline-inset: 0.22em;
-  /* Badge « Sahten » dans le header uniquement (plus lisible que les pastilles du chapô) */
+  /* Même « air » vert derrière le nom (header + chapô) — padding identique en px */
+  --sahten-brand-badge-pad-y: 6px;
+  --sahten-brand-badge-pad-x: 10px;
+  /* Badge « Sahten » dans le header (échelle légèrement plus grande que le chapô) */
   --header-brand-badge-fs: 17px;
-  --header-brand-badge-pad-y: 0.32em;
-  --header-brand-badge-pad-x: 0.4em;
   /* Zone saisie (esprit rubrique « À table » / papier OLJ) */
   --footer-field-bg: #faf9f7;
   --footer-field-border: #e6e5e2;
@@ -214,7 +214,7 @@
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  padding: var(--header-brand-badge-pad-y) var(--header-brand-badge-pad-x);
+  padding: var(--sahten-brand-badge-pad-y) var(--sahten-brand-badge-pad-x);
   border-radius: 0;
   background: var(--sahten-badge-green);
   font-family: var(--font-ui);
@@ -289,8 +289,7 @@
   color: var(--text);
   background: rgba(0, 0, 0, 0.06);
 }
-.sahten-size-btn svg,
-.sahten-close-btn svg {
+.sahten-size-btn svg {
   width: 13px;
   height: 13px;
 }
@@ -299,6 +298,12 @@
   border-left: 1px solid var(--border);
   border-radius: 0 5px 5px 0;
   padding-left: 6px;
+  color: #6e6e6e;
+}
+.sahten-close-btn svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
 }
 
 .sahten-body {
@@ -444,7 +449,7 @@
   font-style: normal;
   letter-spacing: 0.02em;
   background: var(--sahten-badge-green);
-  padding: var(--welcome-badge-inline-inset) var(--welcome-badge-inline-inset);
+  padding: var(--sahten-brand-badge-pad-y) var(--sahten-brand-badge-pad-x);
   border-radius: 0;
   margin: 0 0.06em;
   color: #ffffff;
@@ -614,15 +619,30 @@
 }
 
 .msg-user {
+  align-self: flex-end;
+  margin-left: auto;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   gap: 4px;
-  max-width: 86%;
+  width: fit-content;
+  max-width: min(86%, 100%);
   font-family: var(--font-ui);
   font-size: 13px;
   line-height: 1.5;
   color: var(--text-secondary);
+}
+.msg-user-bubble {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  padding: 10px 14px;
+  border-radius: 14px 14px 4px 14px;
+  background: #f0f0f0;
+  color: var(--text-secondary);
+  text-align: left;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
 }
 .msg-user::before {
   content: "Vous";
