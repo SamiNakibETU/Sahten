@@ -116,6 +116,11 @@ class QueryAnalysis(BaseModel):
         description="Ingrédients mentionnés, normalisés en français"
     )
     
+    inferred_ingredients: List[str] = Field(
+        default_factory=list,
+        description="Pour recipe_specific quand le plat n'est pas libanais : 2-5 ingrédients typiques du plat (ex: tiramisu → mascarpone, café, cacao, œufs, biscuits)"
+    )
+    
     category: Optional[Literal[
         "dessert", 
         "mezze_froid", 

@@ -11,10 +11,31 @@
   --color-liban: #94C2AE;
   --color-accent: #DD3B31;
   --color-border: #E0DEDD;
-  
+  --atable-ink: var(--color-text-primary);
+  --atable-ink-muted: var(--color-text-secondary);
+  --sahten-badge-green: var(--color-liban);
+
+  /* Accueil widget — échelle fixe (maquette À table) */
+  --welcome-serif: 15px;
+  --welcome-serif-lh: 1.45;
+  --welcome-lede-size: 14px;
+  --welcome-lede-lh: 1.5;
+  --welcome-caps: 10px;
+  --welcome-caps-lh: 1.2;
+  --welcome-caps-tracking: 0.12em;
+  --welcome-pill-fs: 13px;
+  --welcome-pill-lh: 1;
+  --welcome-pill-pad-x: 3px;
+  --welcome-pill-pad-y: 1px;
+  --welcome-mascot-header: 30px;
+  --welcome-example-fs: 13px;
+  --welcome-example-lh: 1.4;
+  --welcome-example-radius: 10px;
+
   /* Typography */
   --font-family: 'Inter', -apple-system, sans-serif;
   --font-family-serif: 'Georgia', 'Times New Roman', serif;
+  --font-display: 'Playfair Display', Georgia, 'Times New Roman', serif;
   
   /* Effects */
   --shadow-soft: 0 4px 20px rgba(0,0,0,0.06);
@@ -88,7 +109,7 @@
     bottom: 32px;
     right: 32px;
     width: 400px;
-    height: 650px;
+    height: min(720px, calc(100vh - 64px));
     max-height: calc(100vh - 64px);
   }
 
@@ -112,6 +133,9 @@
     transform: none !important;
     border-radius: 0;
     border: none;
+  }
+  .welcome-examples--reference .welcome-examples-list {
+    gap: 8px;
   }
 }
 
@@ -216,13 +240,14 @@
    HEADER & CONTROLS
    ---------------------------------- */
 .sahten-header {
-  height: 48px;
+  min-height: 48px;
+  height: auto;
   background: var(--color-bg);
   border-bottom: 1px solid var(--color-border);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 12px 0 16px;
+  padding: 8px 12px 8px 16px;
   flex-shrink: 0;
 }
 
@@ -237,6 +262,23 @@
   align-items: center;
   gap: 8px;
   line-height: 1;
+}
+.sahten-title.sahten-title--brand {
+  text-transform: none;
+  letter-spacing: -0.02em;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.15;
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--atable-ink);
+}
+.sahten-title.sahten-title--brand::before {
+  display: none;
 }
 
 .sahten-title::before {
@@ -341,7 +383,7 @@
 
 .msg-bot {
   width: 100%;
-  text-align: center;
+  text-align: left;
   animation: fadeIn 0.5s ease-out;
 }
 
@@ -672,4 +714,232 @@
   color: var(--color-liban);
   font-style: italic;
   padding: 4px 0;
+}
+
+/* ----------------------------------
+   ACCUEIL — maquette OLJ À table
+   ---------------------------------- */
+.welcome-editorial {
+  margin: 0;
+  padding: 0;
+  max-width: 100%;
+  text-align: left;
+}
+.welcome-editorial--stanza {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.welcome-stanza {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+}
+.welcome-line {
+  font-family: var(--font-display);
+  font-size: var(--welcome-serif);
+  line-height: var(--welcome-serif-lh);
+  font-weight: 400;
+  color: var(--atable-ink);
+  margin: 0;
+  letter-spacing: 0.01em;
+}
+.welcome-stanza > .welcome-line:first-child {
+  margin-bottom: 4px;
+}
+.welcome-line--lede {
+  font-size: var(--welcome-lede-size);
+  line-height: 1.42;
+  color: var(--atable-ink);
+  margin-top: 0;
+}
+.welcome-stanza .welcome-line--lede + .welcome-line--lede {
+  margin-top: 0.35rem;
+}
+.welcome-olj-mark {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  color: var(--atable-ink);
+  letter-spacing: 0.01em;
+}
+.welcome-olj-logomark {
+  display: inline-block;
+  height: 1.18em;
+  width: auto;
+  max-width: min(10.5rem, 48vw);
+  margin-left: 0.22em;
+  vertical-align: -0.24em;
+  object-fit: contain;
+  object-position: left center;
+}
+.welcome-pill,
+.welcome-highlight,
+.welcome-tag {
+  display: inline;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  font-family: var(--font-family);
+  font-weight: 700;
+  font-size: var(--welcome-pill-fs);
+  line-height: var(--welcome-pill-lh);
+  font-style: normal;
+  letter-spacing: 0.03em;
+  background: var(--sahten-badge-green);
+  color: #ffffff;
+  padding: var(--welcome-pill-pad-y) var(--welcome-pill-pad-x);
+  border-radius: 1px;
+  margin: 0 0.02em;
+  vertical-align: baseline;
+  position: relative;
+  top: -0.06em;
+}
+.welcome-examples--reference {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid color-mix(in srgb, var(--color-border) 55%, rgba(0, 0, 0, 0.12));
+}
+.welcome-examples--reference .welcome-examples-label {
+  font-family: var(--font-family);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #7a7874;
+  line-height: 1.25;
+  margin: 0 0 2px 0;
+}
+.welcome-examples-label {
+  font-family: var(--font-display);
+  font-size: var(--welcome-lede-size);
+  font-weight: 400;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--atable-ink-muted);
+  line-height: var(--welcome-lede-lh);
+  margin: 0 0 6px 0;
+}
+.welcome-examples-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.welcome-examples-list li {
+  margin: 0;
+  padding: 0;
+}
+.welcome-example-prompt {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 9px 12px;
+  border: 1px solid color-mix(in srgb, var(--color-border) 92%, var(--atable-ink));
+  border-radius: var(--welcome-example-radius);
+  background: #ffffff;
+  font-family: var(--font-family);
+  font-size: var(--welcome-example-fs);
+  font-weight: 500;
+  line-height: var(--welcome-example-lh);
+  color: var(--atable-ink);
+  letter-spacing: 0.015em;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+.welcome-example-prompt:hover {
+  border-color: color-mix(in srgb, var(--color-liban) 55%, var(--color-border));
+  background: color-mix(in srgb, var(--color-liban) 6%, #fff);
+}
+.welcome-examples--reference .welcome-examples-list {
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 0;
+  border-top: none;
+}
+.welcome-examples--reference .welcome-example-prompt {
+  min-height: 0;
+  padding: 11px 14px;
+  margin: 0;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.03);
+  font-family: var(--font-family);
+  font-size: 13px;
+  font-weight: 500;
+  font-style: normal;
+  line-height: 1.45;
+  color: var(--atable-ink);
+  letter-spacing: -0.01em;
+  text-align: left;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    box-shadow 0.15s ease,
+    color 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.welcome-examples--reference .welcome-example-prompt:hover {
+  border-color: rgba(0, 0, 0, 0.14);
+  background: #ffffff;
+  color: var(--atable-ink);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+.welcome-examples--reference .welcome-example-prompt:active {
+  border-color: rgba(0, 0, 0, 0.12);
+  background: #fafafa;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+.welcome-examples--reference .welcome-example-prompt:focus-visible {
+  outline: none;
+  border-color: rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.08);
+}
+.welcome-example-prompt:focus-visible {
+  outline: 2px solid var(--color-liban);
+  outline-offset: 2px;
+}
+
+@media (max-width: 480px) {
+  .welcome-line {
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  .welcome-stanza > .welcome-line:first-child {
+    margin-bottom: 3px;
+  }
+  .welcome-line--lede {
+    margin-top: 0;
+    font-size: 13px;
+    line-height: 1.42;
+  }
+  .welcome-pill {
+    font-size: 11px;
+    padding: 1px var(--welcome-pill-pad-x);
+  }
+  .welcome-examples--reference {
+    margin-top: 12px;
+    padding-top: 10px;
+  }
+  .welcome-examples-list {
+    gap: 6px;
+  }
+  .welcome-examples--reference .welcome-examples-list {
+    gap: 7px;
+  }
+  .welcome-examples--reference .welcome-example-prompt {
+    min-height: 44px;
+    padding: 12px 14px;
+    font-size: 13px;
+    line-height: 1.45;
+  }
+  .welcome-olj-logomark {
+    max-width: min(9rem, 52vw);
+    height: 1.05em;
+  }
 }

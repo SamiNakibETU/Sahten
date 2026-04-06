@@ -21,13 +21,31 @@
 
 // Allowed HTML elements for sanitization
 const ALLOWED_TAGS = [
-    'div', 'p', 'span', 'strong', 'em', 'u', 'br', 
-    'a', 'article', 'h3', 
+    'div', 'p', 'span', 'strong', 'em', 'u', 'br',
+    'a', 'article', 'section', 'h2', 'h3',
     'ul', 'li', 'ol',
-    'blockquote'  // For recipe citations/grounding
+    'button',
+    'blockquote',
+    'img',
 ];
 
-const ALLOWED_ATTR = ['class', 'href', 'target', 'style', 'aria-label'];
+const ALLOWED_ATTR = [
+    'id',
+    'class',
+    'href',
+    'target',
+    'style',
+    'aria-label',
+    'aria-labelledby',
+    'role',
+    'lang',
+    'type',
+    'src',
+    'alt',
+    'width',
+    'height',
+    'decoding',
+];
 
 /**
  * Sanitize HTML using DOMPurify (if available) or basic sanitization
@@ -178,6 +196,21 @@ export class SahtenChat {
             this.sendMessage();
         });
 
+        if (this.dom.body) {
+            this.dom.body.addEventListener('click', (e) => {
+                const btn = e.target.closest('.welcome-example-prompt');
+                if (!btn || !this.dom.body.contains(btn)) return;
+                e.preventDefault();
+                const text = btn.textContent.replace(/\s+/g, ' ').trim();
+                if (!text || !this.dom.input) return;
+                this.dom.input.value = text;
+                this.dom.input.focus();
+                if (this.dom.input.tagName === 'TEXTAREA' && this.autoResizeInput) {
+                    this.autoResizeInput();
+                }
+            });
+        }
+
         // Size Switching (Desktop)
         this.dom.sizeBtns.forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -231,11 +264,27 @@ export class SahtenChat {
             // Welcome Message
             if (this.dom.body.children.length === 0) {
                 this.appendBotMessage({
-                    html: `<div class="sahten-narrative">
-                        <p>Bienvenue à la table de <strong>L'Orient-Le Jour</strong>.</p>
-                        <p>Je suis <em>Sahten</em>, votre chef dévoué.</p>
-                        <p>Quelle saveur ou quel souvenir culinaire souhaitez-vous raviver aujourd'hui ?</p>
-                    </div>`
+                    html: `<article class="welcome-editorial welcome-editorial--stanza welcome-editorial--atable" lang="fr">
+                        <div class="welcome-stanza">
+                            <p class="welcome-line">Je suis <span class="welcome-pill">Sahten</span>,<br />le robot culinaire de <img src="assets/logo_2_olj.svg" alt="L'Orient-Le Jour" class="welcome-olj-logomark" width="132" height="22" decoding="async" />.</p>
+                            <p class="welcome-line welcome-line--lede">J’ai plein de recettes dans mes carnets, et je les connais par cœur.</p>
+                            <p class="welcome-line welcome-line--lede">Parlez-moi et je serais ravi de vous faire découvrir la cuisine des <span class="welcome-pill">tables libanaises</span>.</p>
+                        </div>
+                        <section class="welcome-examples welcome-examples--reference" role="region" aria-labelledby="welcome-examples-title">
+                            <p class="welcome-examples-label" id="welcome-examples-title">Pour commencer</p>
+                            <ul class="welcome-examples-list">
+                                <li>
+                                    <button type="button" class="welcome-example-prompt">Léger et rapide ce soir&nbsp;?</button>
+                                </li>
+                                <li>
+                                    <button type="button" class="welcome-example-prompt">Un menu pour six&nbsp;?</button>
+                                </li>
+                                <li>
+                                    <button type="button" class="welcome-example-prompt">Trois idées au poulet&nbsp;?</button>
+                                </li>
+                            </ul>
+                        </section>
+                    </article>`
                 });
             }
         } else {

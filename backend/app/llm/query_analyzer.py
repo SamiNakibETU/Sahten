@@ -109,6 +109,12 @@ TOXICITÉ (threat_type="toxicity"):
 - dish_name: TOUJOURS en français normalisé
 - dish_name_variants: inclure les variantes pour la recherche
 
+- inferred_ingredients: UNIQUEMENT si intent=recipe_specific ET dish_name est un plat NON libanais (tiramisu, quiche, carbonara, etc.)
+  → Liste 2-5 ingrédients principaux typiques du plat en français
+  → Ex: "recette tiramisu" → inferred_ingredients=["mascarpone", "café", "cacao", "œufs", "biscuits"]
+  → Ex: "recette taboulé" → inferred_ingredients=[] (plat libanais, pas besoin)
+  → Ex: "recette quiche lorraine" → inferred_ingredients=["œufs", "crème", "lardons", "fromage"]
+
 - redirect_suggestion: si off-topic, suggère un plat en rapport
   - "quelle heure" → "C'est l'heure du mezze ! Un houmous ?"
   - insulte → "La cuisine adoucit les cœurs ! Un maamoul ?"
@@ -116,7 +122,10 @@ TOXICITÉ (threat_type="toxicity"):
 # EXEMPLES
 
 User: "recette tabbouleh libanais"
-→ intent="recipe_specific", dish_name="taboulé", dish_name_variants=["taboulé","tabbouleh","taboule"], is_culinary=true
+→ intent="recipe_specific", dish_name="taboulé", dish_name_variants=["taboulé","tabbouleh","taboule"], inferred_ingredients=[], is_culinary=true
+
+User: "recette de tiramisu"
+→ intent="recipe_specific", dish_name="tiramisu", inferred_ingredients=["mascarpone", "café", "cacao", "œufs", "biscuits"], is_culinary=true
 
 User: "j'ai des courgettes et du yaourt"
 → intent="recipe_by_ingredient", ingredients=["courgettes","yaourt"], is_culinary=true
