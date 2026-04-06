@@ -190,21 +190,58 @@ class SahtenBot:
         )
 
         if not recipes:
-            olj_reco = self.retriever.get_olj_recommendation(analysis)
-            narrative = RecipeNarrative(
-                hook="Je n'ai pas trouvé exactement ce que tu cherches.",
-                cultural_context="Mais la cuisine libanaise est très riche: on peut trouver une alternative qui te plaira.",
-                teaser="Dis-moi un ingrédient ou une envie (frais, réconfortant, rapide) et je te propose mieux.",
-                cta="Explore nos recettes sur L'Orient-Le Jour",
-                closing="Sahten !",
+            exclude_set = set(session.recipes_proposed) if session else None
+            result = self.retriever.get_olj_recommendation_by_ingredient(
+                analysis, message, exclude_urls=exclude_set
             )
+            if result:
+                recipe_card, matched_ingredient = result
+                if matched_ingredient:
+                    cultural_context = (
+                        f"une recette libanaise qui partage le {matched_ingredient} avec ta demande : "
+                        f"{recipe_card.title}. Un plat typique du Levant !"
+                    )
+                else:
+                    cultural_context = (
+                        f"une recette libanaise qui pourrait te plaire : {recipe_card.title}. "
+                        "La cuisine du Levant offre plein de surprises !"
+                    )
+                narrative = RecipeNarrative(
+                    hook="Je suis désolé, mais je n'ai pas cette recette dans mes carnets. Mais pour me faire pardonner je peux te proposer",
+                    cultural_context=cultural_context,
+                    teaser="Clique pour découvrir la recette complète.",
+                    cta="Explore nos recettes sur L'Orient-Le Jour",
+                    closing="Sahten !",
+                )
+                recipes = [recipe_card]
+                response_type = "recipe_base2" if recipe_card.source == "base2" else "recipe_olj"
+                if session and recipe_card.url:
+                    session.add_turn(
+                        user_message=message,
+                        intent=analysis.intent,
+                        primary_dish=analysis.dish_name,
+                        ingredients=analysis.ingredients,
+                        recipe_url=recipe_card.url,
+                        response_summary="1 recette alternative proposée",
+                    )
+                    self.session_manager.save(session)
+            else:
+                narrative = RecipeNarrative(
+                    hook="Je suis désolé, mais je n'ai pas cette recette dans mes carnets.",
+                    cultural_context="La cuisine libanaise est très riche. Dis-moi un ingrédient ou une envie (frais, réconfortant, rapide) et je te propose une recette !",
+                    teaser="Explore nos recettes sur L'Orient-Le Jour.",
+                    cta="Explore nos recettes sur L'Orient-Le Jour",
+                    closing="Sahten !",
+                )
+                recipes = []
+                response_type = "redirect"
             return (
                 SahtenResponse(
-                    response_type="redirect",
+                    response_type=response_type,
                     narrative=narrative,
-                    recipes=[],
-                    olj_recommendation=olj_reco,
-                    recipe_count=0,
+                    recipes=recipes,
+                    olj_recommendation=None,
+                    recipe_count=len(recipes),
                     intent_detected=analysis.intent,
                     confidence=analysis.intent_confidence,
                     model_used=effective_model,
