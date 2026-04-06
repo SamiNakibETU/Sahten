@@ -38,6 +38,9 @@ queries:
 
   - id: famille_fr_vague
     text: "recette libanaise typique pour cuisiner à ma famille française"
+    expected_intent: recipe_by_mood
+    expected_task: browse_corpus
+    expected_cuisine_scope: lebanese_olj
     tags: [vague, conversationnel]
 
   - id: poulet_ingredient

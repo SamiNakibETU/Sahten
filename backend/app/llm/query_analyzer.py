@@ -31,6 +31,8 @@ GROQ_QUERY_PLAN_SUFFIX = (
 # Prompt unique ordonné : décision → remplissage des champs du QueryPlan (schéma strict).
 QUERY_PLAN_SYSTEM_PROMPT = """Tu es l'analyseur de requetes pour Sahten (L'Orient-Le Jour, cuisine / recettes OLJ).
 
+Si le message utilisateur contient une section "Mémoire de session" ou des titres de fiches deja proposees, utilise-la pour les suites ("autre", "une variante", "celle d'avant", "sans viande") : ne pas repartir de zero comme un premier message.
+
 DECISION (applique dans cet ordre) :
 
 1) SECURITE
@@ -99,6 +101,7 @@ class QueryAnalyzer:
         query: str,
         *,
         conversation_context: Optional[str] = None,
+        session_hints: Optional[str] = None,
     ) -> QueryAnalysis:
         """
         Analyze user query with LLM.
@@ -106,6 +109,7 @@ class QueryAnalyzer:
         Args:
             query: Raw user query
             conversation_context: Résumé des derniers tours (même onglet), pour coréférences.
+            session_hints: Titres déjà proposés / compteurs (mémoire session).
             
         Returns:
             QueryAnalysis with complete structured analysis
@@ -121,11 +125,16 @@ class QueryAnalyzer:
                 return query_plan_to_analysis(po)
 
             user_content = query
+            blocks: list[str] = []
+            if session_hints and session_hints.strip():
+                blocks.append(session_hints.strip())
             if conversation_context and conversation_context.strip():
-                user_content = (
-                    f"Contexte (échanges récents dans cette conversation — utilise-le pour interpréter la requête) :\n"
-                    f"{conversation_context.strip()}\n\n---\n\nRequête actuelle :\n{query}"
+                blocks.append(
+                    "Contexte (échanges récents dans cette conversation — utilise-le pour interpréter la requête) :\n"
+                    f"{conversation_context.strip()}"
                 )
+            if blocks:
+                user_content = "\n\n---\n\n".join(blocks) + f"\n\n---\n\nRequête actuelle :\n{query}"
 
             import json
 

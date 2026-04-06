@@ -30,6 +30,7 @@ from ..core.config import get_settings
 from ..data.ingredient_normalizer import ingredient_normalizer
 from ..data.normalizers import normalize_text
 from .citation_quality import sanitize_cited_passage, title_suggests_non_recipe_article
+from .editorial_snippets import extract_editorial_snippets
 from .retrieval_constants import (
     GENERIC_QUERY_TOKENS,
     MATCH_REASON_KEYWORDS,
@@ -417,6 +418,7 @@ class HybridRetriever:
         category_allowlist: Optional[set[str]] = None,
         must_contain_any: Optional[set[str]] = None,
         rerank_user_query: Optional[str] = None,
+        session_rerank_prefix: str = "",
     ) -> List[RerankItem]:
         """Rerank : cross-encoder optionnel puis LLM (ou CE seul si configuré)."""
         settings = get_settings()
@@ -478,7 +480,12 @@ class HybridRetriever:
 
                 candidates = candidates[: max(8, min(top_k, 10))]
 
-        return await self.reranker.rerank(q, candidates, max_items=min(10, len(candidates)))
+        return await self.reranker.rerank(
+            q,
+            candidates,
+            max_items=min(10, len(candidates)),
+            session_prefix=session_rerank_prefix or "",
+        )
 
     def _select_cards(
         self,
@@ -516,6 +523,11 @@ class HybridRetriever:
                 it.cited_passage,
                 title=doc.title,
             )
+            passage_final = safe_passage or it.cited_passage
+            lead, story = extract_editorial_snippets(
+                doc.search_text or "",
+                passage_final,
+            )
 
             cards.append(
                 RecipeCard(
@@ -525,7 +537,9 @@ class HybridRetriever:
                     chef=doc.chef_name,
                     category=doc.category_canonical,
                     image_url=doc.image_url,  # Image de la recette
-                    cited_passage=safe_passage or it.cited_passage,
+                    cited_passage=passage_final,
+                    recipe_lead=lead or None,
+                    story_snippet=story or None,
                 )
             )
             if len(cards) >= max_results:
@@ -686,6 +700,7 @@ class HybridRetriever:
         exclude_urls: Optional[List[str]] = None,
         conversation_context: Optional[str] = None,
         retrieval_query_boost: Optional[str] = None,
+        session_context_dict: Optional[dict] = None,
     ) -> Tuple[List[RecipeCard], bool, Optional[dict]]:
         """
         Async search with LLM reranking.
@@ -707,6 +722,14 @@ class HybridRetriever:
                 "Contexte (échanges précédents dans la même conversation):\n"
                 f"{conversation_context}\n\nQuestion actuelle:\n{raw_query}"
             )
+        session_rerank_prefix = ""
+        if session_context_dict:
+            tlist = session_context_dict.get("recent_recipe_titles") or []
+            if tlist:
+                session_rerank_prefix = (
+                    "[Session] Fiches déjà proposées dans ce fil : "
+                    + " ; ".join(str(t) for t in tlist[:5] if t)
+                )
         if analysis.intent == "recipe_specific":
             rerank_top_k = min(rerank_top_k, 8)
         elif analysis.intent in {"recipe_by_ingredient", "recipe_by_category"}:
@@ -744,6 +767,7 @@ class HybridRetriever:
                     top_k=rerank_top_k,
                     category_allowlist=cat_allow,
                     rerank_user_query=rerank_user_query,
+                    session_rerank_prefix=session_rerank_prefix,
                 )
                 cards = self._select_cards(
                     analysis,
@@ -851,6 +875,7 @@ class HybridRetriever:
                 category_allowlist=allowlist,
                 must_contain_any=must_any,
                 rerank_user_query=rr_uq,
+                session_rerank_prefix=session_rerank_prefix,
             )
         # Filter low scores only when LLM reranker ran (scores on 0-1 scale)
         MIN_RERANK_SCORE = 0.15

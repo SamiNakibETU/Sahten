@@ -142,6 +142,16 @@ class RecipeCard(BaseModel):
         default=None,
         description="Passage court extrait du document qui justifie la pertinence de cette recette"
     )
+
+    # Extraits éditoriaux (OLJ) pour narrative LLM, dérivés de search_text
+    recipe_lead: Optional[str] = Field(
+        default=None,
+        description="Chapô / début d'article avant liste d'ingrédients",
+    )
+    story_snippet: Optional[str] = Field(
+        default=None,
+        description="Phrase(s) anecdote ou voix auteur si détectées",
+    )
     
     # Champs pour Base2 uniquement (recette complète)
     ingredients: Optional[List[str]] = None

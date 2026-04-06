@@ -11,9 +11,9 @@ from typing import Any, Optional
 import re
 import threading
 
-# Derniers échanges utilisateur / assistant (fil de discussion dans l’onglet).
-MAX_HISTORY_TURNS = 4
-MAX_TURN_TEXT_CHARS = 280
+# Défauts si Settings non utilisés (tests hors app)
+_DEFAULT_MAX_HISTORY_TURNS = 4
+_DEFAULT_MAX_TURN_TEXT_CHARS = 280
 
 
 @dataclass
@@ -24,6 +24,7 @@ class ConversationTurn:
     primary_dish: str | None
     ingredients: list[str]
     recipe_url: str | None
+    recipe_titles: list[str] = field(default_factory=list)
     timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
@@ -45,7 +46,9 @@ class SessionState:
         ingredients: list[str] | None = None,
         recipe_url: str | None = None,
         response_summary: str = "",
+        recipe_titles: list[str] | None = None,
     ) -> None:
+        titles = [t.strip() for t in (recipe_titles or []) if t and str(t).strip()]
         turn = ConversationTurn(
             user_message=user_message,
             bot_response_summary=response_summary,
@@ -53,6 +56,7 @@ class SessionState:
             primary_dish=primary_dish,
             ingredients=ingredients or [],
             recipe_url=recipe_url,
+            recipe_titles=titles,
         )
         self.conversation_history.append(turn)
         if recipe_url and recipe_url not in self.recipes_proposed:
@@ -73,23 +77,45 @@ class SessionState:
 
     def get_context_for_continuation(self) -> dict[str, Any]:
         """Contexte pour la requête en cours (historique déjà enregistré, sans le message actuel)."""
+        try:
+            from ..core.config import get_settings
+
+            s = get_settings()
+            max_turns = int(getattr(s, "session_max_turns", _DEFAULT_MAX_HISTORY_TURNS) or _DEFAULT_MAX_HISTORY_TURNS)
+            max_chars = int(getattr(s, "session_turn_max_chars", _DEFAULT_MAX_TURN_TEXT_CHARS) or _DEFAULT_MAX_TURN_TEXT_CHARS)
+        except Exception:
+            max_turns = _DEFAULT_MAX_HISTORY_TURNS
+            max_chars = _DEFAULT_MAX_TURN_TEXT_CHARS
+
         last = self.get_last_turn()
         recent_turns: list[dict[str, str]] = []
-        for turn in self.conversation_history[-MAX_HISTORY_TURNS:]:
+        for turn in self.conversation_history[-max_turns:]:
             u = (turn.user_message or "").strip()
             if u:
-                if len(u) > MAX_TURN_TEXT_CHARS:
-                    u = u[: MAX_TURN_TEXT_CHARS - 1] + "…"
+                if len(u) > max_chars:
+                    u = u[: max_chars - 1] + "…"
                 recent_turns.append({"role": "user", "text": u})
-            s = (turn.bot_response_summary or "").strip()
-            if s:
-                if len(s) > MAX_TURN_TEXT_CHARS:
-                    s = s[: MAX_TURN_TEXT_CHARS - 1] + "…"
-                recent_turns.append({"role": "assistant", "text": s})
+            asst = (turn.bot_response_summary or "").strip()
+            if asst:
+                if len(asst) > max_chars:
+                    asst = asst[: max_chars - 1] + "…"
+                recent_turns.append({"role": "assistant", "text": asst})
+
+        # Titres de fiches proposés (ordre chronologique, dédupliqués)
+        recent_recipe_titles: list[str] = []
+        seen_t: set[str] = set()
+        for turn in self.conversation_history[-max_turns:]:
+            for t in turn.recipe_titles:
+                key = t.strip().lower()
+                if key and key not in seen_t:
+                    seen_t.add(key)
+                    recent_recipe_titles.append(t.strip())
 
         base: dict[str, Any] = {
             "recent_turns": recent_turns,
             "has_prior_turns": bool(self.conversation_history),
+            "recent_recipe_titles": recent_recipe_titles[-8:],
+            "recipes_proposed_count": len(self.recipes_proposed),
         }
         if not last:
             return base
@@ -193,6 +219,24 @@ CONTINUATION_PATTERNS = [
 ]
 
 
+def format_session_hints_for_analyzer(session_context: dict[str, Any]) -> str:
+    """Bloc texte pour le QueryAnalyzer (coréférences, titres déjà montrés)."""
+    if not session_context:
+        return ""
+    if not session_context.get("has_prior_turns"):
+        return ""
+    titles = session_context.get("recent_recipe_titles") or []
+    n_prop = session_context.get("recipes_proposed_count")
+    lines: list[str] = [
+        "Mémoire de session (même onglet — utilisez-la pour interpréter « autre », « celle d’avant », « sans viande », etc.) :",
+    ]
+    if titles:
+        lines.append(f"- Titres de fiches déjà proposées : {' ; '.join(titles[:6])}")
+    if n_prop is not None and int(n_prop) > 0:
+        lines.append(f"- Nombre d’URLs recettes déjà montrées (exclues du retrieve) : {n_prop}")
+    return "\n".join(lines)
+
+
 def format_recent_turns_for_retrieval(session_context: dict[str, Any], *, max_chars: int = 900) -> str:
     """
     Résume le fil récent pour le retrieveur / reranker (reformulation implicite multi-tours).
@@ -208,6 +252,15 @@ def format_recent_turns_for_retrieval(session_context: dict[str, Any], *, max_ch
             continue
         label = "Utilisateur" if role == "user" else "Assistant"
         lines.append(f"{label}: {text}")
+    try:
+        from ..core.config import get_settings
+
+        mc = int(getattr(get_settings(), "session_retrieval_context_max_chars", max_chars) or max_chars)
+        if mc > 0:
+            max_chars = mc
+    except Exception:
+        pass
+
     out = "\n".join(lines).strip()
     if len(out) > max_chars:
         return out[: max_chars - 1] + "…"
@@ -239,5 +292,6 @@ __all__ = [
     "SessionState",
     "ConversationTurn",
     "format_recent_turns_for_retrieval",
+    "format_session_hints_for_analyzer",
     "is_continuation",
 ]

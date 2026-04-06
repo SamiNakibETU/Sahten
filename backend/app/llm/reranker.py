@@ -61,6 +61,7 @@ Règles:
 - Ne propose jamais une recette libanaise comme substitut silencieux: si la requête est pour un plat non-libanais absent du corpus, mets tous les scores < 0.15 pour déclencher le flux "recette introuvable".
 - Pour chaque résultat pertinent (score ≥ 0.15), extrais un passage court (1-2 phrases, max 150 caractères) de l'excerpt qui justifie pourquoi ce document est pertinent pour la requête.
 - Le passage doit être une citation directe de l'excerpt, pas une reformulation.
+- Si le message utilisateur commence par [Session] avec des titres de fiches déjà proposées, en tenir compte : pour une demande de suite (« autre », « variante », « sans X »), privilégier des documents différents ou complémentaires ; pour une précision sur la même recette, rester cohérent.
 """
 
 
@@ -77,6 +78,7 @@ class LLMReranker:
         candidates: List[RerankCandidate],
         *,
         max_items: int = 10,
+        session_prefix: str = "",
     ) -> List[RerankItem]:
         if not candidates:
             return []
@@ -110,6 +112,8 @@ class LLMReranker:
             f"{json.dumps(packed, ensure_ascii=False)}\n\n"
             f"Retourne au plus {max_items} items."
         )
+        if session_prefix and session_prefix.strip():
+            user_prompt = f"{session_prefix.strip()}\n{user_prompt}"
 
         def _safe_json_loads(content: str) -> dict:
             s = (content or "").strip()
