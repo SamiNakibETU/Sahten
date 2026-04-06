@@ -133,6 +133,14 @@ class Settings(BaseSettings):
 
     # Réécriture requête retrieval (un appel LLM léger) pour intents mood / vague
     enable_retrieval_query_rewrite: bool = True
+
+    # Mémoire de session (onglet) : tours et caractères par message dans le contexte LLM
+    session_max_turns: int = 6
+    session_turn_max_chars: int = 320
+    session_retrieval_context_max_chars: int = 1100
+
+    # Si True et QueryPlan.needs_clarification : une question courte avant retrieval
+    enable_plan_clarification: bool = False
     
     # ============================================================================
     # CMS WEBHOOK CONFIGURATION

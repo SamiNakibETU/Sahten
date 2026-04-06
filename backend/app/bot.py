@@ -20,6 +20,7 @@ from .rag.retriever import HybridRetriever
 from .rag.session_manager import (
     SessionManager,
     format_recent_turns_for_retrieval,
+    format_session_hints_for_analyzer,
     is_continuation,
 )
 from .schemas.query_analysis import QueryAnalysis
@@ -288,9 +289,11 @@ class SahtenBot:
         if analysis is None:
             analyze_started = time.perf_counter()
             conv_for_llm = format_recent_turns_for_retrieval(session_context) or None
+            sess_hints = format_session_hints_for_analyzer(session_context)
             analysis = await analyzer.analyze(
                 message,
                 conversation_context=conv_for_llm,
+                session_hints=sess_hints.strip() or None,
             )
             step_timings_ms["analysis"] = int((time.perf_counter() - analyze_started) * 1000)
 
@@ -419,6 +422,63 @@ class SahtenBot:
             )
             return resp_o, dbg_o, meta_o
 
+        settings = get_settings()
+        if (
+            settings.enable_plan_clarification
+            and analysis.plan
+            and analysis.plan.needs_clarification
+            and (analysis.plan.clarification_question or "").strip()
+        ):
+            cq = analysis.plan.clarification_question.strip()
+            ctx = cq if len(cq) >= 16 else f"{cq} Votre réponse courte permettra de cibler une recette publiée."
+            narrative = RecipeNarrative(
+                hook="Pour affiner la recherche dans nos carnets :",
+                cultural_context=ctx,
+                teaser=None,
+                cta="Répondez brièvement ; je relancerai la sélection ensuite.",
+                closing="Sahten !",
+            )
+            evidence = EvidenceBundle(
+                response_type="clarification",
+                intent_detected=analysis.intent,
+                user_query=message,
+                session_context=session_context,
+                allowed_claims=["Question de clarification uniquement"],
+                forbidden_claims=["Inventer une recette"],
+            )
+            resp_cl = SahtenResponse(
+                response_type="clarification",
+                narrative=narrative,
+                conversation_blocks=self._build_conversation_blocks(
+                    narrative=narrative, evidence=evidence
+                ),
+                recipes=[],
+                recipe_count=0,
+                intent_detected=analysis.intent,
+                confidence=analysis.intent_confidence,
+                model_used=effective_model,
+            )
+            if session:
+                session.add_turn(
+                    user_message=message,
+                    intent=analysis.intent,
+                    primary_dish=analysis.dish_name,
+                    ingredients=analysis.ingredients,
+                    recipe_url=None,
+                    response_summary=f"{narrative.hook} {ctx}".strip()[:400],
+                )
+                self.session_manager.save(session)
+            dbg_cl = {"analysis": analysis.model_dump(), "model": effective_model} if debug else None
+            meta_cl = finalize_trace()
+            self._apply_scenario_metadata(
+                message=message,
+                response=resp_cl,
+                analysis=analysis,
+                debug_info=dbg_cl,
+                trace_meta=meta_cl,
+            )
+            return resp_cl, dbg_cl, meta_cl
+
         if analysis.intent == "clarification":
             term = analysis.dish_name or message
             grounding = self.retriever.get_grounding_for_term(term)
@@ -505,6 +565,7 @@ class SahtenBot:
                 exclude_urls=exclude_urls,
                 conversation_context=conv_for_retrieval,
                 retrieval_query_boost=boost,
+                session_context_dict=session_context if session_context else None,
             )
             step_timings_ms["retrieval"] = int((time.perf_counter() - retrieval_started) * 1000)
             if retrieval_debug and retrieval_debug.get("rerank_shortcircuit"):
@@ -636,6 +697,7 @@ class SahtenBot:
                         ingredients=analysis.ingredients,
                         recipe_url=alternative.url,
                         response_summary=" ".join(s for s in summary_bits if s).strip()[:400],
+                        recipe_titles=[t for t in [alternative.title] if t],
                     )
                     self.session_manager.save(session)
                 meta = finalize_trace()
@@ -772,6 +834,7 @@ class SahtenBot:
                 ingredients=analysis.ingredients,
                 recipe_url=primary_url,
                 response_summary=f"{titles}. {hook_snip}".strip()[:450],
+                recipe_titles=[(r.title or "").strip() for r in recipes if r.title],
             )
             self.session_manager.save(session)
         

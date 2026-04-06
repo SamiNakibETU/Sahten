@@ -47,7 +47,7 @@ RESPONSE_JSON_SCHEMA = {
             },
             "detail": {
                 "type": "string",
-                "description": "1-2 phrases, vous. Si alternative : 1re phrase = titre exact (selected_recipes[0].title) + auteur (chef/cheffe selon le prenom — ex. Carla, Liza, Tara, Yasmina = cheffe femme, ne pas ecrire « un chef ») ; 2e phrase = lien concret avec la demande. Sinon : fait utile. Donnees JSON uniquement.",
+                "description": "2-3 phrases max (vous) si recipe_lead ou story_snippet fournis : au moins un detail concret (anecdote, geste, ingredient, citation implicite) tire de ces champs ; sinon 1-2 phrases. Si alternative : 1re phrase = titre exact + auteur (chef/cheffe selon prenom) ; 2e phrase = lien via preuve + eventuellement story_snippet (une phrase). Donnees JSON uniquement.",
             },
             "cta": {
                 "type": "string",
@@ -74,7 +74,7 @@ Objectif : reponse courte, utile, professionnelle et chaleureuse — un detail c
 # Ce que vous faites (regles positives)
 
 - Une a deux phrases dans `detail`, puis `cta`. Pas de long developpement.
-- Ancrez-vous dans **selected_recipes** et **cited_passage** : noms des plats, auteurs, ingredients ou techniques mentionnes dans les donnees.
+- Ancrez-vous dans **selected_recipes** : **cited_passage**, et si presents **recipe_lead** (chapô) et **story_snippet** (anecdote / voix auteur). Quand `recipe_lead` ou `story_snippet` est non vide, le `detail` doit inclure **au moins une formulation** qui reprend un fait concret de ces champs (sans copier mot a mot un paragraphe entier ; une phrase ou deux suffit). Si ces champs sont vides, restez sur titre, chef et `cited_passage`.
 - **Accord chef / cheffe** : si le champ `chef` contient un prenom typiquement feminin (Carla, Liza, Tara, Yasmina, Joanna, Lea, Emilie, etc.), ecrivez **cheffe** ou tournure neutre (« la recette de Carla Rebeiz », « proposee par Carla Rebeiz ») — **interdit** : « un chef » pour une femme. Si le genre est ambigu, forme neutre sans « chef » : « par [Nom complet] ».
 - Si la demande est vague (« rapide », « leger »), reliez-la a un fait precis de la recette (temps, nombre d'ingredients, type de cuisson).
 - Si la requete est une recherche large « cuisine libanaise / pour la famille » (sans dessert demande) : accrochez-vous au plat OLJ propose (titre, chef, technique) ; ne presentez pas un dessert comme reponse principale sauf si c'est bien la fiche la plus pertinente parmi selected_recipes.
@@ -147,10 +147,12 @@ Le champ `hook` doit etre **exactement** cette phrase (copiez-la telle quelle, a
    Utiliser UNIQUEMENT les donnees de `shared_ingredient_proof.shared_ingredients` et le texte de `cited_passage` (si present dans le JSON utilisateur) pour formuler ce lien.
    JAMAIS inventer ni utiliser vos connaissances generales sur le plat demande (origine, histoire, pays).
 
+2bis. Si `selected_recipes[0]` contient `story_snippet` ou un `recipe_lead` court : vous pouvez ajouter UNE phrase courte (apres les deux phrases obligatoires) qui cite un detail de ce snippet pour donner du relief — uniquement si ce texte figure dans le JSON.
+
 3. INTERDICTIONS absolues dans `detail` :
    - Toute mention du pays ou region d'origine du plat demande (Mexique, Italie, Inde, etc.)
    - Les formules : « on aime », « on retrouve », « cuisine libanaise permet », « variation », « inspiration », « fusion », « invitation au voyage »
-   - Tout ce qui ne vient pas des champs `selected_recipes`, `shared_ingredient_proof` ou `cited_passage`
+   - Tout ce qui ne vient pas des champs `selected_recipes`, `shared_ingredient_proof`, `cited_passage`, `recipe_lead` ou `story_snippet` du JSON
 
 `detail` et `cta` : vouvoiement (« vous », « votre »).
 
@@ -185,6 +187,13 @@ def _normalize_for_banned_substrings(text: str) -> str:
 
 
 # Sous-chaines à rejeter dans le texte généré (validation).
+def _evidence_has_editorial_snippets(evidence: EvidenceBundle) -> bool:
+    for r in evidence.selected_recipe_cards:
+        if (r.recipe_lead or "").strip() or (r.story_snippet or "").strip():
+            return True
+    return False
+
+
 BANNED_PATTERNS = (
     "la cuisine libanaise regorge",
     "au liban on",
@@ -250,7 +259,9 @@ class ResponseGenerator:
                     "title": r.title,
                     "chef": r.chef,
                     "category": r.category,
-                    "cited_passage": (r.cited_passage[:200] if r.cited_passage else None),
+                    "cited_passage": (r.cited_passage[:520] if r.cited_passage else None),
+                    "recipe_lead": (r.recipe_lead[:520] if r.recipe_lead else None),
+                    "story_snippet": (r.story_snippet[:380] if r.story_snippet else None),
                 }
                 for r in evidence.selected_recipe_cards
             ],
@@ -342,7 +353,9 @@ class ResponseGenerator:
         text = unidecode(raw.lower())
         ban_space = _normalize_for_banned_substrings(raw)
         n_cards = len(evidence.selected_recipe_cards)
-        max_chars = 900 if n_cards > 1 or evidence.response_type == "menu" else 560
+        base_max = 900 if n_cards > 1 or evidence.response_type == "menu" else 560
+        extra = 200 if _evidence_has_editorial_snippets(evidence) else 0
+        max_chars = base_max + extra
         if len(text) > max_chars:
             return False
         if any(pat in ban_space for pat in BANNED_PATTERNS):
@@ -405,6 +418,8 @@ class ResponseGenerator:
         user_content = self._build_user_payload(evidence, analysis)
         n_cards = len(evidence.selected_recipe_cards)
         max_tok = 360 if n_cards > 1 or evidence.response_type == "menu" else 220
+        if _evidence_has_editorial_snippets(evidence):
+            max_tok += 100
 
         for model_name in [self.model, self.fallback_model]:
             if not provider_credentials_ok(model_name):

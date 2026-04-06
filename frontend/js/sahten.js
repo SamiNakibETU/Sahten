@@ -35,6 +35,7 @@ const ALLOWED_ATTR = [
     'href',
     'target',
     'style',
+    'lang',
     'aria-label',
     'aria-labelledby',
     'aria-describedby',
@@ -165,9 +166,11 @@ export class SahtenChat {
         const existing = btn.closest('.sahten-trigger-wrap');
         if (existing) {
             this.dom.triggerWrap = existing;
+            existing.setAttribute('title', 'Ouvrir Sahten');
             this.dom.triggerBubble = existing.querySelector('.sahten-trigger-bubble');
             if (this.dom.triggerBubble) {
                 this.dom.triggerBubble.textContent = this.TRIGGER_HINT_TEXT;
+                this.dom.triggerBubble.removeAttribute('aria-hidden');
             }
             return;
         }
@@ -175,11 +178,11 @@ export class SahtenChat {
         wrap.className = 'sahten-trigger-wrap';
         const bubble = document.createElement('div');
         bubble.className = 'sahten-trigger-bubble';
-        bubble.setAttribute('aria-hidden', 'true');
         bubble.textContent = this.TRIGGER_HINT_TEXT;
         btn.parentNode.insertBefore(wrap, btn);
         wrap.appendChild(bubble);
         wrap.appendChild(btn);
+        wrap.setAttribute('title', 'Ouvrir Sahten');
         this.dom.triggerWrap = wrap;
         this.dom.triggerBubble = bubble;
     }
@@ -241,6 +244,16 @@ export class SahtenChat {
 
     bindEvents() {
         // Open/Close
+        if (this.dom.triggerWrap && this.dom.trigger) {
+            this.dom.triggerWrap.addEventListener('click', (e) => {
+                let el = e.target;
+                if (el && el.nodeType === Node.TEXT_NODE) el = el.parentElement;
+                if (!(el instanceof Element)) return;
+                if (el.closest('.sahten-trigger')) return;
+                e.preventDefault();
+                this.toggle(true);
+            });
+        }
         if (this.dom.trigger) {
             this.dom.trigger.addEventListener('click', () => this.toggle(true));
         }
@@ -346,7 +359,7 @@ export class SahtenChat {
             this.dom.body.scrollTop = 0;
             if (this._a11yLive) {
                 this._a11yLive.textContent =
-                    "Sahten est ouvert. Posez votre question sur une recette, un ingrédient ou un chef.";
+                    "Rubrique ouverte. Proposez une recette, un ingrédient ou un nom de chef.";
             }
             setTimeout(() => {
                 if (this.dom.input) {
@@ -358,34 +371,26 @@ export class SahtenChat {
             // Welcome Message
             if (this.dom.body.children.length === 0) {
                 this.appendBotMessage({
-                    html: `<article class="welcome-editorial welcome-editorial--mockup" lang="fr">
-                        <div class="welcome-intro">
-                            <p class="welcome-mockup-line welcome-mockup-line--lead">
-                                Bonjour, je suis <span class="welcome-highlight">Sahten</span>.
-                            </p>
-                            <p class="welcome-mockup-line">
-                                Je suis le robot culinaire de
-                                <img src="assets/logo_2_olj.svg" alt="L'Orient-Le Jour" class="welcome-olj-logotype" width="168" height="18" />
-                            </p>
-                            <p class="welcome-mockup-line">
-                                J'ai plein de recettes dans mes carnets, et je serais ravi de te faire découvrir la
-                                <span class="welcome-highlight">table</span>
-                                libanaise.
-                            </p>
+                    html: `<article class="welcome-editorial welcome-editorial--stanza welcome-editorial--atable" lang="fr">
+                        <div class="welcome-stanza">
+                            <p class="welcome-line">Je suis <span class="welcome-pill">Sahten</span>,<br />le robot culinaire de <img src="assets/logo_2_olj.svg" alt="L'Orient-Le Jour" class="welcome-olj-logomark" width="132" height="22" decoding="async" />.</p>
+                            <p class="welcome-line welcome-line--lede">J’ai plein de recettes dans mes carnets, et je les connais par cœur.</p>
+                            <p class="welcome-line welcome-line--lede">Parlez-moi et je serais ravi de vous faire découvrir la cuisine des <span class="welcome-pill">tables libanaises</span>.</p>
                         </div>
-                        <div class="welcome-examples" role="region" aria-labelledby="welcome-examples-heading">
-                            <div class="welcome-examples-head">
-                                <span id="welcome-examples-heading" class="welcome-examples-label">Exemples de questions</span>
-                            </div>
-                            <ul class="welcome-examples-list welcome-examples-list--compact">
+                        <section class="welcome-examples welcome-examples--reference" role="region" aria-labelledby="welcome-examples-title">
+                            <p class="welcome-examples-label" id="welcome-examples-title">Pour commencer</p>
+                            <ul class="welcome-examples-list">
                                 <li>
-                                    <button type="button" class="welcome-example-prompt">Le taboulé de Kamal Mouzawak&nbsp;?</button>
+                                    <button type="button" class="welcome-example-prompt">Léger et rapide ce soir&nbsp;?</button>
                                 </li>
                                 <li>
-                                    <button type="button" class="welcome-example-prompt">Un plat au poulet pour ce soir&nbsp;?</button>
+                                    <button type="button" class="welcome-example-prompt">Un menu pour six&nbsp;?</button>
+                                </li>
+                                <li>
+                                    <button type="button" class="welcome-example-prompt">Trois idées au poulet&nbsp;?</button>
                                 </li>
                             </ul>
-                        </div>
+                        </section>
                     </article>`
                 });
             }
