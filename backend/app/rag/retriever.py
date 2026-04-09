@@ -579,10 +579,12 @@ class HybridRetriever:
                     url=str(doc.url),
                     chef=_extract_featured_chef(doc.title) or doc.chef_name,
                     category=doc.category_canonical,
-                    image_url=doc.image_url,  # Image de la recette
+                    image_url=doc.image_url,
                     cited_passage=passage_final,
                     recipe_lead=lead or None,
                     story_snippet=story or None,
+                    tags=list(doc.tags or [])[:8] or None,
+                    main_ingredients=list(doc.main_ingredients or [])[:8] or None,
                 )
             )
             if len(cards) >= max_results:

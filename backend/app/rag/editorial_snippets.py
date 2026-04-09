@@ -16,12 +16,17 @@ _RE_INGRED_OR_SECTION = re.compile(
     re.IGNORECASE | re.MULTILINE,
 )
 
-# Signaux d'anecdote / voix auteur (corpus OLJ)
+# Signaux d'anecdote / voix auteur / contexte culturel (corpus OLJ)
 _RE_STORY = re.compile(
     r"«[^»]{10,220}»|"
     r"ma mère|teta|téta|grand-?mère|à mes yeux|"
     r"ultime plaisir|aimait (?:le )?faire|racont|souvenir|"
-    r"en est très fière|Ma famille|je suis|nous sommes",
+    r"en est très fière|Ma famille|je suis|nous sommes|"
+    r"depuis (?:des années|longtemps|toujours)|transmis|heritage|héritage|"
+    r"né[e]? à|originaire|installé[e]? à|cuisine (?:de|du|d')|"
+    r"se souvient|enfance|tradition|plat (?:de famille|emblématique|culte|iconique)|"
+    r"signature|incontournable|emblème|symbole|vient de|créé (?:par|en)|"
+    r"inspiré|interprétation|version|façon|revisité",
     re.IGNORECASE,
 )
 
@@ -101,9 +106,9 @@ def extract_editorial_snippets(
     search_text: str,
     cited_passage: Optional[str],
     *,
-    lead_max: int = 480,
-    story_max: int = 300,
-    combined_max: int = 1100,
+    lead_max: int = 600,
+    story_max: int = 400,
+    combined_max: int = 1400,
 ) -> tuple[str, str]:
     """
     Retourne (recipe_lead, story_snippet) avec plafond global.

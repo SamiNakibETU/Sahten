@@ -27,23 +27,28 @@ def compose_html_response(response: SahtenResponse) -> str:
         parts.append(_format_conversation_blocks(response.conversation_blocks))
     # 1b. Legacy narrative fallback
     elif response.narrative:
-        # Check if it's a string (legacy/fallback) or RecipeNarrative object
-        if isinstance(response.narrative, str):
-            raw_text = response.narrative
-        else:
-            # Reconstruct the narrative flow from the structured object
-            parts_list = [
-                response.narrative.hook,
-                response.narrative.cultural_context
-            ]
-            if response.narrative.teaser:
-                parts_list.append(response.narrative.teaser)
-            parts_list.append(response.narrative.cta)
-            parts_list.append(response.narrative.closing)
-            raw_text = "\n\n".join(parts_list)
-
-        formatted_text = _format_text(raw_text)
-        parts.append(f'<div class="sahten-narrative">{formatted_text}</div>')
+            if isinstance(response.narrative, str):
+                raw_text = response.narrative
+                formatted_text = _format_text(raw_text)
+                parts.append(f'<div class="sahten-narrative">{formatted_text}</div>')
+            else:
+                n = response.narrative
+                narrative_html = []
+                if n.hook:
+                    narrative_html.append(f'<p class="sn-hook">{_escape_html(n.hook)}</p>')
+                if n.cultural_context:
+                    # Support line breaks in detail
+                    for sent in n.cultural_context.split("\n\n"):
+                        sent = sent.strip()
+                        if sent:
+                            narrative_html.append(f'<p>{_escape_html(sent)}</p>')
+                if n.cta:
+                    narrative_html.append(f'<p class="sn-cta">{_escape_html(n.cta)}</p>')
+                if n.teaser:
+                    narrative_html.append(f'<p class="sn-followup">{_escape_html(n.teaser)}</p>')
+                if n.closing:
+                    narrative_html.append(f'<p class="sn-closing">{_escape_html(n.closing)}</p>')
+                parts.append(f'<div class="sahten-narrative">{"".join(narrative_html)}</div>')
 
     # 2. Recipe Cards (The "Menu")
     if response.recipes:
