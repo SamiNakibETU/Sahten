@@ -1,5 +1,3 @@
-/* SAHTEN — Maquette OLJ : Aktiv Grotesk (UI) + Playfair Display (éditorial) */
-
 :root {
   --bg: #ffffff;
   --bg-alt: #ffffff;
@@ -37,686 +35,90 @@
   --surface-panel: #ffffff;
   --ring-focus-neutral: rgba(0, 0, 0, 0.14);
   --ring-focus-glow: rgba(0, 0, 0, 0.06);
-
-  /* Accueil : échelle fixe (maquette OLJ À table), pas de clamp */
-  --welcome-body-size: 14px;
-  --welcome-body-lh: 1.42;
-  --welcome-serif: 15px;
-  --welcome-serif-lh: 1.45;
-  --welcome-lede-size: 14px;
-  --welcome-lede-lh: 1.5;
-  --welcome-caps: 10px;
-  --welcome-caps-lh: 1.2;
-  --welcome-caps-tracking: 0.12em;
-  /* Pastilles vertes (corps + header) : même logique — hauteur = ligne du label, +3px à gauche et à droite du texte */
-  --welcome-pill-fs: 13px;
-  --welcome-pill-lh: 1;
-  --welcome-pill-pad-x: 3px;
+  /* Welcome message typography scale */
+  --welcome-serif: 14px;
+  --welcome-serif-lh: 1.5;
+  --welcome-lede-size: 13.5px;
+  --welcome-lede-lh: 1.48;
+  --welcome-pill-fs: 10.5px;
+  --welcome-pill-lh: 1.3;
   --welcome-pill-pad-y: 1px;
+  --welcome-pill-pad-x: 4px;
+  --welcome-example-radius: 8px;
   --welcome-example-fs: 13px;
-  --welcome-example-lh: 1.4;
-  --welcome-example-radius: 10px;
-  --footer-field-bg: #ffffff;
-  --footer-field-border: rgba(0, 0, 0, 0.09);
-  --footer-field-radius: 10px;
-  --welcome-mascot-header: 30px;
-  --welcome-mascot-inline: 28px;
+  --welcome-example-lh: 1.45;
 }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+/* ═══════════════════════════════════════════════════════
+   WELCOME — structure rigoureuse, typographie OLJ propre
+   ═══════════════════════════════════════════════════════ */
 
-.sahten-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 9990;
-  opacity: 0;
-  background: var(--backdrop-overlay);
-  transition: opacity 0.2s;
-  pointer-events: none;
-  backdrop-filter: blur(var(--backdrop-blur-window));
-}
-.sahten-backdrop.visible {
-  opacity: 1;
-  pointer-events: auto;
-}
-.sahten-backdrop[data-size="mid"].visible {
-  backdrop-filter: blur(var(--backdrop-blur-mid));
-}
-.sahten-backdrop[data-size="full"].visible {
-  backdrop-filter: blur(var(--backdrop-blur-full));
-}
-.sahten-backdrop:not(.visible) {
-  pointer-events: none;
-}
-
-.sahten-widget-container {
-  position: fixed;
-  background: var(--surface-panel);
-  box-shadow: var(--shadow-soft);
-  display: flex;
-  flex-direction: column;
-  z-index: 9999;
-  font-family: var(--font-ui);
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  -webkit-font-smoothing: antialiased;
-  opacity: 0;
-  transform: translateY(8px);
-  transition: opacity 0.25s, transform 0.25s;
-  pointer-events: none;
-}
-.sahten-widget-container[data-state="open"] {
-  opacity: 1;
-  transform: translateY(0);
-  pointer-events: auto;
-}
-
-.sahten-drag-handle {
-  display: none;
-  height: 22px;
-  width: 100%;
-  background: #f4f4f4;
-  cursor: grab;
-  flex-shrink: 0;
-  border-bottom: 1px solid var(--border);
-}
-.sahten-drag-handle::before {
-  content: "";
-  display: block;
-  width: 40px;
-  height: 4px;
-  margin: 8px auto 0;
-  background: rgba(0, 0, 0, 0.1);
-  border-radius: 99px;
-}
-@media (max-width: 480px) {
-  .sahten-drag-handle {
-    display: block;
-  }
-  .sahten-widget-container {
-    left: 0;
-    right: 0;
-    bottom: 0;
-    width: 100%;
-    max-height: min(92dvh, 100%);
-    border-radius: 14px 14px 0 0;
-    border: 1px solid var(--border);
-    border-bottom: none;
-    box-shadow: 0 -6px 28px rgba(0, 0, 0, 0.1);
-  }
-  .sahten-size-btn {
-    display: none;
-  }
-  .sahten-header {
-    padding: 6px 10px;
-    min-height: 44px;
-    column-gap: 8px;
-  }
-  .sahten-brand {
-    gap: 5px;
-  }
-  .sahten-model-select {
-    height: 30px;
-    font-size: 9px;
-    min-width: 44px;
-    padding: 0 6px;
-  }
-  .sahten-size-btn,
-  .sahten-close-btn {
-    width: 30px;
-    min-width: 30px;
-    height: 30px;
-    min-height: 30px;
-  }
-  .sahten-close-btn {
-    width: 34px;
-    min-width: 34px;
-    padding: 0;
-    margin-left: 2px;
-  }
-  .sahten-close-btn svg {
-    width: 15px;
-    height: 15px;
-  }
-  .sahten-size-btn svg {
-    width: 13px;
-    height: 13px;
-  }
-  .sahten-logo-mascot {
-    height: 28px;
-    width: 28px;
-  }
-  .sahten-body {
-    padding: 8px 12px 6px;
-    gap: 6px;
-  }
-  .welcome-line {
-    font-size: 14px;
-    line-height: 1.4;
-    margin-bottom: 0;
-    letter-spacing: 0.012em;
-  }
-  .welcome-stanza > .welcome-line:first-child {
-    margin-bottom: 3px;
-  }
-  .welcome-line--logo {
-    margin-top: 0.05em;
-    margin-bottom: 0.3em;
-  }
-  .welcome-line--lede {
-    margin-top: 0;
-    font-size: 13px;
-    line-height: 1.42;
-  }
-  .welcome-pill {
-    font-size: 11px;
-    padding: 1px var(--welcome-pill-pad-x);
-  }
-  .welcome-examples--reference {
-    margin-top: 10px;
-    padding-top: 8px;
-  }
-  .welcome-examples--minimal {
-    margin-top: 0.75rem;
-  }
-  .welcome-examples--reference .welcome-examples-list {
-    gap: 7px;
-  }
-  .welcome-examples--reference .welcome-example-prompt {
-    min-height: 44px;
-    padding: 12px 14px;
-    font-size: 13px;
-    line-height: 1.45;
-  }
-  .welcome-olj-logomark {
-    max-width: min(9rem, 52vw);
-    height: 1.05em;
-  }
-  .welcome-examples--minimal .welcome-example-prompt {
-    padding: 0.28rem 0;
-    font-size: 14px;
-  }
-  .msg.msg-user {
-    gap: 2px;
-  }
-  .msg.msg-user::before {
-    font-size: 8px;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    opacity: 0.85;
-  }
-  .msg-user-bubble {
-    max-width: 88%;
-    padding: 8px 12px;
-    border-radius: 16px 16px 4px 16px;
-    background: var(--surface-panel);
-    border: 1px solid rgba(0, 0, 0, 0.07);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-  }
-  .msg-bot {
-    gap: 0.35rem;
-  }
-  .sahten-narrative,
-  .sahten-block {
-    font-size: 14px;
-    line-height: 1.4;
-  }
-  .sahten-footer {
-    padding: 8px 12px calc(10px + env(safe-area-inset-bottom, 0px));
-  }
-  .input-wrapper {
-    min-height: 38px;
-    padding: 3px 38px 3px 8px;
-  }
-  .sahten-input {
-    font-size: 14px;
-    min-height: 32px;
-  }
-  .send-btn {
-    width: 28px;
-    height: 28px;
-    right: 4px;
-    border-radius: 7px;
-  }
-  .send-btn svg {
-    width: 13px;
-    height: 13px;
-  }
-}
-@media (min-width: 481px) {
-  .sahten-widget-container[data-size="window"] {
-    bottom: 24px;
-    right: 24px;
-    width: 392px;
-    height: min(620px, calc(100vh - 48px));
-    max-height: calc(100vh - 48px);
-    border-radius: var(--radius-md);
-  }
-  .sahten-widget-container[data-size="mid"] {
-    inset: 0;
-    margin: auto;
-    width: min(50vw, 640px);
-    max-width: calc(100vw - 32px);
-    height: min(65vh, 580px);
-    max-height: calc(100vh - 32px);
-    border-radius: var(--radius-lg);
-  }
-  .sahten-widget-container[data-size="full"] {
-    inset: 0;
-    width: 100vw;
-    height: 100vh;
-    border-radius: 0;
-    border: none;
-  }
-  .welcome-examples--reference .welcome-examples-list {
-    gap: 8px;
-  }
-}
-
-.sahten-header {
-  padding: 6px 12px;
-  min-height: 44px;
-  display: grid;
-  grid-template-columns: max-content minmax(0, 1fr);
-  align-items: center;
-  column-gap: 10px;
-  flex-shrink: 0;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-  background: var(--surface-panel);
-}
-
-.sahten-brand {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
-  width: max-content;
-  max-width: none;
-  justify-self: start;
-}
-.sahten-logo-mascot {
-  height: var(--welcome-mascot-header);
-  width: var(--welcome-mascot-header);
-  flex-shrink: 0;
-  object-fit: contain;
-  display: block;
-}
-.sahten-logo {
-  height: 20px;
-  width: auto;
-  max-width: 90px;
-  object-fit: contain;
-}
-.sahten-brand-text {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-.sahten-title {
-  font-family: var(--font-ui);
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--text);
-  line-height: 1.2;
-  letter-spacing: -0.01em;
-}
-/* Header : « Sahteïn » — editorial serif italic */
-.sahten-title.sahten-title--brand {
-  display: inline-flex;
-  align-items: center;
-  box-sizing: border-box;
-  padding: 0;
-  border-radius: 0;
-  background: transparent;
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-style: italic;
-  font-size: 18px;
-  color: var(--atable-ink);
-  letter-spacing: -0.02em;
-  line-height: 1.15;
-  flex-shrink: 0;
-  white-space: nowrap;
-}
-.sahten-subtitle {
-  font-family: var(--font-body);
-  font-size: 10px;
-  font-style: italic;
-  letter-spacing: 0.05em;
-  color: var(--accent);
-  line-height: 1;
-}
-
-.sahten-controls {
-  display: flex;
-  gap: 4px;
-  align-items: center;
-  flex-shrink: 0;
-  justify-self: end;
-  justify-content: flex-end;
-  flex-wrap: nowrap;
-  min-width: 0;
-  max-width: 100%;
-  overflow-x: auto;
-  scrollbar-width: thin;
-  -webkit-overflow-scrolling: touch;
-}
-.sahten-controls::-webkit-scrollbar {
-  height: 3px;
-}
-.sahten-controls::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.15);
-  border-radius: 2px;
-}
-
-.sahten-model-select {
-  height: 32px;
-  padding: 0 8px;
-  font-family: var(--font-ui);
-  font-size: 10px;
-  font-weight: 600;
-  color: #737373;
-  background: rgba(0, 0, 0, 0.03);
-  border: 1px solid rgba(0, 0, 0, 0.07);
-  border-radius: 8px;
-  cursor: pointer;
-  appearance: none;
-  -webkit-appearance: none;
-  margin-right: 0;
-  min-width: 48px;
-  text-align: center;
-  transition: border-color 0.15s ease, color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
-  line-height: 1;
-}
-.sahten-model-select:hover {
-  border-color: rgba(0, 0, 0, 0.11);
-  color: var(--text);
-  background: rgba(0, 0, 0, 0.04);
-}
-.sahten-model-select:focus {
-  outline: none;
-  border-color: var(--ring-focus-neutral);
-  box-shadow: 0 0 0 2px var(--ring-focus-glow);
-}
-
-.sahten-size-btn,
-.sahten-close-btn {
-  box-sizing: border-box;
-  min-width: 32px;
-  min-height: 32px;
-  width: 32px;
-  height: 32px;
-  border: none;
-  background: transparent;
-  color: #737373;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-  flex-shrink: 0;
-}
-.sahten-size-btn:hover,
-.sahten-close-btn:hover {
-  color: var(--text);
-  background: rgba(0, 0, 0, 0.055);
-}
-.sahten-size-btn.active {
-  color: var(--text);
-  background: rgba(0, 0, 0, 0.07);
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
-}
-.sahten-size-btn svg {
-  width: 14px;
-  height: 14px;
-}
-/* Fermeture : padding symétrique pour centrer la croix */
-.sahten-close-btn {
-  margin-left: 4px;
-  padding: 0;
-  border-left: 1px solid var(--border);
-  border-radius: 6px;
-  min-width: 36px;
-  width: 36px;
-  color: #555;
-}
-.sahten-close-btn svg {
-  width: 16px;
-  height: 16px;
-  flex-shrink: 0;
-  stroke-width: 2;
-  display: block;
-  margin: auto;
-}
-
-.sahten-body {
-  flex: 1;
-  overflow-y: auto;
-  scroll-behavior: smooth;
-  padding: 14px 16px 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-height: 0;
-  background: var(--surface-app);
-}
-.sahten-body::-webkit-scrollbar {
-  width: 5px;
-}
-.sahten-body::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.12);
-  border-radius: 3px;
-}
-
-.msg-bot {
-  width: 100%;
-  padding-top: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 0.65rem;
-}
-.msg-bot:has(.welcome-editorial) {
-  gap: 0;
-  align-items: flex-start;
-}
-/* Corps bot : texte continu, léger relief typographique (pas d’encadré) */
-.sahten-narrative {
-  font-family: "Playfair Display", Georgia, "Times New Roman", serif;
-  font-size: var(--welcome-body-size);
-  font-weight: 400;
-  font-style: normal;
-  line-height: var(--welcome-body-lh);
-  color: #1c1c1c;
-  letter-spacing: 0.012em;
-  -webkit-font-smoothing: antialiased;
-}
-.sahten-narrative p {
-  margin-bottom: 10px;
-}
-.sahten-narrative p:last-child {
-  margin-bottom: 0;
-}
-.sahten-narrative strong {
-  font-weight: 600;
-}
-.sahten-narrative em {
-  font-style: italic;
-}
-
-/* Blocs API : même rendu que la narrative (flux texte, pas de carte) */
-.sahten-block {
-  background: transparent;
-  border: none;
-  border-radius: 0;
-  padding: 0;
-  margin: 0;
-  font-family: var(--font-body);
-  font-size: var(--welcome-body-size);
-  font-weight: 400;
-  line-height: var(--welcome-body-lh);
-  color: #1c1c1c;
-  letter-spacing: 0.012em;
-  -webkit-font-smoothing: antialiased;
-}
-.sahten-block p {
-  margin: 0 0 0.55em 0;
-}
-.sahten-block p:last-child {
-  margin-bottom: 0;
-}
-.sahten-block strong {
-  font-weight: 600;
-}
-.sahten-block em {
-  font-style: italic;
-}
-.sahten-block-cta {
-  margin-top: 0.15em;
-}
-.sahten-block-cta a {
-  color: var(--text);
-  font-family: var(--font-ui);
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  text-decoration-color: rgba(0, 0, 0, 0.35);
-  transition: text-decoration-color 0.15s ease, color 0.15s ease;
-}
-.sahten-block-cta a:hover {
-  text-decoration-color: var(--text);
-}
-
-/* Accueil — échelle unique (--welcome-*) : corps, logos, pastilles, exemples */
 .welcome-editorial {
-  margin: 0;
-  padding: 0;
-  max-width: 100%;
-  text-align: left;
-  border: none;
-}
-
-/* ─── Welcome Editorial — journal × Cursor ───────────────────── */
-
-/* Titre principal : grande serif, serré, éditorial */
-.welcome-headline {
-  font-family: var(--font-display);
-  font-size: 20px;
-  font-weight: 700;
-  font-style: italic;
-  line-height: 1.18;
-  letter-spacing: -0.025em;
-  color: var(--atable-ink);
-  margin: 0 0 12px;
-}
-
-/* Corps de texte : lisible, aéré */
-.welcome-body {
-  font-family: var(--font-ui);
-  font-size: 13.5px;
-  font-weight: 400;
-  line-height: 1.6;
-  color: var(--atable-ink);
-  margin: 0 0 8px;
-  letter-spacing: 0.005em;
-}
-
-/* Note d'humilité : petit, discret */
-.welcome-note {
-  font-family: var(--font-ui);
-  font-size: 11.5px;
-  font-style: italic;
-  line-height: 1.5;
-  color: var(--text-muted);
-  margin: 0 0 16px;
-  padding-bottom: 14px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-}
-
-/* Suggestions : pas de zone, juste des liens légers */
-.welcome-prompts {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-/* Lead legacy (kept for fallback) */
-.welcome-lead {
-  font-family: var(--font-display);
-  font-size: 15px;
-  font-weight: 400;
-  line-height: 1.5;
-  color: var(--atable-ink);
-  margin: 0 0 8px;
-  letter-spacing: 0.005em;
+  margin: 0; padding: 0; max-width: 100%;
+  text-align: left; border: none;
 }
 .welcome-editorial--mockup,
 .welcome-editorial--stanza {
   -webkit-font-smoothing: antialiased;
-  display: flex;
-  flex-direction: column;
-  gap: 0;
+  display: flex; flex-direction: column; gap: 0;
 }
-/* À table : peu d’éléments UI, une colonne de lecture */
-.welcome-editorial--atable {
-  gap: 0;
-}
+.welcome-editorial--atable { gap: 0; }
+
+/* Bloc de texte */
 .welcome-stanza {
-  max-width: 100%;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  display: flex; flex-direction: column;
+  gap: 0; margin: 0; padding: 0;
 }
+
+/* 1ère phrase : grande, sérif, lisible */
+.welcome-lead {
+  font-family: var(--font-display);
+  font-size: 15px; font-weight: 400;
+  line-height: 1.52; letter-spacing: 0.005em;
+  color: var(--atable-ink);
+  margin: 0 0 10px;
+}
+
+/* 2ème phrase : même corps, légèrement moins présent */
+.welcome-sub {
+  font-family: var(--font-display);
+  font-size: 14px; font-weight: 400;
+  line-height: 1.48;
+  color: var(--atable-ink);
+  margin: 0 0 10px;
+}
+/* Note d'humilité : petit, italique, séparé */
+.welcome-note {
+  font-family: var(--font-ui);
+  font-size: 12px; font-style: italic; line-height: 1.55;
+  color: var(--text-muted);
+  margin: 0; padding-top: 8px;
+  border-top: 1px solid rgba(0,0,0,0.06);
+}
+
+
+
+/* Alias legacy */
 .welcome-line {
   font-family: var(--font-display);
-  font-size: var(--welcome-serif);
-  font-weight: 400;
-  font-style: normal;
+  font-size: var(--welcome-serif); font-weight: 400;
   line-height: var(--welcome-serif-lh);
-  color: var(--atable-ink);
-  margin: 0;
-  text-align: left;
-  letter-spacing: 0.01em;
-}
-.welcome-stanza > .welcome-line:first-child {
-  margin-bottom: 4px;
-}
-.welcome-line--verse {
-  margin-bottom: 0.08em;
-  color: var(--atable-ink);
-}
-.welcome-line--logo {
-  margin-top: 0.06em;
-  margin-bottom: 0.28em;
+  color: var(--atable-ink); margin: 0;
+  letter-spacing: 0.005em;
 }
 .welcome-line--lede {
+  font-size: var(--welcome-lede-size); line-height: 1.48;
   color: var(--atable-ink);
-  font-size: var(--welcome-lede-size);
-  line-height: 1.42;
-  margin-top: 0;
-}
-.welcome-stanza .welcome-line--lede + .welcome-line--lede {
-  margin-top: 0.35rem;
 }
 .welcome-line--humility {
-  font-style: italic;
-  font-size: 12.5px;
-  line-height: 1.5;
+  font-style: italic; font-size: 12px; line-height: 1.55;
   color: var(--text-muted);
-  opacity: 0.8;
-  border-top: 1px solid rgba(0,0,0,0.05);
-  padding-top: 6px;
-  margin-top: 2px;
+  padding-top: 8px; border-top: 1px solid rgba(0,0,0,0.06);
 }
+.welcome-line--verse { color: var(--atable-ink); }
+.welcome-line--logo  { margin-bottom: 0.28em; }
+.welcome-stanza > .welcome-line:first-child { margin-bottom: 4px; }
+.welcome-stanza .welcome-line--lede + .welcome-line--lede { margin-top: 0.35rem; }
 .welcome-em-accent {
   font-style: italic;
   font-weight: 500;
@@ -1725,3 +1127,5 @@
   font-size: 12px;
   color: var(--text-muted);
 }
+
+
