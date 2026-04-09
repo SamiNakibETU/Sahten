@@ -87,6 +87,23 @@ def route_intent_deterministic(query: str) -> Optional[QueryAnalysis]:
     if po is not None:
         return query_plan_to_analysis(po)
 
+    # 2b. Requête ultra-vague contenant "recette" sans nom de plat ni ingrédient
+    # Ex : "recette", "une recette", "donne-moi une recette"
+    # → recipe_by_mood (browse_corpus) immédiatement, jamais off_topic
+    VAGUE_RECIPE_TRIGGERS = frozenset({"recette", "recettes"})
+    STOP_WORDS = frozenset({"une", "un", "de", "la", "le", "du", "donne", "moi", "je", "veux", "voudrais", "avoir", "avoir"})
+    if words & VAGUE_RECIPE_TRIGGERS and len(words) <= 5:
+        non_recipe_words = words - VAGUE_RECIPE_TRIGGERS - STOP_WORDS
+        if not non_recipe_words:
+            return QueryAnalysis(
+                safety=SafetyCheck(is_safe=True, threat_type="none"),
+                intent="recipe_by_mood",
+                intent_confidence=1.0,
+                is_culinary=True,
+                recipe_count=1,
+                reasoning="IntentRouter: vague 'recette' query → recipe_by_mood with clarification",
+            )
+
     # 2. Salutation simple (peu de mots)
     if len(words) <= 2 and words & GREETING_WORDS:
         return QueryAnalysis(

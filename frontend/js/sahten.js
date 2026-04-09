@@ -166,7 +166,7 @@ export class SahtenChat {
         const existing = btn.closest('.sahten-trigger-wrap');
         if (existing) {
             this.dom.triggerWrap = existing;
-            existing.setAttribute('title', 'Ouvrir Sahten');
+            existing.setAttribute('title', 'Ouvrir Sahteïn');
             this.dom.triggerBubble = existing.querySelector('.sahten-trigger-bubble');
             if (this.dom.triggerBubble) {
                 this.dom.triggerBubble.textContent = this.TRIGGER_HINT_TEXT;
@@ -182,7 +182,7 @@ export class SahtenChat {
         btn.parentNode.insertBefore(wrap, btn);
         wrap.appendChild(bubble);
         wrap.appendChild(btn);
-        wrap.setAttribute('title', 'Ouvrir Sahten');
+        wrap.setAttribute('title', 'Ouvrir Sahteïn');
         this.dom.triggerWrap = wrap;
         this.dom.triggerBubble = bubble;
     }
@@ -242,6 +242,29 @@ export class SahtenChat {
         return value === 'auto' ? null : value;
     }
 
+
+    // ── Focus trap for full-screen mode ──────────────────────────────────────
+    _focusTrap(e) {
+        if (!this.dom.container || this.state.size !== 'full') return;
+        const focusable = Array.from(this.dom.container.querySelectorAll(
+            'button:not([disabled]), [href], input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        )).filter(el => !el.closest('[aria-hidden="true"]'));
+        if (!focusable.length) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey) {
+            if (document.activeElement === first) {
+                e.preventDefault();
+                last.focus();
+            }
+        } else {
+            if (document.activeElement === last) {
+                e.preventDefault();
+                first.focus();
+            }
+        }
+    }
+
     bindEvents() {
         // Open/Close
         if (this.dom.triggerWrap && this.dom.trigger) {
@@ -250,6 +273,7 @@ export class SahtenChat {
                 if (el && el.nodeType === Node.TEXT_NODE) el = el.parentElement;
                 if (!(el instanceof Element)) return;
                 if (el.closest('.sahten-trigger')) return;
+                if (this.state.isOpen) return;  // widget already open
                 e.preventDefault();
                 this.toggle(true);
             });
@@ -258,11 +282,33 @@ export class SahtenChat {
             this.dom.trigger.addEventListener('click', () => this.toggle(true));
         }
         if (this.dom.closeBtn) {
-            this.dom.closeBtn.addEventListener('click', () => this.toggle(false));
+            this.dom.closeBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.toggle(false);
+            });
+        }
+        // Delegated close: click anywhere on header controls area also works
+        const headerEl = document.querySelector('.sahten-header');
+        if (headerEl) {
+            headerEl.addEventListener('click', (e) => {
+                if (e.target.closest('.sahten-close-btn')) {
+                    e.stopPropagation();
+                    this.toggle(false);
+                }
+            });
         }
         if (this.dom.backdrop) {
             this.dom.backdrop.addEventListener('click', () => this.toggle(false));
         }
+
+        // Escape key closes the widget; Tab key traps focus in full mode
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && this.state.isOpen) {
+                this.toggle(false);
+            } else if (e.key === 'Tab' && this.state.isOpen) {
+                this._focusTrap(e);
+            }
+        });
 
         // Form Submit
         if (this.dom.form) {
@@ -359,7 +405,7 @@ export class SahtenChat {
             this.dom.body.scrollTop = 0;
             if (this._a11yLive) {
                 this._a11yLive.textContent =
-                    "Rubrique ouverte. Proposez une recette, un ingrédient ou un nom de chef.";
+                    "Sahteïn est ouvert. Proposez une recette, un ingrédient ou un nom de chef.";
             }
             setTimeout(() => {
                 if (this.dom.input) {
@@ -373,9 +419,9 @@ export class SahtenChat {
                 this.appendBotMessage({
                     html: `<article class="welcome-editorial welcome-editorial--stanza welcome-editorial--atable" lang="fr">
                         <div class="welcome-stanza">
-                            <p class="welcome-line">Je suis <span class="welcome-pill">Sahten</span>,<br />le robot culinaire de <img src="assets/logo_2_olj.svg" alt="L'Orient-Le Jour" class="welcome-olj-logomark" width="132" height="22" decoding="async" />.</p>
-                            <p class="welcome-line welcome-line--lede">J’ai plein de recettes dans mes carnets, et je les connais par cœur.</p>
-                            <p class="welcome-line welcome-line--lede">Parlez-moi et je serais ravi de vous faire découvrir la cuisine des <span class="welcome-pill">tables libanaises</span>.</p>
+                            <p class="welcome-line">👋 Vous cherchez une recette libanaise (traditionnelle ou revisitée), arménienne ou encore des saveurs méditerranéennes ? 🍋</p>
+                            <p class="welcome-line welcome-line--lede">Dites-moi tout, et je vous proposerai une recette répondant à vos envies.</p>
+                            <p class="welcome-line welcome-line--lede welcome-line--humility">Soyez indulgents avec moi, je vais certainement faire des erreurs, mais je viens de me lancer. Et avec le temps, je vais certainement m’améliorer.</p>
                         </div>
                         <section class="welcome-examples welcome-examples--reference" role="region" aria-labelledby="welcome-examples-title">
                             <p class="welcome-examples-label" id="welcome-examples-title">Pour commencer</p>
@@ -534,9 +580,7 @@ export class SahtenChat {
                 html: `<div class="sahten-narrative">
                     <p><em>Mille excuses, un petit incident en cuisine...</em></p>
                     <p>Pourriez-vous répéter votre demande ?</p>
-                    <p style="font-size: 11px; opacity: 0.7; margin-top: 10px;">
-                        (Debug: ${this.config.apiBase} - ${error.message || 'Réseau'})
-                    </p>
+                    ${this.state.debugMode ? `<p style="font-size:11px;opacity:0.6;margin-top:8px;">` + this.config.apiBase + ` — ` + (error.message || 'Réseau') + `</p>` : ''}
                 </div>`
             });
         } finally {
@@ -803,7 +847,7 @@ export class SahtenChat {
                 <div class="sahten-thinking-block">
                     <img class="sahten-thinking-mascot" src="assets/v7_logo_sahten.svg" alt="" width="40" height="40" decoding="async" />
                     <div class="sahten-thinking-main">
-                        <p class="sahten-thinking-line">Sahten parcourt les recettes…</p>
+                        <p class="sahten-thinking-line">Sahteïn parcourt les recettes…</p>
                         <div class="loading-dots" aria-hidden="true">
                             <div class="dot"></div>
                             <div class="dot"></div>
