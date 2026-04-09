@@ -365,7 +365,7 @@
   line-height: 1.2;
   letter-spacing: -0.01em;
 }
-/* Header : « Sahten » en typo seule, sans pastille */
+/* Header : « Sahteïn » — editorial serif italic */
 .sahten-title.sahten-title--brand {
   display: inline-flex;
   align-items: center;
@@ -373,11 +373,12 @@
   padding: 0;
   border-radius: 0;
   background: transparent;
-  font-family: var(--font-ui);
-  font-weight: 600;
-  font-size: 17px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-style: italic;
+  font-size: 18px;
   color: var(--atable-ink);
-  letter-spacing: -0.025em;
+  letter-spacing: -0.02em;
   line-height: 1.15;
   flex-shrink: 0;
   white-space: nowrap;
@@ -601,6 +602,35 @@
   text-align: left;
   border: none;
 }
+
+/* ─── Welcome Header (badge "À table") ─────────────────────── */
+.welcome-header {
+  margin-bottom: 10px;
+}
+.welcome-badge {
+  display: inline-block;
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--sahten-sage);
+  border: 1px solid var(--sahten-sage);
+  border-radius: 4px;
+  padding: 2px 7px;
+  opacity: 0.9;
+}
+
+/* ─── Welcome Lead (first big line) ─────────────────────────── */
+.welcome-lead {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--atable-ink);
+  margin: 0 0 8px;
+  letter-spacing: 0.005em;
+}
 .welcome-editorial--mockup,
 .welcome-editorial--stanza {
   -webkit-font-smoothing: antialiased;
@@ -618,7 +648,7 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 6px;
 }
 .welcome-line {
   font-family: var(--font-display);
@@ -653,9 +683,13 @@
 }
 .welcome-line--humility {
   font-style: italic;
-  font-size: calc(var(--welcome-lede-size) - 1px);
+  font-size: 12.5px;
+  line-height: 1.5;
   color: var(--text-muted);
-  opacity: 0.85;
+  opacity: 0.8;
+  border-top: 1px solid rgba(0,0,0,0.05);
+  padding-top: 6px;
+  margin-top: 2px;
 }
 .welcome-em-accent {
   font-style: italic;
