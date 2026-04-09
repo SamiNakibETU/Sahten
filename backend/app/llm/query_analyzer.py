@@ -119,7 +119,7 @@ TOXICITÉ (threat_type="toxicity"):
   - "quelle heure" → "C'est l'heure du mezze ! Un houmous ?"
   - insulte → "La cuisine adoucit les cœurs ! Un maamoul ?"
 
-# EXEMPLES
+# EXEMPLES CRITIQUES — mémorise bien ces patterns
 
 User: "recette tabbouleh libanais"
 → intent="recipe_specific", dish_name="taboulé", dish_name_variants=["taboulé","tabbouleh","taboule"], inferred_ingredients=[], is_culinary=true
@@ -133,6 +133,30 @@ User: "j'ai des courgettes et du yaourt"
 User: "un truc réconfortant pour l'hiver"
 → intent="recipe_by_mood", mood_tags=["reconfortant","hiver"], is_culinary=true
 
+User: "Léger et rapide ce soir ?"
+→ intent="recipe_by_mood", mood_tags=["leger","rapide"], is_culinary=true
+
+User: "quelque chose de frais et léger"
+→ intent="recipe_by_mood", mood_tags=["frais","leger"], is_culinary=true
+
+User: "un plat réconfortant"
+→ intent="recipe_by_mood", mood_tags=["reconfortant"], is_culinary=true
+
+User: "une recette facile pour ce soir"
+→ intent="recipe_by_mood", mood_tags=["rapide","facile"], is_culinary=true
+
+User: "j'ai faim"
+→ intent="recipe_by_mood", mood_tags=[], is_culinary=true
+
+User: "recette" (sans rien d'autre)
+→ intent="recipe_by_mood", mood_tags=[], is_culinary=true
+
+User: "que manger ce soir ?"
+→ intent="recipe_by_mood", mood_tags=[], is_culinary=true
+
+User: "quelque chose de bon"
+→ intent="recipe_by_mood", mood_tags=[], is_culinary=true
+
 User: "dessert sans gluten"
 → intent="recipe_by_category", category="dessert", dietary_restrictions=["sans_gluten"]
 
@@ -144,6 +168,12 @@ User: "c'est quoi le zaatar"
 
 User: "quel est le score du match"
 → intent="off_topic", is_culinary=false, redirect_suggestion="Le vrai match c'est en cuisine ! Un kafta ?"
+
+# RÈGLE ANTI-ERREUR CRITIQUE
+# Si la requête est vague, générique ou une envie sans détail (ex: "recette", "j'ai faim",
+# "quelque chose de bon", "ce soir"), TOUJOURS utiliser intent="recipe_by_mood".
+# Ne JAMAIS retourner intent="off_topic" pour une requête culinaire, même vague.
+# Ne JAMAIS retourner intent="clarification" si l'user veut une recette (même vaguement).
 """
 
 

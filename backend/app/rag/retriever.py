@@ -807,6 +807,25 @@ class HybridRetriever:
             return picked[:3], False, {"selected": [c.url for c in picked if c.url]} if debug else None
 
         # Regular search with rerank
+        # Mood tag → culinary keyword expansion for better TF-IDF matching
+        _MOOD_KEYWORD_EXPANSION: Dict[str, str] = {
+            "leger":       "léger salade frais entrée mezze cru citron menthe tomate fattoush",
+            "rapide":      "rapide facile simple sauté poêlé express préparation minute",
+            "reconfortant":"réconfortant soupe velouté mijoté chaud hiver lentilles pois chiche",
+            "frais":       "frais salade cru été estival citron concombre herbes",
+            "hiver":       "hiver chaud soupe velouté lentilles mijot bourgol blé",
+            "ete":         "été frais salade cru estival tomate concombre menthe",
+            "festif":      "festif fête partage mezze généreux riz viande agneau",
+            "traditionnel":"traditionnel libanais authentique classique mémé grandmère",
+            "moderne":     "moderne revisité contemporain fusion",
+            "convivial":   "partage mezze amis famille généreux plateau",
+            "facile":      "facile simple rapide préparation basique ingrédients",
+            "copieux":     "copieux généreux plat principal riz viande agneau",
+            "chaud":       "chaud soupe ragoût mijoté four",
+            "froid":       "froid frais salade mezze cru",
+            "liban":       "libanais liban cuisine levantine oriental méditerranéen",
+        }
+
         parts_rw: List[str] = []
         rf = analysis.effective_retrieval_focus()
         if rf:
@@ -817,6 +836,12 @@ class HybridRetriever:
         parts_rw.extend(analysis.dish_name_variants or [])
         parts_rw.extend(analysis.ingredients or [])
         parts_rw.extend(analysis.mood_tags or [])
+        # For mood-based queries: expand mood tags to culinary keywords
+        if analysis.intent == "recipe_by_mood" and analysis.mood_tags:
+            for tag in analysis.mood_tags:
+                expanded = _MOOD_KEYWORD_EXPANSION.get(tag)
+                if expanded:
+                    parts_rw.append(expanded)
         if analysis.chef_name:
             parts_rw.append(analysis.chef_name)
         if analysis.category:
@@ -880,8 +905,11 @@ class HybridRetriever:
                 rerank_user_query=rr_uq,
                 session_rerank_prefix=session_rerank_prefix,
             )
-        # Filter low scores only when LLM reranker ran (scores on 0-1 scale)
-        MIN_RERANK_SCORE = 0.15
+        # Filter low scores — threshold is lower for mood/vague queries
+        if analysis.intent in {"recipe_by_mood", "recipe_by_diet", "multi_recipe"}:
+            MIN_RERANK_SCORE = 0.05
+        else:
+            MIN_RERANK_SCORE = 0.15
         if not rerank_shortcircuit:
             reranked = [it for it in reranked if it.score >= MIN_RERANK_SCORE]
 
@@ -1261,6 +1289,59 @@ class HybridRetriever:
                             cited_passage=None,
                         )
         return None
+
+    def get_mood_fallback_recipe(
+        self,
+        analysis: "QueryAnalysis",
+        *,
+        exclude_urls: Optional[set] = None,
+    ) -> Optional[RecipeCard]:
+        """
+        Fallback for mood/vague queries: pick the best OLJ recipe matching the mood.
+
+        Mood → preferred category mapping, then pick any recipe not already shown.
+        """
+        import random
+
+        _MOOD_TO_CATEGORIES: Dict[str, List[str]] = {
+            "leger":        ["salade", "entree", "mezze_froid"],
+            "rapide":       ["entree", "mezze_froid", "mezze_chaud", "salade"],
+            "frais":        ["salade", "entree", "mezze_froid"],
+            "hiver":        ["soupe", "plat_principal", "mezze_chaud"],
+            "reconfortant": ["soupe", "plat_principal", "mezze_chaud"],
+            "ete":          ["salade", "entree", "mezze_froid"],
+            "festif":       ["plat_principal", "mezze_chaud", "mezze_froid"],
+            "copieux":      ["plat_principal", "mezze_chaud"],
+            "convivial":    ["mezze_froid", "mezze_chaud", "plat_principal"],
+            "facile":       ["entree", "mezze_froid", "salade"],
+        }
+
+        exclude = set(exclude_urls or [])
+        mood_tags = getattr(analysis, "mood_tags", []) or []
+
+        # Collect preferred categories in order of priority
+        preferred: List[str] = []
+        for tag in mood_tags:
+            for cat in _MOOD_TO_CATEGORIES.get(tag, []):
+                if cat not in preferred:
+                    preferred.append(cat)
+
+        recipe_docs = [d for d in self.olj_docs if d.is_recipe and str(d.url) not in exclude]
+        if not recipe_docs:
+            return None
+
+        # Try preferred categories first
+        for cat in preferred:
+            matching = [d for d in recipe_docs if (d.category_canonical or "") == cat]
+            if matching:
+                chosen = random.choice(matching)
+                logger.info("Mood fallback: tag=%s cat=%s -> %s", mood_tags, cat, chosen.title)
+                return self._doc_to_recipe_card(chosen)
+
+        # Any recipe as last resort
+        chosen = random.choice(recipe_docs)
+        logger.info("Mood fallback (no cat match): tag=%s -> %s", mood_tags, chosen.title)
+        return self._doc_to_recipe_card(chosen)
 
     def get_olj_recommendation(
         self, analysis: QueryAnalysis, exclude_titles: Optional[List[str]] = None
