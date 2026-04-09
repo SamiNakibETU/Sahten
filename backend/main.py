@@ -134,12 +134,21 @@ async def root():
     }
 
 
+@app.get("/widget")
+async def widget():
+    """Widget flottant OLJ — version intégration tiers sans sélecteur modèle."""
+    widget_path = FRONTEND_PATH / "widget.html"
+    if widget_path.exists():
+        return FileResponse(widget_path)
+    return {"error": "widget.html not found"}
+
+
 @app.get("/embed")
 async def embed_widget():
-    """Référence widget allégée (intégration tiers) — préférer la copie du markup depuis frontend/widget.html."""
-    widget_index = FRONTEND_PATH / "widget.html"
-    if widget_index.exists():
-        return FileResponse(widget_index)
+    """Alias /widget pour rétrocompatibilité."""
+    widget_path = FRONTEND_PATH / "widget.html"
+    if widget_path.exists():
+        return FileResponse(widget_path)
     return {"error": "widget.html not found"}
 
 
