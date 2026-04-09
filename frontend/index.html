@@ -8,10 +8,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="https://fonts.cdnfonts.com/css/aktiv-grotesk-cd-trial" crossorigin="anonymous" />
 
     <script
       src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.3.3/purify.min.js"
@@ -23,127 +22,495 @@
     <link rel="stylesheet" href="css/sahten.css" />
 
     <style>
+      /* ─── Reset & Base ─────────────────────────────────────── */
+      *, *::before, *::after { box-sizing: border-box; }
+      html { height: 100%; }
       body {
         margin: 0;
-        background: #ffffff;
-        font-family: "DM Sans", -apple-system, sans-serif;
+        min-height: 100vh;
+        background: #f7f5f2;
+        font-family: "DM Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+        color: #1a1a1a;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* ─── Top Nav ───────────────────────────────────────────── */
+      .site-nav {
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        z-index: 100;
+        height: 52px;
+        background: rgba(247, 245, 242, 0.88);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-bottom: 1px solid rgba(0,0,0,0.07);
+        display: flex;
+        align-items: center;
+        padding: 0 24px;
+        gap: 0;
+      }
+      .nav-brand {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        text-decoration: none;
+        flex: 1;
+      }
+      .nav-logo {
+        width: 28px; height: 28px;
+        display: block;
+      }
+      .nav-name {
+        font-family: "Playfair Display", Georgia, serif;
+        font-size: 17px;
+        font-weight: 700;
+        color: #1a1a1a;
+        letter-spacing: -0.02em;
+      }
+      .nav-separator {
+        width: 1px;
+        height: 18px;
+        background: rgba(0,0,0,0.12);
+        margin: 0 14px;
+      }
+      .nav-olj {
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #c5422a;
+        text-decoration: none;
+        opacity: 0.8;
+      }
+      .nav-olj:hover { opacity: 1; }
+      .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .nav-link {
+        font-size: 13px;
+        font-weight: 500;
+        color: #555;
+        text-decoration: none;
+        padding: 5px 10px;
+        border-radius: 7px;
+        transition: background 0.15s, color 0.15s;
+      }
+      .nav-link:hover { background: rgba(0,0,0,0.06); color: #111; }
+      .nav-link.active { background: rgba(0,0,0,0.07); color: #111; }
+      .nav-pill {
+        font-size: 12px;
+        font-weight: 600;
+        color: #fff;
+        background: #1a1a1a;
+        padding: 5px 12px;
+        border-radius: 20px;
+        text-decoration: none;
+        margin-left: 8px;
+        transition: opacity 0.15s;
+      }
+      .nav-pill:hover { opacity: 0.8; }
+
+      /* ─── Hero / Main Layout ────────────────────────────────── */
+      .main {
+        flex: 1;
+        display: grid;
+        grid-template-columns: 1fr 420px;
+        gap: 0;
+        padding-top: 52px;
+        min-height: 100vh;
+      }
+
+      /* ─── Left Panel ────────────────────────────────────────── */
+      .panel-left {
+        padding: 64px 56px 40px 56px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        border-right: 1px solid rgba(0,0,0,0.07);
+      }
+      .panel-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: #c5422a;
+        margin-bottom: 20px;
+      }
+      .panel-eyebrow::before {
+        content: '';
+        display: block;
+        width: 24px; height: 1.5px;
+        background: currentColor;
+        border-radius: 2px;
+      }
+      .panel-title {
+        font-family: "Playfair Display", Georgia, serif;
+        font-size: clamp(36px, 4vw, 54px);
+        font-weight: 700;
+        line-height: 1.08;
+        letter-spacing: -0.03em;
+        color: #111;
+        margin: 0 0 12px;
+      }
+      .panel-title em {
+        font-style: italic;
+        color: #c5422a;
+      }
+      .panel-subtitle {
+        font-size: 16px;
+        line-height: 1.6;
+        color: #555;
+        max-width: 480px;
+        margin: 0 0 40px;
+      }
+
+      /* ─── Feature Grid ──────────────────────────────────────── */
+      .feature-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        max-width: 520px;
+      }
+      .feature-card {
+        background: #fff;
+        border: 1px solid rgba(0,0,0,0.08);
+        border-radius: 14px;
+        padding: 18px 20px;
+        text-decoration: none;
+        color: inherit;
+        transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+        display: block;
+      }
+      .feature-card:hover {
+        border-color: rgba(0,0,0,0.16);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+        transform: translateY(-1px);
+      }
+      .feature-card-icon {
+        font-size: 22px;
+        margin-bottom: 8px;
+        line-height: 1;
+      }
+      .feature-card-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: #111;
+        margin: 0 0 4px;
+      }
+      .feature-card-desc {
+        font-size: 12px;
+        color: #888;
+        margin: 0;
+        line-height: 1.4;
+      }
+      .feature-card.highlight {
+        background: #1a1a1a;
+        border-color: #1a1a1a;
+        color: #fff;
+      }
+      .feature-card.highlight .feature-card-title { color: #fff; }
+      .feature-card.highlight .feature-card-desc { color: rgba(255,255,255,0.55); }
+
+      /* ─── Model Badge ───────────────────────────────────────── */
+      .model-badge-row {
+        display: flex;
+        gap: 8px;
+        margin-top: 32px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .model-badge {
+        font-size: 11px;
+        font-weight: 600;
+        padding: 4px 10px;
+        border-radius: 20px;
+        border: 1px solid rgba(0,0,0,0.1);
+        color: #555;
+        background: #fff;
+        letter-spacing: 0.02em;
+      }
+      .model-badge.active {
+        background: #111;
+        color: #fff;
+        border-color: #111;
+      }
+      .model-badge-label {
+        font-size: 11px;
+        color: #aaa;
+        font-weight: 500;
+      }
+
+      /* ─── Right Panel (Widget) ──────────────────────────────── */
+      .panel-right {
+        background: #fff;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        border-left: 1px solid rgba(0,0,0,0.07);
+      }
+      .panel-right-label {
+        position: absolute;
+        top: -1px; left: 0; right: 0;
         display: flex;
         align-items: center;
         justify-content: center;
-        min-height: 100vh;
-        color: #888;
-      }
-      .page-bg {
-        text-align: center;
-        user-select: none;
-      }
-      .page-bg h1 {
-        font-family: "Playfair Display", Georgia, serif;
-        font-size: 22px;
+        padding: 8px 0;
+        font-size: 11px;
         font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
         color: #bbb;
-        letter-spacing: -0.01em;
-        margin-bottom: 6px;
+        border-bottom: 1px solid rgba(0,0,0,0.07);
+        background: #fff;
+        z-index: 10;
       }
-      .page-bg p {
-        font-size: 13px;
-        color: #ccc;
+
+      /* Widget override: fill the right panel entirely */
+      .panel-right .sahten-widget-container {
+        position: static !important;
+        width: 100% !important;
+        height: calc(100vh - 52px) !important;
+        max-height: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+        pointer-events: auto !important;
+        border-radius: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        transition: none !important;
+      }
+      .panel-right .sahten-widget-container[data-size] {
+        inset: auto !important;
+        margin: auto 0 !important;
+      }
+
+      /* ─── Dev strip (visible only with ?dev=1) ─────────────── */
+      .dev-strip {
+        display: none;
+        position: fixed;
+        bottom: 0; left: 0; right: 0;
+        z-index: 9999;
+        background: #1a1a1a;
+        color: #fff;
+        font-size: 12px;
+        padding: 8px 24px;
+        gap: 20px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .dev-strip.visible { display: flex; }
+      .dev-label { font-weight: 700; color: #f0a500; letter-spacing: 0.04em; }
+      .dev-select { font-size: 12px; padding: 3px 8px; border-radius: 6px; background: #333; color: #fff; border: 1px solid #555; }
+
+      /* ─── Responsive ────────────────────────────────────────── */
+      @media (max-width: 900px) {
+        .main { grid-template-columns: 1fr; }
+        .panel-left { padding: 40px 28px 32px; border-right: none; border-bottom: 1px solid rgba(0,0,0,0.07); }
+        .panel-right { min-height: 520px; border-left: none; }
+        .panel-right .sahten-widget-container {
+          height: 520px !important;
+        }
+        .feature-grid { grid-template-columns: 1fr 1fr; }
+        .nav-links { display: none; }
+      }
+
+      @media (max-width: 480px) {
+        .feature-grid { grid-template-columns: 1fr; }
+        .panel-left { padding: 28px 20px 24px; }
       }
     </style>
   </head>
   <body>
-    <div class="page-bg">
-      <h1>L'Orient-Le Jour</h1>
-      <p>Sahteïn — assistant recettes</p>
-    </div>
 
-    <div class="sahten-backdrop"></div>
+    <!-- ─── Navigation ──────────────────────────────────────────── -->
+    <nav class="site-nav">
+      <a class="nav-brand" href="/">
+        <img class="nav-logo" src="assets/v7_logo_sahten.svg" alt="Sahteïn" />
+        <span class="nav-name">Sahteïn</span>
+      </a>
+      <div class="nav-separator"></div>
+      <a class="nav-olj" href="https://www.lorientlejour.com/cuisine-liban-a-table" target="_blank" rel="noopener">L'Orient-Le Jour</a>
 
-    <div class="sahten-widget-container" data-size="window">
-      <div class="sahten-drag-handle"></div>
+      <div style="flex:1"></div>
 
-      <div class="sahten-header">
-        <div class="sahten-brand">
-          <img class="sahten-logo-mascot" src="assets/v7_logo_sahten.svg" alt="Sahteïn" width="40" height="40" decoding="async" />
-          <span class="sahten-title sahten-title--brand">Sahteïn</span>
+      <nav class="nav-links">
+        <a class="nav-link active" href="/">Démo</a>
+        <a class="nav-link" href="/dashboard">Analytics</a>
+        <a class="nav-link" href="/admin">Admin</a>
+        <a class="nav-link" href="/widget">Widget OLJ</a>
+        <a class="nav-pill" href="/?dev=1">Mode Dev</a>
+      </nav>
+    </nav>
+
+    <!-- ─── Main Layout ──────────────────────────────────────────── -->
+    <div class="main">
+
+      <!-- Left: Hero + Feature cards -->
+      <div class="panel-left">
+        <span class="panel-eyebrow">À table</span>
+
+        <h1 class="panel-title">
+          L'assistant recettes<br />
+          <em>libanaises</em> de L'OLJ
+        </h1>
+        <p class="panel-subtitle">
+          Sahteïn répond à vos questions culinaires — recettes libanaises,
+          arméniennes ou méditerranéennes — en s'appuyant sur le corpus
+          de L'Orient-Le Jour.
+        </p>
+
+        <div class="feature-grid">
+          <a class="feature-card" href="/dashboard">
+            <div class="feature-card-icon">📊</div>
+            <div class="feature-card-title">Analytics</div>
+            <p class="feature-card-desc">Traces, intents, latences et feedback en temps réel.</p>
+          </a>
+
+          <a class="feature-card" href="/widget">
+            <div class="feature-card-icon">🔌</div>
+            <div class="feature-card-title">Widget OLJ</div>
+            <p class="feature-card-desc">Version intégration site, sans sélecteur modèle.</p>
+          </a>
+
+          <a class="feature-card" href="/api/health/deep" target="_blank">
+            <div class="feature-card-icon">🟢</div>
+            <div class="feature-card-title">Santé système</div>
+            <p class="feature-card-desc">Status Redis, OpenAI, retriever et corpus.</p>
+          </a>
+
+          <a class="feature-card highlight" href="/admin">
+            <div class="feature-card-icon">⚙️</div>
+            <div class="feature-card-title">Admin</div>
+            <p class="feature-card-desc">Gestion des recettes, webhook et indexation.</p>
+          </a>
         </div>
 
-        <div class="sahten-controls">
-          <select id="model-select" class="sahten-model-select" title="Modèle LLM">
-            <option value="auto">Auto</option>
-            <optgroup label="OpenAI">
-              <option value="gpt-4.1-nano">GPT-4.1 nano</option>
-              <option value="gpt-4.1-mini">GPT-4.1 mini</option>
-            </optgroup>
-            <optgroup label="Groq (rapide — GROQ_API_KEY côté serveur)">
-              <option value="llama-3.1-8b-instant">Llama 3.1 8B instant</option>
-              <option value="llama-3.3-70b-versatile">Llama 3.3 70B versatile</option>
-              <option value="openai/gpt-oss-20b">GPT-OSS 20B</option>
-            </optgroup>
-          </select>
-
-          <button class="sahten-size-btn" data-action="window" aria-label="Fenêtre">
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4.5" y="3.5" width="7" height="9" rx="1.5" /></svg>
-          </button>
-          <button class="sahten-size-btn" data-action="mid" aria-label="Centré">
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2.5" y="2.5" width="11" height="11" rx="1.5" /></svg>
-          </button>
-          <button class="sahten-size-btn" data-action="full" aria-label="Plein écran">
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="10 2 14 2 14 6" /><polyline points="6 14 2 14 2 10" /><line x1="14" y1="2" x2="9.5" y2="6.5" /><line x1="2" y1="14" x2="6.5" y2="9.5" /></svg>
-          </button>
-          <button class="sahten-close-btn" aria-label="Fermer">
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="3.5" y1="3.5" x2="12.5" y2="12.5" /><line x1="12.5" y1="3.5" x2="3.5" y2="12.5" /></svg>
-          </button>
+        <div class="model-badge-row">
+          <span class="model-badge-label">Moteur :</span>
+          <span class="model-badge active">GPT-4.1 nano</span>
+          <span class="model-badge">GPT-4.1 mini</span>
+          <span class="model-badge">TF-IDF + RRF</span>
         </div>
       </div>
 
-      <div class="sahten-body"></div>
+      <!-- Right: Widget panel (always open) -->
+      <div class="panel-right" id="widget-panel">
+        <div class="panel-right-label">Essayez Sahteïn →</div>
 
-      <form id="sahten-form" class="sahten-footer">
-        <div class="input-wrapper">
-          <textarea
-            id="sahten-input"
-            class="sahten-input"
-            placeholder="Un plat, un ingrédient, un chef…"
-            autocomplete="off"
-            rows="1"
-          ></textarea>
-          <button type="submit" class="send-btn" aria-label="Envoyer">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="3" y1="8" x2="13" y2="8" /><polyline points="9 4 13 8 9 12" />
-            </svg>
-          </button>
+        <div class="sahten-backdrop" style="display:none"></div>
+
+        <div class="sahten-widget-container" data-size="window" data-state="open" id="sahten-main-widget">
+          <div class="sahten-drag-handle"></div>
+
+          <div class="sahten-header">
+            <div class="sahten-brand">
+              <img class="sahten-logo-mascot" src="assets/v7_logo_sahten.svg" alt="Sahteïn" width="40" height="40" decoding="async" />
+              <span class="sahten-title sahten-title--brand">Sahteïn</span>
+            </div>
+
+            <div class="sahten-controls">
+              <!-- Model select: hidden by default, visible with ?dev=1 -->
+              <select id="model-select" class="sahten-model-select" title="Modèle LLM" style="display:none">
+                <option value="auto">Auto</option>
+                <optgroup label="OpenAI">
+                  <option value="gpt-4.1-nano">GPT-4.1 nano</option>
+                  <option value="gpt-4.1-mini">GPT-4.1 mini</option>
+                </optgroup>
+                <optgroup label="Groq">
+                  <option value="llama-3.1-8b-instant">Llama 3.1 8B</option>
+                  <option value="llama-3.3-70b-versatile">Llama 3.3 70B</option>
+                </optgroup>
+              </select>
+
+              <!-- Size buttons hidden in panel mode (not needed) -->
+              <button class="sahten-close-btn" aria-label="Fermer" style="display:none">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="3.5" y1="3.5" x2="12.5" y2="12.5" /><line x1="12.5" y1="3.5" x2="3.5" y2="12.5" /></svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="sahten-body"></div>
+
+          <form id="sahten-form" class="sahten-footer">
+            <div class="input-wrapper">
+              <textarea
+                id="sahten-input"
+                class="sahten-input"
+                placeholder="Un plat, un ingrédient, un chef…"
+                autocomplete="off"
+                rows="1"
+              ></textarea>
+              <button type="submit" class="send-btn" aria-label="Envoyer">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="3" y1="8" x2="13" y2="8" /><polyline points="9 4 13 8 9 12" />
+                </svg>
+              </button>
+            </div>
+          </form>
         </div>
-      </form>
+      </div>
+
+    </div><!-- /.main -->
+
+    <!-- ─── Dev Strip (visible only ?dev=1) ─────────────────────── -->
+    <div class="dev-strip" id="dev-strip">
+      <span class="dev-label">DEV</span>
+      <span>Modèle :</span>
+      <select class="dev-select" id="dev-model-select">
+        <option value="auto">Auto</option>
+        <optgroup label="OpenAI">
+          <option value="gpt-4.1-nano">GPT-4.1 nano</option>
+          <option value="gpt-4.1-mini">GPT-4.1 mini</option>
+        </optgroup>
+        <optgroup label="Groq">
+          <option value="llama-3.1-8b-instant">Llama 3.1 8B instant</option>
+          <option value="llama-3.3-70b-versatile">Llama 3.3 70B versatile</option>
+        </optgroup>
+      </select>
+      <a href="/api/traces" target="_blank" style="color:#f0a500;font-size:12px">Traces →</a>
+      <a href="/api/health/deep" target="_blank" style="color:#f0a500;font-size:12px">Health →</a>
+      <a href="/dashboard" target="_blank" style="color:#f0a500;font-size:12px">Dashboard →</a>
+      <a href="/" style="color:#888;font-size:12px;margin-left:auto">Quitter dev ×</a>
     </div>
 
     <script>
       window.SAHTEN_API_BASE = window.location.origin + "/api";
-      // Model selector only visible in dev mode (?dev=1 in URL)
+
+      // Activate dev mode if ?dev=1
       (function () {
         const params = new URLSearchParams(window.location.search);
-        const modelSelect = document.getElementById('model-select');
-        if (modelSelect && !params.has('dev')) {
-          modelSelect.style.display = 'none';
+        if (params.has('dev')) {
+          const strip = document.getElementById('dev-strip');
+          if (strip) strip.classList.add('visible');
+          const sel = document.getElementById('model-select');
+          if (sel) sel.style.display = '';
+          // Sync dev model select → hidden model select
+          const devSel = document.getElementById('dev-model-select');
+          if (devSel && sel) {
+            devSel.addEventListener('change', () => { sel.value = devSel.value; });
+          }
         }
       })();
     </script>
 
     <script type="module">
       import { SahtenChat } from "./js/sahten.js";
-      new SahtenChat({
+
+      const chat = new SahtenChat({
         modelSelector: document.getElementById("model-select"),
+      });
+
+      // Open immediately in panel mode
+      requestAnimationFrame(() => {
+        if (!chat.state.isOpen) chat.toggle(true);
       });
     </script>
 
-    <button
-      type="button"
-      class="sahten-trigger"
-      aria-label="Ouvrir Sahteïn — assistant recettes L'Orient-Le Jour"
-      title="Une idée recette ? Cliquez pour ouvrir Sahteïn."
-      aria-expanded="false"
-    >
-      <img class="sahten-trigger-logo" src="assets/v7_logo_sahten.svg" alt="" width="52" height="52" decoding="async" />
-    </button>
   </body>
 </html>

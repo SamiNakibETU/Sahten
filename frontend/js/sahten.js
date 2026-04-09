@@ -418,23 +418,20 @@ export class SahtenChat {
             if (this.dom.body.children.length === 0) {
                 this.appendBotMessage({
                     html: `<article class="welcome-editorial welcome-editorial--stanza welcome-editorial--atable" lang="fr">
+                        <header class="welcome-header">
+                            <span class="welcome-badge">À table</span>
+                        </header>
                         <div class="welcome-stanza">
-                            <p class="welcome-line">👋 Vous cherchez une recette libanaise (traditionnelle ou revisitée), arménienne ou encore des saveurs méditerranéennes ? 🍋</p>
-                            <p class="welcome-line welcome-line--lede">Dites-moi tout, et je vous proposerai une recette répondant à vos envies.</p>
-                            <p class="welcome-line welcome-line--lede welcome-line--humility">Soyez indulgents avec moi, je vais certainement faire des erreurs, mais je viens de me lancer. Et avec le temps, je vais certainement m’améliorer.</p>
+                            <p class="welcome-lead">👋 Vous cherchez une recette libanaise (traditionnelle ou revisitée), arménienne ou encore des saveurs méditerranéennes ? 🍋</p>
+                            <p class="welcome-line welcome-line--lede">Dites-moi tout : je vous proposerai une recette répondant à vos envies.</p>
+                            <p class="welcome-line welcome-line--humility">Soyez indulgents — je vais certainement faire des erreurs, mais je viens de me lancer. Avec le temps, je m’améliorerai.</p>
                         </div>
                         <section class="welcome-examples welcome-examples--reference" role="region" aria-labelledby="welcome-examples-title">
                             <p class="welcome-examples-label" id="welcome-examples-title">Pour commencer</p>
                             <ul class="welcome-examples-list">
-                                <li>
-                                    <button type="button" class="welcome-example-prompt">Léger et rapide ce soir&nbsp;?</button>
-                                </li>
-                                <li>
-                                    <button type="button" class="welcome-example-prompt">Un menu pour six&nbsp;?</button>
-                                </li>
-                                <li>
-                                    <button type="button" class="welcome-example-prompt">Trois idées au poulet&nbsp;?</button>
-                                </li>
+                                <li><button type="button" class="welcome-example-prompt">Léger et rapide ce soir ?</button></li>
+                                <li><button type="button" class="welcome-example-prompt">Un menu pour six ?</button></li>
+                                <li><button type="button" class="welcome-example-prompt">Trois idées au poulet ?</button></li>
                             </ul>
                         </section>
                     </article>`
