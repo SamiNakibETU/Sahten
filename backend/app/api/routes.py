@@ -392,13 +392,15 @@ async def health_deep():
         checks["retriever"] = {"status": "error", "detail": str(e)[:120]}
         overall_ok = False
 
-    # 2. Redis connectivity
+    # 2. Redis connectivity (synchronous Upstash client — no await)
     redis = get_redis()
     if redis:
         try:
             t0 = _time.monotonic()
-            await redis.ping()
-            checks["redis"] = {"status": "ok", "latency_ms": int((_time.monotonic() - t0) * 1000)}
+            result = redis.ping()  # synchronous call, returns "PONG" or True
+            ok = result in (True, "PONG", b"PONG")
+            latency = int((_time.monotonic() - t0) * 1000)
+            checks["redis"] = {"status": "ok" if ok else "error", "latency_ms": latency}
         except Exception as e:
             checks["redis"] = {"status": "error", "detail": str(e)[:80]}
     else:

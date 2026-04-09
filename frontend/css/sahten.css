@@ -328,17 +328,6 @@
   flex-shrink: 0;
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
   background: var(--surface-panel);
-  position: relative;
-}
-/* Subtle green bottom accent on header */
-.sahten-header::after {
-  content: '';
-  position: absolute;
-  bottom: 0; left: 0;
-  width: 48px; height: 2px;
-  background: var(--sahten-sage, #94c2ae);
-  border-radius: 0 2px 2px 0;
-  opacity: 0.6;
 }
 
 .sahten-brand {
@@ -614,25 +603,51 @@
   border: none;
 }
 
-/* ─── Welcome Header (badge "À table") ─────────────────────── */
-.welcome-header {
-  margin-bottom: 10px;
-}
-.welcome-badge {
-  display: inline-block;
-  font-family: var(--font-ui);
-  font-size: 10px;
+/* ─── Welcome Editorial — journal × Cursor ───────────────────── */
+
+/* Titre principal : grande serif, serré, éditorial */
+.welcome-headline {
+  font-family: var(--font-display);
+  font-size: 20px;
   font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--sahten-sage);
-  border: 1px solid var(--sahten-sage);
-  border-radius: 4px;
-  padding: 2px 7px;
-  opacity: 0.9;
+  font-style: italic;
+  line-height: 1.18;
+  letter-spacing: -0.025em;
+  color: var(--atable-ink);
+  margin: 0 0 12px;
 }
 
-/* ─── Welcome Lead (first big line) ─────────────────────────── */
+/* Corps de texte : lisible, aéré */
+.welcome-body {
+  font-family: var(--font-ui);
+  font-size: 13.5px;
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--atable-ink);
+  margin: 0 0 8px;
+  letter-spacing: 0.005em;
+}
+
+/* Note d'humilité : petit, discret */
+.welcome-note {
+  font-family: var(--font-ui);
+  font-size: 11.5px;
+  font-style: italic;
+  line-height: 1.5;
+  color: var(--text-muted);
+  margin: 0 0 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+
+/* Suggestions : pas de zone, juste des liens légers */
+.welcome-prompts {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* Lead legacy (kept for fallback) */
 .welcome-lead {
   font-family: var(--font-display);
   font-size: 15px;
@@ -866,7 +881,7 @@
   width: 100%;
   margin: 0;
   padding: 9px 12px;
-  border: 1px solid color-mix(in srgb, var(--border) 92%, var(--atable-ink));
+  border: 1px solid rgba(0,0,0,0.07);
   border-radius: var(--welcome-example-radius);
   background: #ffffff;
   font-family: var(--font-ui);
@@ -874,13 +889,47 @@
   font-weight: 500;
   line-height: var(--welcome-example-lh);
   color: var(--atable-ink);
-  letter-spacing: 0.015em;
+  letter-spacing: -0.01em;
   text-align: left;
   text-decoration: none;
   cursor: pointer;
-  transition: border-color 0.18s ease, background-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+  transition: border-color 0.15s, background-color 0.15s;
   -webkit-font-smoothing: antialiased;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+}
+
+/* Suggestions dans welcome-prompts (nouveau format éditorial) */
+.welcome-prompts .welcome-example-prompt {
+  border: none;
+  border-radius: 0;
+  background: transparent;
   box-shadow: none;
+  padding: 6px 0;
+  font-family: var(--font-display);
+  font-size: 13.5px;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--atable-ink-muted);
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  letter-spacing: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.welcome-prompts .welcome-example-prompt::before {
+  content: '→';
+  font-style: normal;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  color: var(--sahten-sage, #94c2ae);
+  flex-shrink: 0;
+}
+.welcome-prompts .welcome-example-prompt:last-child {
+  border-bottom: none;
+}
+.welcome-prompts .welcome-example-prompt:hover {
+  color: var(--atable-ink);
+  background: transparent;
 }
 .welcome-examples--reference .welcome-examples-list {
   gap: 8px;
@@ -890,12 +939,12 @@
 }
 .welcome-examples--reference .welcome-example-prompt {
   min-height: 0;
-  padding: 10px 14px;
+  padding: 9px 12px;
   margin: 0;
-  border: 1px solid rgba(148, 194, 174, 0.25);
+  border: 1px solid rgba(0,0,0,0.07);
   border-radius: var(--radius-sm);
-  background: rgba(148, 194, 174, 0.06);
-  box-shadow: none;
+  background: var(--surface-panel);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03);
   font-family: var(--font-ui);
   font-size: 13px;
   font-weight: 500;
@@ -907,8 +956,7 @@
   transition:
     border-color 0.15s ease,
     background-color 0.15s ease,
-    box-shadow 0.15s ease,
-    color 0.15s ease;
+    box-shadow 0.15s ease;
   -webkit-tap-highlight-color: transparent;
 }
 .welcome-examples--minimal .welcome-example-prompt {
@@ -940,8 +988,8 @@
   background: color-mix(in srgb, var(--sahten-badge-green) 6%, #fff);
 }
 .welcome-examples--reference .welcome-example-prompt:hover {
-  border-color: rgba(148, 194, 174, 0.55);
-  background: rgba(148, 194, 174, 0.12);
+  border-color: rgba(0,0,0,0.14);
+  background: rgba(0,0,0,0.02);
   color: var(--atable-ink);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
