@@ -131,30 +131,15 @@
         object-position: left center;
       }
 
-      /* Eyebrow */
-      .eyebrow {
-        display: inline-block;
-        font-size: 10px;
-        font-weight: 600;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        color: var(--green);
-        margin-bottom: 16px;
-      }
-
       /* Title */
       .hero-title {
         font-family: "Playfair Display", Georgia, serif;
-        font-size: clamp(34px, 3.5vw, 50px);
+        font-size: clamp(30px, 3.2vw, 46px);
         font-weight: 700;
-        line-height: 1.09;
+        line-height: 1.1;
         letter-spacing: -0.03em;
         color: var(--ink);
         margin: 0 0 14px;
-      }
-      .hero-title em {
-        font-style: italic;
-        color: var(--green);
       }
 
       /* Subtitle */
@@ -166,57 +151,50 @@
         margin: 0 0 36px;
       }
 
-      /* ─── Feature cards ─────────────────────────────────────────── */
-      .feature-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-        max-width: 500px;
+      /* ─── Feature links ─────────────────────────────────────────── */
+      .feature-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        max-width: 420px;
+        border-top: 1px solid var(--border);
       }
-      .feature-card {
-        background: var(--white);
-        border: 1px solid rgba(0,0,0,0.08);
-        border-radius: 6px;
-        padding: 14px 16px;
+      .feature-link {
+        display: flex;
+        align-items: baseline;
+        gap: 12px;
+        padding: 11px 0;
+        border-bottom: 1px solid var(--border);
         text-decoration: none;
-        color: inherit;
-        transition: border-color 0.15s;
-        display: block;
-      }
-      .feature-card:hover { border-color: rgba(0,0,0,0.18); }
-      .feature-icon {
-        font-size: 16px;
-        margin-bottom: 6px;
-        line-height: 1;
-      }
-      .feature-title {
-        font-size: 13px;
-        font-weight: 600;
         color: var(--ink);
-        margin: 0 0 2px;
+        transition: color 0.1s;
       }
-      .feature-desc {
-        font-size: 11px;
+      .feature-link:hover { color: var(--ink); }
+      .feature-link:hover .fl-name { color: var(--ink); }
+      .fl-name {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--ink);
+        min-width: 110px;
+        flex-shrink: 0;
+        transition: color 0.1s;
+      }
+      .fl-desc {
+        font-size: 12px;
         color: #aaa;
-        margin: 0;
+        flex: 1;
         line-height: 1.4;
       }
-
-      .feature-card.green {
-        background: rgba(148,194,174,0.07);
-        border-color: rgba(148,194,174,0.3);
+      .fl-arrow {
+        font-size: 11px;
+        color: #ccc;
+        flex-shrink: 0;
+        transition: color 0.1s, transform 0.1s;
       }
-      .feature-card.green:hover { border-color: var(--green); }
-      .feature-card.green .feature-title { color: #2a6452; }
-      .feature-card.green .feature-desc  { color: #7aab93; }
-
-      .feature-card.dark {
-        background: #111;
-        border-color: #111;
+      .feature-link:hover .fl-arrow {
+        color: var(--ink);
+        transform: translateX(2px);
       }
-      .feature-card.dark:hover { border-color: #333; }
-      .feature-card.dark .feature-title { color: #fff; }
-      .feature-card.dark .feature-desc  { color: rgba(255,255,255,0.35); }
 
       /* ─── Stack badges ──────────────────────────────────────────── */
       .stack-row {
@@ -248,7 +226,7 @@
         color: #2d6b58;
       }
 
-      /* ─── OLJ footer mark ───────────────────────────────────────── */
+      /* ─── OLJ footer mark (footer) ─────────────────────────────── */
       .panel-footer {
         margin-top: 36px;
         padding-top: 20px;
@@ -402,11 +380,8 @@
         <!-- OLJ logo hero -->
         <img class="hero-olj" src="assets/logo_olj.svg" alt="L'Orient-Le Jour" />
 
-        <span class="eyebrow">À table</span>
-
         <h1 class="hero-title">
-          L'assistant recettes<br />
-          <em>libanaises</em> de L'OLJ
+          L'assistant recettes de L'OLJ
         </h1>
 
         <p class="hero-sub">
@@ -415,31 +390,28 @@
           L'Orient-Le Jour.
         </p>
 
-        <div class="feature-grid">
-          <a class="feature-card green" href="/dashboard">
-            <div class="feature-icon">📊</div>
-            <div class="feature-title">Analytics</div>
-            <p class="feature-desc">Traces, intents, latences et feedback.</p>
+        <nav class="feature-list">
+          <a class="feature-link" href="/dashboard">
+            <span class="fl-name">Analytics</span>
+            <span class="fl-desc">Traces, intents, latences et feedback</span>
+            <span class="fl-arrow">→</span>
           </a>
-
-          <a class="feature-card" href="/widget">
-            <div class="feature-icon">🔌</div>
-            <div class="feature-title">Widget OLJ</div>
-            <p class="feature-desc">Version intégration site, sans sélecteur.</p>
+          <a class="feature-link" href="/widget">
+            <span class="fl-name">Widget OLJ</span>
+            <span class="fl-desc">Version intégration site, sans sélecteur</span>
+            <span class="fl-arrow">→</span>
           </a>
-
-          <a class="feature-card" href="/api/health/deep" target="_blank">
-            <div class="feature-icon">🟢</div>
-            <div class="feature-title">Santé système</div>
-            <p class="feature-desc">Redis, OpenAI, retriever et corpus.</p>
+          <a class="feature-link" href="/api/health/deep" target="_blank">
+            <span class="fl-name">Santé système</span>
+            <span class="fl-desc">Redis, OpenAI, retriever et corpus</span>
+            <span class="fl-arrow">→</span>
           </a>
-
-          <a class="feature-card dark" href="/admin">
-            <div class="feature-icon">⚙️</div>
-            <div class="feature-title">Admin</div>
-            <p class="feature-desc">Recettes, webhook et indexation.</p>
+          <a class="feature-link" href="/admin">
+            <span class="fl-name">Admin</span>
+            <span class="fl-desc">Recettes, webhook et indexation</span>
+            <span class="fl-arrow">→</span>
           </a>
-        </div>
+        </nav>
 
         <div class="stack-row">
           <span class="stack-label">Stack :</span>
