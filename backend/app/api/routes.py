@@ -386,7 +386,7 @@ async def health_deep():
     # 1. Bot / retriever
     try:
         bot = get_bot()
-        doc_count = len(getattr(bot.retriever, '_docs', None) or [])
+        doc_count = len(getattr(bot.retriever, 'olj_docs', None) or [])
         checks["retriever"] = {"status": "ok", "doc_count": doc_count}
     except Exception as e:
         checks["retriever"] = {"status": "error", "detail": str(e)[:120]}

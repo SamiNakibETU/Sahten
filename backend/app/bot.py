@@ -88,7 +88,7 @@ class SahtenBot:
         model: Optional[str] = None,
         request_id: Optional[str] = None,
         session_id: Optional[str] = None,
-    ) -> tuple[SahtenResponse, Optional[dict]]:
+    ) -> tuple[SahtenResponse, Optional[dict], dict]:
         """
         Process a chat message.
         
@@ -100,7 +100,7 @@ class SahtenBot:
             session_id: Session ID for conversation memory
         
         Returns:
-            (SahtenResponse, debug_info)
+            (SahtenResponse, debug_info, trace_meta)
         """
         # Determine model to use
         effective_model = get_model_for_request(
@@ -135,6 +135,7 @@ class SahtenBot:
                     model_used=effective_model,
                 ),
                 {"analysis": analysis.model_dump(), "model": effective_model} if debug else None,
+                {},
             )
 
         if analysis.intent == "greeting":
@@ -149,6 +150,7 @@ class SahtenBot:
                     model_used=effective_model,
                 ),
                 {"analysis": analysis.model_dump(), "model": effective_model} if debug else None,
+                {},
             )
 
         if analysis.intent == "off_topic" or not analysis.is_culinary:
@@ -164,6 +166,7 @@ class SahtenBot:
                     model_used=effective_model,
                 ),
                 {"analysis": analysis.model_dump(), "model": effective_model} if debug else None,
+                {},
             )
 
         if analysis.intent == "clarification":
@@ -179,6 +182,7 @@ class SahtenBot:
                     model_used=effective_model,
                 ),
                 {"analysis": analysis.model_dump(), "model": effective_model} if debug else None,
+                {},
             )
 
         # 2) Retrieve + rerank
@@ -235,6 +239,7 @@ class SahtenBot:
                 )
                 recipes = []
                 response_type = "redirect"
+            turn_count = len(session.conversation_history) if session else 0
             return (
                 SahtenResponse(
                     response_type=response_type,
@@ -251,6 +256,7 @@ class SahtenBot:
                     if debug
                     else None
                 ),
+                {"session_turn_count": turn_count},
             )
 
         # 3) Generate narrative
@@ -308,7 +314,9 @@ class SahtenBot:
             if debug
             else None
         )
-        return resp, dbg
+        turn_count = len(session.conversation_history) if session else 0
+        trace_meta = {"session_turn_count": turn_count}
+        return resp, dbg, trace_meta
 
 
 # Singleton instance
