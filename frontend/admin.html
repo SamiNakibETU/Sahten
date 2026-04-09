@@ -3,337 +3,213 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sahteïn Admin - Recettes & Analytics</title>
+  <title>Sahteïn Admin</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,400&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     :root {
-      --color-bg: #f8f9fa;
-      --color-card: #ffffff;
-      --color-primary: #1B1A1A;
-      --color-secondary: #6c757d;
-      --color-accent: #94C2AE;
-      --color-border: #e9ecef;
-      --shadow: 0 2px 8px rgba(0,0,0,0.08);
+      --white: #ffffff;
+      --bg:    #fafafa;
+      --line:  rgba(0,0,0,0.08);
+      --ink:   #111111;
+      --ink-2: #555555;
+      --ink-3: #999999;
+      --ink-4: #cccccc;
+      --green: #94c2ae;
+      --green-d: #2a6452;
+      --ui:   "DM Sans", system-ui, sans-serif;
+      --mono: "DM Mono", ui-monospace, monospace;
+      --serif:"Playfair Display", Georgia, serif;
     }
-    
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: 'Inter', -apple-system, sans-serif;
-      background: var(--color-bg);
-      color: var(--color-primary);
-      line-height: 1.6;
-    }
-    
-    /* Header */
-    .header {
-      background: var(--color-card);
-      border-bottom: 1px solid var(--color-border);
-      padding: 16px 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-    
-    .header h1 {
-      font-size: 20px;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    
-    .header h1::before {
-      content: '';
-      width: 10px;
-      height: 10px;
-      background: var(--color-accent);
-      border-radius: 50%;
-    }
-    
-    .nav-tabs {
-      display: flex;
-      gap: 8px;
-    }
-    
-    .nav-tab {
-      padding: 8px 16px;
-      border: 1px solid var(--color-border);
-      border-radius: 6px;
-      background: var(--color-card);
-      color: var(--color-secondary);
+      font-family: var(--ui);
       font-size: 13px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
-      text-decoration: none;
+      background: var(--white);
+      color: var(--ink);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
     }
-    
-    .nav-tab:hover {
-      border-color: var(--color-accent);
-      color: var(--color-primary);
+
+    /* Nav */
+    nav.top {
+      position: sticky; top: 0; z-index: 100;
+      height: 44px;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--line);
+      display: flex; align-items: center;
+      padding: 0 24px; gap: 12px;
     }
-    
-    .nav-tab.active {
-      background: var(--color-accent);
-      border-color: var(--color-accent);
-      color: white;
+    .nb { display:flex;align-items:center;gap:6px;text-decoration:none;flex-shrink:0; }
+    .nb img { width:18px;height:18px;display:block; }
+    .nb span { font-family:var(--serif);font-size:13px;font-weight:600;font-style:italic;color:var(--ink);letter-spacing:-.02em; }
+    .nsep { width:1px;height:14px;background:var(--line);flex-shrink:0; }
+    .nolj img { height:16px;width:auto;opacity:.45;display:block;transition:opacity .15s; }
+    .nolj:hover img { opacity:.7; }
+    .nolj { text-decoration:none;flex-shrink:0; }
+    .nsp  { flex:1; }
+    .nlinks { display:flex;align-items:center;gap:0; }
+    .nl { font-size:12.5px;font-weight:500;color:var(--ink-3);text-decoration:none;padding:4px 8px;white-space:nowrap;transition:color .1s; }
+    .nl:hover { color:var(--ink); }
+    .nl.on { color:var(--ink);font-weight:600; }
+
+    /* Page */
+    .page { max-width: 1200px; margin: 0 auto; padding: 0 24px 80px; }
+
+    /* Header */
+    .hd {
+      padding: 32px 0 20px;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 32px;
     }
-    
-    /* Main Layout */
-    .main {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 24px;
-    }
-    
-    /* Stats Bar */
-    .stats-bar {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
-      margin-bottom: 24px;
-    }
-    
-    .stat-card {
-      background: var(--color-card);
-      border: 1px solid var(--color-border);
-      border-radius: 8px;
-      padding: 20px;
-      box-shadow: var(--shadow);
-    }
-    
-    .stat-card h3 {
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: var(--color-secondary);
-      margin-bottom: 8px;
-    }
-    
-    .stat-card .value {
-      font-size: 32px;
-      font-weight: 700;
-      color: var(--color-primary);
-    }
-    
-    .stat-card .sub {
-      font-size: 12px;
-      color: var(--color-secondary);
-      margin-top: 4px;
-    }
-    
-    /* Search & Filters */
-    .filters {
-      background: var(--color-card);
-      border: 1px solid var(--color-border);
-      border-radius: 8px;
-      padding: 16px;
-      margin-bottom: 24px;
+    .hd-title { font-family:var(--serif);font-size:22px;font-weight:600;letter-spacing:-.03em;color:var(--ink); }
+    .hd-title em { font-style:italic;color:var(--green); }
+
+    /* Stats row */
+    .stats-row {
       display: flex;
-      gap: 16px;
-      flex-wrap: wrap;
-      align-items: center;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 32px;
     }
-    
+    .stat {
+      flex: 1; padding: 20px 20px 16px 0;
+      border-right: 1px solid var(--line);
+    }
+    .stat:last-child { border-right: none; padding-right: 0; }
+    .stat:first-child { padding-left: 0; }
+    .stat + .stat { padding-left: 20px; }
+    .stat-label {
+      font-size: 10px; text-transform: uppercase; letter-spacing: .09em;
+      color: var(--ink-4); margin-bottom: 6px;
+    }
+    .stat-value {
+      font-family: var(--mono); font-size: 30px; font-weight: 500;
+      line-height: 1; color: var(--ink); letter-spacing: -.03em;
+    }
+    .stat-sub { font-size: 11px; color: var(--ink-4); margin-top: 5px; }
+
+    /* Filters */
+    .filters {
+      display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
+      margin-bottom: 24px;
+    }
     .search-input {
-      flex: 1;
-      min-width: 250px;
-      padding: 10px 14px;
-      border: 1px solid var(--color-border);
-      border-radius: 6px;
-      font-size: 14px;
-      font-family: inherit;
+      flex: 1; min-width: 220px;
+      padding: 7px 12px;
+      border: 1px solid var(--line); border-radius: 5px;
+      font-size: 13px; font-family: var(--ui); color: var(--ink);
+      background: var(--white); outline: none;
+      transition: border-color .15s;
     }
-    
-    .search-input:focus {
-      outline: none;
-      border-color: var(--color-accent);
-    }
-    
+    .search-input:focus { border-color: rgba(0,0,0,0.25); }
     .filter-select {
-      padding: 10px 14px;
-      border: 1px solid var(--color-border);
-      border-radius: 6px;
-      font-size: 14px;
-      font-family: inherit;
-      background: white;
-      cursor: pointer;
+      padding: 7px 12px;
+      border: 1px solid var(--line); border-radius: 5px;
+      font-size: 13px; font-family: var(--ui); color: var(--ink);
+      background: var(--white); cursor: pointer; outline: none;
     }
-    
-    /* Recipe Grid */
+
+    /* Recipe grid */
     .recipes-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-      gap: 16px;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 1px;
+      background: var(--line);
+      border: 1px solid var(--line);
     }
-    
     .recipe-item {
-      background: var(--color-card);
-      border: 1px solid var(--color-border);
-      border-radius: 8px;
-      overflow: hidden;
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-    
-    .recipe-item:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.1);
-    }
-    
-    .recipe-item-header {
-      display: flex;
-      gap: 12px;
+      background: var(--white);
       padding: 16px;
+      display: flex; flex-direction: column; gap: 10px;
     }
-    
+    .recipe-item-head { display: flex; gap: 12px; }
     .recipe-thumb {
-      width: 80px;
-      height: 80px;
-      border-radius: 6px;
-      background-size: cover;
-      background-position: center;
-      background-color: #f0f0f0;
-      flex-shrink: 0;
+      width: 72px; height: 72px; flex-shrink: 0;
+      background-size: cover; background-position: center;
+      background-color: #f2f2f2;
     }
-    
     .recipe-thumb.no-img {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 28px;
-      background: linear-gradient(135deg, #f5f5f5, #e8e8e8);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; background: #f5f5f5; color: #ccc;
     }
-    
-    .recipe-info {
-      flex: 1;
-      min-width: 0;
+    .recipe-info { flex: 1; min-width: 0; }
+    .recipe-title {
+      font-size: 13px; font-weight: 600; line-height: 1.3;
+      color: var(--ink); margin-bottom: 3px;
     }
-    
-    .recipe-info h4 {
-      font-size: 15px;
-      font-weight: 600;
-      margin-bottom: 4px;
-      line-height: 1.3;
+    .recipe-title a { color: inherit; text-decoration: none; }
+    .recipe-title a:hover { color: var(--green-d); }
+    .recipe-meta { font-size: 11px; color: var(--ink-3); }
+    .recipe-tags { display: flex; gap: 5px; flex-wrap: wrap; }
+    .rtag {
+      font-size: 10px; font-family: var(--mono);
+      padding: 1px 6px; background: #f2f2f2; color: var(--ink-3);
+      text-transform: uppercase; letter-spacing: .04em;
     }
-    
-    .recipe-info h4 a {
-      color: inherit;
-      text-decoration: none;
-    }
-    
-    .recipe-info h4 a:hover {
-      color: var(--color-accent);
-    }
-    
-    .recipe-meta {
-      font-size: 12px;
-      color: var(--color-secondary);
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-    
-    .recipe-tags {
-      padding: 0 16px 16px;
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-    
-    .tag {
-      font-size: 10px;
-      padding: 3px 8px;
-      background: #f0f0f0;
-      border-radius: 4px;
-      color: var(--color-secondary);
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
-    }
-    
-    .tag.category {
-      background: rgba(148, 194, 174, 0.2);
-      color: #2d6a4f;
-    }
-    
-    /* Loading */
-    .loading {
-      text-align: center;
-      padding: 60px;
-      color: var(--color-secondary);
-    }
-    
-    .loading::after {
-      content: '';
-      display: block;
-      width: 32px;
-      height: 32px;
-      margin: 16px auto;
-      border: 3px solid var(--color-border);
-      border-top-color: var(--color-accent);
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-    
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-    
-    /* Empty State */
-    .empty-state {
-      text-align: center;
-      padding: 60px;
-      color: var(--color-secondary);
-    }
-    
-    .empty-state h3 {
-      font-size: 18px;
-      margin-bottom: 8px;
-      color: var(--color-primary);
+    .rtag.cat { background: rgba(148,194,174,.12); color: var(--green-d); }
+
+    /* States */
+    .loading { padding: 48px 24px; color: var(--ink-4); font-size: 12.5px; font-style: italic; }
+    .empty-state { padding: 48px 24px; color: var(--ink-4); font-size: 12.5px; font-style: italic; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (max-width: 700px) {
+      .stats-row { flex-wrap: wrap; }
+      .stat { flex: 0 0 50%; }
+      .page { padding: 0 16px 60px; }
+      nav.top { padding: 0 16px; }
     }
   </style>
 </head>
 <body>
-  <header class="header">
-    <h1>Sahteïn Admin</h1>
-    <nav class="nav-tabs">
-      <a href="/" class="nav-tab">Démo</a>
-      <a href="/embed" class="nav-tab">Widget</a>
-      <a href="/admin" class="nav-tab active">Admin</a>
-      <a href="/dashboard" class="nav-tab">Analytics</a>
-    </nav>
-  </header>
+  <nav class="top">
+    <a class="nb" href="/">
+      <img src="assets/v7_logo_sahten.svg" alt="Sahteïn" />
+      <span>Sahteïn</span>
+    </a>
+    <div class="nsep"></div>
+    <a class="nolj" href="https://www.lorientlejour.com/cuisine-liban-a-table" target="_blank" rel="noopener" title="L'Orient-Le Jour">
+      <img src="assets/logo_olj.svg" alt="L'Orient-Le Jour" />
+    </a>
+    <div class="nsp"></div>
+    <div class="nlinks">
+      <a class="nl" href="/">Démo</a>
+      <a class="nl" href="/widget">Widget OLJ</a>
+      <a class="nl on" href="/admin">Admin</a>
+      <a class="nl" href="/dashboard">Analytics</a>
+    </div>
+  </nav>
   
-  <main class="main">
+  <div class="page">
+    <div class="hd">
+      <h1 class="hd-title">Admin <em>Sahteïn</em></h1>
+    </div>
+
     <!-- Stats -->
-    <div class="stats-bar">
-      <div class="stat-card">
-        <h3>Total Recettes</h3>
-        <div class="value" id="total-recipes">-</div>
-        <div class="sub">dans olj_canonical.json</div>
+    <div class="stats-row">
+      <div class="stat">
+        <div class="stat-label">Total Recettes</div>
+        <div class="stat-value" id="total-recipes">—</div>
+        <div class="stat-sub">olj_canonical.json</div>
       </div>
-      <div class="stat-card">
-        <h3>Avec Images</h3>
-        <div class="value" id="with-images">-</div>
-        <div class="sub">recettes illustrées</div>
+      <div class="stat">
+        <div class="stat-label">Avec Images</div>
+        <div class="stat-value" id="with-images">—</div>
+        <div class="stat-sub">recettes illustrées</div>
       </div>
-      <div class="stat-card">
-        <h3>Catégories</h3>
-        <div class="value" id="categories-count">-</div>
-        <div class="sub">types de plats</div>
+      <div class="stat">
+        <div class="stat-label">Catégories</div>
+        <div class="stat-value" id="categories-count">—</div>
+        <div class="stat-sub">types de plats</div>
       </div>
-      <div class="stat-card">
-        <h3>Chefs</h3>
-        <div class="value" id="chefs-count">-</div>
-        <div class="sub">contributeurs</div>
+      <div class="stat">
+        <div class="stat-label">Chefs</div>
+        <div class="stat-value" id="chefs-count">—</div>
+        <div class="stat-sub">contributeurs</div>
       </div>
     </div>
-    
+
     <!-- Filters -->
     <div class="filters">
       <input type="text" class="search-input" id="search" placeholder="Rechercher une recette, un ingrédient, un chef...">
@@ -344,12 +220,12 @@
         <option value="">Tous les chefs</option>
       </select>
     </div>
-    
+
     <!-- Recipes Grid -->
     <div class="recipes-grid" id="recipes-grid">
       <div class="loading">Chargement des recettes...</div>
     </div>
-  </main>
+  </div>
 
   <script>
     const API_BASE = window.SAHTEN_API_BASE || 'https://web-production-73152.up.railway.app/api';
@@ -372,16 +248,10 @@
         }
         
         const data = await response.json();
-        // Handle both direct array and { recipes: [...] } format
         allRecipes = Array.isArray(data) ? data : (data.recipes || []);
         
         if (allRecipes.length === 0) {
-          grid.innerHTML = `
-            <div class="empty-state">
-              <h3>Aucune recette</h3>
-              <p>La base de donnees est vide.</p>
-            </div>
-          `;
+          grid.innerHTML = '<div class="empty-state">Aucune recette dans la base.</div>';
           return;
         }
         
@@ -389,15 +259,7 @@
         populateFilters();
         renderRecipes(allRecipes);
       } catch (error) {
-        grid.innerHTML = `
-          <div class="empty-state">
-            <h3>Erreur de chargement</h3>
-            <p>Impossible de charger les recettes.</p>
-            <p style="font-size: 12px; margin-top: 8px; color: #888;">
-              Verifiez que olj_canonical.json existe ou que l'API est accessible.
-            </p>
-          </div>
-        `;
+        grid.innerHTML = '<div class="empty-state">Impossible de charger les recettes.</div>';
       }
     }
     
@@ -435,35 +297,28 @@
     
     function renderRecipes(recipes) {
       const grid = document.getElementById('recipes-grid');
-      
       if (recipes.length === 0) {
-        grid.innerHTML = `
-          <div class="empty-state">
-            <h3>Aucune recette trouvée</h3>
-            <p>Essayez de modifier vos filtres.</p>
-          </div>
-        `;
+        grid.innerHTML = '<div class="empty-state">Aucune recette trouvée.</div>';
         return;
       }
-      
       grid.innerHTML = recipes.map(recipe => `
         <article class="recipe-item">
-          <div class="recipe-item-header">
-            ${recipe._image_url 
-              ? `<div class="recipe-thumb" style="background-image: url('${recipe._image_url}')"></div>`
+          <div class="recipe-item-head">
+            ${recipe._image_url
+              ? `<div class="recipe-thumb" style="background-image:url('${recipe._image_url}')"></div>`
               : `<div class="recipe-thumb no-img"></div>`
             }
             <div class="recipe-info">
-              <h4><a href="${recipe.url}" target="_blank">${recipe.title}</a></h4>
+              <div class="recipe-title"><a href="${recipe.url}" target="_blank">${recipe.title}</a></div>
               <div class="recipe-meta">
-                ${recipe.chef_name ? `<span>Chef: ${recipe.chef_name}</span>` : ''}
-                ${recipe.is_lebanese ? '<span>Libanais</span>' : ''}
+                ${recipe.chef_name ? `Chef : ${recipe.chef_name}` : ''}
+                ${recipe.is_lebanese ? ' &middot; Libanais' : ''}
               </div>
             </div>
           </div>
           <div class="recipe-tags">
-            <span class="tag category">${(recipe.category_canonical || 'autre').replace(/_/g, ' ')}</span>
-            ${(recipe.tags || []).slice(0, 3).map(tag => `<span class="tag">${tag}</span>`).join('')}
+            <span class="rtag cat">${(recipe.category_canonical || 'autre').replace(/_/g,' ')}</span>
+            ${(recipe.tags||[]).slice(0,4).map(t=>`<span class="rtag">${t}</span>`).join('')}
           </div>
         </article>
       `).join('');
