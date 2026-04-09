@@ -22,260 +22,374 @@
     <link rel="stylesheet" href="css/sahten.css" />
 
     <style>
-      /* ─── Reset & Base ─────────────────────────────────────── */
-      *, *::before, *::after { box-sizing: border-box; }
+      /* ─── Tokens ───────────────────────────────────────────────── */
+      :root {
+        --green: #94c2ae;
+        --green-light: rgba(148, 194, 174, 0.12);
+        --green-mid:   rgba(148, 194, 174, 0.25);
+        --green-border: rgba(148, 194, 174, 0.35);
+        --ink: #1a1a1a;
+        --ink-muted: #666;
+        --paper: #f7f5f2;
+        --white: #ffffff;
+        --border: rgba(0,0,0,0.07);
+      }
+
+      /* ─── Reset ────────────────────────────────────────────────── */
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
       html { height: 100%; }
       body {
-        margin: 0;
         min-height: 100vh;
-        background: #f7f5f2;
+        background: var(--paper);
         font-family: "DM Sans", -apple-system, BlinkMacSystemFont, sans-serif;
-        color: #1a1a1a;
+        color: var(--ink);
         display: flex;
         flex-direction: column;
       }
 
-      /* ─── Top Nav ───────────────────────────────────────────── */
+      /* ─── Nav ──────────────────────────────────────────────────── */
       .site-nav {
         position: fixed;
         top: 0; left: 0; right: 0;
         z-index: 100;
-        height: 52px;
-        background: rgba(247, 245, 242, 0.88);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border-bottom: 1px solid rgba(0,0,0,0.07);
+        height: 56px;
+        background: rgba(247, 245, 242, 0.92);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border-bottom: 1px solid var(--border);
         display: flex;
         align-items: center;
-        padding: 0 24px;
+        padding: 0 20px 0 24px;
         gap: 0;
       }
+
+      /* Sahteïn brand (left) */
       .nav-brand {
         display: flex;
         align-items: center;
-        gap: 9px;
+        gap: 8px;
         text-decoration: none;
-        flex: 1;
+        flex-shrink: 0;
       }
-      .nav-logo {
-        width: 28px; height: 28px;
-        display: block;
-      }
-      .nav-name {
+      .nav-sahten-logo { width: 26px; height: 26px; display: block; }
+      .nav-sahten-name {
         font-family: "Playfair Display", Georgia, serif;
-        font-size: 17px;
+        font-size: 16px;
         font-weight: 700;
-        color: #1a1a1a;
+        font-style: italic;
+        color: var(--ink);
         letter-spacing: -0.02em;
+        white-space: nowrap;
       }
-      .nav-separator {
-        width: 1px;
-        height: 18px;
-        background: rgba(0,0,0,0.12);
-        margin: 0 14px;
+
+      /* Divider */
+      .nav-div {
+        width: 1px; height: 20px;
+        background: var(--border);
+        margin: 0 16px;
+        flex-shrink: 0;
       }
-      .nav-olj {
-        font-size: 11px;
-        font-weight: 600;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        color: #c5422a;
+
+      /* OLJ logo (right of divider) */
+      .nav-olj-logo-wrap {
+        display: flex;
+        align-items: center;
         text-decoration: none;
-        opacity: 0.8;
+        flex-shrink: 0;
       }
-      .nav-olj:hover { opacity: 1; }
+      .nav-olj-logo {
+        height: 18px;
+        width: auto;
+        display: block;
+        opacity: 0.72;
+        transition: opacity 0.2s;
+      }
+      .nav-olj-logo-wrap:hover .nav-olj-logo { opacity: 1; }
+
+      /* Spacer */
+      .nav-spacer { flex: 1; }
+
+      /* Links */
       .nav-links {
         display: flex;
         align-items: center;
-        gap: 4px;
+        gap: 2px;
       }
       .nav-link {
         font-size: 13px;
         font-weight: 500;
-        color: #555;
+        color: var(--ink-muted);
         text-decoration: none;
         padding: 5px 10px;
-        border-radius: 7px;
+        border-radius: 8px;
         transition: background 0.15s, color 0.15s;
+        white-space: nowrap;
       }
-      .nav-link:hover { background: rgba(0,0,0,0.06); color: #111; }
-      .nav-link.active { background: rgba(0,0,0,0.07); color: #111; }
-      .nav-pill {
-        font-size: 12px;
-        font-weight: 600;
-        color: #fff;
-        background: #1a1a1a;
-        padding: 5px 12px;
-        border-radius: 20px;
-        text-decoration: none;
-        margin-left: 8px;
-        transition: opacity 0.15s;
-      }
-      .nav-pill:hover { opacity: 0.8; }
+      .nav-link:hover { background: rgba(0,0,0,0.05); color: var(--ink); }
+      .nav-link.active { color: var(--ink); font-weight: 600; }
 
-      /* ─── Hero / Main Layout ────────────────────────────────── */
-      .main {
-        flex: 1;
-        display: grid;
-        grid-template-columns: 1fr 420px;
-        gap: 0;
-        padding-top: 52px;
-        min-height: 100vh;
-      }
-
-      /* ─── Left Panel ────────────────────────────────────────── */
-      .panel-left {
-        padding: 64px 56px 40px 56px;
+      /* À table pill */
+      .nav-atable {
         display: flex;
-        flex-direction: column;
-        justify-content: center;
-        border-right: 1px solid rgba(0,0,0,0.07);
-      }
-      .panel-eyebrow {
-        display: inline-flex;
         align-items: center;
         gap: 6px;
         font-size: 11px;
         font-weight: 700;
-        letter-spacing: 0.1em;
+        letter-spacing: 0.07em;
         text-transform: uppercase;
-        color: #c5422a;
-        margin-bottom: 20px;
+        color: var(--green);
+        background: var(--green-light);
+        border: 1px solid var(--green-border);
+        padding: 4px 11px;
+        border-radius: 20px;
+        text-decoration: none;
+        margin-left: 10px;
+        white-space: nowrap;
+        transition: background 0.15s;
       }
-      .panel-eyebrow::before {
-        content: '';
-        display: block;
-        width: 24px; height: 1.5px;
-        background: currentColor;
-        border-radius: 2px;
-      }
-      .panel-title {
-        font-family: "Playfair Display", Georgia, serif;
-        font-size: clamp(36px, 4vw, 54px);
-        font-weight: 700;
-        line-height: 1.08;
-        letter-spacing: -0.03em;
-        color: #111;
-        margin: 0 0 12px;
-      }
-      .panel-title em {
-        font-style: italic;
-        color: #c5422a;
-      }
-      .panel-subtitle {
-        font-size: 16px;
-        line-height: 1.6;
-        color: #555;
-        max-width: 480px;
-        margin: 0 0 40px;
+      .nav-atable:hover { background: var(--green-mid); }
+
+      /* ─── Layout ────────────────────────────────────────────────── */
+      .main {
+        flex: 1;
+        display: grid;
+        grid-template-columns: 1fr 420px;
+        padding-top: 56px;
+        min-height: 100vh;
       }
 
-      /* ─── Feature Grid ──────────────────────────────────────── */
+      /* ─── Left panel ────────────────────────────────────────────── */
+      .panel-left {
+        padding: 60px 52px 48px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        border-right: 1px solid var(--border);
+      }
+
+      /* OLJ logotype hero */
+      .hero-olj {
+        display: block;
+        height: 22px;
+        width: auto;
+        opacity: 0.55;
+        margin-bottom: 28px;
+        object-fit: contain;
+        object-position: left center;
+      }
+
+      /* Eyebrow */
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 10.5px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--green);
+        margin-bottom: 16px;
+      }
+      .eyebrow::before {
+        content: '';
+        display: block;
+        width: 20px; height: 1.5px;
+        background: var(--green);
+        border-radius: 2px;
+      }
+
+      /* Title */
+      .hero-title {
+        font-family: "Playfair Display", Georgia, serif;
+        font-size: clamp(34px, 3.5vw, 50px);
+        font-weight: 700;
+        line-height: 1.09;
+        letter-spacing: -0.03em;
+        color: var(--ink);
+        margin: 0 0 14px;
+      }
+      .hero-title em {
+        font-style: italic;
+        color: var(--green);
+      }
+
+      /* Subtitle */
+      .hero-sub {
+        font-size: 15px;
+        line-height: 1.65;
+        color: var(--ink-muted);
+        max-width: 440px;
+        margin: 0 0 36px;
+      }
+
+      /* ─── Feature cards ─────────────────────────────────────────── */
       .feature-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 12px;
-        max-width: 520px;
+        gap: 10px;
+        max-width: 500px;
       }
       .feature-card {
-        background: #fff;
-        border: 1px solid rgba(0,0,0,0.08);
+        background: var(--white);
+        border: 1px solid rgba(0,0,0,0.07);
         border-radius: 14px;
-        padding: 18px 20px;
+        padding: 16px 18px;
         text-decoration: none;
         color: inherit;
         transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
         display: block;
       }
       .feature-card:hover {
-        border-color: rgba(0,0,0,0.16);
-        box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+        border-color: var(--green-border);
+        box-shadow: 0 4px 20px rgba(148,194,174,0.12), 0 1px 4px rgba(0,0,0,0.04);
         transform: translateY(-1px);
       }
-      .feature-card-icon {
-        font-size: 22px;
-        margin-bottom: 8px;
+      .feature-icon {
+        font-size: 20px;
+        margin-bottom: 7px;
         line-height: 1;
       }
-      .feature-card-title {
-        font-size: 14px;
+      .feature-title {
+        font-size: 13.5px;
         font-weight: 700;
-        color: #111;
-        margin: 0 0 4px;
+        color: var(--ink);
+        margin: 0 0 3px;
       }
-      .feature-card-desc {
-        font-size: 12px;
-        color: #888;
+      .feature-desc {
+        font-size: 11.5px;
+        color: #999;
         margin: 0;
         line-height: 1.4;
       }
-      .feature-card.highlight {
+
+      /* Green accent card */
+      .feature-card.green {
+        background: var(--green-light);
+        border-color: var(--green-border);
+      }
+      .feature-card.green:hover {
+        background: var(--green-mid);
+        border-color: var(--green);
+      }
+      .feature-card.green .feature-title { color: #2d6b58; }
+      .feature-card.green .feature-desc  { color: #5a9a83; }
+
+      /* Dark card */
+      .feature-card.dark {
         background: #1a1a1a;
         border-color: #1a1a1a;
-        color: #fff;
       }
-      .feature-card.highlight .feature-card-title { color: #fff; }
-      .feature-card.highlight .feature-card-desc { color: rgba(255,255,255,0.55); }
+      .feature-card.dark:hover {
+        border-color: var(--green);
+        box-shadow: 0 4px 20px rgba(148,194,174,0.2);
+      }
+      .feature-card.dark .feature-title { color: #fff; }
+      .feature-card.dark .feature-desc  { color: rgba(255,255,255,0.45); }
 
-      /* ─── Model Badge ───────────────────────────────────────── */
-      .model-badge-row {
+      /* ─── Stack badges ──────────────────────────────────────────── */
+      .stack-row {
         display: flex;
-        gap: 8px;
-        margin-top: 32px;
+        gap: 7px;
+        margin-top: 28px;
         align-items: center;
         flex-wrap: wrap;
       }
-      .model-badge {
-        font-size: 11px;
+      .stack-label {
+        font-size: 10.5px;
+        color: #bbb;
         font-weight: 600;
-        padding: 4px 10px;
+        letter-spacing: 0.04em;
+      }
+      .stack-badge {
+        font-size: 10.5px;
+        font-weight: 600;
+        padding: 3px 9px;
         border-radius: 20px;
-        border: 1px solid rgba(0,0,0,0.1);
-        color: #555;
-        background: #fff;
-        letter-spacing: 0.02em;
+        border: 1px solid rgba(0,0,0,0.09);
+        color: #666;
+        background: var(--white);
+        letter-spacing: 0.01em;
       }
-      .model-badge.active {
-        background: #111;
-        color: #fff;
-        border-color: #111;
-      }
-      .model-badge-label {
-        font-size: 11px;
-        color: #aaa;
-        font-weight: 500;
+      .stack-badge.green {
+        background: var(--green-light);
+        border-color: var(--green-border);
+        color: #2d6b58;
       }
 
-      /* ─── Right Panel (Widget) ──────────────────────────────── */
+      /* ─── OLJ footer mark ───────────────────────────────────────── */
+      .panel-footer {
+        margin-top: 36px;
+        padding-top: 20px;
+        border-top: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .panel-footer-logo {
+        height: 16px;
+        width: auto;
+        opacity: 0.35;
+      }
+      .panel-footer-text {
+        font-size: 11px;
+        color: #ccc;
+        font-style: italic;
+      }
+
+      /* ─── Right panel (widget) ──────────────────────────────────── */
       .panel-right {
-        background: #fff;
+        background: var(--white);
         display: flex;
         flex-direction: column;
         position: relative;
-        border-left: 1px solid rgba(0,0,0,0.07);
+        border-left: 1px solid var(--border);
       }
-      .panel-right-label {
+
+      /* Green accent top bar on widget panel */
+      .panel-right::before {
+        content: '';
         position: absolute;
-        top: -1px; left: 0; right: 0;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--green), rgba(148,194,174,0.4));
+        z-index: 11;
+      }
+
+      .panel-right-label {
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 8px 0;
-        font-size: 11px;
-        font-weight: 600;
-        letter-spacing: 0.06em;
+        gap: 6px;
+        padding: 10px 0 9px;
+        font-size: 10.5px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
         text-transform: uppercase;
-        color: #bbb;
-        border-bottom: 1px solid rgba(0,0,0,0.07);
-        background: #fff;
+        color: var(--green);
+        border-bottom: 1px solid var(--border);
+        background: var(--white);
+        position: relative;
         z-index: 10;
       }
+      .panel-right-label::before {
+        content: '';
+        display: block;
+        width: 6px; height: 6px;
+        border-radius: 50%;
+        background: var(--green);
+        opacity: 0.7;
+        animation: pulse-dot 2s ease-in-out infinite;
+      }
+      @keyframes pulse-dot {
+        0%, 100% { opacity: 0.7; transform: scale(1); }
+        50%       { opacity: 1;   transform: scale(1.25); }
+      }
 
-      /* Widget override: fill the right panel entirely */
+      /* Widget fills the right panel */
       .panel-right .sahten-widget-container {
         position: static !important;
         width: 100% !important;
-        height: calc(100vh - 52px) !important;
+        height: calc(100vh - 56px - 38px) !important;
         max-height: none !important;
         opacity: 1 !important;
         transform: none !important;
@@ -287,121 +401,143 @@
       }
       .panel-right .sahten-widget-container[data-size] {
         inset: auto !important;
-        margin: auto 0 !important;
+        margin: 0 !important;
       }
 
-      /* ─── Dev strip (visible only with ?dev=1) ─────────────── */
+      /* ─── Dev strip ─────────────────────────────────────────────── */
       .dev-strip {
         display: none;
         position: fixed;
         bottom: 0; left: 0; right: 0;
         z-index: 9999;
-        background: #1a1a1a;
+        background: #111;
         color: #fff;
         font-size: 12px;
-        padding: 8px 24px;
-        gap: 20px;
+        padding: 7px 20px;
+        gap: 16px;
         align-items: center;
         flex-wrap: wrap;
+        border-top: 2px solid var(--green);
       }
       .dev-strip.visible { display: flex; }
-      .dev-label { font-weight: 700; color: #f0a500; letter-spacing: 0.04em; }
-      .dev-select { font-size: 12px; padding: 3px 8px; border-radius: 6px; background: #333; color: #fff; border: 1px solid #555; }
+      .dev-label { font-weight: 700; color: var(--green); letter-spacing: 0.06em; font-size: 11px; }
+      .dev-select { font-size: 11.5px; padding: 3px 8px; border-radius: 6px; background: #222; color: #fff; border: 1px solid #444; }
 
-      /* ─── Responsive ────────────────────────────────────────── */
-      @media (max-width: 900px) {
+      /* ─── Responsive ────────────────────────────────────────────── */
+      @media (max-width: 920px) {
         .main { grid-template-columns: 1fr; }
-        .panel-left { padding: 40px 28px 32px; border-right: none; border-bottom: 1px solid rgba(0,0,0,0.07); }
-        .panel-right { min-height: 520px; border-left: none; }
-        .panel-right .sahten-widget-container {
-          height: 520px !important;
-        }
+        .panel-left { padding: 36px 24px 28px; border-right: none; border-bottom: 1px solid var(--border); }
+        .panel-right { min-height: 560px; border-left: none; }
+        .panel-right .sahten-widget-container { height: 560px !important; }
         .feature-grid { grid-template-columns: 1fr 1fr; }
         .nav-links { display: none; }
+        .nav-atable { display: none; }
       }
-
       @media (max-width: 480px) {
-        .feature-grid { grid-template-columns: 1fr; }
-        .panel-left { padding: 28px 20px 24px; }
+        .feature-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+        .panel-left { padding: 24px 16px 20px; }
+        .hero-olj { height: 18px; }
       }
     </style>
   </head>
   <body>
 
-    <!-- ─── Navigation ──────────────────────────────────────────── -->
+    <!-- ─── Navigation ──────────────────────────────────────────────── -->
     <nav class="site-nav">
-      <a class="nav-brand" href="/">
-        <img class="nav-logo" src="assets/v7_logo_sahten.svg" alt="Sahteïn" />
-        <span class="nav-name">Sahteïn</span>
-      </a>
-      <div class="nav-separator"></div>
-      <a class="nav-olj" href="https://www.lorientlejour.com/cuisine-liban-a-table" target="_blank" rel="noopener">L'Orient-Le Jour</a>
 
-      <div style="flex:1"></div>
+      <!-- Sahteïn brand -->
+      <a class="nav-brand" href="/">
+        <img class="nav-sahten-logo" src="assets/v7_logo_sahten.svg" alt="Sahteïn" />
+        <span class="nav-sahten-name">Sahteïn</span>
+      </a>
+
+      <div class="nav-div"></div>
+
+      <!-- OLJ logotype -->
+      <a class="nav-olj-logo-wrap" href="https://www.lorientlejour.com/cuisine-liban-a-table" target="_blank" rel="noopener" title="L'Orient-Le Jour – À table">
+        <img class="nav-olj-logo" src="assets/logo_olj.svg" alt="L'Orient-Le Jour" />
+      </a>
+
+      <div class="nav-spacer"></div>
 
       <nav class="nav-links">
         <a class="nav-link active" href="/">Démo</a>
         <a class="nav-link" href="/dashboard">Analytics</a>
         <a class="nav-link" href="/admin">Admin</a>
         <a class="nav-link" href="/widget">Widget OLJ</a>
-        <a class="nav-pill" href="/?dev=1">Mode Dev</a>
       </nav>
+
+      <a class="nav-atable" href="/?dev=1">Mode Dev</a>
+
     </nav>
 
-    <!-- ─── Main Layout ──────────────────────────────────────────── -->
+    <!-- ─── Main ──────────────────────────────────────────────────────── -->
     <div class="main">
 
-      <!-- Left: Hero + Feature cards -->
+      <!-- ── Left panel ── -->
       <div class="panel-left">
-        <span class="panel-eyebrow">À table</span>
 
-        <h1 class="panel-title">
+        <!-- OLJ logo hero -->
+        <img class="hero-olj" src="assets/logo_olj.svg" alt="L'Orient-Le Jour" />
+
+        <span class="eyebrow">À table</span>
+
+        <h1 class="hero-title">
           L'assistant recettes<br />
           <em>libanaises</em> de L'OLJ
         </h1>
-        <p class="panel-subtitle">
+
+        <p class="hero-sub">
           Sahteïn répond à vos questions culinaires — recettes libanaises,
-          arméniennes ou méditerranéennes — en s'appuyant sur le corpus
-          de L'Orient-Le Jour.
+          arméniennes ou méditerranéennes — en s'appuyant sur le corpus de
+          L'Orient-Le Jour.
         </p>
 
         <div class="feature-grid">
-          <a class="feature-card" href="/dashboard">
-            <div class="feature-card-icon">📊</div>
-            <div class="feature-card-title">Analytics</div>
-            <p class="feature-card-desc">Traces, intents, latences et feedback en temps réel.</p>
+          <a class="feature-card green" href="/dashboard">
+            <div class="feature-icon">📊</div>
+            <div class="feature-title">Analytics</div>
+            <p class="feature-desc">Traces, intents, latences et feedback.</p>
           </a>
 
           <a class="feature-card" href="/widget">
-            <div class="feature-card-icon">🔌</div>
-            <div class="feature-card-title">Widget OLJ</div>
-            <p class="feature-card-desc">Version intégration site, sans sélecteur modèle.</p>
+            <div class="feature-icon">🔌</div>
+            <div class="feature-title">Widget OLJ</div>
+            <p class="feature-desc">Version intégration site, sans sélecteur.</p>
           </a>
 
           <a class="feature-card" href="/api/health/deep" target="_blank">
-            <div class="feature-card-icon">🟢</div>
-            <div class="feature-card-title">Santé système</div>
-            <p class="feature-card-desc">Status Redis, OpenAI, retriever et corpus.</p>
+            <div class="feature-icon">🟢</div>
+            <div class="feature-title">Santé système</div>
+            <p class="feature-desc">Redis, OpenAI, retriever et corpus.</p>
           </a>
 
-          <a class="feature-card highlight" href="/admin">
-            <div class="feature-card-icon">⚙️</div>
-            <div class="feature-card-title">Admin</div>
-            <p class="feature-card-desc">Gestion des recettes, webhook et indexation.</p>
+          <a class="feature-card dark" href="/admin">
+            <div class="feature-icon">⚙️</div>
+            <div class="feature-title">Admin</div>
+            <p class="feature-desc">Recettes, webhook et indexation.</p>
           </a>
         </div>
 
-        <div class="model-badge-row">
-          <span class="model-badge-label">Moteur :</span>
-          <span class="model-badge active">GPT-4.1 nano</span>
-          <span class="model-badge">GPT-4.1 mini</span>
-          <span class="model-badge">TF-IDF + RRF</span>
+        <div class="stack-row">
+          <span class="stack-label">Stack :</span>
+          <span class="stack-badge green">GPT-4.1 nano</span>
+          <span class="stack-badge">TF-IDF + RRF</span>
+          <span class="stack-badge">Redis</span>
+          <span class="stack-badge">FastAPI</span>
         </div>
+
+        <div class="panel-footer">
+          <img class="panel-footer-logo" src="assets/logo_olj.svg" alt="" />
+          <span class="panel-footer-text">Un projet L'Orient-Le Jour — section À table</span>
+        </div>
+
       </div>
 
-      <!-- Right: Widget panel (always open) -->
+      <!-- ── Right panel (widget always open) ── -->
       <div class="panel-right" id="widget-panel">
-        <div class="panel-right-label">Essayez Sahteïn →</div>
+
+        <div class="panel-right-label">Essayez Sahteïn</div>
 
         <div class="sahten-backdrop" style="display:none"></div>
 
@@ -415,7 +551,6 @@
             </div>
 
             <div class="sahten-controls">
-              <!-- Model select: hidden by default, visible with ?dev=1 -->
               <select id="model-select" class="sahten-model-select" title="Modèle LLM" style="display:none">
                 <option value="auto">Auto</option>
                 <optgroup label="OpenAI">
@@ -427,10 +562,9 @@
                   <option value="llama-3.3-70b-versatile">Llama 3.3 70B</option>
                 </optgroup>
               </select>
-
-              <!-- Size buttons hidden in panel mode (not needed) -->
+              <!-- Close hidden in panel mode -->
               <button class="sahten-close-btn" aria-label="Fermer" style="display:none">
-                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="3.5" y1="3.5" x2="12.5" y2="12.5" /><line x1="12.5" y1="3.5" x2="3.5" y2="12.5" /></svg>
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3.5" y1="3.5" x2="12.5" y2="12.5" /><line x1="12.5" y1="3.5" x2="3.5" y2="12.5" /></svg>
               </button>
             </div>
           </div>
@@ -454,14 +588,15 @@
             </div>
           </form>
         </div>
+
       </div>
 
     </div><!-- /.main -->
 
-    <!-- ─── Dev Strip (visible only ?dev=1) ─────────────────────── -->
+    <!-- ─── Dev Strip ───────────────────────────────────────────────── -->
     <div class="dev-strip" id="dev-strip">
       <span class="dev-label">DEV</span>
-      <span>Modèle :</span>
+      <span style="color:#888">Modèle :</span>
       <select class="dev-select" id="dev-model-select">
         <option value="auto">Auto</option>
         <optgroup label="OpenAI">
@@ -473,43 +608,31 @@
           <option value="llama-3.3-70b-versatile">Llama 3.3 70B versatile</option>
         </optgroup>
       </select>
-      <a href="/api/traces" target="_blank" style="color:#f0a500;font-size:12px">Traces →</a>
-      <a href="/api/health/deep" target="_blank" style="color:#f0a500;font-size:12px">Health →</a>
-      <a href="/dashboard" target="_blank" style="color:#f0a500;font-size:12px">Dashboard →</a>
-      <a href="/" style="color:#888;font-size:12px;margin-left:auto">Quitter dev ×</a>
+      <a href="/api/traces"      target="_blank" style="color:var(--green);font-size:12px">Traces →</a>
+      <a href="/api/health/deep" target="_blank" style="color:var(--green);font-size:12px">Health →</a>
+      <a href="/dashboard"       target="_blank" style="color:var(--green);font-size:12px">Dashboard →</a>
+      <a href="/" style="color:#555;font-size:12px;margin-left:auto">Quitter dev ×</a>
     </div>
 
     <script>
       window.SAHTEN_API_BASE = window.location.origin + "/api";
 
-      // Activate dev mode if ?dev=1
       (function () {
-        const params = new URLSearchParams(window.location.search);
-        if (params.has('dev')) {
-          const strip = document.getElementById('dev-strip');
-          if (strip) strip.classList.add('visible');
+        const p = new URLSearchParams(window.location.search);
+        if (p.has('dev')) {
+          document.getElementById('dev-strip').classList.add('visible');
           const sel = document.getElementById('model-select');
           if (sel) sel.style.display = '';
-          // Sync dev model select → hidden model select
           const devSel = document.getElementById('dev-model-select');
-          if (devSel && sel) {
-            devSel.addEventListener('change', () => { sel.value = devSel.value; });
-          }
+          if (devSel && sel) devSel.addEventListener('change', () => { sel.value = devSel.value; });
         }
       })();
     </script>
 
     <script type="module">
       import { SahtenChat } from "./js/sahten.js";
-
-      const chat = new SahtenChat({
-        modelSelector: document.getElementById("model-select"),
-      });
-
-      // Open immediately in panel mode
-      requestAnimationFrame(() => {
-        if (!chat.state.isOpen) chat.toggle(true);
-      });
+      const chat = new SahtenChat({ modelSelector: document.getElementById("model-select") });
+      requestAnimationFrame(() => { if (!chat.state.isOpen) chat.toggle(true); });
     </script>
 
   </body>
