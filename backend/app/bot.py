@@ -80,6 +80,25 @@ class SahtenBot:
             return self.generator
         return ResponseGenerator(model=model)
 
+    def _mood_description(self, analysis) -> str:
+        """Return a short human-readable description for the detected mood tags."""
+        tag_labels = {
+            "leger":        "légère et fraîche ",
+            "rapide":       "rapide et simple ",
+            "reconfortant": "réconfortante et chaleureuse ",
+            "frais":        "fraîche et estivale ",
+            "hiver":        "chaleureuse pour l'hiver ",
+            "ete":          "estivale et légère ",
+            "festif":       "festive et généreuse ",
+            "traditionnel": "traditionnelle et authentique ",
+            "convivial":    "conviviale à partager ",
+            "facile":       "facile à préparer ",
+            "copieux":      "copieuse et généreuse ",
+        }
+        tags = getattr(analysis, "mood_tags", []) or []
+        labels = [tag_labels[t] for t in tags if t in tag_labels]
+        return labels[0] if labels else ""
+
     async def chat(
         self,
         message: str,
@@ -195,46 +214,82 @@ class SahtenBot:
 
         if not recipes:
             exclude_set = set(session.recipes_proposed) if session else None
-            result = self.retriever.get_olj_recommendation_by_ingredient(
-                analysis, message, exclude_urls=exclude_set
-            )
-            if result:
-                recipe_card, matched_ingredient = result
-                if matched_ingredient:
-                    cultural_context = (
-                        f"une recette libanaise qui partage le {matched_ingredient} avec ta demande : "
-                        f"{recipe_card.title}. Un plat typique du Levant !"
-                    )
-                else:
-                    cultural_context = (
-                        f"une recette libanaise qui pourrait te plaire : {recipe_card.title}. "
-                        "La cuisine du Levant offre plein de surprises !"
-                    )
-                narrative = RecipeNarrative(
-                    hook="Je suis désolé, mais je n'ai pas cette recette dans mes carnets. Mais pour me faire pardonner je peux te proposer",
-                    cultural_context=cultural_context,
-                    teaser="Clique pour découvrir la recette complète.",
-                    cta="Explore nos recettes sur L'Orient-Le Jour",
-                    closing="Sahteïn !",
+
+            # For mood/vague queries: try a category-based fallback pick
+            if analysis.intent in ("recipe_by_mood", "recipe_by_diet", "multi_recipe"):
+                recipe_card = self.retriever.get_mood_fallback_recipe(
+                    analysis, exclude_urls=exclude_set
                 )
-                recipes = [recipe_card]
-                response_type = "recipe_base2" if recipe_card.source == "base2" else "recipe_olj"
-                if session and recipe_card.url:
-                    session.add_turn(
-                        user_message=message,
-                        intent=analysis.intent,
-                        primary_dish=analysis.dish_name,
-                        ingredients=analysis.ingredients,
-                        recipe_url=recipe_card.url,
-                        response_summary="1 recette alternative proposée",
+                if recipe_card:
+                    mood_desc = self._mood_description(analysis)
+                    narrative = RecipeNarrative(
+                        hook=f"Je n'ai pas trouvé exactement ce que vous cherchez, mais voici une idée {mood_desc}qui pourrait vous plaire.",
+                        cultural_context=(
+                            f"{recipe_card.title} — une recette libanaise du corpus de L'Orient-Le Jour. "
+                            "La cuisine du Levant a toujours une belle surprise en réserve !"
+                        ),
+                        teaser="Cliquez pour découvrir la recette complète.",
+                        cta="Explorez nos recettes sur L'Orient-Le Jour",
+                        closing="Sahteïn !",
                     )
-                    self.session_manager.save(session)
-            else:
+                    recipes = [recipe_card]
+                    response_type = "recipe_olj"
+                    if session and recipe_card.url:
+                        session.add_turn(
+                            user_message=message,
+                            intent=analysis.intent,
+                            primary_dish=recipe_card.title,
+                            ingredients=analysis.ingredients,
+                            recipe_url=recipe_card.url,
+                            response_summary="1 recette mood proposée",
+                        )
+                        self.session_manager.save(session)
+
+            if not recipes:
+                result = self.retriever.get_olj_recommendation_by_ingredient(
+                    analysis, message, exclude_urls=exclude_set
+                )
+                if result:
+                    recipe_card, matched_ingredient = result
+                    if matched_ingredient:
+                        cultural_context = (
+                            f"une recette libanaise qui partage {matched_ingredient} avec votre demande : "
+                            f"{recipe_card.title}. Un plat typique du Levant !"
+                        )
+                    else:
+                        cultural_context = (
+                            f"une recette libanaise qui pourrait vous plaire : {recipe_card.title}. "
+                            "La cuisine du Levant offre plein de surprises !"
+                        )
+                    narrative = RecipeNarrative(
+                        hook="Je n'ai pas cette recette exacte dans mes carnets, mais voici ce que je vous propose :",
+                        cultural_context=cultural_context,
+                        teaser="Cliquez pour découvrir la recette complète.",
+                        cta="Explorez nos recettes sur L'Orient-Le Jour",
+                        closing="Sahteïn !",
+                    )
+                    recipes = [recipe_card]
+                    response_type = "recipe_base2" if recipe_card.source == "base2" else "recipe_olj"
+                    if session and recipe_card.url:
+                        session.add_turn(
+                            user_message=message,
+                            intent=analysis.intent,
+                            primary_dish=analysis.dish_name,
+                            ingredients=analysis.ingredients,
+                            recipe_url=recipe_card.url,
+                            response_summary="1 recette alternative proposée",
+                        )
+                        self.session_manager.save(session)
+
+            if not recipes:
                 narrative = RecipeNarrative(
-                    hook="Je suis désolé, mais je n'ai pas cette recette dans mes carnets.",
-                    cultural_context="La cuisine libanaise est très riche. Dis-moi un ingrédient ou une envie (frais, réconfortant, rapide) et je te propose une recette !",
-                    teaser="Explore nos recettes sur L'Orient-Le Jour.",
-                    cta="Explore nos recettes sur L'Orient-Le Jour",
+                    hook="Je n'ai pas trouvé de recette correspondant exactement à votre demande.",
+                    cultural_context=(
+                        "La cuisine libanaise est très riche ! Précisez un ingrédient, un plat ou une envie "
+                        "(léger, réconfortant, rapide…) et je vous proposerai une recette adaptée."
+                    ),
+                    teaser=None,
+                    cta="Explorez nos recettes sur L'Orient-Le Jour",
                     closing="Sahteïn !",
                 )
                 recipes = []
