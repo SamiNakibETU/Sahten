@@ -55,7 +55,7 @@
       color: var(--ink); letter-spacing: -0.02em;
     }
     .nav-sep { width: 1px; height: 14px; background: var(--line); flex-shrink: 0; }
-    .nav-olj img { height: 16px; width: auto; opacity: 0.45; display: block; transition: opacity .15s; }
+    .nav-olj img { height: 20px; width: auto; opacity: 0.45; display: block; transition: opacity .15s; }
     .nav-olj:hover img { opacity: 0.7; }
     .nav-olj { text-decoration: none; flex-shrink: 0; }
     .nav-space { flex: 1; }
@@ -464,15 +464,25 @@ async function loadTraces() {
       return traces;
     }
     el.innerHTML = `<table>
-      <thead><tr><th>Date</th><th>Message</th><th>Intent</th><th style="text-align:center">Rec.</th><th>Modèle</th><th>Latence</th></tr></thead>
-      <tbody>${traces.map(t=>`<tr>
+      <thead><tr><th>Date</th><th>Message</th><th>Réponse Sahteïn</th><th>Intent</th><th style="text-align:center">Rec.</th><th>Modèle</th><th>Latence</th></tr></thead>
+      <tbody>${traces.map(t=>{
+        const rawHtml = t.response_html || '';
+        // Extract plain text from response HTML for display
+        const tmp = document.createElement('div');
+        tmp.innerHTML = rawHtml;
+        const narrative = tmp.querySelector('.sahten-narrative');
+        const plainText = narrative ? narrative.innerText.replace(/\s+/g,' ').trim() : (tmp.innerText||'').replace(/\s+/g,' ').trim();
+        const shortResponse = plainText ? trunc(plainText, 80) : '—';
+        return `<tr>
         <td style="font-family:var(--mono);font-size:10px;color:var(--ink-4);white-space:nowrap">${fmtT(t.timestamp)}</td>
-        <td style="max-width:240px;color:var(--ink)">${esc(trunc(t.user_message,60))}</td>
+        <td style="max-width:200px;color:var(--ink)">${esc(trunc(t.user_message,55))}</td>
+        <td style="max-width:260px;color:var(--ink-2);font-size:11px">${esc(shortResponse)}</td>
         <td><span class="tag ${esc(t.intent||'')}">${esc(t.intent||'—')}</span></td>
         <td style="text-align:center;font-family:var(--mono);color:var(--ink-4)">${t.recipe_count??0}</td>
         <td><span class="mtag ${mCls(t.model_used)}">${mLbl(t.model_used)}</span></td>
         <td style="font-family:var(--mono);font-size:11px;color:var(--ink-4)">${t.latency_ms?t.latency_ms+'ms':'—'}</td>
-      </tr>`).join('')}</tbody>
+      </tr>`;
+      }).join('')}</tbody>
     </table>`;
     return traces;
   } catch(e) {
