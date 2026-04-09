@@ -1,8 +1,8 @@
 """
-Sahten Bot (v2.1)
+Sahteïn Bot (v2.1)
 =================
 
-The core application logic for Sahten.
+The core application logic for Sahteïn.
 Implements the durable RAG pipeline:
   1) QueryAnalyzer (LLM): safety + intent + filters
   2) HybridRetriever: retrieve (hybrid) -> rerank (LLM) -> select
@@ -45,7 +45,7 @@ class SahtenConfig:
 
 class SahtenBot:
     """
-    Main Sahten chatbot.
+    Main Sahteïn chatbot.
     
     Supports dynamic model selection per-request.
     Includes session memory to avoid repeating recipes.
@@ -211,7 +211,7 @@ class SahtenBot:
                     cultural_context=cultural_context,
                     teaser="Clique pour découvrir la recette complète.",
                     cta="Explore nos recettes sur L'Orient-Le Jour",
-                    closing="Sahten !",
+                    closing="Sahteïn !",
                 )
                 recipes = [recipe_card]
                 response_type = "recipe_base2" if recipe_card.source == "base2" else "recipe_olj"
@@ -231,7 +231,7 @@ class SahtenBot:
                     cultural_context="La cuisine libanaise est très riche. Dis-moi un ingrédient ou une envie (frais, réconfortant, rapide) et je te propose une recette !",
                     teaser="Explore nos recettes sur L'Orient-Le Jour.",
                     cta="Explore nos recettes sur L'Orient-Le Jour",
-                    closing="Sahten !",
+                    closing="Sahteïn !",
                 )
                 recipes = []
                 response_type = "redirect"
