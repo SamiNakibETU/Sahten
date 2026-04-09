@@ -17,11 +17,14 @@ from __future__ import annotations
 import difflib
 import json
 import logging
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
+
+from ..data.ingredient_normalizer import ingredient_normalizer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from unidecode import unidecode
 from sklearn.metrics.pairwise import cosine_similarity
@@ -966,6 +969,136 @@ class HybridRetriever:
                 used.add(c.url)
 
         return picked[:3], False, dbg
+
+    # Stoplist pour filtrer le bruit dans main_ingredients (olj_canonical)
+    _MAIN_INGREDIENTS_STOPLIST = frozenset({
+        "verts", "fermes", "doux", "2", "poudre", "fleur", "jus",
+        "brunoise", "dœuf",
+    })
+
+    @staticmethod
+    def _filter_main_ingredients(mains: List[str]) -> List[str]:
+        """Filtre le bruit dans main_ingredients (artefacts d'extraction)."""
+        out: List[str] = []
+        for ing in (mains or []):
+            if not ing or len(ing) < 3:
+                continue
+            if ing.isdigit():
+                continue
+            low = ing.lower().strip()
+            if low in HybridRetriever._MAIN_INGREDIENTS_STOPLIST:
+                continue
+            # Corriger "dolive" -> "olive" (fragment de "huile d'olive")
+            if low == "dolive":
+                out.append("olive")
+            else:
+                out.append(ing)
+        return out
+
+    @staticmethod
+    def _extract_ingredients_from_dish_name(dish_name: Optional[str]) -> List[str]:
+        """Heuristique : extrait des ingrédients du nom du plat."""
+        if not dish_name or not dish_name.strip():
+            return []
+        name = dish_name.strip().lower()
+        ingredients: List[str] = []
+        # "tarte au citron", "tarte aux pommes", "crème à la vanille"
+        for m in re.finditer(r"(?:au|à la|aux|avec)\s+(\w+)", name):
+            ingredients.append(m.group(1))
+        # Si plusieurs mots sans préposition : "poulet curry" -> ["poulet", "curry"]
+        if not ingredients and " " in name:
+            stop = {"de", "du", "la", "le", "les", "un", "une", "et", "ou"}
+            for w in name.split():
+                if len(w) >= 3 and w not in stop:
+                    ingredients.append(w)
+        return ingredients
+
+    def _doc_to_recipe_card(self, doc: CanonicalRecipeDoc) -> RecipeCard:
+        """Convertit un CanonicalRecipeDoc en RecipeCard (sans cited_passage)."""
+        image_url = getattr(doc, "image_url", None) or getattr(doc, "_image_url", None)
+        return RecipeCard(
+            source="olj",
+            title=doc.title,
+            url=str(doc.url),
+            chef=doc.chef_name,
+            category=doc.category_canonical,
+            image_url=image_url,
+            cited_passage=None,
+        )
+
+    def get_olj_recommendation_by_ingredient(
+        self,
+        analysis: QueryAnalysis,
+        raw_query: str,
+        *,
+        exclude_urls: Optional[set[str]] = None,
+    ) -> Optional[Tuple[RecipeCard, Optional[str]]]:
+        """
+        Recommandation OLJ avec au moins un ingrédient en commun.
+        Retourne (RecipeCard, matched_ingredient) ou None.
+        matched_ingredient: str pour personnaliser la narrative, None si fallback.
+        """
+        exclude = set(exclude_urls or [])
+
+        # 1) Collecte des ingrédients
+        query_ingredients: List[str] = []
+        query_ingredients.extend(analysis.ingredients or [])
+        query_ingredients.extend(getattr(analysis, "inferred_ingredients", None) or [])
+        from_dish = self._extract_ingredients_from_dish_name(analysis.dish_name)
+        for ing in from_dish:
+            if ing and ing not in query_ingredients:
+                query_ingredients.append(ing)
+
+        # 2) Match par ingrédient sur OLJ
+        for doc in self.olj_docs:
+            if str(doc.url) in exclude:
+                continue
+            if not doc.is_recipe:
+                continue
+            filtered = self._filter_main_ingredients(doc.main_ingredients)
+            if not query_ingredients:
+                break
+            match_count, _ = ingredient_normalizer.match_ingredients(
+                query_ingredients, filtered
+            )
+            if match_count >= 1:
+                # Trouver le premier ingrédient qui matche
+                matched_ingredient: Optional[str] = None
+                for q_ing in query_ingredients:
+                    mc, _ = ingredient_normalizer.match_ingredients([q_ing], filtered)
+                    if mc >= 1:
+                        matched_ingredient = q_ing
+                        break
+                card = self._doc_to_recipe_card(doc)
+                return (card, matched_ingredient)
+
+        # 3) Fallback : catégorie
+        target_cat = analysis.category
+        for doc in self.olj_docs:
+            if str(doc.url) in exclude:
+                continue
+            if not doc.is_recipe:
+                continue
+            if target_cat and doc.category_canonical == target_cat:
+                return (self._doc_to_recipe_card(doc), None)
+
+        # 4) Fallback : première recette OLJ
+        for doc in self.olj_docs:
+            if str(doc.url) in exclude:
+                continue
+            if doc.is_recipe:
+                return (self._doc_to_recipe_card(doc), None)
+
+        # 5) Fallback Base2
+
+        base2_analysis = QueryAnalysis(
+            **{**analysis.model_dump(), "recipe_count": 1, "ingredients": query_ingredients}
+        )
+        base2_cards = self._search_base2(base2_analysis)
+        if base2_cards:
+            return (base2_cards[0], None)
+
+        return None
 
     def _search_base2(self, analysis: QueryAnalysis) -> List[RecipeCard]:
         """Fallback search in Base2 dataset."""
