@@ -41,6 +41,46 @@ from .retrieval_constants import (
     ingredient_overlap_is_meaningful,
 )
 from ..llm.reranker import LLMReranker, RerankCandidate, RerankItem
+
+# ── Chef extraction ────────────────────────────────────────────────────────────
+_CULINARY_WORDS = frozenset({
+    "persil", "courgettes", "tomates", "agneau", "poulet", "riz", "feta",
+    "citron", "avocat", "piment", "basilic", "menthe", "ail", "saumon",
+    "merlu", "merou", "poisson", "viande", "fromage", "creme", "noix",
+    "cajou", "pistache", "aubergine", "carotte", "lentilles", "boulgour",
+    "labneh", "kebbe", "sumac", "zaatar", "tahini", "humus", "hummus",
+})
+
+def _extract_featured_chef(title: str) -> Optional[str]:
+    """
+    Extract the featured chef name from an OLJ-style recipe title.
+
+    OLJ titles follow the pattern  "Le [dish] de [Firstname Lastname]"
+    or  "Les [dish] d'[Firstname] [Lastname]".
+    The `chef_name` field in the raw data stores the *journalist* who wrote
+    the article — this function extracts the *featured cook/chef* from the
+    title text instead.
+    Returns None if no recognisable person name is found.
+    """
+    # Match " de " or " d'" followed by a capitalised name (2+ words).
+    # Allow Arabic-style prefixes: el-, al-, Bou, Ben, Abou, etc.
+    patterns = [
+        # d'André Maalouf, d'Albert Kostanian
+        r"\bd['\u2019]\s*([A-ZÀÂÉÈÊËÎÏÔÙÛÜ][a-zàâéèêëîïôùûü'\-]+(?:\s+(?:[Ee]l[-\s]|[Aa]l[-\s]|Bou\s|Ben\s|Abou\s)?[A-ZÀÂÉÈÊËÎÏÔÙÛÜ][a-zàâéèêëîïôùûü'\-]+)+)",
+        # de Kamal Mouzawak, de Matteo el-Khodr
+        r"\bde\s+([A-ZÀÂÉÈÊËÎÏÔÙÛÜ][a-zàâéèêëîïôùûü'\-]+(?:\s+(?:[Ee]l[-\s]|[Aa]l[-\s]|Bou\s|Ben\s|Abou\s)?[A-ZÀÂÉÈÊËÎÏÔÙÛÜ]?[a-zàâéèêëîïôùûü'\-]+)+)",
+    ]
+    for pat in patterns:
+        for m in reversed(list(re.finditer(pat, title))):
+            candidate = m.group(1).strip()
+            words = candidate.lower().replace("-", " ").split()
+            # Reject if any word is a known culinary ingredient
+            if any(w in _CULINARY_WORDS for w in words):
+                continue
+            # Must have at least 2 parts (first + last name)
+            if len(words) >= 2:
+                return candidate
+    return None
 from ..schemas.canonical import CanonicalCategory, CanonicalRecipeDoc
 from ..schemas.query_analysis import QueryAnalysis
 from ..schemas.responses import AlternativeMatch, OLJRecommendation, RecipeCard, SharedIngredientProof
@@ -537,7 +577,7 @@ class HybridRetriever:
                     source="olj",
                     title=doc.title,
                     url=str(doc.url),
-                    chef=doc.chef_name,
+                    chef=_extract_featured_chef(doc.title) or doc.chef_name,
                     category=doc.category_canonical,
                     image_url=doc.image_url,  # Image de la recette
                     cited_passage=passage_final,
@@ -1048,7 +1088,7 @@ class HybridRetriever:
             source="olj",
             title=doc.title,
             url=str(doc.url),
-            chef=doc.chef_name,
+            chef=_extract_featured_chef(doc.title) or doc.chef_name,
             category=doc.category_canonical,
             image_url=image_url,
             cited_passage=None,
@@ -1260,7 +1300,7 @@ class HybridRetriever:
                         source="olj",
                         title=d.title,
                         url=str(d.url),
-                        chef=d.chef_name,
+                        chef=_extract_featured_chef(d.title) or d.chef_name,
                         category=d.category_canonical,
                         image_url=d.image_url,
                         cited_passage=None,
@@ -1271,7 +1311,7 @@ class HybridRetriever:
                         source="olj",
                         title=d.title,
                         url=str(d.url),
-                        chef=d.chef_name,
+                        chef=_extract_featured_chef(d.title) or d.chef_name,
                         category=d.category_canonical,
                         image_url=d.image_url,
                         cited_passage=None,
@@ -1283,7 +1323,7 @@ class HybridRetriever:
                             source="olj",
                             title=d.title,
                             url=str(d.url),
-                            chef=d.chef_name,
+                            chef=_extract_featured_chef(d.title) or d.chef_name,
                             category=d.category_canonical,
                             image_url=d.image_url,
                             cited_passage=None,
@@ -1553,7 +1593,7 @@ class HybridRetriever:
             source="olj",
             title=best_doc.title,
             url=str(best_doc.url),
-            chef=best_doc.chef_name,
+            chef=_extract_featured_chef(best_doc.title) or best_doc.chef_name,
             category=best_doc.category_canonical,
             image_url=best_doc.image_url,
             cited_passage=cited,
@@ -1632,7 +1672,7 @@ class HybridRetriever:
             source="olj",
             title=best.title,
             url=str(best.url),
-            chef=best.chef_name,
+            chef=_extract_featured_chef(best.title) or best.chef_name,
             category=best.category_canonical,
             image_url=best.image_url,
             cited_passage=cited,
