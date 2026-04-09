@@ -1,3 +1,0 @@
-merge(main): résolution conflits remote — frontend ours, backend remote
-
-Frontend conservé (refonte Cursor x OLJ), backend distant intégré (correctifs recettes absentes + analytics Redis)

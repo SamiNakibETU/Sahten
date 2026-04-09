@@ -2,7 +2,7 @@
 LLM Query Analyzer
 ==================
 
-THE BRAIN of Sahten.
+THE BRAIN of Sahteïn.
 
 Uses a single LLM call with structured output (via Instructor) to:
 1. Check safety (injection, toxicity)
@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 
 
 # System prompt for query analysis - this is THE KEY to accuracy
-ANALYZER_SYSTEM_PROMPT = """Tu es l'analyseur de requêtes pour Sahten, un chatbot culinaire libanais de L'Orient-Le Jour.
+ANALYZER_SYSTEM_PROMPT = """Tu es l'analyseur de requêtes pour Sahteïn, un chatbot culinaire libanais de L'Orient-Le Jour.
 
 # TA MISSION
 Analyser chaque requête utilisateur et extraire TOUTES les informations pertinentes en une seule réponse structurée JSON.
