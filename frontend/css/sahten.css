@@ -549,6 +549,31 @@
   font-style: italic;
 }
 
+/* Semantic narrative blocks */
+.sahten-narrative .sn-hook {
+  font-weight: 600;
+  color: #111;
+}
+.sahten-narrative .sn-cta {
+  color: #2a6452;
+  font-style: italic;
+}
+.sahten-narrative .sn-followup {
+  font-family: "DM Sans", -apple-system, sans-serif;
+  font-size: 12.5px;
+  font-style: normal;
+  color: #888;
+  border-top: 1px solid rgba(0,0,0,0.07);
+  padding-top: 8px;
+  margin-top: 4px;
+  line-height: 1.5;
+}
+.sahten-narrative .sn-closing {
+  font-weight: 600;
+  color: #2a6452;
+  margin-top: 2px;
+}
+
 /* Blocs API : même rendu que la narrative (flux texte, pas de carte) */
 .sahten-block {
   background: transparent;

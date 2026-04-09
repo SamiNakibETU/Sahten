@@ -152,6 +152,10 @@ class RecipeCard(BaseModel):
         default=None,
         description="Phrase(s) anecdote ou voix auteur si détectées",
     )
+
+    # Métadonnées contextuelles passées au LLM
+    tags: Optional[List[str]] = Field(default=None, description="Tags de l'article OLJ")
+    main_ingredients: Optional[List[str]] = Field(default=None, description="Ingrédients principaux")
     
     # Champs pour Base2 uniquement (recette complète)
     ingredients: Optional[List[str]] = None
