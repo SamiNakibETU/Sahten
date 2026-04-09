@@ -100,7 +100,7 @@ class RecipeNarrative(BaseModel):
         description="Invitation à découvrir sur L'Orient-Le Jour"
     )
     
-    closing: Literal["Sahten !"] = "Sahten !"
+    closing: str = "Sahteïn !"
     
     @field_validator('hook')
     @classmethod
