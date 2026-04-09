@@ -419,7 +419,7 @@ export class SahtenChat {
                 this.appendBotMessage({
                     html: `<article class="welcome-editorial welcome-editorial--stanza welcome-editorial--atable" lang="fr">
                         <div class="welcome-stanza">
-                            <p class="welcome-lead">👋 Vous cherchez une recette libanaise (traditionnelle ou revisitée), arménienne ou encore des saveurs méditerranéennes ? 🍋</p>
+                            <p class="welcome-lead">Vous cherchez une recette libanaise (traditionnelle ou revisitée), arménienne ou encore des saveurs méditerranéennes ?</p>
                             <p class="welcome-sub">Dites-moi tout, et je vous proposerai une recette répondant à vos envies.</p>
                             <p class="welcome-note">Soyez indulgents avec moi, je vais certainement faire des erreurs, mais je viens de me lancer. Et avec le temps, je vais certainement m’améliorer.</p>
                         </div>
