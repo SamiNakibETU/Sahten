@@ -436,7 +436,7 @@ class SahtenBot:
                 cultural_context=ctx,
                 teaser=None,
                 cta="Répondez brièvement ; je relancerai la sélection ensuite.",
-                closing="Sahten !",
+                closing="Sahteïn !",
             )
             evidence = EvidenceBundle(
                 response_type="clarification",
@@ -712,16 +712,80 @@ class SahtenBot:
                 maybe_cache_put(resp, debug_info, meta)
                 return resp, debug_info, meta
             # recipe_not_found_without_proven_alternative: pas de recette, pas d'ingrédient commun prouvé
+            # Pour les requêtes vagues (recipe_by_mood / browse), tenter un fallback aléatoire
+            if analysis.intent in ("recipe_by_mood", "recipe_by_category") and not analysis.dish_name:
+                import random as _random
+                all_docs = getattr(self.retriever, '_docs', None) or []
+                if all_docs:
+                    sample_size = min(20, len(all_docs))
+                    random_doc = _random.choice(all_docs[:sample_size])
+                    from .schemas.responses import RecipeCard
+                    fallback_card = RecipeCard(
+                        title=random_doc.get("title", ""),
+                        url=random_doc.get("url", "#"),
+                        chef=random_doc.get("chef"),
+                        category=random_doc.get("category"),
+                        image_url=random_doc.get("image_url"),
+                        cited_passage=random_doc.get("search_text", "")[:200] if random_doc.get("search_text") else None,
+                    )
+                    recipes = [fallback_card]
+                    analysis_copy = analysis.model_copy(update={"intent": "recipe_by_mood"})
+                    narrative = await generator.generate_narrative(
+                        user_query=message,
+                        analysis=analysis_copy,
+                        recipes=recipes,
+                        is_base2_fallback=False,
+                        session_context=session_context,
+                    )
+                    # Append the OLJ clarification message
+                    from .schemas.responses import ConversationBlock
+                    clarification_block = ConversationBlock(
+                        block_type="assistant_message",
+                        text=(
+                            "Si vous me précisez, dans votre requête, le nom de la recette ou un ingrédient "
+                            "devant être dans la recette, je pourrai vous donner une réponse plus adéquate."
+                        ),
+                    )
+                    resp_browse = SahtenResponse(
+                        response_type="recipe_olj",
+                        narrative=narrative,
+                        conversation_blocks=self._build_conversation_blocks(
+                            narrative=narrative,
+                            evidence=EvidenceBundle(
+                                response_type="recipe_olj",
+                                intent_detected=analysis.intent,
+                                user_query=message,
+                                selected_recipe_cards=recipes,
+                                session_context=session_context,
+                            ),
+                        ) + [clarification_block],
+                        recipes=recipes,
+                        recipe_count=1,
+                        intent_detected=analysis.intent,
+                        confidence=analysis.intent_confidence,
+                        model_used=effective_model,
+                    )
+                    meta_br = finalize_trace()
+                    self._apply_scenario_metadata(
+                        message=message,
+                        response=resp_browse,
+                        analysis=analysis,
+                        debug_info=None,
+                        trace_meta=meta_br,
+                        retrieval_debug=retrieval_debug,
+                    )
+                    return resp_browse, None, meta_br
+
             olj_reco = self.retriever.get_olj_recommendation(analysis)
             narrative = RecipeNarrative(
-                hook="Je n'ai pas la fiche exacte pour cela dans le corpus OLJ.",
+                hook="Je n'ai pas trouvé cette recette dans mes carnets.",
                 cultural_context=(
-                    "Reformulez avec un ingrédient ou un plat libanais "
-                    "(mezze, plat du jour, dessert du pays) : je pourrai cibler une recette publiée."
+                    "Si vous me précisez, dans votre requête, le nom de la recette ou un ingrédient "
+                    "devant être dans la recette, je pourrai vous donner une réponse plus adéquate."
                 ),
                 teaser="Vous pouvez aussi parcourir la rubrique Cuisine sur le site.",
                 cta="Parcourez les recettes sur L'Orient-Le Jour",
-                closing="Sahten !",
+                closing="Sahteïn !",
             )
             resp = SahtenResponse(
                 response_type="recipe_not_found",

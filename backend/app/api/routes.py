@@ -20,11 +20,13 @@ from __future__ import annotations
 
 import json
 import logging
+import time
 import uuid
+from collections import defaultdict, deque
 from datetime import datetime, timezone
 from typing import Optional, List
 
-from fastapi import APIRouter, HTTPException, status, Query
+from fastapi import APIRouter, HTTPException, Request, status, Query
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
@@ -40,6 +42,35 @@ logger = logging.getLogger(__name__)
 router = APIRouter(tags=["chat"])
 
 
+# ---------------------------------------------------------------------------
+# In-memory rate limiter (sliding window per IP)
+# ---------------------------------------------------------------------------
+_rate_windows: dict[str, deque] = defaultdict(deque)
+
+def _check_rate_limit(client_ip: str, max_requests: int = 30, window_secs: int = 60) -> None:
+    """Raise HTTP 429 if client_ip exceeds max_requests in window_secs."""
+    now = time.monotonic()
+    window = _rate_windows[client_ip]
+    # Evict old timestamps
+    while window and window[0] < now - window_secs:
+        window.popleft()
+    if len(window) >= max_requests:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Trop de requêtes. Veuillez réessayer dans une minute.",
+            headers={"Retry-After": str(window_secs)},
+        )
+    window.append(now)
+
+
+def _get_client_ip(request: Request) -> str:
+    """Extract real client IP, respecting X-Forwarded-For from Railway proxy."""
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
+
 def log_chat_trace(
     *,
     request_id: str,
@@ -51,6 +82,9 @@ def log_chat_trace(
     model_used: Optional[str] = None,
     is_base2_fallback: bool = False,
     trace_meta: Optional[dict] = None,
+    latency_ms: Optional[int] = None,
+    user_agent: Optional[str] = None,
+    session_turn_count: Optional[int] = None,
 ) -> None:
     """Log conversation trace to stdout and optionally Upstash Redis."""
     try:
@@ -65,9 +99,12 @@ def log_chat_trace(
             "recipe_count": response.recipe_count,
             "model_used": model_used or response.model_used,
             "is_base2_fallback": is_base2_fallback,
+            "latency_ms": latency_ms,
+            "session_turn_count": session_turn_count,
             "metadata": {
                 "source": "api",
                 "debug": debug,
+                "user_agent_short": (user_agent or "")[:80] if user_agent else None,
             },
         }
         if trace_meta:
@@ -159,7 +196,7 @@ class ModelsResponse(BaseModel):
 # ============================================================================
 
 @router.post("/chat", response_model=ChatResponseAPI)
-async def chat(request: ChatRequest):
+async def chat(request: ChatRequest, http_request: Request):
     """
     Main chat endpoint.
     
@@ -174,10 +211,15 @@ async def chat(request: ChatRequest):
     - session_id: Optional client-generated ID for conversation continuity
     - Avoids re-proposing same recipes within a session
     """
+    # Rate limit: 30 req/min per IP
+    _check_rate_limit(_get_client_ip(http_request), max_requests=30, window_secs=60)
+
     request_id = str(uuid.uuid4())[:8]
+    _t_start = time.monotonic()
     
     # Use provided session_id or generate one
     session_id = request.session_id or request_id
+    user_agent = http_request.headers.get("user-agent")
     
     try:
         bot = get_bot()
@@ -189,11 +231,15 @@ async def chat(request: ChatRequest):
             session_id=session_id,
         )
         html = compose_html_response(response)
+        latency_ms = int((time.monotonic() - _t_start) * 1000)
 
         if request.debug and debug_info is not None:
             tm = trace_meta.get("timings_ms")
             if tm:
                 debug_info = {**debug_info, "timings_ms": tm}
+
+        # Extract session turn count from trace_meta if available
+        _turn_count = (trace_meta or {}).get("session_turn_count")
 
         log_chat_trace(
             request_id=request_id,
@@ -205,6 +251,9 @@ async def chat(request: ChatRequest):
             model_used=response.model_used,
             is_base2_fallback=(response.response_type == "recipe_base2"),
             trace_meta=trace_meta,
+            latency_ms=latency_ms,
+            user_agent=user_agent,
+            session_turn_count=_turn_count,
         )
         record_metrics(response_type=response.response_type, trace_meta=trace_meta)
 
@@ -323,6 +372,60 @@ async def health():
         "version": settings.app_version,
         "pipeline": "durable-rag-mvp",
         "logging": "upstash" if redis else "stdout",
+    }
+
+
+@router.get("/health/deep")
+async def health_deep():
+    """Deep health check: verifies all critical subsystems."""
+    import time as _time
+    import httpx
+    checks: dict = {}
+    overall_ok = True
+
+    # 1. Bot / retriever
+    try:
+        bot = get_bot()
+        doc_count = len(getattr(bot.retriever, '_docs', None) or [])
+        checks["retriever"] = {"status": "ok", "doc_count": doc_count}
+    except Exception as e:
+        checks["retriever"] = {"status": "error", "detail": str(e)[:120]}
+        overall_ok = False
+
+    # 2. Redis connectivity
+    redis = get_redis()
+    if redis:
+        try:
+            t0 = _time.monotonic()
+            await redis.ping()
+            checks["redis"] = {"status": "ok", "latency_ms": int((_time.monotonic() - t0) * 1000)}
+        except Exception as e:
+            checks["redis"] = {"status": "error", "detail": str(e)[:80]}
+    else:
+        checks["redis"] = {"status": "disabled"}
+
+    # 3. OpenAI connectivity (lightweight models list call)
+    settings = get_settings()
+    openai_key = getattr(settings, "openai_api_key", "")
+    if openai_key:
+        try:
+            t0 = _time.monotonic()
+            async with httpx.AsyncClient(timeout=5) as client:
+                r = await client.get(
+                    "https://api.openai.com/v1/models",
+                    headers={"Authorization": f"Bearer {openai_key}"},
+                )
+            latency = int((_time.monotonic() - t0) * 1000)
+            checks["openai"] = {"status": "ok" if r.status_code == 200 else "error", "latency_ms": latency, "http": r.status_code}
+        except Exception as e:
+            checks["openai"] = {"status": "error", "detail": str(e)[:80]}
+    else:
+        checks["openai"] = {"status": "no_key"}
+
+    return {
+        "status": "healthy" if overall_ok else "degraded",
+        "checks": checks,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
 

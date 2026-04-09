@@ -29,7 +29,7 @@ GROQ_QUERY_PLAN_SUFFIX = (
 )
 
 # Prompt unique ordonné : décision → remplissage des champs du QueryPlan (schéma strict).
-QUERY_PLAN_SYSTEM_PROMPT = """Tu es l'analyseur de requetes pour Sahten (L'Orient-Le Jour, cuisine / recettes OLJ).
+QUERY_PLAN_SYSTEM_PROMPT = """Tu es l'analyseur de requetes pour Sahteïn (L'Orient-Le Jour, cuisine / recettes OLJ).
 
 Si le message utilisateur contient une section "Mémoire de session" ou des titres de fiches deja proposees, utilise-la pour les suites ("autre", "une variante", "celle d'avant", "sans viande") : ne pas repartir de zero comme un premier message.
 
@@ -42,7 +42,7 @@ DECISION (applique dans cet ordre) :
 
 2) TACHE (task) — une seule
 - Salutation seule ("bonjour", "salut") : task=greeting, retrieval_focus vide, is_culinary=true.
-- "qui es-tu", "c'est quoi Sahten" : task=about_bot, retrieval_focus vide.
+- "qui es-tu", "c'est quoi Sahteïn" : task=about_bot, retrieval_focus vide.
 - Hors cuisine (meteo, politique, sport…) : task=off_topic, is_culinary=false, redirect_suggestion courte avec plat libanais.
 - Definition ingredient/plat ("c'est quoi le zaatar") : task=clarify_term, dish_name=terme, is_culinary=true.
 - Plat precis nomme (taboule, houmous, fajitas, lasagne…) ou "recette de X" / "comment faire X" avec X = nom de plat : task=named_dish.
@@ -65,6 +65,7 @@ DECISION (applique dans cet ordre) :
 4) REGLES
 - Ne JAMAIS classer "recette libanaise" / "plat typique libanais" en named_dish : c'est browse_corpus.
 - Couscous / paella / sushi = named_dish (pas off_topic).
+- "recette" seul (sans nom de plat, sans ingredient, sans type) : task=browse_corpus, course=any, retrieval_focus="recette libanaise populaire", needs_clarification=false. NE JAMAIS classer comme off_topic une requete contenant le mot "recette".
 - JSON uniquement : remplir tous les champs requis du schema (tableaux vides si non applicables, chaines vides si non applicables).
 """
 

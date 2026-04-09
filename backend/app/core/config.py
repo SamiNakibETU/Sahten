@@ -1,5 +1,5 @@
 """
-Sahten MVP Configuration
+Sahteïn MVP Configuration
 ========================
 
 Centralized application settings with flexible model selection,
@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     # ============================================================================
     # APP INFO
     # ============================================================================
-    app_name: str = "Sahten"
+    app_name: str = "Sahteïn"
     app_version: str = "2.1.0-dev"
     
     # ============================================================================

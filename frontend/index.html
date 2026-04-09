@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sahten — L'Orient-Le Jour</title>
+    <title>Sahteïn — L'Orient-Le Jour</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -14,10 +14,10 @@
     <link rel="stylesheet" href="https://fonts.cdnfonts.com/css/aktiv-grotesk-cd-trial" crossorigin="anonymous" />
 
     <script
-      src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.8/purify.min.js"
+      src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.3.3/purify.min.js"
       crossorigin="anonymous"
       referrerpolicy="no-referrer"
-      onerror="this.onerror=null;this.src='https://unpkg.com/dompurify@3.0.8/dist/purify.min.js'"
+      onerror="this.onerror=null;this.src='https://unpkg.com/dompurify@3.3.3/dist/purify.min.js'"
     ></script>
 
     <link rel="stylesheet" href="css/sahten.css" />
@@ -54,7 +54,7 @@
   <body>
     <div class="page-bg">
       <h1>L'Orient-Le Jour</h1>
-      <p>Sahten — assistant recettes</p>
+      <p>Sahteïn — assistant recettes</p>
     </div>
 
     <div class="sahten-backdrop"></div>
@@ -64,8 +64,8 @@
 
       <div class="sahten-header">
         <div class="sahten-brand">
-          <img class="sahten-logo-mascot" src="assets/v7_logo_sahten.svg" alt="Sahten" width="40" height="40" decoding="async" />
-          <span class="sahten-title sahten-title--brand">Sahten</span>
+          <img class="sahten-logo-mascot" src="assets/v7_logo_sahten.svg" alt="Sahteïn" width="40" height="40" decoding="async" />
+          <span class="sahten-title sahten-title--brand">Sahteïn</span>
         </div>
 
         <div class="sahten-controls">
@@ -119,6 +119,14 @@
 
     <script>
       window.SAHTEN_API_BASE = window.location.origin + "/api";
+      // Model selector only visible in dev mode (?dev=1 in URL)
+      (function () {
+        const params = new URLSearchParams(window.location.search);
+        const modelSelect = document.getElementById('model-select');
+        if (modelSelect && !params.has('dev')) {
+          modelSelect.style.display = 'none';
+        }
+      })();
     </script>
 
     <script type="module">
@@ -131,8 +139,8 @@
     <button
       type="button"
       class="sahten-trigger"
-      aria-label="Ouvrir Sahten — assistant recettes L'Orient-Le Jour"
-      title="Une idée recette ? Cliquez pour ouvrir Sahten."
+      aria-label="Ouvrir Sahteïn — assistant recettes L'Orient-Le Jour"
+      title="Une idée recette ? Cliquez pour ouvrir Sahteïn."
       aria-expanded="false"
     >
       <img class="sahten-trigger-logo" src="assets/v7_logo_sahten.svg" alt="" width="52" height="52" decoding="async" />

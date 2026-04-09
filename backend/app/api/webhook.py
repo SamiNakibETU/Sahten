@@ -204,7 +204,7 @@ def log_webhook_event(
         "article_id": article_id,
         "details": details or {},
     }
-    print(f"[WEBHOOK] {json.dumps(log_entry, ensure_ascii=False)}")
+    logger.info("[WEBHOOK] %s", json.dumps(log_entry, ensure_ascii=False))
 
 
 def strip_html_tags(html: str) -> str:
@@ -443,7 +443,7 @@ async def receive_recipe(request: Request):
     body = await request.body()
     
     # DEBUG: Log raw body to understand WhiteBeard payload structure
-    print(f"[WEBHOOK DEBUG] Raw body received: {body.decode('utf-8', 'ignore')[:2000]}")
+    logger.debug("[WEBHOOK] Raw body received: first 200 chars: %s", body[:200])
 
     # 2. Extract signature from headers (case-insensitive lookup)
     # WhiteBeard sends: x-webhook-signature (lowercase)
@@ -458,9 +458,15 @@ async def receive_recipe(request: Request):
     expected_secret = settings.webhook_secret or os.getenv("WEBHOOK_SECRET", "")
 
     if not expected_secret:
-        logger.warning(
-            "WEBHOOK_SECRET not configured - accepting any request (DEV MODE)"
-        )
+        # In production, reject if no secret is configured
+        settings_debug = getattr(settings, "debug", False)
+        if not settings_debug:
+            logger.error("WEBHOOK_SECRET not configured in production - rejecting request")
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Webhook endpoint not configured",
+            )
+        logger.warning("WEBHOOK_SECRET not configured - accepting request (DEV MODE only)")
     elif not verify_webhook_signature(body, x_webhook_signature or "", expected_secret):
         # Try to parse article_id for logging (best effort)
         try:
@@ -486,12 +492,12 @@ async def receive_recipe(request: Request):
 
     # Log the complete payload for debugging (helps understand WhiteBeard format)
     logger.info("Webhook payload received: %s", json.dumps(payload_data, ensure_ascii=False))
-    print(f"[WEBHOOK DEBUG] Full payload: {json.dumps(payload_data, ensure_ascii=False)}")
+    logger.debug("[WEBHOOK] Payload parsed: article_id=%s, action=%s", payload_data.get("article_id"), payload_data.get("action"))
     
     # Log parameters specifically (this is where article_id should be)
     parameters_obj = payload_data.get("parameters", {})
     logger.info("Webhook parameters object: %s (type: %s)", parameters_obj, type(parameters_obj).__name__)
-    print(f"[WEBHOOK DEBUG] Parameters: {parameters_obj}")
+    logger.debug("[WEBHOOK] Parameters object parsed")
 
     # 5. Extract article_id from payload (handle both formats)
     # 
@@ -551,14 +557,14 @@ async def receive_recipe(request: Request):
             containers.append(candidate)
 
     # DEBUG: Log containers for debugging
-    print(f"[WEBHOOK DEBUG] Containers built: {len(containers)} - Keys: {[list(c.keys()) if isinstance(c,dict) else str(type(c)) for c in containers]}")
+    logger.debug("[WEBHOOK] Containers built: %s", len(containers))
     
     # Extract article_id from any container
     for container in containers:
         for field in ["article_id", "articleId", "content_id", "contentId", "id"]:
             if field in container:
                 article_id = safe_int(container[field])
-                print(f"[WEBHOOK DEBUG] Found {field}={container[field]} -> parsed as {article_id}")
+                logger.debug("[WEBHOOK] Found %s=%s -> article_id=%s", field, container[field], article_id)
                 if article_id:
                     logger.info("Found article_id in %s: %s -> %s", field, container[field], article_id)
                     break
@@ -607,7 +613,7 @@ async def receive_recipe(request: Request):
             "Received: %s", 
             json.dumps(payload_data, ensure_ascii=False)
         )
-        print(f"[WEBHOOK ERROR] Could not extract article_id. Full payload: {json.dumps(payload_data, ensure_ascii=False)}")
+        logger.error("[WEBHOOK] Could not extract article_id from payload")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=(
