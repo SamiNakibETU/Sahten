@@ -33,7 +33,7 @@ from .llm.query_analyzer import QueryAnalyzer
 from .llm.response_generator import ResponseGenerator, EXACT_ALTERNATIVE_HOOK
 from .rag.retriever import HybridRetriever
 from .rag.session_manager import SessionManager, is_continuation, format_session_hints_for_analyzer
-from .schemas.responses import RecipeNarrative, SahtenResponse, RecipeCard
+from .schemas.responses import RecipeNarrative, SahtenResponse, RecipeCard, OLJRecommendation
 from .schemas.query_analysis import QueryAnalysis, SafetyCheck
 
 
@@ -490,9 +490,32 @@ class SahtenBot:
 
         olj_reco = None
         if is_base2:
-            olj_reco = self.retriever.get_olj_recommendation(
-                analysis, exclude_titles=[r.title for r in recipes]
-            )
+            exclude_titles_for_cta = [r.title for r in recipes]
+            exclude_urls_for_cta = set(session.recipes_proposed) if session else None
+
+            # For ingredient queries: prefer an OLJ recipe that actually contains
+            # the queried ingredient rather than a generic recommendation.
+            if analysis.intent == "recipe_by_ingredient" and analysis.ingredients:
+                ing_result = self.retriever.get_olj_recommendation_by_ingredient(
+                    analysis,
+                    message,
+                    exclude_urls=exclude_urls_for_cta,
+                    exclude_titles=exclude_titles,
+                )
+                if ing_result:
+                    card_reco, _ = ing_result
+                    olj_reco = OLJRecommendation(
+                        title=card_reco.title,
+                        url=card_reco.url or "",
+                        reason="Une recette à découvrir sur L'Orient-Le Jour",
+                    )
+            
+            # Fall back to general recommendation if ingredient-aware one not found
+            if not olj_reco:
+                olj_reco = self.retriever.get_olj_recommendation(
+                    analysis, exclude_titles=exclude_titles_for_cta
+                )
+
             # Suppress OLJ CTA if it's the same dish family as the Base2 result
             if olj_reco and recipes:
                 main_title_words = {

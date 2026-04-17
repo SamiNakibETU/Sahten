@@ -575,6 +575,27 @@ class HybridRetriever:
             if title_suggests_non_recipe_article(doc.title):
                 logger.debug("Skip non-recipe-looking title for card: %s", doc.title[:80])
                 continue
+
+            # For ingredient queries: skip "compilation" recipe titles
+            # (titles with 3+ commas/colons suggest a multi-item list where the
+            # requested ingredient is just one of many — e.g. "Sauces: tarator, toum,
+            # yaourt, coriandre, piment, concombre" for a concombre query).
+            if analysis.intent == "recipe_by_ingredient" and analysis.ingredients:
+                title_for_check = (doc.title or "").lower()
+                separator_count = title_for_check.count(",") + title_for_check.count(":")
+                if separator_count >= 3:
+                    from ..data.normalizers import normalize_text as _nt
+                    midpoint = len(title_for_check) // 2
+                    title_first_half = _nt(title_for_check[:midpoint])
+                    ingredient_found_early = any(
+                        _nt(ing) in title_first_half
+                        for ing in analysis.ingredients
+                        if ing and len(ing) >= 3
+                    )
+                    if not ingredient_found_early:
+                        logger.debug("Skip compilation title for ingredient query: %s", doc.title[:80])
+                        continue
+
             if category_allowlist and doc.category_canonical not in category_allowlist:
                 continue
 
