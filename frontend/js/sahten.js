@@ -202,18 +202,21 @@ export class SahtenChat {
     generateSessionId() {
         /**
          * Generate a unique session ID for conversation memory.
-         * Persists in localStorage so it survives page reloads and new tabs.
-         * Falls back to sessionStorage if localStorage is unavailable (private browsing).
+         * Uses sessionStorage (per browser tab) so that:
+         *   - "une autre" still works within the same tab across page reloads.
+         *   - A new tab / new browser session starts fresh with no exclusions.
+         * This avoids the permanent accumulation of exclusions that would prevent
+         * recipes from ever being suggested again after repeated testing.
          */
         const storageKey = 'sahten_session_id';
         let storage;
         try {
-            storage = window.localStorage;
-            // Test write access
+            storage = window.sessionStorage;
             storage.setItem('__sahten_test__', '1');
             storage.removeItem('__sahten_test__');
         } catch (_) {
-            storage = window.sessionStorage;
+            // sessionStorage unavailable (unlikely) — fall back to in-memory (no persistence)
+            storage = { _m: {}, getItem(k) { return this._m[k] ?? null; }, setItem(k, v) { this._m[k] = v; } };
         }
         let sessionId = storage.getItem(storageKey);
         

@@ -69,6 +69,9 @@ class SessionState:
         self.conversation_history.append(turn)
         if recipe_url and recipe_url not in self.recipes_proposed:
             self.recipes_proposed.append(recipe_url)
+        # Cap to last 20 to avoid perpetual exclusions in very long sessions
+        if len(self.recipes_proposed) > 20:
+            self.recipes_proposed = self.recipes_proposed[-20:]
         if ingredients:
             self.ingredients_mentioned.update({ing.lower() for ing in ingredients if ing})
         self.last_activity = datetime.now(UTC)
