@@ -1160,24 +1160,7 @@ class HybridRetriever:
                 card = self._doc_to_recipe_card(doc)
                 return (card, matched_ingredient)
 
-        # 3) Fallback : catégorie
-        target_cat = analysis.category
-        for doc in self.olj_docs:
-            if str(doc.url) in exclude:
-                continue
-            if not doc.is_recipe:
-                continue
-            if target_cat and doc.category_canonical == target_cat:
-                return (self._doc_to_recipe_card(doc), None)
-
-        # 4) Fallback : première recette OLJ
-        for doc in self.olj_docs:
-            if str(doc.url) in exclude:
-                continue
-            if doc.is_recipe:
-                return (self._doc_to_recipe_card(doc), None)
-
-        # 5) Fallback Base2
+        # 3) Fallback Base2 — ne propose rien sans lien avec la demande
 
         base2_analysis = QueryAnalysis(
             **{**analysis.model_dump(), "recipe_count": 1, "ingredients": query_ingredients}

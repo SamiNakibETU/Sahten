@@ -1,15 +1,23 @@
 """
 Session manager with TTL + LRU and conversation memory.
+Sessions are persisted to Upstash Redis when available so they survive
+process restarts and work across multiple workers.
 """
 
 from __future__ import annotations
 
+import json
+import logging
 from collections import OrderedDict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, UTC
 from typing import Any, Optional
 import re
 import threading
+
+logger = logging.getLogger(__name__)
+
+_SESSION_TTL_SECONDS = 7200  # 2 h
 
 # Défauts si Settings non utilisés (tests hors app)
 _DEFAULT_MAX_HISTORY_TURNS = 4
@@ -132,14 +140,92 @@ class SessionState:
         return base
 
 
+def _redis_key(session_id: str) -> str:
+    return f"sahten:session:{session_id}"
+
+
+def _session_to_redis(session: SessionState) -> str:
+    """Serialize the deduplication-critical fields to JSON for Redis."""
+    turns = []
+    for t in session.conversation_history:
+        turns.append({
+            "recipe_url": t.recipe_url,
+            "recipe_titles": t.recipe_titles,
+        })
+    return json.dumps({
+        "recipes_proposed": session.recipes_proposed,
+        "turns": turns,
+    })
+
+
+def _restore_from_redis(session: SessionState, raw: str) -> None:
+    """Restore deduplication state from Redis payload into an existing SessionState."""
+    try:
+        data = json.loads(raw)
+        proposed = data.get("recipes_proposed") or []
+        for url in proposed:
+            if url and url not in session.recipes_proposed:
+                session.recipes_proposed.append(url)
+        for turn_data in (data.get("turns") or []):
+            url = turn_data.get("recipe_url")
+            titles = turn_data.get("recipe_titles") or []
+            if url or titles:
+                from dataclasses import fields as dc_fields
+                existing_urls = {t.recipe_url for t in session.conversation_history}
+                if url not in existing_urls:
+                    synthetic = ConversationTurn(
+                        user_message="",
+                        bot_response_summary="",
+                        intent="",
+                        primary_dish=None,
+                        ingredients=[],
+                        recipe_url=url,
+                        recipe_titles=titles,
+                    )
+                    session.conversation_history.append(synthetic)
+    except Exception as exc:
+        logger.warning("Failed to restore session from Redis: %s", exc)
+
+
 class SessionManager:
-    """LRU + TTL in-memory session manager."""
+    """LRU + TTL in-memory session manager with optional Redis persistence.
+
+    Redis is used to persist the deduplication state (recipes_proposed +
+    recipe_titles) across process restarts and multiple workers.
+    In-memory cache avoids a Redis round-trip on every request.
+    """
 
     def __init__(self, max_sessions: int = 2000, ttl_minutes: int = 30) -> None:
         self._sessions: OrderedDict[str, SessionState] = OrderedDict()
         self._lock = threading.Lock()
         self.max_sessions = max_sessions
         self.ttl = timedelta(minutes=ttl_minutes)
+
+    # ── Redis helpers (fire-and-forget, never raise) ─────────────────────
+
+    def _redis_load(self, session_id: str) -> Optional[str]:
+        try:
+            from ..core.redis_client import get_redis
+            r = get_redis()
+            if r is None:
+                return None
+            return r.get(_redis_key(session_id))
+        except Exception as exc:
+            logger.debug("Redis session load error: %s", exc)
+            return None
+
+    def _redis_save(self, session: SessionState) -> None:
+        try:
+            from ..core.redis_client import get_redis
+            r = get_redis()
+            if r is None:
+                return
+            payload = _session_to_redis(session)
+            r.set(_redis_key(session.session_id), payload, ex=_SESSION_TTL_SECONDS)
+        except Exception as exc:
+            logger.debug("Redis session save error: %s", exc)
+
+    # ── Public API ───────────────────────────────────────────────────────
 
     def get_or_create(self, session_id: str) -> SessionState:
         with self._lock:
@@ -149,7 +235,12 @@ class SessionManager:
                 session.last_activity = datetime.now(UTC)
                 self._sessions[session_id] = session
                 return session
+            # Not in memory — create fresh and try to restore from Redis
             session = SessionState(session_id=session_id)
+            raw = self._redis_load(session_id)
+            if raw:
+                _restore_from_redis(session, raw)
+                logger.debug("Session %s restored from Redis (%d urls)", session_id, len(session.recipes_proposed))
             self._sessions[session_id] = session
             return session
 
@@ -159,6 +250,8 @@ class SessionManager:
             if session.session_id in self._sessions:
                 self._sessions.pop(session.session_id)
             self._sessions[session.session_id] = session
+        # Persist to Redis outside the lock (non-blocking for in-memory ops)
+        self._redis_save(session)
 
     def get_stats(self) -> dict[str, Any]:
         with self._lock:
