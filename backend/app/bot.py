@@ -34,6 +34,7 @@ from .llm.response_generator import ResponseGenerator, EXACT_ALTERNATIVE_HOOK
 from .rag.retriever import HybridRetriever
 from .rag.session_manager import SessionManager, is_continuation, format_session_hints_for_analyzer
 from .schemas.responses import RecipeNarrative, SahtenResponse, RecipeCard
+from .schemas.query_analysis import QueryAnalysis, SafetyCheck
 
 
 def _normalize_for_compare(text: str) -> str:
@@ -64,6 +65,51 @@ def _dish_found_in_results(
     return False
 
 logger = logging.getLogger(__name__)
+
+_RECIPE_INTENTS = frozenset({
+    "recipe_specific",
+    "recipe_by_ingredient",
+    "recipe_by_mood",
+    "recipe_by_diet",
+    "recipe_by_category",
+    "recipe_by_chef",
+    "menu_composition",
+    "multi_recipe",
+})
+
+
+def _build_continuation_analysis(session_ctx: dict) -> Optional[QueryAnalysis]:
+    """
+    For short continuation queries ('une autre', 'encore une', etc.),
+    rebuild the previous QueryAnalysis directly from session context,
+    bypassing the LLM analyzer entirely.
+
+    Returns None if context is insufficient to continue.
+    """
+    last_intent = session_ctx.get("last_intent")
+    if not last_intent or last_intent not in _RECIPE_INTENTS:
+        return None
+
+    last_ingredients = list(session_ctx.get("last_ingredients") or [])
+    all_ingredients = list(session_ctx.get("all_ingredients") or [])
+    ingredients = last_ingredients or all_ingredients
+    last_dish = session_ctx.get("last_dish")
+
+    if not ingredients and not last_dish:
+        return None
+
+    return QueryAnalysis(
+        safety=SafetyCheck(is_safe=True, threat_type="none"),
+        intent=last_intent,
+        intent_confidence=0.95,
+        is_culinary=True,
+        dish_name=last_dish,
+        dish_name_variants=[],
+        ingredients=ingredients,
+        inferred_main_ingredients=[],
+        inferred_ingredients=[],
+        recipe_count=1,
+    )
 
 
 @dataclass
@@ -167,14 +213,25 @@ class SahtenBot:
             logger.debug("Session %s: %d turns, %d recipes proposed", 
                         session_id, len(session.conversation_history), len(session.recipes_proposed))
         
-        # 1) Analyze query — pass session context for continuation resolution
-        # (e.g. "encore une autre" understood as "encore une autre recette à la tomate")
-        session_hint_for_analyzer: Optional[str] = None
-        if session and session.has_history():
+        # 1) Analyze query — short continuations bypass the LLM analyzer entirely
+        # to guarantee ingredient/intent preservation (e.g. "une autre" → same cucumber intent)
+        analysis: Optional[QueryAnalysis] = None
+        if session and session.has_history() and is_continuation(message):
             ctx = session.get_context_for_continuation()
-            session_hint_for_analyzer = format_session_hints_for_analyzer(ctx)
+            analysis = _build_continuation_analysis(ctx)
+            if analysis:
+                logger.debug(
+                    "Continuation detected — cloned analysis from session: intent=%s ingredients=%s",
+                    analysis.intent,
+                    analysis.ingredients,
+                )
 
-        analysis = await analyzer.analyze(message, session_hint=session_hint_for_analyzer)
+        if analysis is None:
+            session_hint_for_analyzer: Optional[str] = None
+            if session and session.has_history():
+                ctx = session.get_context_for_continuation()
+                session_hint_for_analyzer = format_session_hints_for_analyzer(ctx)
+            analysis = await analyzer.analyze(message, session_hint=session_hint_for_analyzer)
 
         if not analysis.safety.is_safe:
             narrative = generator.generate_redirect(analysis.redirect_suggestion)

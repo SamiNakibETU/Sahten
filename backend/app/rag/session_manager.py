@@ -151,6 +151,9 @@ def _session_to_redis(session: SessionState) -> str:
         turns.append({
             "recipe_url": t.recipe_url,
             "recipe_titles": t.recipe_titles,
+            "intent": t.intent,
+            "primary_dish": t.primary_dish,
+            "ingredients": t.ingredients,
         })
     return json.dumps({
         "recipes_proposed": session.recipes_proposed,
@@ -170,15 +173,14 @@ def _restore_from_redis(session: SessionState, raw: str) -> None:
             url = turn_data.get("recipe_url")
             titles = turn_data.get("recipe_titles") or []
             if url or titles:
-                from dataclasses import fields as dc_fields
                 existing_urls = {t.recipe_url for t in session.conversation_history}
                 if url not in existing_urls:
                     synthetic = ConversationTurn(
                         user_message="",
                         bot_response_summary="",
-                        intent="",
-                        primary_dish=None,
-                        ingredients=[],
+                        intent=turn_data.get("intent") or "",
+                        primary_dish=turn_data.get("primary_dish"),
+                        ingredients=turn_data.get("ingredients") or [],
                         recipe_url=url,
                         recipe_titles=titles,
                     )
