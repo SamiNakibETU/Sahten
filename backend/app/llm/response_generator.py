@@ -387,7 +387,8 @@ class ResponseGenerator:
         text = unidecode(raw.lower())
         ban_space = _normalize_for_banned_substrings(raw)
         n_cards = len(evidence.selected_recipe_cards)
-        base_max = 900 if n_cards > 1 or evidence.response_type == "menu" else 560
+        # 420-520 tokens output → up to ~1800 chars; give generous headroom
+        base_max = 1200 if n_cards > 1 or evidence.response_type == "menu" else 1000
         extra = 200 if _evidence_has_editorial_snippets(evidence) else 0
         max_chars = base_max + extra
         if len(text) > max_chars:
@@ -573,11 +574,14 @@ class ResponseGenerator:
         title = r.title or "cette recette"
         chef = r.chef or ""
         chef_part = f" de {chef}" if chef else ""
+        body = r.recipe_lead or r.cited_passage or r.story_snippet or ""
+        body = body[:280].strip() if body else ""
+        cultural_context = body if body else f"{title} figure dans les carnets de L'Orient-Le Jour."
         return RecipeNarrative(
             hook=f"Voici {title}{chef_part}.",
-            cultural_context="Les étapes détaillées sont dans l'article.",
+            cultural_context=cultural_context,
             teaser=None,
-            cta="Consultez la recette sur L'Orient-Le Jour",
+            cta="Consultez la recette complète sur L'Orient-Le Jour.",
             closing="Sahteïn !",
         )
 
