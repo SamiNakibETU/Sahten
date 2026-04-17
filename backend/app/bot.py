@@ -32,7 +32,7 @@ from .core.model_selector import get_model_for_request
 from .llm.query_analyzer import QueryAnalyzer
 from .llm.response_generator import ResponseGenerator, EXACT_ALTERNATIVE_HOOK
 from .rag.retriever import HybridRetriever
-from .rag.session_manager import SessionManager, is_continuation
+from .rag.session_manager import SessionManager, is_continuation, format_session_hints_for_analyzer
 from .schemas.responses import RecipeNarrative, SahtenResponse, RecipeCard
 
 
@@ -167,8 +167,14 @@ class SahtenBot:
             logger.debug("Session %s: %d turns, %d recipes proposed", 
                         session_id, len(session.conversation_history), len(session.recipes_proposed))
         
-        # 1) Analyze query
-        analysis = await analyzer.analyze(message)
+        # 1) Analyze query — pass session context for continuation resolution
+        # (e.g. "encore une autre" understood as "encore une autre recette à la tomate")
+        session_hint_for_analyzer: Optional[str] = None
+        if session and session.has_history():
+            ctx = session.get_context_for_continuation()
+            session_hint_for_analyzer = format_session_hints_for_analyzer(ctx)
+
+        analysis = await analyzer.analyze(message, session_hint=session_hint_for_analyzer)
 
         if not analysis.safety.is_safe:
             narrative = generator.generate_redirect(analysis.redirect_suggestion)

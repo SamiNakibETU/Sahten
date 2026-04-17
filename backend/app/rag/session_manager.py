@@ -313,20 +313,43 @@ CONTINUATION_PATTERNS = [
 
 
 def format_session_hints_for_analyzer(session_context: dict[str, Any]) -> str:
-    """Bloc texte pour le QueryAnalyzer (coréférences, titres déjà montrés)."""
-    if not session_context:
+    """Inject conversation context into the QueryAnalyzer prompt.
+
+    Enables implicit continuation resolution:
+    "encore une autre" -> reuse last intent and ingredients.
+    """
+    if not session_context or not session_context.get("has_prior_turns"):
         return ""
-    if not session_context.get("has_prior_turns"):
-        return ""
-    titles = session_context.get("recent_recipe_titles") or []
-    n_prop = session_context.get("recipes_proposed_count")
+
     lines: list[str] = [
-        "Mémoire de session (même onglet — utilisez-la pour interpréter « autre », « celle d’avant », « sans viande », etc.) :",
+        "CONTEXTE DE CONVERSATION (meme session) — utilise ces informations pour"
+        " interpreter les requetes courtes comme encore une autre, une autre recette,"
+        " non, autre chose, sans viande, etc. :",
     ]
+
+    last_intent = session_context.get("last_intent")
+    last_dish = session_context.get("last_dish")
+    last_ingredients = session_context.get("last_ingredients") or []
+    all_ingredients = list(session_context.get("all_ingredients") or [])
+
+    if last_intent:
+        lines.append(f"- Dernier intent : {last_intent}")
+    if last_dish:
+        lines.append(f"- Dernier plat demande : {last_dish}")
+    if last_ingredients:
+        lines.append(f"- Derniers ingredients demandes : {', '.join(last_ingredients[:5])}")
+    elif all_ingredients:
+        lines.append(f"- Ingredients mentionnes dans la conversation : {', '.join(all_ingredients[:5])}")
+
+    titles = session_context.get("recent_recipe_titles") or []
     if titles:
-        lines.append(f"- Titres de fiches déjà proposées : {' ; '.join(titles[:6])}")
-    if n_prop is not None and int(n_prop) > 0:
-        lines.append(f"- Nombre d’URLs recettes déjà montrées (exclues du retrieve) : {n_prop}")
+        lines.append(f"- Recettes deja proposees : {' ; '.join(titles[:6])}")
+
+    lines.append(
+        "REGLE : si la requete est une continuation implicite (encore une autre,"
+        " non, une autre), conserve le meme intent et les memes"
+        " ingredients/plat que le dernier tour."
+    )
     return "\n".join(lines)
 
 

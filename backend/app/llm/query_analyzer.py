@@ -205,7 +205,7 @@ class QueryAnalyzer:
         self.model = model
         self.client = AsyncOpenAI(api_key=self.api_key)
     
-    async def analyze(self, query: str) -> QueryAnalysis:
+    async def analyze(self, query: str, session_hint: Optional[str] = None) -> QueryAnalysis:
         """
         Analyze user query with LLM.
         
@@ -221,11 +221,15 @@ class QueryAnalyzer:
                 return self._fallback_analysis(query)
 
             # Use JSON mode with structured output
+            system_content = ANALYZER_SYSTEM_PROMPT + "\n\nRéponds UNIQUEMENT en JSON valide correspondant au schema QueryAnalysis."
+            if session_hint:
+                system_content += f"\n\n{session_hint}"
+
             response = await self.client.chat.completions.create(
                 model=self.model,
                 response_format={"type": "json_object"},
                 messages=[
-                    {"role": "system", "content": ANALYZER_SYSTEM_PROMPT + "\n\nRéponds UNIQUEMENT en JSON valide correspondant au schema QueryAnalysis."},
+                    {"role": "system", "content": system_content},
                     {"role": "user", "content": query}
                 ],
                 temperature=0,  # Deterministic
