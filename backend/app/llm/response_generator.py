@@ -146,12 +146,13 @@ Exemples INTERDITS:
 - "Une salade de concombre rafraîchissante et simple." (ne mentionne pas le titre de la recette)
 - "Ce plat met en valeur la fraîcheur du concombre..." (générique, pas ancré sur la recette)
 
-## REGLE : utilisation de ingredients_list (recettes sans recipe_lead)
+## REGLE : utilisation de ingredients_list et main_ingredients
 
-Si `ingredients_list` est present dans le JSON (indique que la recette n'a pas de texte editorial):
-- Utilisez ces ingredients pour decrire le plat en 1-2 phrases concretes dans `detail`
-- Mentionnez 3-5 ingredients representatifs
-- Ne pas inventer d'histoire, de chef, d'anecdote
+`ingredients_list` reprend soit les lignes Base2, soit les `main_ingredients` enrichis OLJ (memes donnees que le corpus).
+Si `ingredients_list` ou `main_ingredients` est present:
+- En complement de recipe_lead / story_snippet : citez 3-5 ingredients concrets dans `detail` pour ancrer le plat
+- Si pas de recipe_lead : basez `detail` surtout sur cette liste (comme Base2)
+- Ne pas inventer d'ingredient absent du JSON
 
 # Ce qu'il faut eviter
 
@@ -302,6 +303,16 @@ class ResponseGenerator:
         self.model = model or settings.openai_model
         self.fallback_model = fallback_model or settings.fallback_model
 
+    @staticmethod
+    def _ingredients_list_for_llm(r: RecipeCard) -> Optional[List[str]]:
+        """Liste d'ingredients pour le LLM : Base2 (ingredients) ou OLJ (main_ingredients enrichis)."""
+        if r.ingredients:
+            return [str(i) for i in r.ingredients[:14]]
+        mi = getattr(r, "main_ingredients", None) or []
+        if mi:
+            return [str(i) for i in mi[:14]]
+        return None
+
     def _build_user_payload(
         self, evidence: EvidenceBundle, analysis: Optional[QueryAnalysis] = None
     ) -> str:
@@ -320,12 +331,8 @@ class ResponseGenerator:
                     "story_snippet": (r.story_snippet[:380] if r.story_snippet else None),
                     "tags": getattr(r, "tags", None) or [],
                     "main_ingredients": getattr(r, "main_ingredients", None) or [],
-                    # Include ingredients for Base2 recipes which have no recipe_lead/story_snippet
-                    "ingredients_list": (
-                        [str(i) for i in (r.ingredients or [])[:10]]
-                        if (r.ingredients and not r.recipe_lead and not r.story_snippet)
-                        else None
-                    ),
+                    # Meme liste exploitable pour le modele : Base2 ou enrichissements OLJ
+                    "ingredients_list": self._ingredients_list_for_llm(r),
                 }
                 for r in evidence.selected_recipe_cards
             ],
