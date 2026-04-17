@@ -291,21 +291,45 @@ class SahtenBot:
                 )
                 if result:
                     recipe_card, matched_ingredient = result
-                    if matched_ingredient:
+
+                    # For ingredient queries, only accept the fallback if there is
+                    # a proven shared ingredient — otherwise we'd return an unrelated
+                    # recipe (e.g. lentil soup for a potato query).
+                    if analysis.intent == "recipe_by_ingredient" and matched_ingredient is None:
+                        result = None  # discard irrelevant fallback
+
+                if result:
+                    recipe_card, matched_ingredient = result
+                    is_specific = analysis.intent == "recipe_specific"
+                    if is_specific:
+                        hook = EXACT_ALTERNATIVE_HOOK
                         cultural_context = (
-                            f"une recette libanaise qui partage {matched_ingredient} avec votre demande : "
-                            f"{recipe_card.title}. Un plat typique du Levant !"
+                            f"{recipe_card.title} est la recette la plus proche que j'ai trouvée. "
+                            "Elle partage des saveurs libanaises avec votre demande."
+                        )
+                    elif matched_ingredient:
+                        ing_label = matched_ingredient
+                        hook = (
+                            f"Je n'ai plus d'autre recette à la {ing_label} dans mon répertoire "
+                            "pour l'instant, mais voici une suggestion qui pourrait vous plaire :"
+                        )
+                        cultural_context = (
+                            f"{recipe_card.title} utilise également {ing_label} et s'inscrit dans "
+                            "la belle tradition de la cuisine du Levant."
                         )
                     else:
+                        hook = (
+                            "Je n'ai pas d'autre recette correspondant exactement à votre demande, "
+                            "mais voici une suggestion proche :"
+                        )
                         cultural_context = (
-                            f"une recette libanaise qui pourrait vous plaire : {recipe_card.title}. "
-                            "La cuisine du Levant offre plein de surprises !"
+                            f"{recipe_card.title} — une recette libanaise qui pourrait vous plaire."
                         )
                     narrative = RecipeNarrative(
-                        hook=EXACT_ALTERNATIVE_HOOK,
+                        hook=hook,
                         cultural_context=cultural_context,
-                        teaser="Cliquez pour découvrir la recette complète.",
-                        cta="Explorez nos recettes sur L'Orient-Le Jour",
+                        teaser=None,
+                        cta="Retrouvez la recette complète sur L'Orient-Le Jour.",
                         closing="Sahteïn !",
                     )
                     recipes = [recipe_card]
@@ -323,12 +347,21 @@ class SahtenBot:
                         self.session_manager.save(session)
 
             if not recipes:
-                narrative = RecipeNarrative(
-                    hook="Je n'ai pas trouvé de recette correspondant exactement à votre demande.",
-                    cultural_context=(
-                        "La cuisine libanaise est très riche ! Précisez un ingrédient, un plat ou une envie "
+                # Build a contextual "no results" message based on what was asked
+                ing_list = analysis.ingredients or []
+                if analysis.intent == "recipe_by_ingredient" and ing_list:
+                    ing_str = ", ".join(ing_list[:3])
+                    no_result_hook = f"Je n'ai plus d'autres recettes à base de {ing_str} dans mon répertoire pour l'instant."
+                    no_result_body = "N'hésitez pas à me demander un autre ingrédient ou une envie du moment — légère, réconfortante, rapide — et je vous trouverai quelque chose."
+                else:
+                    no_result_hook = "Je n'ai pas trouvé de recette correspondant exactement à votre demande."
+                    no_result_body = (
+                        "Précisez un ingrédient, un plat ou une envie "
                         "(léger, réconfortant, rapide…) et je vous proposerai une recette adaptée."
-                    ),
+                    )
+                narrative = RecipeNarrative(
+                    hook=no_result_hook,
+                    cultural_context=no_result_body,
                     teaser=None,
                     cta="Explorez nos recettes sur L'Orient-Le Jour",
                     closing="Sahteïn !",
