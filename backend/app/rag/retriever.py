@@ -856,7 +856,10 @@ class HybridRetriever:
                 used.add(dessert.url)
 
             if len(picked) < 3:
-                base2_cards = self._search_base2(QueryAnalysis(**{**analysis.model_dump(), "recipe_count": 3}))
+                base2_cards = self._search_base2(
+                    QueryAnalysis(**{**analysis.model_dump(), "recipe_count": 3}),
+                    exclude_titles=exclude_titles,
+                )
                 for c in base2_cards:
                     if len(picked) >= 3:
                         break
@@ -1001,7 +1004,7 @@ class HybridRetriever:
         if cards:
             return cards[: analysis.recipe_count], False, dbg
 
-        base2_cards = self._search_base2(analysis)
+        base2_cards = self._search_base2(analysis, exclude_titles=exclude_titles)
         if base2_cards:
             return base2_cards[: analysis.recipe_count], True, dbg
 
@@ -1120,6 +1123,7 @@ class HybridRetriever:
         raw_query: str,
         *,
         exclude_urls: Optional[set[str]] = None,
+        exclude_titles: Optional[set[str]] = None,
     ) -> Optional[Tuple[RecipeCard, Optional[str]]]:
         """
         Recommandation OLJ avec au moins un ingrédient en commun.
@@ -1127,6 +1131,7 @@ class HybridRetriever:
         matched_ingredient: str pour personnaliser la narrative, None si fallback.
         """
         exclude = set(exclude_urls or [])
+        exclude_titles_norm = set(exclude_titles or [])
 
         # 1) Collecte des ingrédients
         query_ingredients: List[str] = []
@@ -1140,6 +1145,8 @@ class HybridRetriever:
         # 2) Match par ingrédient sur OLJ
         for doc in self.olj_docs:
             if str(doc.url) in exclude:
+                continue
+            if self._norm_title(doc.title) in exclude_titles_norm:
                 continue
             if not doc.is_recipe:
                 continue
@@ -1165,16 +1172,21 @@ class HybridRetriever:
         base2_analysis = QueryAnalysis(
             **{**analysis.model_dump(), "recipe_count": 1, "ingredients": query_ingredients}
         )
-        base2_cards = self._search_base2(base2_analysis)
+        base2_cards = self._search_base2(base2_analysis, exclude_titles=exclude_titles_norm)
         if base2_cards:
             return (base2_cards[0], None)
 
         return None
 
-    def _search_base2(self, analysis: QueryAnalysis) -> List[RecipeCard]:
+    def _search_base2(
+        self,
+        analysis: QueryAnalysis,
+        exclude_titles: Optional[set[str]] = None,
+    ) -> List[RecipeCard]:
         """Fallback search in Base2 dataset."""
         from ..data.normalizers import normalize_text
 
+        exclude_titles_norm = set(exclude_titles or [])
         parts = [analysis.dish_name or "", *(analysis.dish_name_variants or []), *(analysis.ingredients or [])]
         norm_terms: list[str] = []
         for p in parts:
@@ -1221,7 +1233,7 @@ class HybridRetriever:
 
         results.sort(key=lambda x: -x[1])
         cards: List[RecipeCard] = []
-        for r, _, cat_name in results[: analysis.recipe_count]:
+        for r, _, cat_name in results:
             ingredients_list: List[str] = []
             for ing in r.get("ingredients", []) or []:
                 if isinstance(ing, dict):
@@ -1236,10 +1248,13 @@ class HybridRetriever:
                 else:
                     ingredients_list.append(str(ing))
 
+            title_b2 = r.get("nom", "Sans titre")
+            if self._norm_title(title_b2) in exclude_titles_norm:
+                continue
             cards.append(
                 RecipeCard(
                     source="base2",
-                    title=r.get("nom", "Sans titre"),
+                    title=title_b2,
                     category=cat_name,
                     ingredients=ingredients_list or None,
                     steps=r.get("etapes", []) or None,
@@ -1248,6 +1263,8 @@ class HybridRetriever:
                     servings=r.get("nombre_de_personnes"),
                 )
             )
+            if len(cards) >= analysis.recipe_count:
+                break
         return cards
 
     def get_grounding_for_term(self, term: str, max_chars: int = 400) -> Optional[Tuple[str, str, str]]:

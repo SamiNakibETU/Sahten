@@ -8,6 +8,7 @@ Follows "Editorial Chef" design principles: centered text, elegant typography.
 
 import html
 import re
+import urllib.parse
 from typing import List, Optional
 from ..schemas.responses import SahtenResponse, RecipeCard, ConversationBlock
 
@@ -136,7 +137,11 @@ def _format_recipe_card(card: RecipeCard) -> str:
     """
     # Escape all user-provided content
     title = _escape_html(card.title) if card.title else "Recette sans titre"
-    url = _escape_html(card.url) if card.url else "#"
+    # Pour les recettes Base2 sans URL, générer un lien de recherche OLJ
+    if card.url:
+        url = _escape_html(card.url)
+    else:
+        url = "https://www.lorientlejour.com/cuisine-liban-a-table?q=" + urllib.parse.quote(card.title or "", safe="")
     
     image_class = "recipe-image"
     image_style = ""

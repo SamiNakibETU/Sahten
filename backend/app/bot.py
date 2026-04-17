@@ -293,7 +293,10 @@ class SahtenBot:
 
             if not recipes:
                 result = self.retriever.get_olj_recommendation_by_ingredient(
-                    analysis, message, exclude_urls=exclude_set
+                    analysis,
+                    message,
+                    exclude_urls=exclude_set,
+                    exclude_titles=exclude_titles,
                 )
                 if result:
                     recipe_card, matched_ingredient = result
@@ -340,13 +343,13 @@ class SahtenBot:
                     )
                     recipes = [recipe_card]
                     response_type = "recipe_base2" if recipe_card.source == "base2" else "recipe_olj"
-                    if session and recipe_card.url:
+                    if session:
                         session.add_turn(
                             user_message=message,
                             intent=analysis.intent,
                             primary_dish=analysis.dish_name,
                             ingredients=analysis.ingredients,
-                            recipe_url=recipe_card.url,
+                            recipe_url=recipe_card.url or None,
                             response_summary="1 recette alternative proposée",
                             recipe_titles=[recipe_card.title] if recipe_card.title else [],
                         )
