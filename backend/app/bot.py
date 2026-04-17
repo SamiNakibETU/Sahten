@@ -22,6 +22,7 @@ Session Memory:
 from __future__ import annotations
 
 import logging
+import unicodedata
 from functools import lru_cache
 from dataclasses import dataclass
 from typing import Optional, List
@@ -29,10 +30,38 @@ from typing import Optional, List
 from .core.config import get_settings
 from .core.model_selector import get_model_for_request
 from .llm.query_analyzer import QueryAnalyzer
-from .llm.response_generator import ResponseGenerator
+from .llm.response_generator import ResponseGenerator, EXACT_ALTERNATIVE_HOOK
 from .rag.retriever import HybridRetriever
 from .rag.session_manager import SessionManager, is_continuation
 from .schemas.responses import RecipeNarrative, SahtenResponse, RecipeCard
+
+
+def _normalize_for_compare(text: str) -> str:
+    """Normalize text for dish name matching: lowercase, no accents, no punctuation."""
+    nfd = unicodedata.normalize("NFD", text.lower())
+    return "".join(c for c in nfd if unicodedata.category(c) != "Mn").strip()
+
+
+def _dish_found_in_results(
+    dish_name: str,
+    dish_name_variants: Optional[List[str]],
+    recipes: List[RecipeCard],
+) -> bool:
+    """Return True if at least one recipe clearly matches the queried dish name."""
+    if not dish_name or not recipes:
+        return True  # Cannot determine → assume match, don't show alternative hook
+    norm_dish = _normalize_for_compare(dish_name)
+    variants = [norm_dish] + [
+        _normalize_for_compare(v) for v in (dish_name_variants or []) if v
+    ]
+    variants = [v for v in variants if len(v) >= 3]
+    if not variants:
+        return True
+    for recipe in recipes:
+        title_norm = _normalize_for_compare(recipe.title or "")
+        if any(v in title_norm for v in variants):
+            return True
+    return False
 
 logger = logging.getLogger(__name__)
 
@@ -205,11 +234,21 @@ class SahtenBot:
             )
 
         # 2) Retrieve + rerank
-        # Exclude recipes already proposed in this session
+        # Exclude recipes already proposed in this session (by URL and by title)
         exclude_urls = session.recipes_proposed if session else []
-        
+        exclude_titles: set[str] = set()
+        if session:
+            for turn in session.conversation_history:
+                for t in turn.recipe_titles:
+                    if t:
+                        exclude_titles.add(_normalize_for_compare(t))
+
         recipes, is_base2, retrieval_debug = await self.retriever.search_with_rerank(
-            analysis, raw_query=message, debug=debug, exclude_urls=exclude_urls
+            analysis,
+            raw_query=message,
+            debug=debug,
+            exclude_urls=exclude_urls,
+            exclude_titles=exclude_titles if exclude_titles else None,
         )
 
         if not recipes:
@@ -242,6 +281,7 @@ class SahtenBot:
                             ingredients=analysis.ingredients,
                             recipe_url=recipe_card.url,
                             response_summary="1 recette mood proposée",
+                            recipe_titles=[recipe_card.title] if recipe_card.title else [],
                         )
                         self.session_manager.save(session)
 
@@ -262,7 +302,7 @@ class SahtenBot:
                             "La cuisine du Levant offre plein de surprises !"
                         )
                     narrative = RecipeNarrative(
-                        hook="Je n'ai pas cette recette exacte dans mes carnets, mais voici ce que je vous propose :",
+                        hook=EXACT_ALTERNATIVE_HOOK,
                         cultural_context=cultural_context,
                         teaser="Cliquez pour découvrir la recette complète.",
                         cta="Explorez nos recettes sur L'Orient-Le Jour",
@@ -278,6 +318,7 @@ class SahtenBot:
                             ingredients=analysis.ingredients,
                             recipe_url=recipe_card.url,
                             response_summary="1 recette alternative proposée",
+                            recipe_titles=[recipe_card.title] if recipe_card.title else [],
                         )
                         self.session_manager.save(session)
 
@@ -315,6 +356,17 @@ class SahtenBot:
             )
 
         # 3) Generate narrative
+        # Detect if the result is an alternative (not an exact match for the queried dish)
+        is_alternative_response = (
+            analysis.intent == "recipe_specific"
+            and bool(analysis.dish_name)
+            and bool(recipes)
+            and not is_base2
+            and not _dish_found_in_results(
+                analysis.dish_name, analysis.dish_name_variants, recipes
+            )
+        )
+
         if self.config.enable_narrative_generation:
             narrative = await generator.generate_narrative(
                 user_query=message,
@@ -325,6 +377,16 @@ class SahtenBot:
         else:
             narrative = generator.generate_redirect(
                 "Mode sans génération narrative activé."
+            )
+
+        # Force the contractual alternative hook if the recipe is not an exact match
+        if is_alternative_response and isinstance(narrative, RecipeNarrative):
+            narrative = RecipeNarrative(
+                hook=EXACT_ALTERNATIVE_HOOK,
+                cultural_context=narrative.cultural_context,
+                teaser=narrative.teaser,
+                cta=narrative.cta,
+                closing=narrative.closing,
             )
 
         olj_reco = None
@@ -351,7 +413,7 @@ class SahtenBot:
             model_used=effective_model,
         )
         
-        # Save session with new recipes
+        # Save session with new recipes (URL + titles for deduplication)
         if session and recipes:
             primary_url = recipes[0].url if recipes else None
             session.add_turn(
@@ -361,6 +423,7 @@ class SahtenBot:
                 ingredients=analysis.ingredients,
                 recipe_url=primary_url,
                 response_summary=f"{len(recipes)} recettes proposées",
+                recipe_titles=[r.title for r in recipes if r.title],
             )
             self.session_manager.save(session)
         

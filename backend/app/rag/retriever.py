@@ -530,6 +530,13 @@ class HybridRetriever:
             session_prefix=session_rerank_prefix or "",
         )
 
+    @staticmethod
+    def _norm_title(text: str) -> str:
+        """Normalize a title for comparison (lowercase, no accents)."""
+        import unicodedata
+        nfd = unicodedata.normalize("NFD", (text or "").lower())
+        return "".join(c for c in nfd if unicodedata.category(c) != "Mn").strip()
+
     def _select_cards(
         self,
         analysis: QueryAnalysis,
@@ -538,11 +545,14 @@ class HybridRetriever:
         max_results: int,
         category_allowlist: Optional[set[str]] = None,
         exclude_urls: Optional[set[str]] = None,
+        exclude_titles: Optional[set[str]] = None,
     ) -> List[RecipeCard]:
         """Select final recipe cards with deduplication and grounding."""
         used_urls = set()
         if exclude_urls:
             used_urls |= set(exclude_urls)
+        # Secondary exclusion by normalized title (robust against URL format issues)
+        used_titles_norm: set[str] = set(exclude_titles or [])
         cards: List[RecipeCard] = []
         
         for it in reranked:
@@ -553,6 +563,12 @@ class HybridRetriever:
             doc = next((d for d in self.olj_docs if str(d.url) == it.url), None)
             if not doc:
                 continue
+
+            # Title-based deduplication (secondary layer)
+            title_norm = self._norm_title(doc.title)
+            if title_norm in used_titles_norm:
+                continue
+            used_titles_norm.add(title_norm)
 
             if not doc.is_recipe:
                 continue
@@ -743,6 +759,7 @@ class HybridRetriever:
         raw_query: str,
         debug: bool = False,
         exclude_urls: Optional[List[str]] = None,
+        exclude_titles: Optional[set[str]] = None,
         conversation_context: Optional[str] = None,
         retrieval_query_boost: Optional[str] = None,
         session_context_dict: Optional[dict] = None,
@@ -961,6 +978,7 @@ class HybridRetriever:
             max_results=max(analysis.recipe_count, settings.max_results),
             category_allowlist=allowlist,
             exclude_urls=exclude_set,
+            exclude_titles=exclude_titles,
         )
 
         dbg = None

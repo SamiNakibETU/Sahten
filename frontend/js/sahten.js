@@ -202,14 +202,24 @@ export class SahtenChat {
     generateSessionId() {
         /**
          * Generate a unique session ID for conversation memory.
-         * Persists in sessionStorage so refreshing page keeps the session.
+         * Persists in localStorage so it survives page reloads and new tabs.
+         * Falls back to sessionStorage if localStorage is unavailable (private browsing).
          */
         const storageKey = 'sahten_session_id';
-        let sessionId = sessionStorage.getItem(storageKey);
+        let storage;
+        try {
+            storage = window.localStorage;
+            // Test write access
+            storage.setItem('__sahten_test__', '1');
+            storage.removeItem('__sahten_test__');
+        } catch (_) {
+            storage = window.sessionStorage;
+        }
+        let sessionId = storage.getItem(storageKey);
         
         if (!sessionId) {
             sessionId = 'ses_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 8);
-            sessionStorage.setItem(storageKey, sessionId);
+            storage.setItem(storageKey, sessionId);
         }
         
         return sessionId;

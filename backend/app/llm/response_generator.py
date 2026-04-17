@@ -32,7 +32,7 @@ GROQ_JSON_SUFFIX = (
 # Accroche contractuelle produit (recette demandée absente + alternative prouvée).
 EXACT_ALTERNATIVE_HOOK = (
     "Je suis désolé, mais je n'ai pas cette recette dans mes carnets. "
-    "Mais pour me faire pardonner je peux te proposer"
+    "Voici ce que je vous propose à la place :"
 )
 
 RESPONSE_JSON_SCHEMA = {
