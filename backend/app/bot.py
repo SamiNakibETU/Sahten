@@ -64,6 +64,31 @@ def _dish_found_in_results(
             return True
     return False
 
+
+def _olj_cta_coheres_with_main(
+    olj_title: str,
+    main_title: str,
+    ingredients: Optional[List[str]],
+) -> bool:
+    """
+    OLJ CTA must share a significant token with the Base2 main title,
+    or mention a queried ingredient in its title. Otherwise drop the CTA
+    (e.g. taboulé vs fattouche for the same cucumber query).
+    """
+    if not olj_title.strip():
+        return False
+    main_w = {w for w in _normalize_for_compare(main_title).split() if len(w) >= 4}
+    olj_w = {w for w in _normalize_for_compare(olj_title).split() if len(w) >= 4}
+    if main_w & olj_w:
+        return True
+    olj_norm = _normalize_for_compare(olj_title)
+    for ing in ingredients or []:
+        ing_n = _normalize_for_compare(ing)
+        if len(ing_n) >= 3 and ing_n in olj_norm:
+            return True
+    return False
+
+
 logger = logging.getLogger(__name__)
 
 _RECIPE_INTENTS = frozenset({
@@ -492,29 +517,30 @@ class SahtenBot:
         if is_base2:
             exclude_titles_for_cta = [r.title for r in recipes]
             exclude_urls_for_cta = set(session.recipes_proposed) if session else None
+            main_title = recipes[0].title if recipes else ""
 
-            # For ingredient queries: prefer an OLJ recipe that actually contains
-            # the queried ingredient rather than a generic recommendation.
+            # Ranked OLJ-only pick aligned with the Base2 main title (no blind fallback).
             if analysis.intent == "recipe_by_ingredient" and analysis.ingredients:
                 ing_result = self.retriever.get_olj_recommendation_by_ingredient(
                     analysis,
                     message,
                     exclude_urls=exclude_urls_for_cta,
                     exclude_titles=exclude_titles,
+                    align_with_title=main_title,
+                    olj_only=True,
                 )
                 if ing_result:
                     card_reco, _ = ing_result
-                    olj_reco = OLJRecommendation(
-                        title=card_reco.title,
-                        url=card_reco.url or "",
-                        reason="Une recette à découvrir sur L'Orient-Le Jour",
-                    )
-            
-            # Fall back to general recommendation if ingredient-aware one not found
-            if not olj_reco:
-                olj_reco = self.retriever.get_olj_recommendation(
-                    analysis, exclude_titles=exclude_titles_for_cta
-                )
+                    if getattr(card_reco, "source", "olj") == "olj" and _olj_cta_coheres_with_main(
+                        card_reco.title or "",
+                        main_title,
+                        analysis.ingredients,
+                    ):
+                        olj_reco = OLJRecommendation(
+                            title=card_reco.title,
+                            url=card_reco.url or "",
+                            reason="Autre recette publiée sur L'Orient-Le Jour",
+                        )
 
             # Suppress OLJ CTA if it's the same dish family as the Base2 result
             if olj_reco and recipes:

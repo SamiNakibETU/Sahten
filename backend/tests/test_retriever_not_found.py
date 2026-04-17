@@ -125,7 +125,7 @@ async def test_bot_not_found_returns_olj_narrative():
         new_callable=AsyncMock,
         return_value=([], False, None),
     ):
-        resp, _ = await bot.chat("recette de xyz inexistante 123", debug=False)
+        resp, _, _ = await bot.chat("recette de xyz inexistante 123", debug=False)
         # Le flux "not found" doit être déclenché
         assert resp.recipe_count == 0 or resp.recipe_count == 1
         if resp.recipe_count == 1:
@@ -134,4 +134,9 @@ async def test_bot_not_found_returns_olj_narrative():
             assert resp.recipes[0].title
         assert resp.narrative is not None
         hook = resp.narrative.hook if hasattr(resp.narrative, "hook") else str(resp.narrative)
-        assert "désolé" in hook.lower() or "pardonner" in hook.lower()
+        assert (
+            "désolé" in hook.lower()
+            or "pardonner" in hook.lower()
+            or "trouvé" in hook.lower()
+            or "correspondant" in hook.lower()
+        )

@@ -1138,6 +1138,46 @@ class HybridRetriever:
             cited_passage=None,
         )
 
+    def _score_olj_doc_for_ingredient_match(
+        self,
+        doc: CanonicalRecipeDoc,
+        matched_ingredient: str,
+        *,
+        align_with_title: Optional[str] = None,
+    ) -> float:
+        """
+        Score a candidate OLJ doc for ingredient queries. Higher = better CTA / main pick.
+        Prefers: ingredient in recipe title (early), title overlap with align_with_title,
+        penalizes long compilation-style titles.
+        """
+        title = doc.title or ""
+        title_lower = title.lower()
+        nt_full = normalize_text(title)
+        score = 1.0
+        mi = normalize_text(matched_ingredient) if matched_ingredient else ""
+        if mi and len(mi) >= 3:
+            if mi in nt_full:
+                mid = max(len(nt_full) // 2, 1)
+                pos = nt_full.find(mi)
+                score += 14.0 if pos < mid else 7.0
+        # Title overlap with Base2 / main recipe title (e.g. fattouche vs taboulé)
+        if align_with_title:
+            aw = normalize_text(align_with_title)
+            aw_words = {w for w in aw.split() if len(w) >= 4}
+            tw_words = {w for w in nt_full.split() if len(w) >= 4}
+            inter = aw_words & tw_words
+            score += 18.0 * len(inter)
+        # Penalize compilation titles (many separators) unless ingredient is in first half
+        sep = title_lower.count(",") + title_lower.count(":")
+        if sep >= 3:
+            half = title[: max(len(title) // 2, 1)]
+            if not (mi and mi in normalize_text(half)):
+                score -= 12.0
+        # Prefer focused titles (short) over very long list titles
+        if len(title) > 120:
+            score -= 2.0
+        return score
+
     def get_olj_recommendation_by_ingredient(
         self,
         analysis: QueryAnalysis,
@@ -1145,11 +1185,18 @@ class HybridRetriever:
         *,
         exclude_urls: Optional[set[str]] = None,
         exclude_titles: Optional[set[str]] = None,
+        align_with_title: Optional[str] = None,
+        olj_only: bool = False,
     ) -> Optional[Tuple[RecipeCard, Optional[str]]]:
         """
         Recommandation OLJ avec au moins un ingrédient en commun.
         Retourne (RecipeCard, matched_ingredient) ou None.
         matched_ingredient: str pour personnaliser la narrative, None si fallback.
+
+        When align_with_title is set (e.g. Base2 main recipe title), candidates are
+        ranked by score so the OLJ pick aligns with the main card, not the first file order.
+
+        When olj_only=True, never returns Base2 fallback (for OLJ CTA strip only).
         """
         exclude = set(exclude_urls or [])
         exclude_titles_norm = set(exclude_titles or [])
@@ -1163,7 +1210,31 @@ class HybridRetriever:
             if ing and ing not in query_ingredients:
                 query_ingredients.append(ing)
 
-        # 2) Match par ingrédient sur OLJ
+        # 1b) Pas d'ingrédients : sélection OLJ par catégorie (ex. dessert) puis Base2
+        if not query_ingredients:
+            target_cat = analysis.category
+            if target_cat:
+                for doc in self.olj_docs:
+                    if str(doc.url) in exclude:
+                        continue
+                    if self._norm_title(doc.title) in exclude_titles_norm:
+                        continue
+                    if not doc.is_recipe:
+                        continue
+                    if doc.category_canonical == target_cat:
+                        return (self._doc_to_recipe_card(doc), None)
+            if olj_only:
+                return None
+            base2_analysis = QueryAnalysis(
+                **{**analysis.model_dump(), "recipe_count": 1, "ingredients": []}
+            )
+            base2_cards = self._search_base2(base2_analysis, exclude_titles=exclude_titles_norm)
+            if base2_cards:
+                return (base2_cards[0], None)
+            return None
+
+        # 2) Match par ingrédient sur OLJ — collect all candidates, then rank
+        candidates: List[Tuple[CanonicalRecipeDoc, str, float]] = []
         for doc in self.olj_docs:
             if str(doc.url) in exclude:
                 continue
@@ -1178,15 +1249,27 @@ class HybridRetriever:
                 query_ingredients, filtered
             )
             if match_count >= 1:
-                # Trouver le premier ingrédient qui matche
-                matched_ingredient: Optional[str] = None
+                matched_ingredient = ""
                 for q_ing in query_ingredients:
                     mc, _ = ingredient_normalizer.match_ingredients([q_ing], filtered)
                     if mc >= 1:
                         matched_ingredient = q_ing
                         break
-                card = self._doc_to_recipe_card(doc)
-                return (card, matched_ingredient)
+                sc = self._score_olj_doc_for_ingredient_match(
+                    doc,
+                    matched_ingredient,
+                    align_with_title=align_with_title,
+                )
+                candidates.append((doc, matched_ingredient, sc))
+
+        if candidates:
+            candidates.sort(key=lambda x: -x[2])
+            best_doc, best_mi, _ = candidates[0]
+            card = self._doc_to_recipe_card(best_doc)
+            return (card, best_mi)
+
+        if olj_only:
+            return None
 
         # 3) Fallback Base2 — ne propose rien sans lien avec la demande
 

@@ -137,7 +137,7 @@ def _format_recipe_card(card: RecipeCard) -> str:
     """
     # Escape all user-provided content
     title = _escape_html(card.title) if card.title else "Recette sans titre"
-    # Pour les recettes Base2 sans URL, générer un lien de recherche OLJ
+    is_base2 = getattr(card, "source", None) == "base2"
     if card.url:
         url = _escape_html(card.url)
     else:
@@ -161,8 +161,6 @@ def _format_recipe_card(card: RecipeCard) -> str:
         escaped_chef = _escape_html(card.chef)
         chef_html = f'<span class="recipe-chef">Par {escaped_chef}</span>'
 
-    is_base2 = getattr(card, "source", None) == "base2"
-
     # For Base2 recipes: show ingredient list directly (no article URL)
     # For OLJ recipes: show cited passage if available
     extra_html = ""
@@ -184,9 +182,15 @@ def _format_recipe_card(card: RecipeCard) -> str:
     if is_base2:
         source_badge = '<span class="recipe-source-badge">Archive</span>'
 
-    card_html = f"""
-    <article class="recipe-card{' recipe-card--base2' if is_base2 else ''}">
-        <a href="{url}" target="_blank" class="recipe-card-link-wrapper">
+    if is_base2:
+        search_url = (
+            "https://www.lorientlejour.com/cuisine-liban-a-table?q="
+            + urllib.parse.quote(card.title or "", safe="")
+        )
+        search_esc = _escape_html(search_url)
+        card_html = f"""
+    <article class="recipe-card recipe-card--base2">
+        <div class="recipe-card-link-wrapper recipe-card-link-wrapper--base2">
             <div class="{image_class}" {image_style}></div>
             <div class="recipe-content">
                 {category_html}
@@ -195,6 +199,23 @@ def _format_recipe_card(card: RecipeCard) -> str:
                 <div class="recipe-meta">
                     {chef_html}
                     {source_badge}
+                </div>
+            </div>
+        </div>
+        <a href="{search_esc}" target="_blank" rel="noopener noreferrer" class="recipe-base2-search-link">Recherche sur L'Orient-Le Jour</a>
+    </article>
+    """
+    else:
+        card_html = f"""
+    <article class="recipe-card">
+        <a href="{url}" target="_blank" rel="noopener noreferrer" class="recipe-card-link-wrapper">
+            <div class="{image_class}" {image_style}></div>
+            <div class="recipe-content">
+                {category_html}
+                <h3 class="recipe-title">{title}</h3>
+                {extra_html}
+                <div class="recipe-meta">
+                    {chef_html}
                 </div>
             </div>
         </a>
