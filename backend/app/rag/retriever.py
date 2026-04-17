@@ -1212,15 +1212,27 @@ class HybridRetriever:
                     else:
                         text += " " + str(ing)
                 text_norm = normalize_text(text)
+                name_norm = normalize_text(name)
                 score = 0.0
                 for nt in norm_terms:
                     if nt in text_norm or text_norm in nt:
-                        score += 2.0
+                        # Boost: ingredient in recipe NAME (not just ingredient list)
+                        if nt in name_norm:
+                            score += 4.0
+                        else:
+                            score += 2.0
                     else:
                         for w in text_norm.split():
                             if len(nt) >= 4 and len(w) >= 4:
                                 if difflib.SequenceMatcher(None, nt, w).ratio() >= 0.72:
-                                    score += 1.8
+                                    # Boost: close match in name
+                                    if any(
+                                        difflib.SequenceMatcher(None, nt, wn).ratio() >= 0.72
+                                        for wn in name_norm.split()
+                                    ):
+                                        score += 3.6
+                                    else:
+                                        score += 1.8
                                     break
                 # Compat : tokens simples (ex. sous-chaînes courtes)
                 if score == 0:

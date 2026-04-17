@@ -493,6 +493,18 @@ class SahtenBot:
             olj_reco = self.retriever.get_olj_recommendation(
                 analysis, exclude_titles=[r.title for r in recipes]
             )
+            # Suppress OLJ CTA if it's the same dish family as the Base2 result
+            if olj_reco and recipes:
+                main_title_words = {
+                    w for w in _normalize_for_compare(recipes[0].title or "").split()
+                    if len(w) >= 4
+                }
+                olj_title_words = {
+                    w for w in _normalize_for_compare(olj_reco.title or "").split()
+                    if len(w) >= 4
+                }
+                if main_title_words & olj_title_words:
+                    olj_reco = None
 
         if analysis.intent == "menu_composition":
             response_type = "menu"

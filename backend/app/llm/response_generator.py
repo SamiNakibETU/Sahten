@@ -133,6 +133,27 @@ Jamais de genre incorrect. Jamais inventer un chef absent des donnees.
 - N'inventez pas d'etape, d'accompagnement ni de technique.
 - Si `recipe_lead` et `story_snippet` sont vides : detail en 1-2 phrases max (pas de remplissage).
 
+## REGLE CRITIQUE : le titre de la recette est obligatoire
+
+Le `hook` DOIT toujours mentionner le titre exact de la recette retournee. Il est strictement interdit de:
+- Décrire l'ingredient demande sans citer la recette (ex: "Une salade de concombre rafraîchissante" pour une recette intitulée "Salade taboulé" — FAUX)
+- Generer du contenu generique sur l'ingredient plutot que sur la recette specifique
+
+Exemples corrects:
+- "La Salade taboulé est une entrée fraîche qui met le concombre en valeur parmi persil et menthe." (mentionne TABOULÉ dans le hook)
+- "Le taboulé de Kamal Mouzawak est la reference..." (mentionne le titre dans le hook)
+
+Exemples INTERDITS:
+- "Une salade de concombre rafraîchissante et simple." (ne mentionne pas le titre de la recette)
+- "Ce plat met en valeur la fraîcheur du concombre..." (générique, pas ancré sur la recette)
+
+## REGLE : utilisation de ingredients_list (recettes sans recipe_lead)
+
+Si `ingredients_list` est present dans le JSON (indique que la recette n'a pas de texte editorial):
+- Utilisez ces ingredients pour decrire le plat en 1-2 phrases concretes dans `detail`
+- Mentionnez 3-5 ingredients representatifs
+- Ne pas inventer d'histoire, de chef, d'anecdote
+
 # Ce qu'il faut eviter
 
 - Generalites vides : "la cuisine libanaise est riche", "au Liban on aime", "un voyage culinaire"
@@ -296,6 +317,12 @@ class ResponseGenerator:
                     "story_snippet": (r.story_snippet[:380] if r.story_snippet else None),
                     "tags": getattr(r, "tags", None) or [],
                     "main_ingredients": getattr(r, "main_ingredients", None) or [],
+                    # Include ingredients for Base2 recipes which have no recipe_lead/story_snippet
+                    "ingredients_list": (
+                        [str(i) for i in (r.ingredients or [])[:10]]
+                        if (r.ingredients and not r.recipe_lead and not r.story_snippet)
+                        else None
+                    ),
                 }
                 for r in evidence.selected_recipe_cards
             ],
