@@ -161,26 +161,40 @@ def _format_recipe_card(card: RecipeCard) -> str:
         escaped_chef = _escape_html(card.chef)
         chef_html = f'<span class="recipe-chef">Par {escaped_chef}</span>'
 
-    # Grounding: show cited passage if available
-    citation_html = ""
-    if card.cited_passage:
-        # Escape and truncate citation for display
+    is_base2 = getattr(card, "source", None) == "base2"
+
+    # For Base2 recipes: show ingredient list directly (no article URL)
+    # For OLJ recipes: show cited passage if available
+    extra_html = ""
+    if is_base2 and card.ingredients:
+        # Show up to 8 ingredients as a compact pill list
+        ings = [_escape_html(str(i)) for i in card.ingredients[:8] if i]
+        if ings:
+            pills = "".join(f'<span class="recipe-ing">{i}</span>' for i in ings)
+            extra_html = f'<div class="recipe-ingredients">{pills}</div>'
+    elif card.cited_passage:
         citation_text = card.cited_passage[:200]
         if len(card.cited_passage) > 200:
             citation_text += "..."
         escaped_citation = _escape_html(citation_text)
-        citation_html = f'<blockquote class="recipe-citation">&ldquo;{escaped_citation}&rdquo;</blockquote>'
+        extra_html = f'<blockquote class="recipe-citation">&ldquo;{escaped_citation}&rdquo;</blockquote>'
+
+    # Base2 badge so user knows this is an archive recipe
+    source_badge = ""
+    if is_base2:
+        source_badge = '<span class="recipe-source-badge">Archive</span>'
 
     card_html = f"""
-    <article class="recipe-card">
+    <article class="recipe-card{' recipe-card--base2' if is_base2 else ''}">
         <a href="{url}" target="_blank" class="recipe-card-link-wrapper">
             <div class="{image_class}" {image_style}></div>
             <div class="recipe-content">
                 {category_html}
                 <h3 class="recipe-title">{title}</h3>
-                {citation_html}
+                {extra_html}
                 <div class="recipe-meta">
                     {chef_html}
+                    {source_badge}
                 </div>
             </div>
         </a>
