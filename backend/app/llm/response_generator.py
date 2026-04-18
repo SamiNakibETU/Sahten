@@ -421,6 +421,10 @@ class ResponseGenerator:
         raw = " ".join(
             p for p in [narrative.hook, narrative.cultural_context or "", narrative.cta] if p
         )
+        # Pas d'URL inventée dans la narration (les liens passent par la carte / CTA HTML)
+        if "http://" in raw or "https://" in raw:
+            logger.info("Validation failed: narrative must not contain raw URLs")
+            return False
         text = unidecode(raw.lower())
         ban_space = _normalize_for_banned_substrings(raw)
         n_cards = len(evidence.selected_recipe_cards)

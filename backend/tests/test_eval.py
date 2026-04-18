@@ -26,22 +26,44 @@ def _load_matrix() -> dict:
     return json.loads(p.read_text(encoding="utf-8"))
 
 
+def _urls_from_response(resp) -> list[str]:
+    """URLs structurées depuis SahtenResponse (prioritaire, stable)."""
+    urls: list[str] = []
+    for r in getattr(resp, "recipes", None) or []:
+        u = getattr(r, "url", None) or ""
+        if u:
+            urls.append(u)
+    olj = getattr(resp, "olj_recommendation", None)
+    if olj and getattr(olj, "url", None):
+        urls.append(olj.url)
+    return urls
+
+
 def _extract_urls(html: str) -> list[str]:
     """
-    Extract *recipe card* URLs only.
+    Extract *recipe card* URLs from HTML (fallback si pas de champ structuré).
 
-    Note: The HTML composer includes the same URL multiple times (card title + button).
-    For evaluation we care about duplicate *recipes*, not duplicate href occurrences.
+    Composer actuel : recipe-card-link-wrapper (OLJ), olj-cta-link (CTA).
     """
     import re
 
-    # Prefer card-title links (one per recipe card)
-    urls = re.findall(r'<a href=\"([^\"]+)\"[^>]*class=\"sahtein-card-title\"', html or "")
+    html = html or ""
+    # Cartes recette OLJ
+    urls = re.findall(
+        r'<a\s+href="([^"]+)"[^>]*class="recipe-card-link-wrapper"',
+        html,
+    )
     if urls:
         return urls
-
-    # Fallback: any href
-    return re.findall(r'href=\"([^\"]+)\"', html or "")
+    # Ancien marquage (rétrocompat tests)
+    urls = re.findall(r'<a href="([^"]+)"[^>]*class="sahtein-card-title"', html)
+    if urls:
+        return urls
+    # CTA secondaire
+    urls = re.findall(r'<a href="([^"]+)"[^>]*class="olj-cta-link"', html)
+    if urls:
+        return urls
+    return re.findall(r'href="([^"]+)"', html)
 
 
 def _extract_categories(html: str) -> list[str]:
@@ -50,6 +72,7 @@ def _extract_categories(html: str) -> list[str]:
     return [c.strip().lower() for c in re.findall(r'class=\"recipe-category\">([^<]+)<', html or "")]
 
 
+@pytest.mark.llm
 @pytest.mark.asyncio
 async def test_matrix():
     from app.bot import get_bot
@@ -65,6 +88,8 @@ async def test_matrix():
         resp, debug, _ = await bot.chat(query, debug=True)
         html = compose_html_response(resp)
 
+        structured_urls = _urls_from_response(resp)
+
         # Response type constraint
         if "response_type" in constraints:
             assert resp.response_type == constraints["response_type"], case["id"]
@@ -73,7 +98,7 @@ async def test_matrix():
         if "min_recipes" in constraints:
             assert resp.recipe_count >= int(constraints["min_recipes"]), case["id"]
 
-        urls = _extract_urls(html)
+        urls = structured_urls if structured_urls else _extract_urls(html)
         categories = _extract_categories(html)
 
         # Domain constraint

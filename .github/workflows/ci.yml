@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master, develop, "feature/**"]
+  pull_request:
+    branches: [main, master, develop]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements-dev.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: Run audit script (canonical data)
+        run: python scripts/audit_canonical_data.py
+
+      - name: Pytest (sans tests LLM)
+        run: pytest -q -m "not llm" --tb=short
+        env:
+          ENABLE_RESPONSE_CACHE: "false"
+
+      # Optionnel : définir le secret OPENAI_API_KEY dans le dépôt et décommenter pour
+      # lancer tests/test_eval.py sur main :
+      # - run: pytest -q tests/test_eval.py --tb=short
+      #   env:
+      #     OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
