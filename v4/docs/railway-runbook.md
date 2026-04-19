@@ -7,11 +7,11 @@
 ## Pré-requis
 
 - Compte Railway avec un projet existant (probablement appelé
-  `Sahtein` ou `Sahten`).
+`Sahtein` ou `Sahten`).
 - CLI Railway installée : `npm install -g @railway/cli` puis
-  `railway login`.
+`railway login`.
 - Accès à : `OPENAI_API_KEY`, `OLJ_API_KEY` (la valide, pas celle qui
-  donne 401), `COHERE_API_KEY` (créer sur cohere.com si besoin).
+donne 401), `COHERE_API_KEY` (créer sur cohere.com si besoin).
 
 ---
 
@@ -20,13 +20,13 @@
 Sur le projet Railway courant :
 
 1. Allez dans le service `sahten-web` actuel → **Deployments** → notez
-   le SHA Git du déploiement en prod (ex. `d6b2c2c`).
+  le SHA Git du déploiement en prod (ex. `d6b2c2c`).
 2. Allez dans **Variables** → exportez tout via :
-   ```bash
+  ```bash
    railway variables --service sahten-web > backup-vars-$(date +%F).txt
-   ```
+  ```
 3. Si vous avez déjà une DB Railway : **Snapshot** depuis l'UI
-   Postgres → "Create snapshot".
+  Postgres → "Create snapshot".
 
 **Rollback** : `railway redeploy --commit d6b2c2c` ramène l'ancien code.
 
@@ -63,7 +63,7 @@ Railway → "New" → "Database" → "Redis". Aucun setup requis.
 Railway → "New" → "Empty Service" → nom : `sahten-web`.
 
 - **Source** : connecter le GitHub `SamiNakibETU/Sahten`, branche
-  `sota/v4`.
+`sota/v4`.
 - **Build** : Dockerfile, chemin `v4/Dockerfile.web`.
 - **Health check path** : `/healthz`.
 - **Port** : `8000` (Railway l'auto-détecte via la var `PORT`).
@@ -240,19 +240,22 @@ Une fois RAGAS > 0.75 et 24h sans incident :
 
 1. Renommer le projet `sahten-v4-staging` en `sahten-v4-prod`.
 2. Mettre à jour le DNS / la config OLJ pour pointer vers la nouvelle
-   URL (`sahtein.lorientlejour.com` recommandé).
+  URL (`sahtein.lorientlejour.com` recommandé).
 3. Garder l'ancien projet (v3 sur `feature/ui-sahtein-olj-v2`) pendant
-   **7 jours** comme rollback chaud.
+  **7 jours** comme rollback chaud.
 4. Au bout de 7 jours sans incident, archiver l'ancien projet.
 
 ---
 
 ## En cas de pépin
 
-| Symptôme | Investigation |
-|----------|---------------|
-| `/readyz` répond `db: error` | Vérifier `DATABASE_URL` et que pgvector est activé |
+
+| Symptôme                                | Investigation                                                                                              |
+| --------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `/readyz` répond `db: error`            | Vérifier `DATABASE_URL` et que pgvector est activé                                                         |
 | `/api/chat` 500 « Cohere unauthorized » | `COHERE_API_KEY` manquante ou expirée — fallback BGE local s'active si `ENABLE_LOCAL_RERANK_FALLBACK=true` |
-| Embeddings dimension mismatch | `EMBEDDING_DIM` ≠ celui des chunks → `python -m scripts.ingest_cli reindex <id>` ou nouveau backfill |
-| Worker ne consomme pas les jobs | `arq` doit pointer sur le même Redis que le web ; `REDIS_URL` identique entre les services ? |
-| Webhook 401 | `WEBHOOK_SECRET` doit être identique côté Sahteïn ET côté WhiteBeard |
+| Embeddings dimension mismatch           | `EMBEDDING_DIM` ≠ celui des chunks → `python -m scripts.ingest_cli reindex <id>` ou nouveau backfill       |
+| Worker ne consomme pas les jobs         | `arq` doit pointer sur le même Redis que le web ; `REDIS_URL` identique entre les services ?               |
+| Webhook 401                             | `WEBHOOK_SECRET` doit être identique côté Sahteïn ET côté WhiteBeard                                       |
+
+

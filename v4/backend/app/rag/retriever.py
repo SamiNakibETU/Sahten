@@ -42,16 +42,16 @@ HYBRID_SQL = text(
 WITH
 params AS (
     SELECT
-        :rrf_k::int        AS rrf_k,
-        :top_k_lex::int    AS top_k_lex,
-        :top_k_vec::int    AS top_k_vec
+        CAST(:rrf_k AS int)        AS rrf_k,
+        CAST(:top_k_lex AS int)    AS top_k_lex,
+        CAST(:top_k_vec AS int)    AS top_k_vec
 ),
 filters AS (
     SELECT
-        :chef_slugs::text[]      AS chef_slugs,
-        :ingredient_slugs::text[] AS ingredient_slugs,
-        :category_slugs::text[]   AS category_slugs,
-        :keyword_slugs::text[]    AS keyword_slugs
+        CAST(:chef_slugs AS text[])      AS chef_slugs,
+        CAST(:ingredient_slugs AS text[]) AS ingredient_slugs,
+        CAST(:category_slugs AS text[])   AS category_slugs,
+        CAST(:keyword_slugs AS text[])    AS keyword_slugs
 ),
 candidate_articles AS (
     -- Sélectionne les articles correspondant aux filtres (ou tous si pas de filtre)
