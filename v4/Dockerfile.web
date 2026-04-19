@@ -21,7 +21,8 @@ COPY v4/worker ./worker
 COPY v4/scripts ./scripts
 COPY v4/infra ./infra
 
+RUN chmod +x /app/scripts/docker_entrypoint.sh
+
 EXPOSE 8000
-# main.py utilise `from app...` : il faut PYTHONPATH=/app/backend (voir ENV ci-dessus).
-# Railway fournit $PORT ; sinon 8000 en local.
-CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000} --proxy-headers"]
+# Entrypoint : auto-migration alembic puis uvicorn. PYTHONPATH=/app/backend (ENV).
+CMD ["/app/scripts/docker_entrypoint.sh"]
