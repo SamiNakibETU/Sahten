@@ -2,7 +2,8 @@ FROM python:3.11-slim AS base
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PYTHONPATH=/app/backend
 
 WORKDIR /app
 
@@ -21,5 +22,6 @@ COPY v4/scripts ./scripts
 COPY v4/infra ./infra
 
 EXPOSE 8000
-# Railway injecte $PORT au runtime ; le startCommand dans railway.toml le passe à uvicorn.
-CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers"]
+# main.py utilise `from app...` : il faut PYTHONPATH=/app/backend (voir ENV ci-dessus).
+# Railway fournit $PORT ; sinon 8000 en local.
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000} --proxy-headers"]
