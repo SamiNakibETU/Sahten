@@ -8,8 +8,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..db.base import get_session
 from ..rag.pipeline import RagPipeline
+from ..settings import get_settings
 
 router = APIRouter(prefix="/api", tags=["chat"])
+
+
+def _require_production_secrets() -> None:
+    """En prod uniquement : secrets obligatoires avant le pipeline (pas au boot /healthz)."""
+    get_settings().require_production_secrets()
 
 _pipeline: RagPipeline | None = None
 
@@ -46,7 +52,11 @@ class ChatResponse(BaseModel):
     intent: str
 
 
-@router.post("/chat", response_model=ChatResponse)
+@router.post(
+    "/chat",
+    response_model=ChatResponse,
+    dependencies=[Depends(_require_production_secrets)],
+)
 async def chat(
     payload: ChatRequest,
     session: AsyncSession = Depends(get_session),

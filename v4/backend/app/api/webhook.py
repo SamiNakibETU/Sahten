@@ -21,6 +21,10 @@ from ..settings import get_settings
 router = APIRouter(prefix="/api/webhook", tags=["webhook"])
 
 
+def _require_production_secrets() -> None:
+    get_settings().require_production_secrets()
+
+
 class WebhookPayload(BaseModel):
     event: str
     article_id: int
@@ -39,7 +43,7 @@ def _verify(body: bytes, signature: str | None) -> None:
         raise HTTPException(401, "Signature invalide")
 
 
-@router.post("/recipe")
+@router.post("/recipe", dependencies=[Depends(_require_production_secrets)])
 async def webhook_recipe(
     request: Request,
     x_signature_256: str | None = Header(default=None, alias="X-Signature-256"),

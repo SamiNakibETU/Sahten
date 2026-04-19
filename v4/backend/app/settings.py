@@ -87,6 +87,6 @@ class Settings(BaseSettings):
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
-    s = Settings()
-    s.require_production_secrets()
-    return s
+    # Ne pas appeler require_production_secrets() ici : le chargement de l’app
+    # (dont /healthz) doit pouvoir démarrer sans bloquer sur les secrets.
+    return Settings()

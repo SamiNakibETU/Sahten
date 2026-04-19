@@ -5,8 +5,8 @@ builder = "DOCKERFILE"
 dockerfilePath = "v4/Dockerfile.web"
 
 [deploy]
-# Même logique que Dockerfile : PYTHONPATH=/app/backend (défini dans l'image).
-startCommand = "uvicorn main:app --host 0.0.0.0 --port $PORT --proxy-headers"
+# Shell explicite : sans `sh -c`, `$PORT` peut ne pas être expansé → rien n’écoute.
+startCommand = "sh -c 'uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000} --proxy-headers'"
 healthcheckPath = "/healthz"
 healthcheckTimeout = 30
 restartPolicyType = "ON_FAILURE"
