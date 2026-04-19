@@ -1,0 +1,29 @@
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.coverage
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.env
+.env.*
+!.env.example
+
+# IDE
+.vscode/
+.idea/
+
+# Builds
+dist/
+build/
+
+# Tests / fixtures live (réponses API réelles non versionnées)
+tests/fixtures/whitebeard_*.json
+!tests/fixtures/whitebeard_*_mock.json
+
+# Logs / runtime
+*.log
+logs/

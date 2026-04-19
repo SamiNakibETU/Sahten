@@ -1,0 +1,88 @@
+name: v4 CI
+
+on:
+  push:
+    branches: ["sota/v4"]
+  pull_request:
+    branches: ["sota/v4", "main", "feature/ui-sahtein-olj-v2"]
+  workflow_dispatch:
+
+jobs:
+  unit:
+    name: Tests unitaires (sectionizer + mapper)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: v4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install beautifulsoup4 lxml python-slugify pytest
+      - name: Run unit tests
+        run: pytest tests/test_html_sectionizer.py tests/test_mapper.py -v
+
+  integration:
+    name: Tests intégration (Postgres + pgvector)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: v4
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: sahten
+          POSTGRES_PASSWORD: sahten
+          POSTGRES_DB: sahten
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U sahten"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+      - name: Install full deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[dev]
+      - name: Migrate
+        env:
+          DATABASE_URL: postgresql+asyncpg://sahten:sahten@localhost:5432/sahten
+          OPENAI_API_KEY: dummy
+          OLJ_API_KEY: dummy
+          WEBHOOK_SECRET: dummy
+          EMBEDDING_DIM: "3072"
+        run: |
+          cd infra/alembic && alembic -c alembic.ini upgrade head
+      - name: Pytest db-marked tests
+        env:
+          DATABASE_URL: postgresql+asyncpg://sahten:sahten@localhost:5432/sahten
+          OPENAI_API_KEY: dummy
+          OLJ_API_KEY: dummy
+          WEBHOOK_SECRET: dummy
+        run: pytest -m "db" -v || true   # tolérant tant que tests db pas encore écrits
+
+  lint:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: v4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install ruff
+      - run: ruff check backend worker scripts

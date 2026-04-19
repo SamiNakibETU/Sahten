@@ -1,0 +1,7 @@
+{"query": "Qui est Kamal Mouzawak ?", "intent": "chef_bio", "expected_external_ids": [1227694], "must_contain": ["Souk el-Tayeb", "Tawlet", "Beit"]}
+{"query": "Quels sont les 9 commandements du taboulé ?", "intent": "tip", "expected_external_ids": [1227694], "must_contain": ["persil", "bourghol", "menthe", "tranchés"]}
+{"query": "Comment préparer un vrai taboulé libanais ?", "intent": "recipe", "expected_external_ids": [1227694], "must_contain": ["persil plat", "bourghol", "citron"]}
+{"query": "Quelle est la différence entre un taboulé libanais et un taboulé occidental ?", "intent": "tip", "expected_external_ids": [1227694], "must_contain": ["crevettes", "conserve"]}
+{"query": "Quels ingrédients faut-il pour le taboulé de Kamal Mouzawak ?", "intent": "ingredient", "expected_external_ids": [1227694], "must_contain": ["persil", "bourghol", "menthe", "tomates"]}
+{"query": "Pourquoi le persil doit-il être plat ?", "intent": "tip", "expected_external_ids": [1227694], "must_contain": ["plat"]}
+{"query": "Raconte-moi l'histoire culturelle du taboulé au Liban.", "intent": "story", "expected_external_ids": [1227694], "must_contain": ["Liban", "drapeau"]}

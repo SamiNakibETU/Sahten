@@ -1,0 +1,77 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sahten-v4"
+version = "4.0.0a1"
+description = "Sahteïn — RAG SOTA Avril 2026 (Postgres + pgvector + hybrid retrieval)"
+requires-python = ">=3.11"
+authors = [{ name = "Sahteïn" }]
+dependencies = [
+    "fastapi>=0.115,<0.117",
+    "uvicorn[standard]>=0.32,<0.36",
+    "pydantic>=2.9,<3",
+    "pydantic-settings>=2.5,<3",
+    "httpx>=0.27,<1",
+    "openai>=1.50,<2",
+    "cohere>=5.11,<6",
+    "tiktoken>=0.7,<1",
+    "sqlalchemy[asyncio]>=2.0.35,<3",
+    "asyncpg>=0.30,<1",
+    "psycopg[binary]>=3.2,<4",
+    "pgvector>=0.3.6,<0.5",
+    "alembic>=1.13,<2",
+    "selectolax>=0.3.21,<0.4",
+    "beautifulsoup4>=4.12,<5",
+    "lxml>=5.3,<6",
+    "python-slugify>=8.0,<9",
+    "redis>=5.1,<6",
+    "arq>=0.26,<1",
+    "structlog>=24.4,<26",
+    "python-dotenv>=1.0,<2",
+    "tenacity>=9.0,<10",
+]
+
+[project.optional-dependencies]
+playwright = ["playwright>=1.48,<2"]
+local-rerank = ["sentence-transformers>=3.2,<4", "torch>=2.4,<3"]
+dev = [
+    "pytest>=8.3,<9",
+    "pytest-asyncio>=0.24,<2",
+    "pytest-cov>=5.0,<7",
+    "ruff>=0.7,<1",
+    "mypy>=1.13,<2",
+    "types-beautifulsoup4",
+]
+eval = ["ragas>=0.2,<1", "datasets>=3.0,<5"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["backend*", "worker*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = [".venv", "infra/alembic/versions/*"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM", "RUF"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_unused_ignores = true
+disallow_untyped_defs = true
+plugins = ["pydantic.mypy"]
+exclude = ["infra/alembic/versions/.*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = "-ra -q --strict-markers"
+markers = [
+    "live: tests that hit external APIs (require real keys)",
+    "db: tests that require Postgres + pgvector",
+]
