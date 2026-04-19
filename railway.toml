@@ -1,11 +1,14 @@
+# Déploiement Sahteïn v4 (Postgres + RAG). Ne pas utiliser Nixpacks sur backend/ :
+# cela lançait encore l'ancienne app v2.1 (olj_canonical.json).
 [build]
-builder = "nixpacks"
+builder = "DOCKERFILE"
+dockerfilePath = "v4/Dockerfile.web"
 
 [deploy]
-startCommand = "cd backend && python -m uvicorn main:app --host 0.0.0.0 --port $PORT"
-healthcheckPath = "/api/health"
+startCommand = "uvicorn backend.main:app --host 0.0.0.0 --port $PORT --proxy-headers"
+healthcheckPath = "/healthz"
 healthcheckTimeout = 30
-restartPolicyType = "on_failure"
+restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 3
 
 

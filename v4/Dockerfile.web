@@ -10,13 +10,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential libpq-dev curl ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-COPY pyproject.toml ./
+# Contexte de build = racine du repo (Railway clone tout le dépôt).
+# Chemins v4/... pour que ça marche avec dockerfilePath = "v4/Dockerfile.web".
+COPY v4/pyproject.toml ./
 RUN pip install --upgrade pip && pip install -e .
 
-COPY backend ./backend
-COPY worker ./worker
-COPY scripts ./scripts
-COPY infra ./infra
+COPY v4/backend ./backend
+COPY v4/worker ./worker
+COPY v4/scripts ./scripts
+COPY v4/infra ./infra
 
 EXPOSE 8000
+# Railway injecte $PORT au runtime ; le startCommand dans railway.toml le passe à uvicorn.
 CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers"]
