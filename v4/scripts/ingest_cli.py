@@ -91,8 +91,8 @@ async def cmd_from_ids(file_path: str, *, embed: bool, skip_existing: bool, limi
 
     async with WhiteBeardClient() as cli:
         for idx, ext_id in enumerate(ids, 1):
-            try:
-                async with sm() as session:
+            async with sm() as session:
+                try:
                     if skip_existing:
                         existing = await session.execute(
                             select(Article.id).where(Article.external_id == ext_id)
@@ -112,9 +112,10 @@ async def cmd_from_ids(file_path: str, *, embed: bool, skip_existing: bool, limi
                     await session.commit()
                     counts[res.status] = counts.get(res.status, 0) + 1
                     print(f"  [{idx}/{len(ids)}] {ext_id} — status={res.status} chunks={n_chunks}")
-            except Exception as exc:  # noqa: BLE001
-                counts["failed"] += 1
-                print(f"  [{idx}/{len(ids)}] {ext_id} — ERREUR: {exc}", file=sys.stderr)
+                except Exception as exc:  # noqa: BLE001
+                    await session.rollback()
+                    counts["failed"] += 1
+                    print(f"  [{idx}/{len(ids)}] {ext_id} — ERREUR: {exc}", file=sys.stderr)
 
     print(f"[from-ids] terminé : {counts}")
 

@@ -129,27 +129,50 @@ async def _link_authors(
         )
 
 
+def _merge_person_fields(person: models.Person, a: MappedAuthor) -> None:
+    """Met à jour une ligne `persons` à partir du payload auteur WhiteBeard."""
+    person.name = a.name
+    if a.slug:
+        person.slug = a.slug
+    person.role = a.role
+    person.department = a.department
+    person.biography_html = a.biography_html
+    person.biography_text = a.biography_text
+    person.description = a.description
+    person.image_url = a.image_url
+    person.raw_payload = a.raw
+    # Renseigner external_id dès qu’on l’a (souvent absent sur 1er article, présent ensuite).
+    if a.external_id is not None and person.external_id is None:
+        person.external_id = a.external_id
+
+
 async def _upsert_person(
     session: AsyncSession, a: MappedAuthor
 ) -> models.Person:
+    # 1) Clé métier WhiteBeard quand disponible
     if a.external_id is not None:
-        existing = await session.execute(
+        res = await session.execute(
             select(models.Person).where(models.Person.external_id == a.external_id)
         )
-        person = existing.scalar_one_or_none()
-        if person:
-            person.name = a.name
-            person.slug = a.slug or person.slug
-            person.role = a.role
-            person.department = a.department
-            person.biography_html = a.biography_html
-            person.biography_text = a.biography_text
-            person.description = a.description
-            person.image_url = a.image_url
-            person.raw_payload = a.raw
+        person = res.scalar_one_or_none()
+        if person is not None:
+            _merge_person_fields(person, a)
             await session.flush()
             return person
-    # Insert nouveau
+
+    # 2) Sans external_id (ou ID encore inconnu) : `slug` est UNIQUE — plusieurs articles
+    #    réutilisent le même journaliste → ne jamais INSERT en doublon sur le slug.
+    if a.slug:
+        res = await session.execute(
+            select(models.Person).where(models.Person.slug == a.slug)
+        )
+        person = res.scalar_one_or_none()
+        if person is not None:
+            _merge_person_fields(person, a)
+            await session.flush()
+            return person
+
+    # 3) Nouvelle personne
     person = models.Person(
         external_id=a.external_id,
         name=a.name,
