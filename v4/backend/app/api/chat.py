@@ -11,6 +11,7 @@ from __future__ import annotations
 import time
 import uuid
 
+import structlog
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -106,6 +107,7 @@ async def chat(
     try:
         result = await pipeline.answer(session, text)
     except Exception as exc:  # noqa: BLE001
+        log.exception("chat.rag_failed", query_preview=text[:200])
         # On persiste quand même l'échec dans l'historique pour debug UI.
         fallback_html = (
             '<div class="sahten-narrative"><p><em>Mille excuses, un petit incident '
@@ -139,17 +141,20 @@ async def chat(
     html_str = render_answer_html(result.answer, result.reranked)
     model_used = payload.model or get_settings().llm_model
 
-    await sessions.record_turn(
-        sid,
-        user_message=text,
-        assistant_html=html_str,
-        request_id=request_id,
-        intent=result.plan.intent,
-        confidence=result.answer.confidence,
-        sources=[s.model_dump() for s in sources],
-        timings_ms=result.timings_ms,
-        model_used=model_used,
-    )
+    try:
+        await sessions.record_turn(
+            sid,
+            user_message=text,
+            assistant_html=html_str,
+            request_id=request_id,
+            intent=result.plan.intent,
+            confidence=result.answer.confidence,
+            sources=[s.model_dump() for s in sources],
+            timings_ms=result.timings_ms,
+            model_used=model_used,
+        )
+    except Exception as exc:  # noqa: BLE001
+        log.warning("chat.record_turn_failed", error=str(exc))
 
     return ChatResponse(
         html=html_str,

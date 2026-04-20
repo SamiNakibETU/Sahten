@@ -569,8 +569,23 @@ export class SahtenChat {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                data = await response.json();
+                const rawBody = await response.text();
+                let parsed = null;
+                try {
+                    parsed = rawBody ? JSON.parse(rawBody) : null;
+                } catch {
+                    parsed = null;
+                }
+                if (!response.ok) {
+                    let detail = `HTTP ${response.status}`;
+                    if (parsed && parsed.detail !== undefined) {
+                        detail = typeof parsed.detail === 'string'
+                            ? parsed.detail
+                            : JSON.stringify(parsed.detail);
+                    }
+                    throw new Error(detail);
+                }
+                data = parsed;
             }
 
             this.state.lastModelUsed = data.model_used;
@@ -582,12 +597,14 @@ export class SahtenChat {
             this.appendBotMessage(data);
 
         } catch (error) {
-            // API error occurred
+            // API error occurred — en debug, afficher le détail serveur (FastAPI `detail`)
+            const msg = String(error.message || 'Erreur réseau');
+            const safe = msg.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
             this.appendBotMessage({
                 html: `<div class="sahten-narrative">
                     <p><em>Mille excuses, un petit incident en cuisine...</em></p>
                     <p>Pourriez-vous répéter votre demande ?</p>
-                    ${this.state.debugMode ? `<p style="font-size:11px;opacity:0.6;margin-top:8px;">` + this.config.apiBase + ` — ` + (error.message || 'Réseau') + `</p>` : ''}
+                    ${this.state.debugMode ? `<p style="font-size:11px;opacity:0.6;margin-top:8px;word-break:break-word;">` + this.config.apiBase + ` — ` + safe + `</p>` : `<p style="font-size:11px;opacity:0.55;margin-top:8px;">Si le problème continue, vérifiez les journaux du serveur (erreur API).</p>`}
                 </div>`
             });
         } finally {

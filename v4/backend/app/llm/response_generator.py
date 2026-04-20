@@ -24,8 +24,12 @@ from typing import Any
 from openai import AsyncOpenAI
 from pydantic import BaseModel, Field
 
+import structlog
+
 from ..settings import get_settings
 from ..rag.reranker import RerankedHit
+
+log = structlog.get_logger(__name__)
 
 
 class GroundedSentence(BaseModel):
@@ -230,18 +234,37 @@ class ResponseGenerator:
             )
 
         context = _format_context(hits)
-        completion = await self._client.chat.completions.create(
-            model=self._model,
-            temperature=self._temperature,
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user",
-                 "content": f"QUESTION : {user_query.strip()}\n\n{context}"},
-            ],
-            response_format={"type": "json_schema", "json_schema": JSON_SCHEMA},
-        )
-        raw = completion.choices[0].message.content or "{}"
-        answer = GroundedAnswer.model_validate_json(raw)
+        try:
+            completion = await self._client.chat.completions.create(
+                model=self._model,
+                temperature=self._temperature,
+                messages=[
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user",
+                     "content": f"QUESTION : {user_query.strip()}\n\n{context}"},
+                ],
+                response_format={"type": "json_schema", "json_schema": JSON_SCHEMA},
+            )
+            raw = completion.choices[0].message.content or "{}"
+            answer = GroundedAnswer.model_validate_json(raw)
+        except Exception as exc:  # noqa: BLE001
+            log.warning("response_generator.openai_failed", error=str(exc))
+            return GroundedAnswer(
+                answer_sentences=[
+                    GroundedSentence(
+                        text=(
+                            "Je n’ai pas pu générer une réponse structurée pour "
+                            "l’instant (service de langage indisponible ou réponse "
+                            "inattendue). Réessayez dans quelques instants."
+                        ),
+                        source_chunk_ids=[],
+                    )
+                ],
+                recipe_card=None,
+                chef_card=None,
+                follow_up="Réessayez dans un petit moment.",
+                confidence=0.0,
+            )
         return validate_grounding(answer, hits)
 
 

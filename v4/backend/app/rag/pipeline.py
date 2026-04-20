@@ -61,49 +61,73 @@ class RagPipeline:
         rerank_top_n = rerank_top_n or self.settings.rag_rerank_top_k
 
         t0 = time.perf_counter()
-        plan = await self.analyzer.analyze(user_query)
-        timings["query_understanding_ms"] = int((time.perf_counter() - t0) * 1000)
-
-        t1 = time.perf_counter()
-        q = plan.rewritten_query or user_query
-        hits = await self.retriever.search(
-            session,
-            q,
-            chef_slugs=plan.chef_slugs,
-            ingredient_slugs=plan.ingredient_slugs,
-            category_slugs=plan.category_slugs,
-            keyword_slugs=plan.keyword_slugs,
-            final_limit=max(30, rerank_top_n * 4),
-        )
-        # Les tables de liaison (article_ingredients, etc.) peuvent être vides même
-        # si le texte des chunks mentionne l'ingrédient → filtres structurés = 0
-        # candidat. On retombe sur recherche hybride plein texte + vecteur sans filtre.
-        if not hits and (
-            plan.chef_slugs
-            or plan.ingredient_slugs
-            or plan.category_slugs
-            or plan.keyword_slugs
-        ):
-            log.warning(
-                "rag.pipeline.retrieval_empty_with_filters_retrying_broad",
-                ingredient_slugs=plan.ingredient_slugs,
-                chef_slugs=plan.chef_slugs,
-            )
-            hits = await self.retriever.search(
-                session,
-                q,
+        try:
+            plan = await self.analyzer.analyze(user_query)
+        except Exception as exc:  # noqa: BLE001
+            log.warning("rag.pipeline.query_analyze_failed_fallback", error=str(exc))
+            plan = QueryPlan(
+                rewritten_query=(user_query or "").strip(),
+                intent="mixed",
                 chef_slugs=[],
                 ingredient_slugs=[],
                 category_slugs=[],
                 keyword_slugs=[],
+                focus_section_kinds=[],
+                needs_context_after=False,
+            )
+        timings["query_understanding_ms"] = int((time.perf_counter() - t0) * 1000)
+
+        t1 = time.perf_counter()
+        q = plan.rewritten_query or user_query
+        try:
+            hits = await self.retriever.search(
+                session,
+                q,
+                chef_slugs=plan.chef_slugs,
+                ingredient_slugs=plan.ingredient_slugs,
+                category_slugs=plan.category_slugs,
+                keyword_slugs=plan.keyword_slugs,
                 final_limit=max(30, rerank_top_n * 4),
             )
+            # Les tables de liaison (article_ingredients, etc.) peuvent être vides même
+            # si le texte des chunks mentionne l'ingrédient → filtres structurés = 0
+            # candidat. On retombe sur recherche hybride plein texte + vecteur sans filtre.
+            if not hits and (
+                plan.chef_slugs
+                or plan.ingredient_slugs
+                or plan.category_slugs
+                or plan.keyword_slugs
+            ):
+                log.warning(
+                    "rag.pipeline.retrieval_empty_with_filters_retrying_broad",
+                    ingredient_slugs=plan.ingredient_slugs,
+                    chef_slugs=plan.chef_slugs,
+                )
+                hits = await self.retriever.search(
+                    session,
+                    q,
+                    chef_slugs=[],
+                    ingredient_slugs=[],
+                    category_slugs=[],
+                    keyword_slugs=[],
+                    final_limit=max(30, rerank_top_n * 4),
+                )
+        except Exception as exc:  # noqa: BLE001
+            log.exception("rag.pipeline.retrieval_failed")
+            hits = []
         timings["retrieval_ms"] = int((time.perf_counter() - t1) * 1000)
 
         t2 = time.perf_counter()
-        reranked = await self.reranker.rerank(
-            plan.rewritten_query or user_query, hits, top_n=rerank_top_n
-        )
+        rq = plan.rewritten_query or user_query
+        try:
+            reranked = await self.reranker.rerank(rq, hits, top_n=rerank_top_n)
+        except Exception as exc:  # noqa: BLE001
+            # Cohere indispo, timeout, quota, etc. — on continue sans rerank.
+            log.warning("rag.pipeline.rerank_failed_fallback", error=str(exc))
+            reranked = [
+                RerankedHit(hit=h, rerank_score=float(h.score_rrf or 0.0))
+                for h in hits[:rerank_top_n]
+            ]
         reranked = [
             r for r in reranked if r.rerank_score >= self.settings.rag_min_rerank_score
         ] or reranked[: max(1, rerank_top_n // 2)]
