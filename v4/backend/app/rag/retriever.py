@@ -23,6 +23,15 @@ from ..settings import get_settings
 from .embeddings import EmbeddingProvider
 
 
+def _pgvector_param(values: list[float]) -> str:
+    """Littéral pgvector pour asyncpg : la lib attend une str, pas une liste Python.
+
+    Sinon : ``invalid input for query argument $N (expected str, got list)``
+    sur ``CAST(:qvec AS vector)``.
+    """
+    return "[" + ",".join(str(float(x)) for x in values) + "]"
+
+
 @dataclass
 class Hit:
     chunk_id: int
@@ -199,7 +208,7 @@ class HybridRetriever:
 
         params: dict[str, Any] = {
             "query": query.strip(),
-            "qvec": qvec,
+            "qvec": _pgvector_param(qvec),
             "rrf_k": self.settings.rag_rrf_k,
             "top_k_lex": self.settings.rag_hybrid_top_k_lexical,
             "top_k_vec": self.settings.rag_hybrid_top_k_vector,
