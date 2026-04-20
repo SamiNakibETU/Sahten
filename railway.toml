@@ -5,17 +5,10 @@ builder = "DOCKERFILE"
 dockerfilePath = "v4/Dockerfile.web"
 
 [deploy]
-# L'image Docker fournit son entrypoint (alembic upgrade + uvicorn).
+# L'image Docker fournit son entrypoint (alembic upgrade + uvicorn) via /app/scripts/docker_entrypoint.sh.
+# Aucune startCommand ici : le CMD du Dockerfile prévaut. Ne pas remettre une "Custom Start Command"
+# dans l'UI Railway (elle écraserait le CMD et casserait le boot, cf. erreur "executable cd not found").
 healthcheckPath = "/healthz"
 healthcheckTimeout = 60
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 3
-
-
-
-
-
-
-
-
-
