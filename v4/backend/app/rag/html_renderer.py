@@ -78,22 +78,41 @@ def _safe_http_image_url(url: str | None) -> str | None:
     return None
 
 
-def _cover_url_from_primary_hit(primary_hit: RerankedHit | None) -> str | None:
-    """Couverture : `articles.cover_image_url` (déjà enrichi en SQL), puis métadonnées chunk."""
+def _absolute_image_url(raw: str | None, article_url: str | None) -> str | None:
+    """Absolu https ou chemin relatif résolu avec le domaine de l’article."""
+    u = _safe_http_image_url(raw)
+    if u:
+        return u
+    if not raw or not article_url:
+        return None
+    s = str(raw).strip()
+    if not s.startswith("/"):
+        return None
+    p = urlparse(str(article_url).strip())
+    if not p.scheme or not p.netloc:
+        return None
+    return _safe_http_image_url(f"{p.scheme}://{p.netloc}{s}")
+
+
+def _cover_url_from_primary_hit(
+    primary_hit: RerankedHit | None,
+    article_url: str | None,
+) -> str | None:
+    """Couverture SQL + métadonnées chunk ; URLs relatives OLJ via l’URL article."""
     if not primary_hit:
         return None
     h: Hit = primary_hit.hit
-    u = _safe_http_image_url(h.cover_image_url)
-    if u:
-        return u
+    candidates: list[str | None] = [h.cover_image_url]
     meta = h.metadata
     if isinstance(meta, dict):
         for key in ("cover_image_url", "image_url", "thumb_url", "og_image"):
             v = meta.get(key)
             if isinstance(v, str):
-                u = _safe_http_image_url(v)
-                if u:
-                    return u
+                candidates.append(v)
+    for raw in candidates:
+        u = _absolute_image_url(raw, article_url)
+        if u:
+            return u
     return None
 
 
@@ -130,7 +149,7 @@ def _render_recipe(
     primary_hit: RerankedHit | None,
 ) -> str:
     """Carte type aperçu OLJ : vignette + bandeau marque, titre unique, lien sur toute la carte."""
-    cover = _cover_url_from_primary_hit(primary_hit)
+    cover = _cover_url_from_primary_hit(primary_hit, article_url)
     sk = primary_hit.hit.section_kind if primary_hit else ""
     cat = _recipe_category_label(sk)
     display_alt = article_title or card.title
@@ -375,15 +394,18 @@ def render_answer_html(
             )
         )
 
-    parts.append(
-        _render_sources(
-            hits,
-            used_ids,
-            skip_article_external_ids=skip_sources_ids,
-            skip_article_urls=skip_sources_urls,
-            skip_article_title_norms=skip_sources_title_norms,
+    # Une carte recette avec lien suffit : ne pas lister d’autres articles en « Sources »
+    # (sinon 2–3 liens alors qu’une seule recette est demandée).
+    if not (answer.recipe_card is not None and recipe_url):
+        parts.append(
+            _render_sources(
+                hits,
+                used_ids,
+                skip_article_external_ids=skip_sources_ids,
+                skip_article_urls=skip_sources_urls,
+                skip_article_title_norms=skip_sources_title_norms,
+            )
         )
-    )
 
     follow = follow_up_override if follow_up_override is not None else (answer.follow_up or "")
     if follow.strip():

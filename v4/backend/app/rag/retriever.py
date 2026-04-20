@@ -178,8 +178,20 @@ SELECT
         NULLIF(btrim(COALESCE(a.cover_image_url, '')), ''),
         NULLIF(btrim(a.raw_payload #>> '{image,url}'), ''),
         NULLIF(btrim(a.raw_payload #>> '{image,src}'), ''),
+        NULLIF(btrim(a.raw_payload #>> '{image,large}'), ''),
+        NULLIF(btrim(a.raw_payload #>> '{image,medium}'), ''),
         NULLIF(btrim(a.raw_payload #>> '{cover,url}'), ''),
-        NULLIF(btrim(a.raw_payload #>> '{contents,image,url}'), '')
+        NULLIF(btrim(a.raw_payload #>> '{contents,image,url}'), ''),
+        CASE
+            WHEN a.raw_payload IS NOT NULL
+                 AND jsonb_typeof(a.raw_payload->'image') = 'string'
+            THEN NULLIF(btrim(a.raw_payload->>'image'), '')
+            ELSE NULL::text
+        END,
+        NULLIF(
+            btrim(substring(a.body_html::text from 'src="(https?://[^"]+)"')),
+            ''
+        )
     ) AS cover_image_url,
     c.kind        AS section_kind,
     c.text        AS chunk_text,
