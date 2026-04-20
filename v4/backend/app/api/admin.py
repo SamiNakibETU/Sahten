@@ -15,10 +15,15 @@ from __future__ import annotations
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import func, select
+from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..db.base import get_session
+from ..llm.query_understanding import QueryAnalyzer, QueryPlan
+from ..rag.embeddings import OpenAIEmbeddings
+from ..rag.pipeline import _retrieval_fallback_queries
+from ..rag.retriever import HybridRetriever
+from ..settings import get_settings
 from ..db.models import (
     Article,
     Category,
@@ -49,6 +54,158 @@ async def stats(session: AsyncSession = Depends(get_session)) -> dict[str, Any]:
     )
     counts["chunks_embedded"] = int(embedded.scalar_one() or 0)
     return {"counts": counts}
+
+
+@router.get("/diagnose-retrieval")
+async def diagnose_retrieval(
+    q: str = Query(
+        ...,
+        min_length=1,
+        max_length=4000,
+        description="Requête à tester (ex. recette avec du concombre)",
+    ),
+    session: AsyncSession = Depends(get_session),
+) -> dict[str, Any]:
+    """Diagnostic RAG : compteurs DB, plan LLM, nombre de hits par étape (comme le pipeline).
+
+    Appeler en prod : ``GET /api/admin/diagnose-retrieval?q=recette%20avec%20du%20concombre``
+    """
+    s = get_settings()
+    rerank_top_n = s.rag_rerank_top_k
+    final_limit = max(30, rerank_top_n * 4)
+
+    counts: dict[str, int] = {}
+    for label, table in [
+        ("articles", Article),
+        ("chunks", Chunk),
+    ]:
+        r = await session.execute(select(func.count()).select_from(table))
+        counts[label] = int(r.scalar_one() or 0)
+    embedded = await session.execute(
+        select(func.count()).select_from(Chunk).where(Chunk.embedding.is_not(None))
+    )
+    counts["chunks_embedded"] = int(embedded.scalar_one() or 0)
+
+    hints: list[str] = []
+    if counts["chunks"] == 0:
+        hints.append("chunks=0 : corpus vide — lancer l’ingestion des articles.")
+    elif counts["chunks_embedded"] == 0:
+        hints.append("chunks_embedded=0 : aucun vecteur — lancer le job d’embeddings / indexer.")
+    elif counts["chunks_embedded"] < counts["chunks"]:
+        hints.append(
+            f'{counts["chunks"] - counts["chunks_embedded"]} chunks sans embedding : '
+            "retrieval vectoriel partiellement inopérant."
+        )
+
+    # Sanity SQL : lexique seul sur la requête (sans filtre article)
+    chunk_sanity: dict[str, Any] = {}
+    try:
+        lex_row = (
+            await session.execute(
+                text(
+                    """
+                    SELECT
+                        COUNT(*)::int AS n_chunks,
+                        COUNT(*) FILTER (
+                            WHERE c.embedding IS NOT NULL
+                        )::int AS n_with_embedding,
+                        COUNT(*) FILTER (
+                            WHERE c.search_tsv @@ websearch_to_tsquery('french', :q)
+                        )::int AS n_lex_match
+                    FROM chunks c
+                    """
+                ),
+                {"q": q.strip()},
+            )
+        ).mappings().first()
+        chunk_sanity = dict(lex_row) if lex_row else {}
+    except Exception as exc:  # noqa: BLE001
+        chunk_sanity = {"error": str(exc)}
+
+    plan_dump: dict[str, Any] | None = None
+    plan_error: str | None = None
+    try:
+        plan_obj = await QueryAnalyzer().analyze(q)
+        plan_dump = plan_obj.model_dump()
+    except Exception as exc:  # noqa: BLE001
+        plan_error = str(exc)
+        plan_obj = QueryPlan(
+            rewritten_query=q.strip(),
+            intent="mixed",
+            chef_slugs=[],
+            ingredient_slugs=[],
+            category_slugs=[],
+            keyword_slugs=[],
+            focus_section_kinds=[],
+            needs_context_after=False,
+        )
+        plan_dump = plan_obj.model_dump()
+
+    q_main = (plan_obj.rewritten_query or q).strip()
+    retriever = HybridRetriever(OpenAIEmbeddings())
+
+    searches: list[dict[str, Any]] = []
+
+    async def _add(step: str, query_str: str, **kwargs: Any) -> None:
+        try:
+            hits = await retriever.search(
+                session, query_str, final_limit=final_limit, **kwargs
+            )
+        except Exception as exc:  # noqa: BLE001
+            searches.append(
+                {
+                    "step": step,
+                    "query": query_str,
+                    "error": str(exc),
+                    "n_hits": 0,
+                }
+            )
+            return
+        titles = list({h.article_title for h in hits[:8]})
+        searches.append(
+            {
+                "step": step,
+                "query": query_str,
+                "n_hits": len(hits),
+                "sample_titles": titles,
+            }
+        )
+
+    await _add(
+        "1_with_struct_filters",
+        q_main,
+        chef_slugs=plan_obj.chef_slugs,
+        ingredient_slugs=plan_obj.ingredient_slugs,
+        category_slugs=plan_obj.category_slugs,
+        keyword_slugs=plan_obj.keyword_slugs,
+    )
+    await _add("2_broad_no_filters", q_main)
+
+    seen_q = {q_main.strip()}
+    for alt in _retrieval_fallback_queries(q, plan_obj):
+        if alt.strip() in seen_q:
+            continue
+        seen_q.add(alt.strip())
+        await _add(f"3_fallback:{alt[:40]}", alt)
+
+    if chunk_sanity.get("n_lex_match") == 0 and chunk_sanity.get("n_chunks", 0) > 0:
+        hints.append(
+            "n_lex_match=0 pour cette requête : aucun chunk ne matche le plein texte "
+            "(websearch_to_tsquery). Vérifier search_tsv / langue du contenu."
+        )
+
+    return {
+        "query": q,
+        "rewritten_or_main": q_main,
+        "embedding_model": s.embedding_model,
+        "embedding_dim": s.embedding_dim,
+        "counts": counts,
+        "chunk_sanity": chunk_sanity,
+        "query_plan": plan_dump,
+        "query_plan_error": plan_error,
+        "retrieval_steps": searches,
+        "hints": hints,
+    }
 
 
 @router.get("/articles")
