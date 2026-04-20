@@ -54,18 +54,16 @@ def _render_recipe(card: RecipeCard, *, article_url: str | None, article_title: 
             f'<p class="sahten-recipe-link"><a href="{_escape(article_url)}" '
             f'target="_blank" rel="noopener noreferrer">{label}</a></p>'
         )
-
-    if card.ingredients:
-        parts.append('<section><h3>Ingrédients</h3><ul>')
-        for ing in card.ingredients:
-            parts.append(f"<li>{_escape(ing)}</li>")
-        parts.append("</ul></section>")
-
-    if card.steps:
-        parts.append('<section><h3>Préparation</h3><ol>')
-        for step in card.steps:
-            parts.append(f"<li>{_escape(step)}</li>")
-        parts.append("</ol></section>")
+        parts.append(
+            '<p class="sahten-recipe-teaser">Les ingrédients détaillés et la '
+            "préparation pas à pas se trouvent dans la fiche sur "
+            "<strong>L’Orient-Le Jour</strong> — ouvrez le lien ci-dessus.</p>"
+        )
+    else:
+        parts.append(
+            '<p class="sahten-recipe-teaser"><em>Consultez les sources en bas de '
+            "réponse pour retrouver la recette complète.</em></p>"
+        )
 
     parts.append("</article>")
     return "".join(parts)

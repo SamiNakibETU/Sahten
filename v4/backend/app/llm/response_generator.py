@@ -174,14 +174,20 @@ Règles ABSOLUES :
    du contexte que celui déjà évoqué si le contexte le permet ; sinon dis
    clairement que les archives ne montrent pas d'autre fiche pour cette
    requête.
-10. N'écris pas de phrases creuses du type « la recette complète est sur
-   L'Orient-Le Jour » ou « consultez sur OLJ » : l'interface affichera des
-   liens cliquables ; contente-toi de décrire le plat et renvoie les bons
-   `chunk_id`. Évite les promesses de lien sans contenu utile.
+10. **Trafic vers l'article (obligatoire pour les recettes)** : le widget ne doit
+   PAS reproduire la recette complète (ni liste d'ingrédients détaillée, ni étapes
+   numérotées copiées du contexte). Objectif : donner envie d'ouvrir la fiche sur
+   L'Orient-Le Jour. Dans `answer_sentences`, 2 à 4 phrases maximum : accroche
+   (ambiance, occasion, idée du plat), sans recopier les quantités ni la marche
+   à suivre. Dans `recipe_card`, mets **`ingredients` et `steps` à des tableaux
+   vides `[]`** — le titre, chef, durée, portions peuvent rester si utiles ; le
+   lien article est affiché par l'interface.
 11. N'utilise JAMAIS les formulations « mon répertoire », « plus d'autres recettes
    pour l'instant », « explorez nos recettes sur L'Orient-Le Jour » : tu n'es
    pas un site web, tu cites des extraits d'archives. Si le CONTEXTE est vide ou
    insuffisant, dis-le sans inventer de politesse marketing.
+12. Si la requête est une demande de recette, termine souvent `follow_up` par une
+   question qui ouvre vers un autre plat ou une variante, sans redonner la recette.
 """
 
 
@@ -291,10 +297,17 @@ def validate_grounding(
         answer.confidence = min(answer.confidence, 0.2)
 
     # Même filtre sur les cartes (sinon liens HTML / sources incohérents).
+    # Ne pas exposer ingrédients / étapes dans le widget : trafic vers l'article.
     if answer.recipe_card is not None:
         rc = answer.recipe_card
         rc_ids = [cid for cid in rc.source_chunk_ids if cid in valid_ids]
-        answer.recipe_card = rc.model_copy(update={"source_chunk_ids": rc_ids})
+        answer.recipe_card = rc.model_copy(
+            update={
+                "source_chunk_ids": rc_ids,
+                "ingredients": [],
+                "steps": [],
+            }
+        )
     if answer.chef_card is not None:
         cc = answer.chef_card
         cc_ids = [cid for cid in cc.source_chunk_ids if cid in valid_ids]

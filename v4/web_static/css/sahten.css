@@ -549,6 +549,30 @@
   font-style: italic;
 }
 
+/* Recette : titre + lien article (détail sur OLJ, pas dans le widget) */
+.sahten-narrative .sahten-recipe-card {
+  margin-top: 0.75rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+.sahten-narrative .sahten-recipe-card header h2 {
+  font-size: 1.05rem;
+  margin: 0 0 0.35rem;
+}
+.sahten-narrative .sahten-recipe-link a {
+  font-family: "DM Sans", -apple-system, sans-serif;
+  font-weight: 600;
+  color: #2a6452;
+  text-decoration: underline;
+}
+.sahten-narrative .sahten-recipe-teaser {
+  font-family: "DM Sans", -apple-system, sans-serif;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: #555;
+  margin: 0.4rem 0 0;
+}
+
 /* Semantic narrative blocks */
 .sahten-narrative .sn-hook {
   font-weight: 600;
