@@ -143,6 +143,37 @@ async def list_sessions(limit: int = 50) -> list[dict[str, Any]]:
         return []
 
 
+async def recent_article_external_ids(
+    session_id: str,
+    *,
+    max_assistant_turns: int = 6,
+    max_ids: int = 24,
+) -> list[int]:
+    """IDs d'articles déjà cités dans les réponses récentes (diversité RAG)."""
+    msgs = await get_session_messages(session_id)
+    seen: list[int] = []
+    assistant_turns = 0
+    for m in reversed(msgs):
+        if m.get("role") != "assistant":
+            continue
+        assistant_turns += 1
+        if assistant_turns > max_assistant_turns:
+            break
+        for src in m.get("sources") or []:
+            aid = src.get("article_external_id")
+            if aid is None:
+                continue
+            try:
+                i = int(aid)
+            except (TypeError, ValueError):
+                continue
+            if i not in seen:
+                seen.append(i)
+            if len(seen) >= max_ids:
+                return seen
+    return seen
+
+
 async def get_session_messages(session_id: str) -> list[dict[str, Any]]:
     redis = await _get_redis()
     if redis is None:
@@ -171,5 +202,6 @@ __all__ = [
     "record_turn",
     "list_sessions",
     "get_session_messages",
+    "recent_article_external_ids",
     "healthcheck",
 ]

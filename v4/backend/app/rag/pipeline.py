@@ -17,6 +17,7 @@ from dataclasses import dataclass
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from .. import sessions as sessions_store
 from ..llm.query_understanding import QueryAnalyzer, QueryPlan
 from ..llm.response_generator import GroundedAnswer, ResponseGenerator
 from ..settings import get_settings
@@ -110,12 +111,89 @@ class RagPipeline:
         self.generator = generator or ResponseGenerator()
         self.settings = get_settings()
 
+    async def _retrieve_hits(
+        self,
+        session: AsyncSession,
+        user_query: str,
+        plan: QueryPlan,
+        q: str,
+        rerank_top_n: int,
+        exclude_article_external_ids: list[int],
+    ) -> list[Hit]:
+        """Recherche hybride + retries (filtres, fallbacks)."""
+        final_limit = max(30, rerank_top_n * 4)
+        excl = exclude_article_external_ids
+
+        hits = await self.retriever.search(
+            session,
+            q,
+            chef_slugs=plan.chef_slugs,
+            ingredient_slugs=plan.ingredient_slugs,
+            category_slugs=plan.category_slugs,
+            keyword_slugs=plan.keyword_slugs,
+            final_limit=final_limit,
+            exclude_article_external_ids=excl,
+        )
+        if not hits and (
+            plan.chef_slugs
+            or plan.ingredient_slugs
+            or plan.category_slugs
+            or plan.keyword_slugs
+        ):
+            log.warning(
+                "rag.pipeline.retrieval_empty_with_filters_retrying_broad",
+                ingredient_slugs=plan.ingredient_slugs,
+                chef_slugs=plan.chef_slugs,
+            )
+            hits = await self.retriever.search(
+                session,
+                q,
+                chef_slugs=[],
+                ingredient_slugs=[],
+                category_slugs=[],
+                keyword_slugs=[],
+                final_limit=final_limit,
+                exclude_article_external_ids=excl,
+            )
+        if not hits:
+            base = q.strip()
+            for alt in _retrieval_fallback_queries(user_query, plan):
+                if alt.strip() == base:
+                    continue
+                try:
+                    hits = await self.retriever.search(
+                        session,
+                        alt,
+                        chef_slugs=[],
+                        ingredient_slugs=[],
+                        category_slugs=[],
+                        keyword_slugs=[],
+                        final_limit=final_limit,
+                        exclude_article_external_ids=excl,
+                    )
+                except Exception as exc:  # noqa: BLE001
+                    log.warning(
+                        "rag.pipeline.retrieval_fallback_failed",
+                        alt=alt[:80],
+                        error=str(exc),
+                    )
+                    continue
+                if hits:
+                    log.info(
+                        "rag.pipeline.retrieval_fallback_hit",
+                        alt_preview=alt[:80],
+                        n_hits=len(hits),
+                    )
+                    break
+        return hits
+
     async def answer(
         self,
         session: AsyncSession,
         user_query: str,
         *,
         rerank_top_n: int | None = None,
+        session_id: str | None = None,
     ) -> PipelineResult:
         timings: dict[str, int] = {}
         rerank_top_n = rerank_top_n or self.settings.rag_rerank_top_k
@@ -139,68 +217,24 @@ class RagPipeline:
 
         t1 = time.perf_counter()
         q = plan.rewritten_query or user_query
+        excluded: list[int] = []
+        if session_id:
+            try:
+                excluded = await sessions_store.recent_article_external_ids(session_id)
+            except Exception as exc:  # noqa: BLE001
+                log.warning("rag.pipeline.session_exclusions_failed", error=str(exc))
         try:
-            hits = await self.retriever.search(
-                session,
-                q,
-                chef_slugs=plan.chef_slugs,
-                ingredient_slugs=plan.ingredient_slugs,
-                category_slugs=plan.category_slugs,
-                keyword_slugs=plan.keyword_slugs,
-                final_limit=max(30, rerank_top_n * 4),
+            hits = await self._retrieve_hits(
+                session, user_query, plan, q, rerank_top_n, excluded
             )
-            # Les tables de liaison (article_ingredients, etc.) peuvent être vides même
-            # si le texte des chunks mentionne l'ingrédient → filtres structurés = 0
-            # candidat. On retombe sur recherche hybride plein texte + vecteur sans filtre.
-            if not hits and (
-                plan.chef_slugs
-                or plan.ingredient_slugs
-                or plan.category_slugs
-                or plan.keyword_slugs
-            ):
-                log.warning(
-                    "rag.pipeline.retrieval_empty_with_filters_retrying_broad",
-                    ingredient_slugs=plan.ingredient_slugs,
-                    chef_slugs=plan.chef_slugs,
+            if not hits and excluded:
+                log.info(
+                    "rag.pipeline.retrieval_retry_no_session_article_exclusions",
+                    n_excluded=len(excluded),
                 )
-                hits = await self.retriever.search(
-                    session,
-                    q,
-                    chef_slugs=[],
-                    ingredient_slugs=[],
-                    category_slugs=[],
-                    keyword_slugs=[],
-                    final_limit=max(30, rerank_top_n * 4),
+                hits = await self._retrieve_hits(
+                    session, user_query, plan, q, rerank_top_n, []
                 )
-            if not hits:
-                base = q.strip()
-                for alt in _retrieval_fallback_queries(user_query, plan):
-                    if alt.strip() == base:
-                        continue
-                    try:
-                        hits = await self.retriever.search(
-                            session,
-                            alt,
-                            chef_slugs=[],
-                            ingredient_slugs=[],
-                            category_slugs=[],
-                            keyword_slugs=[],
-                            final_limit=max(30, rerank_top_n * 4),
-                        )
-                    except Exception as exc:  # noqa: BLE001
-                        log.warning(
-                            "rag.pipeline.retrieval_fallback_failed",
-                            alt=alt[:80],
-                            error=str(exc),
-                        )
-                        continue
-                    if hits:
-                        log.info(
-                            "rag.pipeline.retrieval_fallback_hit",
-                            alt_preview=alt[:80],
-                            n_hits=len(hits),
-                        )
-                        break
         except Exception as exc:  # noqa: BLE001
             log.exception("rag.pipeline.retrieval_failed")
             hits = []

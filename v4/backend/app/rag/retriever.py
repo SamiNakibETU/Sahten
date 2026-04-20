@@ -15,7 +15,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from sqlalchemy import String, bindparam, text
+from sqlalchemy import BigInteger, String, bindparam, text
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -63,11 +63,19 @@ filters AS (
         CAST(:category_slugs AS text[])   AS category_slugs,
         CAST(:keyword_slugs AS text[])    AS keyword_slugs
 ),
+excl AS (
+    SELECT CAST(:exclude_article_external_ids AS bigint[]) AS ids
+),
 candidate_articles AS (
     -- Sélectionne les articles correspondant aux filtres (ou tous si pas de filtre)
     SELECT a.id
     FROM articles a
     WHERE
+        (
+            (SELECT COALESCE(cardinality(ids), 0) FROM excl) = 0
+            OR NOT (a.external_id = ANY ((SELECT ids FROM excl)))
+        )
+        AND
         (
             (SELECT cardinality(chef_slugs) FROM filters) = 0 OR EXISTS (
                 SELECT 1 FROM article_authors aa
@@ -182,6 +190,7 @@ LIMIT :final_limit
     bindparam("ingredient_slugs", type_=ARRAY(String)),
     bindparam("category_slugs", type_=ARRAY(String)),
     bindparam("keyword_slugs", type_=ARRAY(String)),
+    bindparam("exclude_article_external_ids", type_=ARRAY(BigInteger)),
 )
 
 
@@ -200,6 +209,7 @@ class HybridRetriever:
         category_slugs: list[str] | None = None,
         keyword_slugs: list[str] | None = None,
         final_limit: int = 30,
+        exclude_article_external_ids: list[int] | None = None,
     ) -> list[Hit]:
         if not query or not query.strip():
             return []
@@ -216,6 +226,7 @@ class HybridRetriever:
             "ingredient_slugs": ingredient_slugs or [],
             "category_slugs": category_slugs or [],
             "keyword_slugs": keyword_slugs or [],
+            "exclude_article_external_ids": exclude_article_external_ids or [],
             "final_limit": final_limit,
         }
         result = await session.execute(HYBRID_SQL, params)

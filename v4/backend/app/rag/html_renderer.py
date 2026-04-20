@@ -9,23 +9,54 @@ DOMPurify. On reformate ici la sortie structurée du pipeline (`GroundedAnswer`
 from __future__ import annotations
 
 import html as _html
+from urllib.parse import urlparse, urlunparse
 
 from ..llm.response_generator import ChefCard, GroundedAnswer, RecipeCard
 from .reranker import RerankedHit
 
 
-def _article_url_for_chunks(
+def _int_id(raw: int | float) -> int:
+    """Évite les mismatches d’appartenance (ex. numpy / types SQL)."""
+    return int(raw)
+
+
+def _norm_article_title(title: str | None) -> str:
+    if not title:
+        return ""
+    return " ".join(str(title).strip().lower().split())
+
+
+def _norm_article_url(url: str | None) -> str | None:
+    """Clé de comparaison stable (schéma / hôte / chemin, sans fragment)."""
+    if not url:
+        return None
+    p = urlparse(str(url).strip())
+    if not p.scheme or not p.netloc:
+        return str(url).strip().rstrip("/")
+    path = (p.path or "").rstrip("/") or "/"
+    return urlunparse((p.scheme.lower(), p.netloc.lower(), path, "", "", ""))
+
+
+def _resolve_card_article(
     chunk_ids: list[int], hits: list[RerankedHit]
-) -> tuple[str | None, str | None]:
-    """URL + titre d’article à partir des chunk_ids de carte (ou 1er hit en secours)."""
+) -> tuple[str | None, str | None, set[int]]:
+    """URL + titre affichés sur la carte recette/chef + IDs à ne pas répéter en Sources.
+
+    Aligné sur un seul parcours : d’abord premier hit dont le chunk est cité par la carte,
+    sinon secours sur le premier hit reranké (même logique qu’avant, mais IDs toujours cohérents).
+    """
     want = set(chunk_ids)
+    ids_from_chunks: set[int] = {
+        _int_id(h.hit.article_external_id) for h in hits if h.hit.chunk_id in want
+    }
     for h in hits:
         if h.hit.chunk_id in want:
-            return h.hit.article_url, h.hit.article_title
+            hh = h.hit
+            return hh.article_url, hh.article_title, ids_from_chunks
     if hits:
-        h0 = hits[0]
-        return h0.hit.article_url, h0.hit.article_title
-    return None, None
+        hh = hits[0].hit
+        return hh.article_url, hh.article_title, {_int_id(hh.article_external_id)}
+    return None, None, set()
 
 
 def _escape(value: str | None) -> str:
@@ -92,26 +123,57 @@ def _render_chef(card: ChefCard, *, article_url: str | None, article_title: str 
     return "".join(parts)
 
 
-def _render_sources(hits: list[RerankedHit], used_chunk_ids: set[int]) -> str:
+def _render_sources(
+    hits: list[RerankedHit],
+    used_chunk_ids: set[int],
+    *,
+    skip_article_external_ids: set[int] | None = None,
+    skip_article_urls: set[str] | None = None,
+    skip_article_title_norms: set[str] | None = None,
+) -> str:
     """Liste compacte des articles cités, dédupliqués par article_external_id.
+
+    `skip_article_external_ids` : articles déjà liés dans la carte recette / chef
+    (évite le même lien deux fois avec un style différent).
+    `skip_article_urls` : filet de sécurité (même URL que le lien principal).
+    `skip_article_title_norms` : filet si même titre / URL légerement différente en base.
 
     Si des `used_chunk_ids` sont fournis mais qu’aucun hit ne correspond (IDs
     incohérents entre phrases et rerank), on retombe sur les meilleurs hits pour
     garder au moins un lien cliquable.
     """
+    skip = {_int_id(x) for x in (skip_article_external_ids or set())}
+    skip_urls = skip_article_urls or set()
+    skip_titles = skip_article_title_norms or set()
     if not hits:
         return ""
     seen: dict[int, RerankedHit] = {}
     for h in hits:
         if used_chunk_ids and h.hit.chunk_id not in used_chunk_ids:
             continue
-        key = h.hit.article_external_id
+        key = _int_id(h.hit.article_external_id)
+        if key in skip:
+            continue
+        nu = _norm_article_url(h.hit.article_url)
+        if nu and nu in skip_urls:
+            continue
+        tnorm = _norm_article_title(h.hit.article_title)
+        if tnorm and tnorm in skip_titles:
+            continue
         if key in seen:
             continue
         seen[key] = h
     if not seen and used_chunk_ids:
         for h in hits:
-            key = h.hit.article_external_id
+            key = _int_id(h.hit.article_external_id)
+            if key in skip:
+                continue
+            nu = _norm_article_url(h.hit.article_url)
+            if nu and nu in skip_urls:
+                continue
+            tnorm = _norm_article_title(h.hit.article_title)
+            if tnorm and tnorm in skip_titles:
+                continue
             if key in seen:
                 continue
             seen[key] = h
@@ -124,7 +186,8 @@ def _render_sources(hits: list[RerankedHit], used_chunk_ids: set[int]) -> str:
         url = _escape(h.hit.article_url)
         title = _escape(h.hit.article_title)
         parts.append(
-            f'<li><a href="{url}" target="_blank" rel="noopener noreferrer">{title}</a></li>'
+            f'<li><a class="sahten-source-link" href="{url}" '
+            f'target="_blank" rel="noopener noreferrer">{title}</a></li>'
         )
     parts.append("</ul></section>")
     return "".join(parts)
@@ -157,14 +220,31 @@ def render_answer_html(
     recipe_link_title: str | None = None
     chef_url: str | None = None
     chef_link_title: str | None = None
+    skip_sources_ids: set[int] = set()
+    skip_sources_urls: set[str] = set()
+    skip_sources_title_norms: set[str] = set()
     if answer.recipe_card is not None:
-        recipe_url, recipe_link_title = _article_url_for_chunks(
+        recipe_url, recipe_link_title, rids = _resolve_card_article(
             answer.recipe_card.source_chunk_ids, hits
         )
+        skip_sources_ids |= rids
+        nu = _norm_article_url(recipe_url)
+        if nu:
+            skip_sources_urls.add(nu)
+        tn = _norm_article_title(recipe_link_title)
+        if tn:
+            skip_sources_title_norms.add(tn)
     if answer.chef_card is not None:
-        chef_url, chef_link_title = _article_url_for_chunks(
+        chef_url, chef_link_title, cids = _resolve_card_article(
             answer.chef_card.source_chunk_ids, hits
         )
+        skip_sources_ids |= cids
+        nu = _norm_article_url(chef_url)
+        if nu:
+            skip_sources_urls.add(nu)
+        tn = _norm_article_title(chef_link_title)
+        if tn:
+            skip_sources_title_norms.add(tn)
 
     parts: list[str] = ['<div class="sahten-narrative">']
     if sentences_html:
@@ -193,7 +273,15 @@ def render_answer_html(
             )
         )
 
-    parts.append(_render_sources(hits, used_ids))
+    parts.append(
+        _render_sources(
+            hits,
+            used_ids,
+            skip_article_external_ids=skip_sources_ids,
+            skip_article_urls=skip_sources_urls,
+            skip_article_title_norms=skip_sources_title_norms,
+        )
+    )
 
     follow = follow_up_override if follow_up_override is not None else (answer.follow_up or "")
     if follow.strip():

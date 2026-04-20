@@ -559,11 +559,60 @@
   font-size: 1.05rem;
   margin: 0 0 0.35rem;
 }
-.sahten-narrative .sahten-recipe-link a {
+/* Liens OLJ : même vert partout (évite le bleu par défaut / :visited sur la liste Sources) */
+.msg-bot .sahten-narrative .sahten-recipe-link a,
+.msg-bot .sahten-narrative .sahten-recipe-link a:visited,
+.msg-bot .sahten-narrative .sahten-chef-link a,
+.msg-bot .sahten-narrative .sahten-chef-link a:visited,
+.msg-bot .sahten-narrative .sahten-sources a,
+.msg-bot .sahten-narrative .sahten-sources a:visited,
+.sahten-narrative .sahten-recipe-link a,
+.sahten-narrative .sahten-recipe-link a:visited,
+.sahten-narrative .sahten-chef-link a,
+.sahten-narrative .sahten-chef-link a:visited,
+.sahten-narrative .sahten-sources a,
+.sahten-narrative .sahten-sources a:visited,
+.sahten-narrative a.sahten-source-link,
+.sahten-narrative a.sahten-source-link:visited {
   font-family: "DM Sans", -apple-system, sans-serif;
   font-weight: 600;
-  color: #2a6452;
+  color: #2a6452 !important;
   text-decoration: underline;
+  text-decoration-color: rgba(42, 100, 82, 0.45);
+}
+.msg-bot .sahten-narrative .sahten-recipe-link a:hover,
+.msg-bot .sahten-narrative .sahten-chef-link a:hover,
+.msg-bot .sahten-narrative .sahten-sources a:hover,
+.sahten-narrative .sahten-recipe-link a:hover,
+.sahten-narrative .sahten-chef-link a:hover,
+.sahten-narrative .sahten-sources a:hover,
+.sahten-narrative a.sahten-source-link:hover {
+  color: #1c4a3a !important;
+  text-decoration-color: rgba(28, 74, 58, 0.55);
+}
+.sahten-narrative .sahten-sources {
+  margin-top: 0.75rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+.sahten-narrative .sahten-sources h3 {
+  font-family: "DM Sans", -apple-system, sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #444;
+  margin: 0 0 0.4rem;
+}
+.sahten-narrative .sahten-sources ul {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+.sahten-narrative .sahten-sources li {
+  font-family: "DM Sans", -apple-system, sans-serif;
+  font-size: 13px;
+  line-height: 1.45;
+  margin-bottom: 0.25rem;
 }
 .sahten-narrative .sahten-recipe-teaser {
   font-family: "DM Sans", -apple-system, sans-serif;

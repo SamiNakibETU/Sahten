@@ -110,7 +110,7 @@ async def chat(
     started = time.perf_counter()
 
     try:
-        result = await pipeline.answer(session, text)
+        result = await pipeline.answer(session, text, session_id=sid)
     except Exception as exc:  # noqa: BLE001
         log.exception("chat.rag_failed", query_preview=text[:200])
         # On persiste quand même l'échec dans l'historique pour debug UI.
