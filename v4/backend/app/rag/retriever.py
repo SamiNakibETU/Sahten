@@ -15,7 +15,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from sqlalchemy import bindparam, text
+from sqlalchemy import String, bindparam, text
+from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..settings import get_settings
@@ -158,10 +159,12 @@ ORDER BY f.score_rrf DESC
 LIMIT :final_limit
 """,
 ).bindparams(
-    bindparam("chef_slugs", type_=None),
-    bindparam("ingredient_slugs", type_=None),
-    bindparam("category_slugs", type_=None),
-    bindparam("keyword_slugs", type_=None),
+    # Typage explicite : sans ARRAY(String), asyncpg peut lier des listes Python
+    # de façon ambiguë → erreur PG « operator does not exist: varchar = text[] ».
+    bindparam("chef_slugs", type_=ARRAY(String)),
+    bindparam("ingredient_slugs", type_=ARRAY(String)),
+    bindparam("category_slugs", type_=ARRAY(String)),
+    bindparam("keyword_slugs", type_=ARRAY(String)),
 )
 
 
