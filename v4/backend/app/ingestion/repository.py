@@ -60,10 +60,16 @@ async def _upsert_article_row(
         ingestion_status=m.ingestion_status,
         ingestion_notes=m.ingestion_notes,
     )
+    # `search_tsv` est une colonne GENERATED (Computed côté ORM) : Postgres
+    # refuse `SET search_tsv = excluded.search_tsv` sur ON CONFLICT.
+    # Elle se recalcule automatiquement quand title/summary/body_text changent.
+    _skip_on_conflict_update = frozenset(
+        {"id", "external_id", "created_at", "search_tsv"}
+    )
     update_cols = {
         c.name: c
         for c in stmt.excluded
-        if c.name not in {"id", "external_id", "created_at"}
+        if c.name not in _skip_on_conflict_update
     }
     stmt = stmt.on_conflict_do_update(
         index_elements=[models.Article.external_id],
