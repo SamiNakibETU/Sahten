@@ -6,10 +6,13 @@ set -e
 # pour ne pas bloquer /healthz.
 if [ -n "$DATABASE_URL" ]; then
   echo "[entrypoint] alembic upgrade head ..."
-  cd /app
-  alembic -c infra/alembic/alembic.ini upgrade head || {
+  # `script_location = .` dans alembic.ini est résolu vs CWD : on doit donc
+  # se placer dans le dossier qui contient `env.py` et `alembic.ini`.
+  cd /app/infra/alembic
+  alembic upgrade head || {
     echo "[entrypoint] alembic a échoué — l'app démarre quand même pour /healthz"
   }
+  cd /app
 else
   echo "[entrypoint] DATABASE_URL absent — skip alembic"
 fi
