@@ -1,4 +1,7 @@
-"""Provider d'embeddings (OpenAI text-embedding-3-large).
+"""Provider d'embeddings OpenAI.
+
+Modèle et dimension lus depuis `settings.embedding_model` /
+`settings.embedding_dim` (par défaut text-embedding-3-small / 1536).
 
 Interface stricte + retry + batching automatique. Aucun fallback silencieux.
 """
@@ -27,7 +30,7 @@ class EmbeddingProvider(Protocol):
 
 
 class OpenAIEmbeddings:
-    """OpenAI text-embedding-3-large (3072 dims) en batch."""
+    """Client OpenAI embeddings, modèle/dim configurables via settings."""
 
     BATCH = 96
 

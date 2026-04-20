@@ -44,8 +44,13 @@ class Settings(BaseSettings):
     llm_model: str = "gpt-4.1"
     llm_temperature: float = 0.2
 
-    embedding_model: str = "text-embedding-3-large"
-    embedding_dim: int = 3072
+    # text-embedding-3-small (1536 dim) : compatible HNSW pgvector
+    # (limite 2000 dim) sans recourir à `halfvec`. Largement suffisant
+    # pour le corpus OLJ/WhiteBeard. Pour passer à `large` (3072 dim),
+    # il faudra basculer la colonne vector → halfvec dans la migration
+    # et adapter le retriever (cast `::halfvec(3072)`).
+    embedding_model: str = "text-embedding-3-small"
+    embedding_dim: int = 1536
 
     cohere_api_key: str = ""
     cohere_rerank_model: str = "rerank-multilingual-v3.0"
