@@ -26,6 +26,7 @@ from ..rag.pipeline import RagPipeline
 from ..settings import get_settings
 
 router = APIRouter(prefix="/api", tags=["chat"])
+log = structlog.get_logger(__name__)
 
 
 def _require_production_secrets() -> None:
@@ -109,8 +110,19 @@ async def chat(
     request_id = _new_request_id()
     started = time.perf_counter()
 
+    history_block = ""
     try:
-        result = await pipeline.answer(session, text, session_id=sid)
+        history_block = await sessions.conversation_block_for_llm(sid)
+    except Exception as exc:  # noqa: BLE001
+        log.warning("chat.history_block_failed", error=str(exc))
+
+    try:
+        result = await pipeline.answer(
+            session,
+            text,
+            session_id=sid,
+            conversation_history=history_block or None,
+        )
     except Exception as exc:  # noqa: BLE001
         log.exception("chat.rag_failed", query_preview=text[:200])
         # On persiste quand même l'échec dans l'historique pour debug UI.

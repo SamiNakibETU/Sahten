@@ -188,10 +188,17 @@ SELECT
             THEN NULLIF(btrim(a.raw_payload->>'image'), '')
             ELSE NULL::text
         END,
-        NULLIF(
-            btrim(substring(a.body_html::text from 'src="(https?://[^"]+)"')),
-            ''
-        )
+        CASE
+            WHEN NULLIF(
+                btrim(substring(a.body_html::text from 'src="(https?://[^"]+)"')),
+                ''
+            ) ~* '(uploads|wp-content|cloudinary|lorient|img\\.|/media/)'
+            THEN NULLIF(
+                btrim(substring(a.body_html::text from 'src="(https?://[^"]+)"')),
+                ''
+            )
+            ELSE NULL::text
+        END
     ) AS cover_image_url,
     c.kind        AS section_kind,
     c.text        AS chunk_text,

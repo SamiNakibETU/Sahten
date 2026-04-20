@@ -188,6 +188,17 @@ Règles ABSOLUES :
    insuffisant, dis-le sans inventer de politesse marketing.
 12. Si la requête est une demande de recette, termine souvent `follow_up` par une
    question qui ouvre vers un autre plat ou une variante, sans redonner la recette.
+13. Si tu expliques que les archives **ne contiennent pas** de réponse adaptée,
+   qu’aucune recette ne correspond, ou que le contenu est **insuffisant** pour la
+   demande : mets **`source_chunk_ids: []` sur chaque phrase**, laisse
+   `recipe_card` et `chef_card` à **null**, et mets `confidence` ≤ 0.35.
+   **Ne cite aucun chunk** dans ce cas — sinon la liste « Sources » afficherait des
+   articles non pertinents à côté d’un texte qui dit qu’il n’y a pas de fiche.
+14. Si un **HISTORIQUE DU CHAT** est fourni et que la QUESTION ACTUELLE est courte
+   (« oui », « non », « la première », « autre chose », etc.), **rattache-la au
+   dernier échange** (ta proposition précédente et la question de l’utilisateur).
+   Ne réponds pas que la question est « incomplète » ou « ambiguë » si l’historique
+   permet de la comprendre.
 """
 
 
@@ -212,7 +223,11 @@ class ResponseGenerator:
         self._temperature = s.llm_temperature
 
     async def generate(
-        self, user_query: str, hits: list[RerankedHit]
+        self,
+        user_query: str,
+        hits: list[RerankedHit],
+        *,
+        conversation_history: str | None = None,
     ) -> GroundedAnswer:
         if not hits:
             # Pas d'appel LLM : sans chunks le schéma JSON serait rempli d'inventions
@@ -240,14 +255,23 @@ class ResponseGenerator:
             )
 
         context = _format_context(hits)
+        user_parts: list[str] = []
+        if conversation_history and conversation_history.strip():
+            user_parts.append(
+                "HISTORIQUE DU CHAT (tours précédents ; le message actuel de "
+                "l’utilisateur est la ligne QUESTION ci-dessous) :\n"
+                + conversation_history.strip()
+            )
+        user_parts.append(f"QUESTION : {user_query.strip()}")
+        user_parts.append(context)
+        user_content = "\n\n".join(user_parts)
         try:
             completion = await self._client.chat.completions.create(
                 model=self._model,
                 temperature=self._temperature,
                 messages=[
                     {"role": "system", "content": SYSTEM_PROMPT},
-                    {"role": "user",
-                     "content": f"QUESTION : {user_query.strip()}\n\n{context}"},
+                    {"role": "user", "content": user_content},
                 ],
                 response_format={"type": "json_schema", "json_schema": JSON_SCHEMA},
             )
@@ -283,11 +307,27 @@ def validate_grounding(
     for sent in answer.answer_sentences:
         kept_ids = [cid for cid in sent.source_chunk_ids if cid in valid_ids]
         if not kept_ids:
-            # On ne supprime pas les phrases métaboliques courtes (formules
-            # de politesse, "je n'ai pas trouvé...") mais on les marque vides.
+            # Réponses très courtes (accord / refus) : pas de chunk explicite.
+            tnorm = sent.text.strip().lower().replace("’", "'")
+            if tnorm in ("oui", "non", "ok", "merci", "d'accord"):
+                grounded.append(GroundedSentence(text=sent.text, source_chunk_ids=[]))
+                continue
+            # Phrases « pas de résultat » / honnêteté sur le corpus : garder le texte
+            # sans citation (évite de supprimer tout le paragraphe).
+            low = sent.text.lower()
             if any(
-                token in sent.text.lower()
-                for token in ("je n'ai pas", "désolé", "pourriez-vous")
+                token in low
+                for token in (
+                    "je n'ai pas",
+                    "désolé",
+                    "pourriez-vous",
+                    "les archives",
+                    "aucun extrait",
+                    "ne proposent pas",
+                    "pas de recette",
+                    "insuffisant",
+                    "indexées",
+                )
             ):
                 grounded.append(GroundedSentence(text=sent.text, source_chunk_ids=[]))
             continue

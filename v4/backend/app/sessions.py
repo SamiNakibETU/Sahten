@@ -14,6 +14,7 @@ et pour ne pas bloquer le démarrage.
 from __future__ import annotations
 
 import json
+import re
 import time
 from collections import defaultdict
 from typing import Any
@@ -23,6 +24,44 @@ import structlog
 from .settings import get_settings
 
 log = structlog.get_logger(__name__)
+
+_HTML_TAG_RE = re.compile(r"<[^>]+>", re.DOTALL)
+
+
+def _html_to_plain(html: str, max_len: int = 700) -> str:
+    """Texte lisible pour le prompt LLM (réponses assistant déjà rendues en HTML)."""
+    if not html:
+        return ""
+    t = _HTML_TAG_RE.sub(" ", html)
+    t = re.sub(r"\s+", " ", t).strip()
+    return t[:max_len]
+
+
+async def conversation_block_for_llm(
+    session_id: str,
+    *,
+    max_messages: int = 12,
+    max_chars: int = 3800,
+) -> str:
+    """Derniers tours user/assistant (hors le message en cours), pour le grounding."""
+    msgs = await get_session_messages(session_id)
+    if not msgs:
+        return ""
+    lines: list[str] = []
+    for m in msgs[-max_messages:]:
+        role = m.get("role")
+        if role == "user":
+            tx = (m.get("text") or "").strip()
+            if tx:
+                lines.append(f"Utilisateur : {tx}")
+        elif role == "assistant":
+            tx = _html_to_plain(m.get("html") or "")
+            if tx:
+                lines.append(f"Assistant : {tx}")
+    block = "\n".join(lines).strip()
+    if len(block) > max_chars:
+        block = "…\n" + block[-max_chars:]
+    return block
 
 
 _MEMORY_MESSAGES: dict[str, list[dict[str, Any]]] = defaultdict(list)
@@ -203,5 +242,6 @@ __all__ = [
     "list_sessions",
     "get_session_messages",
     "recent_article_external_ids",
+    "conversation_block_for_llm",
     "healthcheck",
 ]

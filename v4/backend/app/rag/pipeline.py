@@ -194,6 +194,7 @@ class RagPipeline:
         *,
         rerank_top_n: int | None = None,
         session_id: str | None = None,
+        conversation_history: str | None = None,
     ) -> PipelineResult:
         timings: dict[str, int] = {}
         rerank_top_n = rerank_top_n or self.settings.rag_rerank_top_k
@@ -257,7 +258,11 @@ class RagPipeline:
         timings["rerank_ms"] = int((time.perf_counter() - t2) * 1000)
 
         t3 = time.perf_counter()
-        answer = await self.generator.generate(user_query, reranked)
+        answer = await self.generator.generate(
+            user_query,
+            reranked,
+            conversation_history=conversation_history,
+        )
         timings["generation_ms"] = int((time.perf_counter() - t3) * 1000)
         timings["total_ms"] = sum(timings.values())
 

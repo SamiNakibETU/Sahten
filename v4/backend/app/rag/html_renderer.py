@@ -9,6 +9,7 @@ DOMPurify. On reformate ici la sortie structurée du pipeline (`GroundedAnswer`
 from __future__ import annotations
 
 import html as _html
+from typing import Any
 from urllib.parse import urlparse, urlunparse
 
 from ..llm.response_generator import ChefCard, GroundedAnswer, RecipeCard
@@ -116,6 +117,16 @@ def _cover_url_from_primary_hit(
     return None
 
 
+def _chef_from_chunk_metadata(meta: Any) -> str | None:
+    if not isinstance(meta, dict):
+        return None
+    for key in ("featured_chef", "chef_name", "chef", "author_name", "author"):
+        v = meta.get(key)
+        if isinstance(v, str) and v.strip():
+            return v.strip()
+    return None
+
+
 def _recipe_category_label(section_kind: str) -> str:
     """Libellé type « PLAT PRINCIPAL » à partir du kind de chunk."""
     k = (section_kind or "").strip().lower()
@@ -216,6 +227,27 @@ def _render_recipe(
     return "".join(parts)
 
 
+def _render_source_article_card(rh: RerankedHit) -> str:
+    """Même carte aperçu que la recette principale, pour chaque source citée."""
+    h = rh.hit
+    chef = _chef_from_chunk_metadata(h.metadata)
+    card = RecipeCard(
+        title=h.article_title or "Article",
+        chef=chef,
+        duration_min=None,
+        serves=None,
+        ingredients=[],
+        steps=[],
+        source_chunk_ids=[h.chunk_id],
+    )
+    return _render_recipe(
+        card,
+        article_url=h.article_url or None,
+        article_title=h.article_title,
+        primary_hit=rh,
+    )
+
+
 def _render_chef(card: ChefCard, *, article_url: str | None, article_title: str | None) -> str:
     parts: list[str] = ['<article class="sahten-chef-card">']
     parts.append(f"<header><h2>{_escape(card.name)}</h2>")
@@ -263,6 +295,10 @@ def _render_sources(
     skip_titles = skip_article_title_norms or set()
     if not hits:
         return ""
+    # Aucun chunk cité dans la réponse structurée : ne pas lister les hits RAG
+    # (sinon 4–5 articles hors sujet quand le modèle dit « rien trouvé »).
+    if not used_chunk_ids:
+        return ""
     seen: dict[int, RerankedHit] = {}
     for h in hits:
         if used_chunk_ids and h.hit.chunk_id not in used_chunk_ids:
@@ -297,15 +333,18 @@ def _render_sources(
                 break
     if not seen:
         return ""
-    parts: list[str] = ['<section class="sahten-sources"><h3>Sources L\'Orient-Le Jour</h3><ul>']
-    for h in seen.values():
-        url = _escape(h.hit.article_url)
-        title = _escape(h.hit.article_title)
+    parts: list[str] = [
+        '<section class="sahten-sources sahten-sources--cards">'
+        '<h3>Sources L\'Orient-Le Jour</h3>'
+        '<div class="sahten-sources__grid" role="list">'
+    ]
+    for rh in seen.values():
         parts.append(
-            f'<li><a class="sahten-source-link" href="{url}" '
-            f'target="_blank" rel="noopener noreferrer">{title}</a></li>'
+            '<div class="sahten-sources__item" role="listitem">'
+            f"{_render_source_article_card(rh)}"
+            "</div>"
         )
-    parts.append("</ul></section>")
+    parts.append("</div></section>")
     return "".join(parts)
 
 

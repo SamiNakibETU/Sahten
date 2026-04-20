@@ -706,6 +706,29 @@
   line-height: 1.45;
   margin-bottom: 0.25rem;
 }
+/* Sources en cartes (même bloc que la carte recette principale) */
+.sahten-narrative .sahten-sources--cards .sahten-sources__grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.sahten-narrative .sahten-sources--cards .sahten-sources__item {
+  margin: 0;
+}
+.sahten-narrative .sahten-sources--cards .sahten-recipe-card--preview {
+  margin-top: 0;
+}
+.sahten-narrative .sahten-sources--cards .sahten-recipe-card__link,
+.sahten-narrative .sahten-sources--cards .sahten-recipe-card__link:visited {
+  text-decoration: none !important;
+  color: inherit !important;
+}
+.sahten-narrative .sahten-sources--cards .sahten-recipe-card__title {
+  text-decoration: none;
+}
 .sahten-narrative .sahten-recipe-teaser {
   font-family: "DM Sans", -apple-system, sans-serif;
   font-size: 12.5px;
