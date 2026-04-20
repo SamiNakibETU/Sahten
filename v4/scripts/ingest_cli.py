@@ -49,7 +49,8 @@ def _load_ids(path: Path) -> list[int]:
     """Charge une liste d'IDs depuis un .json (array ou {ids: [...]}) ou .txt (un ID/ligne)."""
     if not path.is_file():
         raise FileNotFoundError(f"Fichier introuvable : {path}")
-    raw = path.read_text(encoding="utf-8").strip()
+    # `utf-8-sig` accepte aussi bien avec ou sans BOM (PowerShell en ajoute un).
+    raw = path.read_text(encoding="utf-8-sig").strip()
     ids: list[int] = []
     if path.suffix.lower() == ".json":
         data = json.loads(raw)
