@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sahteïn — Historique des conversations</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,400&family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap"
+    rel="stylesheet"
+  />
+  <script
+    src="https://cdn.jsdelivr.net/npm/dompurify@3.2.5/dist/purify.min.js"
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  ></script>
+  <style>
+    :root {
+      --green: #94c2ae;
+      --green-d: #2a6452;
+      --line: rgba(0, 0, 0, 0.08);
+      --ink: #111;
+      --ink-2: #555;
+      --ink-3: #999;
+      --bg: #fafafa;
+      --paper: #fff;
+      --ui: "DM Sans", system-ui, sans-serif;
+      --serif: "Playfair Display", Georgia, serif;
+      --mono: "DM Mono", ui-monospace, monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--ui);
+      font-size: 14px;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+    }
+    nav.top {
+      position: sticky; top: 0; z-index: 20;
+      height: 48px;
+      background: rgba(255,255,255,0.94);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--line);
+      display: flex; align-items: center;
+      padding: 0 24px; gap: 16px;
+    }
+    nav.top .brand {
+      font-family: var(--serif); font-style: italic;
+      font-size: 15px; font-weight: 600;
+      color: var(--ink); text-decoration: none;
+    }
+    nav.top a { color: var(--ink-2); text-decoration: none; font-size: 13px; }
+    nav.top a:hover { color: var(--ink); }
+    nav.top a.active { color: var(--green-d); font-weight: 600; }
+    nav.top .spacer { flex: 1; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      max-width: 1280px;
+      margin: 0 auto;
+      min-height: calc(100vh - 48px);
+    }
+    aside {
+      border-right: 1px solid var(--line);
+      background: var(--paper);
+      padding: 16px;
+      overflow-y: auto;
+      max-height: calc(100vh - 48px);
+      position: sticky; top: 48px;
+    }
+    aside h2 {
+      font-family: var(--serif); font-style: italic;
+      font-size: 18px; margin-bottom: 12px;
+    }
+    aside .session-item {
+      display: block; padding: 10px 12px;
+      border: 1px solid var(--line); border-radius: 8px;
+      margin-bottom: 6px; cursor: pointer;
+      background: var(--paper); transition: all 0.1s;
+    }
+    aside .session-item:hover { border-color: var(--green); background: rgba(148,194,174,0.06); }
+    aside .session-item.active {
+      border-color: var(--green-d);
+      background: rgba(148,194,174,0.12);
+    }
+    .session-item .sid {
+      font-family: var(--mono); font-size: 11px;
+      color: var(--ink-2); margin-bottom: 2px;
+    }
+    .session-item .meta {
+      font-size: 11px; color: var(--ink-3);
+    }
+    .empty { color: var(--ink-3); font-size: 13px; padding: 12px 0; }
+
+    main {
+      padding: 24px 32px 80px;
+      overflow-y: auto;
+    }
+    main header {
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--line);
+    }
+    main header h1 {
+      font-family: var(--serif); font-style: italic;
+      font-size: 22px;
+    }
+    main header .sid {
+      font-family: var(--mono); font-size: 12px;
+      color: var(--ink-2); margin-top: 4px;
+    }
+    .msg {
+      margin: 12px 0; padding: 14px 16px;
+      border-radius: 12px; max-width: 720px;
+    }
+    .msg.user {
+      background: var(--ink); color: #fff;
+      margin-left: auto; border-bottom-right-radius: 4px;
+    }
+    .msg.assistant {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-bottom-left-radius: 4px;
+    }
+    .msg .role {
+      font-size: 10.5px; font-weight: 600;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      opacity: 0.7; margin-bottom: 6px;
+    }
+    .msg .meta {
+      font-family: var(--mono); font-size: 10.5px;
+      color: var(--ink-3); margin-top: 8px;
+    }
+    .msg.assistant .sahten-narrative h2,
+    .msg.assistant .sahten-narrative h3 {
+      font-family: var(--serif); margin: 8px 0 6px;
+    }
+    .msg.assistant .sahten-narrative p { margin: 6px 0; line-height: 1.55; }
+    .msg.assistant .sahten-narrative ul,
+    .msg.assistant .sahten-narrative ol { margin: 6px 0 6px 20px; }
+    .msg.assistant .sahten-sources ul { margin-top: 4px; }
+    .msg.assistant .sahten-sources a { color: var(--green-d); }
+    .placeholder {
+      color: var(--ink-3); font-style: italic;
+      padding: 40px 0; text-align: center;
+    }
+    .badge {
+      display: inline-block; padding: 2px 8px;
+      border-radius: 999px; font-size: 11px;
+      background: rgba(148,194,174,0.18); color: var(--green-d);
+      margin-right: 6px;
+    }
+    button.refresh {
+      background: var(--ink); color: #fff;
+      border: none; padding: 6px 12px; border-radius: 6px;
+      cursor: pointer; font-size: 12px;
+    }
+    button.refresh:hover { opacity: 0.85; }
+  </style>
+</head>
+<body>
+  <nav class="top">
+    <a href="/" class="brand">Sahteïn</a>
+    <a href="/">Chatbot</a>
+    <a href="/admin">Admin DB</a>
+    <a href="/history" class="active">Historique</a>
+    <span class="spacer"></span>
+    <a href="/api/health/deep" target="_blank">Health</a>
+    <a href="/docs" target="_blank">API Docs</a>
+  </nav>
+
+  <div class="layout">
+    <aside>
+      <h2>Sessions</h2>
+      <button class="refresh" id="refresh-btn">Rafraîchir</button>
+      <div id="sessions-list" style="margin-top:12px"></div>
+    </aside>
+
+    <main>
+      <header>
+        <h1 id="title">Historique des conversations</h1>
+        <div class="sid" id="sid-display">— Sélectionnez une session à gauche —</div>
+      </header>
+      <div id="messages"><div class="placeholder">Aucune session sélectionnée.</div></div>
+    </main>
+  </div>
+
+  <script>
+    const ALLOWED_TAGS = ['div','p','span','strong','em','u','br','a','article','section','h2','h3','header','ul','li','ol','blockquote'];
+    const ALLOWED_ATTR = ['id','class','href','target','style','rel','aria-label','role'];
+
+    function sanitize(html) {
+      if (typeof DOMPurify === 'undefined') return html;
+      return DOMPurify.sanitize(html, { ALLOWED_TAGS, ALLOWED_ATTR, ALLOW_DATA_ATTR: false });
+    }
+
+    function fmtTime(ts) {
+      try {
+        const d = new Date(ts * 1000);
+        return d.toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' });
+      } catch { return ''; }
+    }
+
+    async function loadSessions() {
+      const list = document.getElementById('sessions-list');
+      list.innerHTML = '<div class="empty">Chargement…</div>';
+      try {
+        const r = await fetch('/api/sessions?limit=100');
+        const data = await r.json();
+        if (!data.items || !data.items.length) {
+          list.innerHTML = '<div class="empty">Aucune session enregistrée pour le moment.</div>';
+          return;
+        }
+        list.innerHTML = '';
+        data.items.forEach(it => {
+          const div = document.createElement('div');
+          div.className = 'session-item';
+          div.dataset.sid = it.session_id;
+          div.innerHTML = `
+            <div class="sid">${it.session_id}</div>
+            <div class="meta">${it.n_messages} message(s) · ${fmtTime(it.last_seen)}</div>
+          `;
+          div.addEventListener('click', () => openSession(it.session_id));
+          list.appendChild(div);
+        });
+        const url = new URL(window.location.href);
+        const presel = url.searchParams.get('session');
+        if (presel) openSession(presel);
+      } catch (e) {
+        list.innerHTML = `<div class="empty">Erreur: ${e.message}</div>`;
+      }
+    }
+
+    async function openSession(sid) {
+      document.querySelectorAll('.session-item').forEach(el => {
+        el.classList.toggle('active', el.dataset.sid === sid);
+      });
+      document.getElementById('sid-display').textContent = sid;
+      const url = new URL(window.location.href);
+      url.searchParams.set('session', sid);
+      window.history.replaceState(null, '', url.toString());
+
+      const messages = document.getElementById('messages');
+      messages.innerHTML = '<div class="placeholder">Chargement…</div>';
+      try {
+        const r = await fetch(`/api/sessions/${encodeURIComponent(sid)}`);
+        const data = await r.json();
+        if (!data.messages || !data.messages.length) {
+          messages.innerHTML = '<div class="placeholder">Session vide.</div>';
+          return;
+        }
+        messages.innerHTML = '';
+        data.messages.forEach(m => {
+          const div = document.createElement('div');
+          div.className = 'msg ' + (m.role === 'user' ? 'user' : 'assistant');
+          if (m.role === 'user') {
+            const safeText = (m.text || '').replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+            div.innerHTML = `<div class="role">Vous</div><div>${safeText}</div><div class="meta">${fmtTime(m.ts)}</div>`;
+          } else {
+            const tags = [];
+            if (m.intent) tags.push(`<span class="badge">${m.intent}</span>`);
+            if (typeof m.confidence === 'number') tags.push(`<span class="badge">conf ${(m.confidence*100).toFixed(0)}%</span>`);
+            if (m.model_used) tags.push(`<span class="badge">${m.model_used}</span>`);
+            div.innerHTML = `
+              <div class="role">Sahteïn</div>
+              ${sanitize(m.html || '')}
+              <div class="meta">${tags.join(' ')} · ${fmtTime(m.ts)} · req=${m.request_id || '—'}</div>
+            `;
+          }
+          messages.appendChild(div);
+        });
+      } catch (e) {
+        messages.innerHTML = `<div class="placeholder">Erreur: ${e.message}</div>`;
+      }
+    }
+
+    document.getElementById('refresh-btn').addEventListener('click', loadSessions);
+    loadSessions();
+  </script>
+</body>
+</html>

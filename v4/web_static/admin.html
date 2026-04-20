@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sahteïn — Admin Base RAG</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,400&family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    :root {
+      --green: #94c2ae;
+      --green-d: #2a6452;
+      --line: rgba(0, 0, 0, 0.08);
+      --ink: #111;
+      --ink-2: #555;
+      --ink-3: #999;
+      --bg: #fafafa;
+      --paper: #fff;
+      --ui: "DM Sans", system-ui, sans-serif;
+      --serif: "Playfair Display", Georgia, serif;
+      --mono: "DM Mono", ui-monospace, monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--ui); font-size: 14px; background: var(--bg); color: var(--ink); }
+    nav.top {
+      position: sticky; top: 0; z-index: 20; height: 48px;
+      background: rgba(255,255,255,0.94); backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--line);
+      display: flex; align-items: center; padding: 0 24px; gap: 16px;
+    }
+    nav.top .brand {
+      font-family: var(--serif); font-style: italic;
+      font-size: 15px; font-weight: 600; color: var(--ink); text-decoration: none;
+    }
+    nav.top a { color: var(--ink-2); text-decoration: none; font-size: 13px; }
+    nav.top a:hover { color: var(--ink); }
+    nav.top a.active { color: var(--green-d); font-weight: 600; }
+    nav.top .spacer { flex: 1; }
+
+    .page { max-width: 1280px; margin: 0 auto; padding: 24px 32px 80px; }
+    h1 { font-family: var(--serif); font-style: italic; font-size: 26px; margin-bottom: 16px; }
+
+    .stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin-bottom: 24px; }
+    .stat {
+      background: var(--paper); border: 1px solid var(--line);
+      border-radius: 10px; padding: 14px;
+    }
+    .stat .label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-3); }
+    .stat .value { font-family: var(--serif); font-size: 28px; margin-top: 4px; }
+    .stat .sub { font-size: 11px; color: var(--ink-2); margin-top: 2px; }
+
+    .controls { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+    input[type="search"], input[type="number"] {
+      font-family: var(--ui); font-size: 13px;
+      padding: 7px 10px; border: 1px solid var(--line); border-radius: 6px;
+      background: var(--paper); color: var(--ink);
+    }
+    input[type="search"] { min-width: 280px; }
+    button {
+      background: var(--ink); color: #fff; border: none;
+      padding: 7px 12px; border-radius: 6px; cursor: pointer; font-size: 12px;
+    }
+    button.ghost { background: transparent; color: var(--ink-2); border: 1px solid var(--line); }
+    button:hover { opacity: 0.85; }
+
+    table { width: 100%; border-collapse: collapse; background: var(--paper); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+    th, td { padding: 10px 12px; text-align: left; font-size: 13px; border-bottom: 1px solid var(--line); }
+    th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-3); background: rgba(0,0,0,0.02); }
+    tr:last-child td { border-bottom: none; }
+    tr.clickable { cursor: pointer; }
+    tr.clickable:hover { background: rgba(148,194,174,0.06); }
+    .ext { font-family: var(--mono); font-size: 11px; color: var(--ink-2); }
+    .badge {
+      display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px;
+      background: rgba(148,194,174,0.18); color: var(--green-d);
+    }
+    .badge.warn { background: rgba(255,180,80,0.2); color: #b35900; }
+    .pager { display: flex; gap: 8px; align-items: center; margin-top: 12px; font-size: 12px; color: var(--ink-2); }
+
+    .modal {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+      display: none; align-items: center; justify-content: center; z-index: 50;
+    }
+    .modal.open { display: flex; }
+    .modal-card {
+      background: var(--paper); border-radius: 12px; max-width: 900px; width: 92%;
+      max-height: 86vh; overflow-y: auto; padding: 24px;
+    }
+    .modal-card h2 { font-family: var(--serif); font-size: 22px; margin-bottom: 8px; }
+    .modal-card .meta { font-size: 12px; color: var(--ink-2); margin-bottom: 16px; }
+    .modal-card .chunks { margin-top: 16px; }
+    .chunk {
+      border: 1px solid var(--line); border-radius: 8px;
+      padding: 10px 12px; margin-bottom: 8px; background: var(--bg);
+    }
+    .chunk header { display: flex; gap: 8px; font-size: 11px; color: var(--ink-2); margin-bottom: 4px; font-family: var(--mono); }
+    .chunk pre { white-space: pre-wrap; font-family: var(--ui); font-size: 12.5px; color: var(--ink); }
+    .close-btn { float: right; background: transparent; color: var(--ink-2); border: 1px solid var(--line); }
+  </style>
+</head>
+<body>
+  <nav class="top">
+    <a href="/" class="brand">Sahteïn</a>
+    <a href="/">Chatbot</a>
+    <a href="/admin" class="active">Admin DB</a>
+    <a href="/history">Historique</a>
+    <span class="spacer"></span>
+    <a href="/api/health/deep" target="_blank">Health</a>
+    <a href="/docs" target="_blank">API Docs</a>
+  </nav>
+
+  <div class="page">
+    <h1>Base de connaissance Sahteïn</h1>
+
+    <section class="stats" id="stats">
+      <div class="stat"><div class="label">Articles</div><div class="value" id="s-articles">…</div></div>
+      <div class="stat"><div class="label">Chunks</div><div class="value" id="s-chunks">…</div><div class="sub" id="s-embedded"></div></div>
+      <div class="stat"><div class="label">Personnes</div><div class="value" id="s-persons">…</div></div>
+      <div class="stat"><div class="label">Catégories</div><div class="value" id="s-cats">…</div></div>
+      <div class="stat"><div class="label">Mots-clés</div><div class="value" id="s-kw">…</div></div>
+    </section>
+
+    <div class="controls">
+      <input type="search" id="search" placeholder="Rechercher un titre d'article…" />
+      <button id="search-btn">Filtrer</button>
+      <button class="ghost" id="reset-btn">Réinitialiser</button>
+      <span class="spacer" style="flex:1"></span>
+      <span style="font-size:12px;color:var(--ink-2)" id="totals"></span>
+    </div>
+
+    <table id="articles-table">
+      <thead>
+        <tr>
+          <th>ID</th><th>Titre</th><th>Statut</th><th>Publié le</th><th>URL</th>
+        </tr>
+      </thead>
+      <tbody id="rows"><tr><td colspan="5" style="text-align:center;color:var(--ink-3);padding:24px">Chargement…</td></tr></tbody>
+    </table>
+
+    <div class="pager">
+      <button id="prev-btn" class="ghost">← Précédent</button>
+      <span id="page-info">page 1</span>
+      <button id="next-btn" class="ghost">Suivant →</button>
+    </div>
+  </div>
+
+  <div class="modal" id="modal">
+    <div class="modal-card">
+      <button class="close-btn" id="close-modal">Fermer ✕</button>
+      <h2 id="m-title">…</h2>
+      <div class="meta" id="m-meta"></div>
+      <div id="m-summary"></div>
+      <div class="chunks" id="m-chunks"></div>
+    </div>
+  </div>
+
+  <script>
+    const state = { limit: 25, offset: 0, search: '' };
+
+    function escapeHtml(s) { return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+    function fmtDate(s) { if (!s) return '—'; try { return new Date(s).toLocaleDateString('fr-FR'); } catch { return s; } }
+
+    async function loadStats() {
+      try {
+        const r = await fetch('/api/admin/stats');
+        const data = await r.json();
+        const c = data.counts || {};
+        document.getElementById('s-articles').textContent = (c.articles ?? 0).toLocaleString('fr-FR');
+        document.getElementById('s-chunks').textContent = (c.chunks ?? 0).toLocaleString('fr-FR');
+        document.getElementById('s-embedded').textContent = `${(c.chunks_embedded ?? 0).toLocaleString('fr-FR')} avec embedding`;
+        document.getElementById('s-persons').textContent = (c.persons ?? 0).toLocaleString('fr-FR');
+        document.getElementById('s-cats').textContent = (c.categories ?? 0).toLocaleString('fr-FR');
+        document.getElementById('s-kw').textContent = (c.keywords ?? 0).toLocaleString('fr-FR');
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function loadArticles() {
+      const tbody = document.getElementById('rows');
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--ink-3);padding:24px">Chargement…</td></tr>';
+      const url = new URL('/api/admin/articles', window.location.origin);
+      url.searchParams.set('limit', state.limit);
+      url.searchParams.set('offset', state.offset);
+      if (state.search) url.searchParams.set('search', state.search);
+      try {
+        const r = await fetch(url);
+        const data = await r.json();
+        document.getElementById('totals').textContent = `${data.total.toLocaleString('fr-FR')} article(s)`;
+        const items = data.items || [];
+        if (!items.length) {
+          tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--ink-3);padding:24px">Aucun résultat. Lancez d’abord un backfill (cf. railway-runbook.md).</td></tr>';
+        } else {
+          tbody.innerHTML = '';
+          items.forEach(a => {
+            const tr = document.createElement('tr');
+            tr.className = 'clickable';
+            const status = a.ingestion_status === 'ok'
+              ? '<span class="badge">ok</span>'
+              : `<span class="badge warn">${escapeHtml(a.ingestion_status||'?')}</span>`;
+            tr.innerHTML = `
+              <td><span class="ext">${a.external_id}</span></td>
+              <td><strong>${escapeHtml(a.title)}</strong></td>
+              <td>${status}</td>
+              <td>${fmtDate(a.first_published_at)}</td>
+              <td><a href="${escapeHtml(a.url)}" target="_blank" rel="noopener">↗ OLJ</a></td>
+            `;
+            tr.addEventListener('click', (ev) => {
+              if (ev.target.tagName === 'A') return;
+              openArticle(a.id);
+            });
+            tbody.appendChild(tr);
+          });
+        }
+        const page = Math.floor(state.offset / state.limit) + 1;
+        const totalPages = Math.max(1, Math.ceil(data.total / state.limit));
+        document.getElementById('page-info').textContent = `page ${page} / ${totalPages}`;
+        document.getElementById('prev-btn').disabled = state.offset === 0;
+        document.getElementById('next-btn').disabled = state.offset + state.limit >= data.total;
+      } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#b00;padding:24px">Erreur : ${e.message}</td></tr>`;
+      }
+    }
+
+    async function openArticle(id) {
+      const modal = document.getElementById('modal');
+      const title = document.getElementById('m-title');
+      const meta = document.getElementById('m-meta');
+      const summary = document.getElementById('m-summary');
+      const chunks = document.getElementById('m-chunks');
+      title.textContent = 'Chargement…'; meta.textContent = ''; summary.innerHTML = ''; chunks.innerHTML = '';
+      modal.classList.add('open');
+      try {
+        const r = await fetch(`/api/admin/articles/${id}`);
+        const a = await r.json();
+        title.textContent = a.title;
+        meta.innerHTML = `
+          <span class="ext">ext_id ${a.external_id}</span> ·
+          ${fmtDate(a.first_published_at)} ·
+          <a href="${escapeHtml(a.url)}" target="_blank" rel="noopener">${escapeHtml(a.url)}</a> ·
+          ${a.is_premium ? '<span class="badge warn">premium</span>' : '<span class="badge">free</span>'} ·
+          ${a.n_chunks} chunks
+        `;
+        if (a.subtitle) summary.innerHTML += `<p style="font-style:italic;color:var(--ink-2)">${escapeHtml(a.subtitle)}</p>`;
+        if (a.summary) summary.innerHTML += `<p>${escapeHtml(a.summary)}</p>`;
+        if (a.ingestion_notes) summary.innerHTML += `<p style="color:#b35900;font-size:12px">⚠ ${escapeHtml(a.ingestion_notes)}</p>`;
+        chunks.innerHTML = '<h3 style="font-family:var(--serif);font-size:16px;margin:8px 0">Chunks indexés</h3>';
+        (a.chunks || []).forEach(c => {
+          const div = document.createElement('div');
+          div.className = 'chunk';
+          div.innerHTML = `
+            <header>
+              <span>#${c.position} · ${escapeHtml(c.kind)}</span>
+              <span>${c.token_count || '?'} tokens</span>
+              <span>${escapeHtml(c.embedding_model || 'no-embed')}</span>
+            </header>
+            <pre>${escapeHtml(c.text_preview)}${c.text_preview && c.text_preview.length === 300 ? '…' : ''}</pre>
+          `;
+          chunks.appendChild(div);
+        });
+      } catch (e) {
+        title.textContent = 'Erreur'; meta.textContent = e.message;
+      }
+    }
+
+    document.getElementById('search-btn').addEventListener('click', () => {
+      state.search = document.getElementById('search').value.trim();
+      state.offset = 0;
+      loadArticles();
+    });
+    document.getElementById('search').addEventListener('keydown', e => {
+      if (e.key === 'Enter') document.getElementById('search-btn').click();
+    });
+    document.getElementById('reset-btn').addEventListener('click', () => {
+      state.search = ''; state.offset = 0;
+      document.getElementById('search').value = '';
+      loadArticles();
+    });
+    document.getElementById('prev-btn').addEventListener('click', () => {
+      state.offset = Math.max(0, state.offset - state.limit); loadArticles();
+    });
+    document.getElementById('next-btn').addEventListener('click', () => {
+      state.offset += state.limit; loadArticles();
+    });
+    document.getElementById('close-modal').addEventListener('click', () => {
+      document.getElementById('modal').classList.remove('open');
+    });
+    document.getElementById('modal').addEventListener('click', (e) => {
+      if (e.target.id === 'modal') document.getElementById('modal').classList.remove('open');
+    });
+
+    loadStats();
+    loadArticles();
+  </script>
+</body>
+</html>

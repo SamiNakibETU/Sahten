@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sahteïn — Analytics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,400&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --white:  #ffffff;
+      --bg:     #fafafa;
+      --line:   rgba(0,0,0,0.08);
+      --ink:    #111111;
+      --ink-2:  #444444;
+      --ink-3:  #999999;
+      --ink-4:  #cccccc;
+      --green:  #94c2ae;
+      --green-d:#2a6452;
+      --red:    #c0392b;
+      --ui:     "DM Sans", system-ui, sans-serif;
+      --mono:   "DM Mono", ui-monospace, monospace;
+      --serif:  "Playfair Display", Georgia, serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { height: 100%; }
+    body {
+      font-family: var(--ui);
+      font-size: 13px;
+      background: var(--white);
+      color: var(--ink);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Nav ──────────────────────────────────────────────────────── */
+    nav.top {
+      position: sticky; top: 0; z-index: 100;
+      height: 44px;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--line);
+      display: flex; align-items: center;
+      padding: 0 24px; gap: 12px;
+    }
+    .nav-brand {
+      display: flex; align-items: center; gap: 6px;
+      text-decoration: none; flex-shrink: 0;
+    }
+    .nav-brand img { width: 18px; height: 18px; display: block; }
+    .nav-brand span {
+      font-family: var(--serif);
+      font-size: 13px; font-weight: 600; font-style: italic;
+      color: var(--ink); letter-spacing: -0.02em;
+    }
+    .nav-sep { width: 1px; height: 14px; background: var(--line); flex-shrink: 0; }
+    .nav-olj img { height: 20px; width: auto; opacity: 0.45; display: block; transition: opacity .15s; }
+    .nav-olj:hover img { opacity: 0.7; }
+    .nav-olj { text-decoration: none; flex-shrink: 0; }
+    .nav-space { flex: 1; }
+    .nav-links { display: flex; align-items: center; gap: 0; }
+    .nav-link {
+      font-size: 12.5px; font-weight: 500; color: var(--ink-3);
+      text-decoration: none; padding: 4px 8px; white-space: nowrap;
+      transition: color .1s;
+    }
+    .nav-link:hover  { color: var(--ink); }
+    .nav-link.on     { color: var(--ink); font-weight: 600; }
+    .nav-act {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 12px; font-weight: 500; color: var(--ink-2);
+      border: 1px solid var(--line); padding: 3px 9px;
+      border-radius: 5px; cursor: pointer; background: none;
+      font-family: var(--ui); margin-left: 10px; transition: border-color .1s;
+    }
+    .nav-act:hover { border-color: var(--ink-3); }
+    .nav-act.spinning svg { animation: spin .7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Page shell ───────────────────────────────────────────────── */
+    .page { max-width: 1100px; margin: 0 auto; padding: 0 24px 80px; }
+
+    /* ── Header ───────────────────────────────────────────────────── */
+    .hd {
+      padding: 36px 0 24px;
+      border-bottom: 1px solid var(--line);
+      display: flex; align-items: baseline; justify-content: space-between;
+      gap: 12px; flex-wrap: wrap;
+    }
+    .hd-title {
+      font-family: var(--serif); font-size: 22px; font-weight: 600;
+      letter-spacing: -0.03em; color: var(--ink); line-height: 1;
+    }
+    .hd-title em { font-style: italic; color: var(--green); }
+    .hd-sub { font-size: 12px; color: var(--ink-3); margin-top: 5px; }
+    .live {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 11px; color: var(--ink-3);
+    }
+    .live-dot {
+      width: 6px; height: 6px; border-radius: 50%; background: var(--green);
+      animation: blink 2s ease-in-out infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:.6} 50%{opacity:1} }
+
+    /* ── Redis banner ─────────────────────────────────────────────── */
+    .banner {
+      display: none;
+      margin: 20px 0 0;
+      padding: 10px 14px;
+      background: #fffbf0; border: 1px solid #e5d090;
+      font-size: 12px; color: #6a4a10;
+    }
+    .banner code { font-family: var(--mono); font-size: 11px; }
+
+    /* ── KPI row ──────────────────────────────────────────────────── */
+    .kpi-row {
+      display: flex;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 40px;
+    }
+    .kpi {
+      flex: 1;
+      padding: 28px 24px 24px 0;
+      border-right: 1px solid var(--line);
+    }
+    .kpi:last-child { border-right: none; padding-right: 0; }
+    .kpi:first-child { padding-left: 0; }
+    .kpi + .kpi { padding-left: 24px; }
+    .kpi-label {
+      font-size: 10px; text-transform: uppercase;
+      letter-spacing: .09em; color: var(--ink-4); margin-bottom: 8px;
+    }
+    .kpi-num {
+      font-family: var(--mono); font-size: 36px; font-weight: 500;
+      line-height: 1; letter-spacing: -.03em; color: var(--ink);
+    }
+    .kpi-num.pos { color: var(--green-d); }
+    .kpi-num.neg { color: var(--red); }
+    .kpi-sub { font-size: 11px; color: var(--ink-4); margin-top: 6px; }
+
+    /* ── Section label ────────────────────────────────────────────── */
+    .sec-label {
+      font-size: 10px; text-transform: uppercase; letter-spacing: .09em;
+      color: var(--ink-4); margin-bottom: 16px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .sec-badge {
+      font-family: var(--mono); font-size: 11px; color: var(--ink-3);
+    }
+    .sec-badge.neg { color: var(--red); }
+
+    /* ── Chart areas ──────────────────────────────────────────────── */
+    .charts-2 { display: grid; grid-template-columns: 2fr 1fr; gap: 40px; margin-bottom: 48px; }
+    .charts-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 40px; margin-bottom: 48px; }
+    .chart-wrap { position: relative; }
+    .chart-wrap canvas { max-height: 180px; }
+    .chart-wrap-sm canvas { max-height: 160px; }
+
+    /* ── Tables ───────────────────────────────────────────────────── */
+    .tbl-wrap { margin-bottom: 48px; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    thead th {
+      text-align: left; padding: 0 12px 10px 0;
+      font-size: 10px; text-transform: uppercase; letter-spacing: .08em;
+      color: var(--ink-4); border-bottom: 1px solid var(--line); white-space: nowrap;
+    }
+    thead th:last-child { padding-right: 0; }
+    tbody td {
+      padding: 9px 12px 9px 0; border-bottom: 1px solid rgba(0,0,0,0.04);
+      color: var(--ink-2); vertical-align: middle;
+    }
+    tbody td:last-child { padding-right: 0; }
+    tbody tr:last-child td { border-bottom: none; }
+
+    /* ── Tags / badges ────────────────────────────────────────────── */
+    .tag {
+      display: inline-block; font-family: var(--mono); font-size: 10px;
+      padding: 1px 5px; border-radius: 3px; background: #f2f2f2; color: var(--ink-3);
+    }
+    .tag.recipe_specific      { background: #edf7ee; color: #287a28; }
+    .tag.recipe_by_ingredient { background: #fef5ea; color: #9a4a00; }
+    .tag.recipe_by_mood       { background: #fdf0f5; color: #8b1a58; }
+    .tag.recipe_by_category   { background: #eef3ff; color: #2a48a0; }
+    .tag.menu_composition     { background: #eef3ff; color: #2a48a0; }
+    .tag.greeting             { background: rgba(148,194,174,.12); color: var(--green-d); }
+    .tag.off_topic            { background: rgba(192,57,43,.08); color: var(--red); }
+    .tag.about_bot            { background: #f5f0ff; color: #6820b0; }
+    .mtag {
+      font-family: var(--mono); font-size: 10px;
+      padding: 1px 5px; border-radius: 3px; background: #f2f2f2; color: var(--ink-3);
+    }
+    .mtag.nano { background: #e6f9f9; color: #006070; }
+    .mtag.mini { background: #f0eaff; color: #5820b0; }
+
+    /* ── Feedback ─────────────────────────────────────────────────── */
+    .fb { padding: 12px 0; border-bottom: 1px solid rgba(0,0,0,0.04); }
+    .fb:last-child { border-bottom: none; }
+    .fb-text { font-size: 12.5px; color: var(--ink-2); line-height: 1.5; }
+    .fb-time { font-family: var(--mono); font-size: 10px; color: var(--ink-4); margin-top: 3px; }
+
+    /* ── Empty / loading / error ──────────────────────────────────── */
+    .empty { padding: 24px 0; color: var(--ink-4); font-size: 12px; font-style: italic; }
+    .err   { padding: 10px 0; color: var(--red); font-size: 12px; }
+    .loader {
+      display: flex; align-items: center; gap: 8px;
+      padding: 24px 0; color: var(--ink-4); font-size: 12px;
+    }
+    .loader::before {
+      content: '';
+      width: 12px; height: 12px; flex-shrink: 0;
+      border: 1px solid var(--line); border-top-color: var(--green);
+      border-radius: 50%; animation: spin .8s linear infinite;
+    }
+
+    /* ── Footer ───────────────────────────────────────────────────── */
+    .foot { font-family: var(--mono); font-size: 10px; color: var(--ink-4); padding: 16px 0 8px; }
+
+    /* ── Responsive ───────────────────────────────────────────────── */
+    @media (max-width: 900px) {
+      .charts-2, .charts-3 { grid-template-columns: 1fr; gap: 32px; }
+      .kpi-row { flex-wrap: wrap; }
+      .kpi { flex: 0 0 33%; border-right: 1px solid var(--line); }
+      .page { padding: 0 16px 60px; }
+    }
+    @media (max-width: 600px) {
+      .kpi { flex: 0 0 50%; }
+      .kpi-num { font-size: 28px; }
+      nav.top { padding: 0 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="top">
+  <a class="nav-brand" href="/">
+    <img src="assets/v7_logo_sahten.svg" alt="Sahteïn" />
+    <span>Sahteïn</span>
+  </a>
+  <div class="nav-sep"></div>
+  <a class="nav-olj" href="https://www.lorientlejour.com/cuisine-liban-a-table" target="_blank" rel="noopener" title="L'Orient-Le Jour">
+    <img src="assets/logo_olj.svg?v=3" alt="L'Orient-Le Jour" />
+  </a>
+  <div class="nav-space"></div>
+  <div class="nav-links">
+    <a class="nav-link" href="/">Démo</a>
+    <a class="nav-link" href="/widget">Widget OLJ</a>
+    <a class="nav-link" href="/admin">Admin</a>
+    <a class="nav-link on" href="/dashboard">Analytics</a>
+  </div>
+  <button class="nav-act" id="refresh-btn" onclick="refreshAll()">
+    <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <polyline points="1 4 1 10 7 10"/><polyline points="15 12 15 6 9 6"/>
+      <path d="M15 6A7 7 0 1 0 13.7 13.3"/>
+    </svg>
+    Actualiser
+  </button>
+</nav>
+
+<div class="page">
+
+  <div class="hd">
+    <div>
+      <h1 class="hd-title">Analytics <em>Sahteïn</em></h1>
+      <p class="hd-sub">Conversations, tendances, feedback et performance</p>
+    </div>
+    <span class="live"><span class="live-dot"></span> Live</span>
+  </div>
+
+  <div class="banner" id="redis-banner">
+    Redis non configuré. Variables requises :
+    <code>UPSTASH_REDIS_REST_URL</code> et <code>UPSTASH_REDIS_REST_TOKEN</code>.
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-row">
+    <div class="kpi">
+      <div class="kpi-label">Conversations</div>
+      <div class="kpi-num pos" id="kpi-conv">—</div>
+      <div class="kpi-sub" id="kpi-conv-sub">total</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Satisfaction</div>
+      <div class="kpi-num pos" id="kpi-sat">—</div>
+      <div class="kpi-sub" id="kpi-sat-sub">retours positifs</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Feedback négatif</div>
+      <div class="kpi-num neg" id="kpi-neg">—</div>
+      <div class="kpi-sub" id="kpi-neg-sub">à analyser</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Impressions</div>
+      <div class="kpi-num" id="kpi-imp">—</div>
+      <div class="kpi-sub">widget vu</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Clicks</div>
+      <div class="kpi-num" id="kpi-clicks">—</div>
+      <div class="kpi-sub" id="kpi-ctr-sub">CTR</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Fallback Base 2</div>
+      <div class="kpi-num" id="kpi-fallback">—</div>
+      <div class="kpi-sub">corpus secondaire</div>
+    </div>
+  </div>
+
+  <!-- Charts row 1 -->
+  <div class="charts-2">
+    <div>
+      <div class="sec-label">Volume de conversations <span class="sec-badge">7 derniers jours</span></div>
+      <div class="chart-wrap"><canvas id="chart-volume"></canvas></div>
+    </div>
+    <div>
+      <div class="sec-label">Intents</div>
+      <div class="chart-wrap chart-wrap-sm"><canvas id="chart-intents"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Charts row 2 -->
+  <div class="charts-3">
+    <div>
+      <div class="sec-label">Satisfaction</div>
+      <div class="chart-wrap chart-wrap-sm"><canvas id="chart-feedback"></canvas></div>
+    </div>
+    <div>
+      <div class="sec-label">Modèles</div>
+      <div class="chart-wrap chart-wrap-sm"><canvas id="chart-models"></canvas></div>
+    </div>
+    <div>
+      <div class="sec-label">Latence (ms) <span class="sec-badge">20 dernières</span></div>
+      <div class="chart-wrap chart-wrap-sm"><canvas id="chart-latency"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Conversations -->
+  <div class="tbl-wrap">
+    <div class="sec-label">
+      Conversations récentes
+      <span class="sec-badge" id="count-conv"></span>
+    </div>
+    <div id="traces-container"><div class="loader">Chargement</div></div>
+  </div>
+
+  <!-- Recettes -->
+  <div class="tbl-wrap">
+    <div class="sec-label">Recettes les plus demandées</div>
+    <div id="top-recipes-container"><div class="loader">Chargement</div></div>
+  </div>
+
+  <!-- Feedback négatif -->
+  <div class="tbl-wrap">
+    <div class="sec-label">
+      Feedback négatif récent
+      <span class="sec-badge neg" id="count-neg"></span>
+    </div>
+    <div id="feedback-container"><div class="loader">Chargement</div></div>
+  </div>
+
+  <p class="foot" id="last-update"></p>
+</div>
+
+<script>
+const API = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+  ? 'http://127.0.0.1:8000/api' : '/api';
+
+const G  = '#94c2ae', GD = '#2a6452';
+const R  = '#c0392b';
+const BL = '#4a7fa5';
+const OR = '#c87941';
+const M  = 'rgba(0,0,0,0.05)';
+
+const INTENTS = {
+  recipe_specific:'#4a9a4a', recipe_by_ingredient:'#d4780a',
+  recipe_by_mood:'#b0557e', recipe_by_category:'#4a7fa5',
+  menu_composition:'#4a7fa5', multi_recipe:'#6c8ebf',
+  greeting:G, off_topic:R, about_bot:'#8a50c0', unknown:'#ccc'
+};
+
+Chart.defaults.font.family = '"DM Sans", sans-serif';
+Chart.defaults.font.size   = 10;
+Chart.defaults.color       = '#aaa';
+
+let charts = {};
+const esc    = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const trunc  = (s,n) => s&&s.length>n ? s.slice(0,n)+'…' : (s||'');
+const fmtT   = iso => { if(!iso)return'—'; return new Date(iso).toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}); };
+const fmtUrl = url => { if(!url)return'—'; try{return new URL(url).pathname.split('/').filter(Boolean).pop()||url;}catch{return url.slice(0,40);} };
+const mCls   = m => { if(!m)return''; if(m.includes('nano'))return'nano'; if(m.includes('mini'))return'mini'; return''; };
+const mLbl   = m => { if(!m)return'—'; if(m.includes('nano'))return'nano'; if(m.includes('mini'))return'mini'; const p=m.split('-');return p[p.length-1]; };
+
+function mkChart(id, type, data, opts) {
+  if (charts[id]) { charts[id].data=data; Object.assign(charts[id].options,opts); charts[id].update('none'); return; }
+  const ctx = document.getElementById(id)?.getContext('2d');
+  if (!ctx) return;
+  charts[id] = new Chart(ctx, {type, data, options: opts});
+}
+
+function last7() {
+  return Array.from({length:7},(_,i)=>{ const d=new Date(); d.setDate(d.getDate()-(6-i)); return d.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'}); });
+}
+
+function buildCharts(traces, pos, neg) {
+  // Volume
+  const days = last7(), cnt = new Array(7).fill(0), now = new Date();
+  traces.forEach(t=>{ if(!t.timestamp)return; const d=Math.floor((now-new Date(t.timestamp))/86400000); if(d>=0&&d<7)cnt[6-d]++; });
+  mkChart('chart-volume','line',{
+    labels:days,
+    datasets:[{data:cnt,fill:false,borderColor:G,borderWidth:1.5,tension:.35,pointRadius:2,pointBackgroundColor:G}]
+  },{
+    animation:{duration:400},
+    plugins:{legend:{display:false}},
+    scales:{
+      x:{grid:{color:M,lineWidth:.5},ticks:{maxTicksLimit:7}},
+      y:{grid:{color:M,lineWidth:.5},beginAtZero:true,ticks:{maxTicksLimit:4,stepSize:1}}
+    }
+  });
+
+  // Intents donut
+  const ic={};
+  traces.forEach(t=>{ const k=t.intent||'unknown'; ic[k]=(ic[k]||0)+1; });
+  const iL=Object.keys(ic);
+  mkChart('chart-intents','doughnut',{
+    labels:iL,
+    datasets:[{data:iL.map(k=>ic[k]),backgroundColor:iL.map(k=>INTENTS[k]||'#bbb'),borderWidth:1,borderColor:'#fff'}]
+  },{animation:{duration:400},cutout:'68%',plugins:{legend:{display:true,position:'right',labels:{font:{size:9},padding:5,boxWidth:7}}}});
+
+  // Satisfaction donut
+  mkChart('chart-feedback','doughnut',{
+    labels:['Positif','Négatif','Sans avis'],
+    datasets:[{data:[pos,neg,Math.max(0,traces.length-pos-neg)],backgroundColor:[G,R,'#e4e4e4'],borderWidth:1,borderColor:'#fff'}]
+  },{animation:{duration:400},cutout:'65%',plugins:{legend:{display:true,position:'bottom',labels:{font:{size:9},padding:5,boxWidth:7}}}});
+
+  // Models bar
+  const mc={};
+  traces.forEach(t=>{ const k=mLbl(t.model_used)||'—'; mc[k]=(mc[k]||0)+1; });
+  const mL=Object.keys(mc);
+  mkChart('chart-models','bar',{
+    labels:mL,
+    datasets:[{data:mL.map(k=>mc[k]),backgroundColor:mL.map(k=>k==='nano'?'#38a09a':k==='mini'?'#8a50c0':'#bbb'),borderRadius:3,borderWidth:0}]
+  },{animation:{duration:400},plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{grid:{color:M,lineWidth:.5},beginAtZero:true,ticks:{stepSize:1,maxTicksLimit:4}}}});
+
+  // Latency
+  const wl=traces.filter(t=>t.latency_ms>0).slice(0,20).reverse();
+  mkChart('chart-latency','line',{
+    labels:wl.map((_,i)=>String(i+1)),
+    datasets:[{data:wl.map(t=>t.latency_ms),fill:false,borderColor:BL,borderWidth:1.5,tension:.3,pointRadius:1.5,pointBackgroundColor:BL}]
+  },{animation:{duration:400},plugins:{legend:{display:false}},scales:{x:{display:false},y:{grid:{color:M,lineWidth:.5},beginAtZero:false,ticks:{callback:v=>v+'ms',maxTicksLimit:4}}}});
+}
+
+async function loadTraces() {
+  const el = document.getElementById('traces-container');
+  try {
+    const r = await fetch(`${API}/traces?limit=100`);
+    const d = await r.json().catch(()=>({}));
+    const traces = Array.isArray(d.traces) ? d.traces : [];
+    const count  = d.count ?? traces.length;
+    document.getElementById('kpi-conv').textContent = count;
+    document.getElementById('count-conv').textContent = count;
+    if (!r.ok || traces.length===0) {
+      el.innerHTML = `<div class="empty">${traces.length===0 ? 'Aucune conversation enregistrée.' : 'Traces indisponibles — Redis requis.'}</div>`;
+      return traces;
+    }
+    el.innerHTML = `<table>
+      <thead><tr><th>Date</th><th>Message</th><th>Réponse Sahteïn</th><th>Intent</th><th style="text-align:center">Rec.</th><th>Modèle</th><th>Latence</th></tr></thead>
+      <tbody>${traces.map(t=>{
+        const rawHtml = t.response_html || '';
+        // Extract plain text from response HTML for display
+        const tmp = document.createElement('div');
+        tmp.innerHTML = rawHtml;
+        const narrative = tmp.querySelector('.sahten-narrative');
+        const plainText = narrative ? narrative.innerText.replace(/\s+/g,' ').trim() : (tmp.innerText||'').replace(/\s+/g,' ').trim();
+        const shortResponse = plainText ? trunc(plainText, 80) : '—';
+        return `<tr>
+        <td style="font-family:var(--mono);font-size:10px;color:var(--ink-4);white-space:nowrap">${fmtT(t.timestamp)}</td>
+        <td style="max-width:200px;color:var(--ink)">${esc(trunc(t.user_message,55))}</td>
+        <td style="max-width:260px;color:var(--ink-2);font-size:11px">${esc(shortResponse)}</td>
+        <td><span class="tag ${esc(t.intent||'')}">${esc(t.intent||'—')}</span></td>
+        <td style="text-align:center;font-family:var(--mono);color:var(--ink-4)">${t.recipe_count??0}</td>
+        <td><span class="mtag ${mCls(t.model_used)}">${mLbl(t.model_used)}</span></td>
+        <td style="font-family:var(--mono);font-size:11px;color:var(--ink-4)">${t.latency_ms?t.latency_ms+'ms':'—'}</td>
+      </tr>`;
+      }).join('')}</tbody>
+    </table>`;
+    return traces;
+  } catch(e) {
+    el.innerHTML = `<div class="err">${esc(e.message)}</div>`;
+    return [];
+  }
+}
+
+async function loadFeedback() {
+  const el = document.getElementById('feedback-container');
+  try {
+    const r = await fetch(`${API}/feedback/stats`);
+    const d = await r.json().catch(()=>({}));
+    if (['no_redis','redis_unreachable','error'].includes(d.status)) {
+      el.innerHTML = '<div class="empty">Feedback indisponible — Redis requis.</div>';
+      return {pos:0,neg:0};
+    }
+    const pos=d.positive??0, neg=d.negative??0;
+    document.getElementById('kpi-sat').textContent  = d.positive_rate!=null ? d.positive_rate+'%' : pos;
+    document.getElementById('kpi-neg').textContent  = neg;
+    document.getElementById('kpi-sat-sub').textContent = `${pos} retours positifs`;
+    document.getElementById('kpi-neg-sub').textContent = `${neg} à analyser`;
+    document.getElementById('count-neg').textContent = neg||'';
+    el.innerHTML = !d.recent_negative_reasons?.length
+      ? '<div class="empty">Aucun feedback négatif.</div>'
+      : d.recent_negative_reasons.map(fb=>`<div class="fb"><div class="fb-text">${esc(fb.reason)}</div><div class="fb-time">${fmtT(fb.timestamp)}</div></div>`).join('');
+    return {pos,neg};
+  } catch(e) {
+    el.innerHTML = `<div class="err">${esc(e.message)}</div>`;
+    return {pos:0,neg:0};
+  }
+}
+
+async function loadAnalytics() {
+  const el = document.getElementById('top-recipes-container');
+  try {
+    const r = await fetch(`${API}/analytics`);
+    const d = await r.json().catch(()=>({}));
+    if (d.status && d.status!=='ok') {
+      document.getElementById('redis-banner').style.display='block';
+      el.innerHTML='<div class="empty">Analytics non disponibles sans Redis.</div>';
+      return;
+    }
+    document.getElementById('kpi-imp').textContent      = d.events?.impressions??'—';
+    document.getElementById('kpi-clicks').textContent   = d.events?.clicks??'—';
+    document.getElementById('kpi-fallback').textContent = d.rates?.fallback_rate?d.rates.fallback_rate+'%':'—';
+    if (d.rates?.ctr) document.getElementById('kpi-ctr-sub').textContent = `CTR ${d.rates.ctr}%`;
+    el.innerHTML = d.top_recipes?.length
+      ? `<table><thead><tr><th>#</th><th>Recette</th><th>Clicks</th></tr></thead><tbody>${d.top_recipes.map((r,i)=>`<tr>
+          <td style="font-family:var(--mono);color:var(--ink-4);width:28px">${i+1}</td>
+          <td><a href="${esc(r.url)}" target="_blank" style="color:var(--green-d);text-decoration:none">${esc(fmtUrl(r.url))}</a></td>
+          <td style="font-family:var(--mono);font-weight:500">${r.clicks}</td></tr>`).join('')}</tbody></table>`
+      : '<div class="empty">Aucun click enregistré.</div>';
+  } catch(e) {
+    el.innerHTML = `<div class="err">${esc(e.message)}</div>`;
+  }
+}
+
+async function refreshAll() {
+  const btn = document.getElementById('refresh-btn');
+  btn.classList.add('spinning');
+  const [traces, {pos,neg}] = await Promise.all([loadTraces(), loadFeedback(), loadAnalytics()]);
+  buildCharts(traces, pos, neg);
+  btn.classList.remove('spinning');
+  document.getElementById('last-update').textContent =
+    'Mis à jour ' + new Date().toLocaleTimeString('fr-FR');
+}
+
+refreshAll();
+setInterval(refreshAll, 60000);
+</script>
+</body>
+</html>
