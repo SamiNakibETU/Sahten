@@ -73,7 +73,9 @@ candidate_articles AS (
     WHERE
         (
             (SELECT COALESCE(cardinality(ids), 0) FROM excl) = 0
-            OR NOT (a.external_id = ANY ((SELECT ids FROM excl)))
+            OR NOT (
+                a.external_id IN (SELECT unnest((SELECT ids FROM excl)))
+            )
         )
         AND
         (
