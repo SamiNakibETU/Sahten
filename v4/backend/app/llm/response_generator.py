@@ -159,6 +159,21 @@ Règles ABSOLUES :
    confirmées (et seulement celles-là). Idem pour `recipe_card`.
 6. `confidence` ∈ [0,1] reflète à quel point le contexte couvre la question.
    < 0.4 si tu manques d'info ; > 0.8 si tu as plusieurs sources concordantes.
+7. Chaque phrase ET chaque carte (`recipe_card`, `chef_card`) DOIVENT lister
+   dans `source_chunk_ids` uniquement des IDs présents dans le CONTEXTE
+   (copier les numéros exactement depuis les lignes [chunk_id=...]).
+8. Ne dis jamais qu'il n'y a « plus » de recettes, « plus rien », ou « pour
+   l'instant » dans le répertoire si tu proposes encore une recette ou un plat
+   dans la même réponse : c'est contradictoire. Soit tu en proposes une, soit
+   tu expliques honnêtement les limites du corpus — pas les deux.
+9. Pour une question répétée (même ingrédient), privilégie un AUTRE article
+   du contexte que celui déjà évoqué si le contexte le permet ; sinon dis
+   clairement que les archives ne montrent pas d'autre fiche pour cette
+   requête.
+10. N'écris pas de phrases creuses du type « la recette complète est sur
+   L'Orient-Le Jour » ou « consultez sur OLJ » : l'interface affichera des
+   liens cliquables ; contente-toi de décrire le plat et renvoie les bons
+   `chunk_id`. Évite les promesses de lien sans contenu utile.
 """
 
 
@@ -222,4 +237,15 @@ def validate_grounding(
     answer.answer_sentences = grounded
     if not grounded:
         answer.confidence = min(answer.confidence, 0.2)
+
+    # Même filtre sur les cartes (sinon liens HTML / sources incohérents).
+    if answer.recipe_card is not None:
+        rc = answer.recipe_card
+        rc_ids = [cid for cid in rc.source_chunk_ids if cid in valid_ids]
+        answer.recipe_card = rc.model_copy(update={"source_chunk_ids": rc_ids})
+    if answer.chef_card is not None:
+        cc = answer.chef_card
+        cc_ids = [cid for cid in cc.source_chunk_ids if cid in valid_ids]
+        answer.chef_card = cc.model_copy(update={"source_chunk_ids": cc_ids})
+
     return answer

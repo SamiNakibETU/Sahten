@@ -14,13 +14,27 @@ from ..llm.response_generator import ChefCard, GroundedAnswer, RecipeCard
 from .reranker import RerankedHit
 
 
+def _article_url_for_chunks(
+    chunk_ids: list[int], hits: list[RerankedHit]
+) -> tuple[str | None, str | None]:
+    """URL + titre d’article à partir des chunk_ids de carte (ou 1er hit en secours)."""
+    want = set(chunk_ids)
+    for h in hits:
+        if h.hit.chunk_id in want:
+            return h.hit.article_url, h.hit.article_title
+    if hits:
+        h0 = hits[0]
+        return h0.hit.article_url, h0.hit.article_title
+    return None, None
+
+
 def _escape(value: str | None) -> str:
     if value is None:
         return ""
     return _html.escape(str(value), quote=True)
 
 
-def _render_recipe(card: RecipeCard) -> str:
+def _render_recipe(card: RecipeCard, *, article_url: str | None, article_title: str | None) -> str:
     parts: list[str] = ['<article class="sahten-recipe-card">']
     parts.append(f'<header><h2>{_escape(card.title)}</h2>')
     meta_bits: list[str] = []
@@ -33,6 +47,13 @@ def _render_recipe(card: RecipeCard) -> str:
     if meta_bits:
         parts.append(f'<p class="sahten-recipe-meta">{" · ".join(meta_bits)}</p>')
     parts.append("</header>")
+
+    if article_url:
+        label = _escape(article_title or "Lire l’article sur L’Orient-Le Jour")
+        parts.append(
+            f'<p class="sahten-recipe-link"><a href="{_escape(article_url)}" '
+            f'target="_blank" rel="noopener noreferrer">{label}</a></p>'
+        )
 
     if card.ingredients:
         parts.append('<section><h3>Ingrédients</h3><ul>')
@@ -50,12 +71,18 @@ def _render_recipe(card: RecipeCard) -> str:
     return "".join(parts)
 
 
-def _render_chef(card: ChefCard) -> str:
+def _render_chef(card: ChefCard, *, article_url: str | None, article_title: str | None) -> str:
     parts: list[str] = ['<article class="sahten-chef-card">']
     parts.append(f"<header><h2>{_escape(card.name)}</h2>")
     if card.role:
         parts.append(f'<p class="sahten-chef-role">{_escape(card.role)}</p>')
     parts.append("</header>")
+    if article_url:
+        label = _escape(article_title or "Lire sur L’Orient-Le Jour")
+        parts.append(
+            f'<p class="sahten-chef-link"><a href="{_escape(article_url)}" '
+            f'target="_blank" rel="noopener noreferrer">{label}</a></p>'
+        )
     if card.biography:
         parts.append(f"<p>{_escape(card.biography)}</p>")
     if card.works:
@@ -68,7 +95,12 @@ def _render_chef(card: ChefCard) -> str:
 
 
 def _render_sources(hits: list[RerankedHit], used_chunk_ids: set[int]) -> str:
-    """Liste compacte des articles cités, dédupliqués par article_external_id."""
+    """Liste compacte des articles cités, dédupliqués par article_external_id.
+
+    Si des `used_chunk_ids` sont fournis mais qu’aucun hit ne correspond (IDs
+    incohérents entre phrases et rerank), on retombe sur les meilleurs hits pour
+    garder au moins un lien cliquable.
+    """
     if not hits:
         return ""
     seen: dict[int, RerankedHit] = {}
@@ -79,6 +111,14 @@ def _render_sources(hits: list[RerankedHit], used_chunk_ids: set[int]) -> str:
         if key in seen:
             continue
         seen[key] = h
+    if not seen and used_chunk_ids:
+        for h in hits:
+            key = h.hit.article_external_id
+            if key in seen:
+                continue
+            seen[key] = h
+            if len(seen) >= 5:
+                break
     if not seen:
         return ""
     parts: list[str] = ['<section class="sahten-sources"><h3>Sources L\'Orient-Le Jour</h3><ul>']
@@ -110,6 +150,23 @@ def render_answer_html(
     for sent in answer.answer_sentences:
         used_ids.update(sent.source_chunk_ids)
         sentences_html.append(_escape(sent.text))
+    if answer.recipe_card is not None:
+        used_ids.update(answer.recipe_card.source_chunk_ids)
+    if answer.chef_card is not None:
+        used_ids.update(answer.chef_card.source_chunk_ids)
+
+    recipe_url: str | None = None
+    recipe_link_title: str | None = None
+    chef_url: str | None = None
+    chef_link_title: str | None = None
+    if answer.recipe_card is not None:
+        recipe_url, recipe_link_title = _article_url_for_chunks(
+            answer.recipe_card.source_chunk_ids, hits
+        )
+    if answer.chef_card is not None:
+        chef_url, chef_link_title = _article_url_for_chunks(
+            answer.chef_card.source_chunk_ids, hits
+        )
 
     parts: list[str] = ['<div class="sahten-narrative">']
     if sentences_html:
@@ -122,9 +179,21 @@ def render_answer_html(
         )
 
     if answer.recipe_card is not None:
-        parts.append(_render_recipe(answer.recipe_card))
+        parts.append(
+            _render_recipe(
+                answer.recipe_card,
+                article_url=recipe_url,
+                article_title=recipe_link_title,
+            )
+        )
     if answer.chef_card is not None:
-        parts.append(_render_chef(answer.chef_card))
+        parts.append(
+            _render_chef(
+                answer.chef_card,
+                article_url=chef_url,
+                article_title=chef_link_title,
+            )
+        )
 
     parts.append(_render_sources(hits, used_ids))
 
