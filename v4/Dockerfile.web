@@ -20,6 +20,8 @@ COPY v4/backend ./backend
 COPY v4/worker ./worker
 COPY v4/scripts ./scripts
 COPY v4/infra ./infra
+# Seed data (liste d'IDs WhiteBeard pour `ingest_cli from-ids`).
+COPY v4/data ./data
 # Frontend statique (widget chat OLJ + admin DB + history).
 COPY v4/web_static ./web_static
 
