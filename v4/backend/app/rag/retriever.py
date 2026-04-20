@@ -174,7 +174,13 @@ SELECT
     a.external_id AS article_external_id,
     a.title       AS article_title,
     a.url         AS article_url,
-    a.cover_image_url AS cover_image_url,
+    COALESCE(
+        NULLIF(btrim(COALESCE(a.cover_image_url, '')), ''),
+        NULLIF(btrim(a.raw_payload #>> '{image,url}'), ''),
+        NULLIF(btrim(a.raw_payload #>> '{image,src}'), ''),
+        NULLIF(btrim(a.raw_payload #>> '{cover,url}'), ''),
+        NULLIF(btrim(a.raw_payload #>> '{contents,image,url}'), '')
+    ) AS cover_image_url,
     c.kind        AS section_kind,
     c.text        AS chunk_text,
     f.score_lex,

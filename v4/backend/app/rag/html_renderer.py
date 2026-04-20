@@ -13,6 +13,7 @@ from urllib.parse import urlparse, urlunparse
 
 from ..llm.response_generator import ChefCard, GroundedAnswer, RecipeCard
 from .reranker import RerankedHit
+from .retriever import Hit
 
 
 def _int_id(raw: int | float) -> int:
@@ -70,8 +71,29 @@ def _safe_http_image_url(url: str | None) -> str | None:
     if not url:
         return None
     s = str(url).strip()
+    if s.startswith("//"):
+        s = "https:" + s
     if s.lower().startswith(("https://", "http://")):
         return s
+    return None
+
+
+def _cover_url_from_primary_hit(primary_hit: RerankedHit | None) -> str | None:
+    """Couverture : `articles.cover_image_url` (déjà enrichi en SQL), puis métadonnées chunk."""
+    if not primary_hit:
+        return None
+    h: Hit = primary_hit.hit
+    u = _safe_http_image_url(h.cover_image_url)
+    if u:
+        return u
+    meta = h.metadata
+    if isinstance(meta, dict):
+        for key in ("cover_image_url", "image_url", "thumb_url", "og_image"):
+            v = meta.get(key)
+            if isinstance(v, str):
+                u = _safe_http_image_url(v)
+                if u:
+                    return u
     return None
 
 
@@ -108,9 +130,7 @@ def _render_recipe(
     primary_hit: RerankedHit | None,
 ) -> str:
     """Carte type aperçu OLJ : vignette + bandeau marque, titre unique, lien sur toute la carte."""
-    cover = _safe_http_image_url(
-        primary_hit.hit.cover_image_url if primary_hit else None
-    )
+    cover = _cover_url_from_primary_hit(primary_hit)
     sk = primary_hit.hit.section_kind if primary_hit else ""
     cat = _recipe_category_label(sk)
     display_alt = article_title or card.title
@@ -167,13 +187,7 @@ def _render_recipe(
     else:
         parts.append("</div>")
 
-    if article_url:
-        parts.append(
-            '<p class="sahten-recipe-teaser">'
-            "Fiche complète sur <strong>L’Orient-Le Jour</strong>."
-            "</p>"
-        )
-    else:
+    if not article_url:
         parts.append(
             '<p class="sahten-recipe-teaser"><em>Consultez les sources en bas de '
             "réponse pour retrouver la recette complète.</em></p>"
