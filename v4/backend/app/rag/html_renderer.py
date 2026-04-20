@@ -65,30 +65,113 @@ def _escape(value: str | None) -> str:
     return _html.escape(str(value), quote=True)
 
 
-def _render_recipe(card: RecipeCard, *, article_url: str | None, article_title: str | None) -> str:
-    parts: list[str] = ['<article class="sahten-recipe-card">']
-    parts.append(f'<header><h2>{_escape(card.title)}</h2>')
-    meta_bits: list[str] = []
+def _safe_http_image_url(url: str | None) -> str | None:
+    """Vignette article : uniquement http(s), jamais javascript:/data:."""
+    if not url:
+        return None
+    s = str(url).strip()
+    if s.lower().startswith(("https://", "http://")):
+        return s
+    return None
+
+
+def _recipe_category_label(section_kind: str) -> str:
+    """Libellé type « PLAT PRINCIPAL » à partir du kind de chunk."""
+    k = (section_kind or "").strip().lower()
+    if k in ("recipe_steps", "main_course", "plat", "plat_principal"):
+        return "PLAT PRINCIPAL"
+    if "dessert" in k:
+        return "DESSERT"
+    if "entree" in k or "entrée" in k or "starter" in k:
+        return "ENTRÉE"
+    if "salad" in k or "salade" in k:
+        return "SALADE"
+    if "ingredient" in k:
+        return "RECETTE"
+    return "RECETTE"
+
+
+def _primary_hit_for_card(chunk_ids: list[int], hits: list[RerankedHit]) -> RerankedHit | None:
+    """Premier hit reranké aligné sur la carte (même logique que la résolution d’URL)."""
+    want = set(chunk_ids)
+    for h in hits:
+        if h.hit.chunk_id in want:
+            return h
+    return hits[0] if hits else None
+
+
+def _render_recipe(
+    card: RecipeCard,
+    *,
+    article_url: str | None,
+    article_title: str | None,
+    primary_hit: RerankedHit | None,
+) -> str:
+    """Carte type aperçu OLJ : vignette + bandeau marque, titre unique, lien sur toute la carte."""
+    cover = _safe_http_image_url(
+        primary_hit.hit.cover_image_url if primary_hit else None
+    )
+    sk = primary_hit.hit.section_kind if primary_hit else ""
+    cat = _recipe_category_label(sk)
+    display_alt = article_title or card.title
+
+    parts: list[str] = [
+        '<article class="sahten-recipe-card sahten-recipe-card--preview">'
+    ]
+    if article_url:
+        parts.append(
+            f'<a class="sahten-recipe-card__link" href="{_escape(article_url)}" '
+            'target="_blank" rel="noopener noreferrer">'
+        )
+    else:
+        parts.append('<div class="sahten-recipe-card__nolink">')
+
+    if cover:
+        parts.append(
+            '<div class="sahten-recipe-card__media">'
+            f'<img src="{_escape(cover)}" alt="{_escape(display_alt)}" '
+            'loading="lazy" decoding="async" width="120" height="120" />'
+            "</div>"
+        )
+    else:
+        parts.append(
+            '<div class="sahten-recipe-card__media sahten-recipe-card__media--placeholder" '
+            'aria-hidden="true"></div>'
+        )
+
+    parts.append('<div class="sahten-recipe-card__body">')
+    parts.append(
+        '<p class="sahten-recipe-card__kicker">'
+        "L’ORIENT-LE JOUR · SAHTEÏN"
+        "</p>"
+    )
+    parts.append(f'<p class="sahten-recipe-card__category">{_escape(cat)}</p>')
+    parts.append(f'<h2 class="sahten-recipe-card__title">{_escape(card.title)}</h2>')
     if card.chef:
-        meta_bits.append(f"par <strong>{_escape(card.chef)}</strong>")
+        parts.append(
+            f'<p class="sahten-recipe-card__byline">Par {_escape(card.chef)}</p>'
+        )
+    meta_bits: list[str] = []
     if card.duration_min:
         meta_bits.append(f"{int(card.duration_min)} min")
     if card.serves:
         meta_bits.append(f"pour {_escape(card.serves)}")
     if meta_bits:
-        parts.append(f'<p class="sahten-recipe-meta">{" · ".join(meta_bits)}</p>')
-    parts.append("</header>")
+        parts.append(
+            f'<p class="sahten-recipe-card__meta">{" · ".join(meta_bits)}</p>'
+        )
+    parts.append("</div>")
 
     if article_url:
-        label = _escape(article_title or "Lire l’article sur L’Orient-Le Jour")
+        parts.append("</a>")
+    else:
+        parts.append("</div>")
+
+    if article_url:
         parts.append(
-            f'<p class="sahten-recipe-link"><a href="{_escape(article_url)}" '
-            f'target="_blank" rel="noopener noreferrer">{label}</a></p>'
-        )
-        parts.append(
-            '<p class="sahten-recipe-teaser">Les ingrédients détaillés et la '
-            "préparation pas à pas se trouvent dans la fiche sur "
-            "<strong>L’Orient-Le Jour</strong> — ouvrez le lien ci-dessus.</p>"
+            '<p class="sahten-recipe-teaser">'
+            "Fiche complète sur <strong>L’Orient-Le Jour</strong>."
+            "</p>"
         )
     else:
         parts.append(
@@ -218,12 +301,16 @@ def render_answer_html(
 
     recipe_url: str | None = None
     recipe_link_title: str | None = None
+    primary_recipe_hit: RerankedHit | None = None
     chef_url: str | None = None
     chef_link_title: str | None = None
     skip_sources_ids: set[int] = set()
     skip_sources_urls: set[str] = set()
     skip_sources_title_norms: set[str] = set()
     if answer.recipe_card is not None:
+        primary_recipe_hit = _primary_hit_for_card(
+            answer.recipe_card.source_chunk_ids, hits
+        )
         recipe_url, recipe_link_title, rids = _resolve_card_article(
             answer.recipe_card.source_chunk_ids, hits
         )
@@ -262,6 +349,7 @@ def render_answer_html(
                 answer.recipe_card,
                 article_url=recipe_url,
                 article_title=recipe_link_title,
+                primary_hit=primary_recipe_hit,
             )
         )
     if answer.chef_card is not None:

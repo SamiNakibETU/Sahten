@@ -692,10 +692,14 @@ export class SahtenChat {
         /**
          * Track impression events for each recipe card displayed.
          */
-        const recipeCards = container.querySelectorAll('.recipe-card');
+        const recipeCards = container.querySelectorAll(
+            '.recipe-card, .sahten-recipe-card--preview'
+        );
         recipeCards.forEach(card => {
             const link = card.querySelector('a');
-            const titleEl = card.querySelector('.recipe-title');
+            const titleEl =
+                card.querySelector('.recipe-title') ||
+                card.querySelector('.sahten-recipe-card__title');
             if (link && titleEl) {
                 this.trackEvent('impression', {
                     request_id: data.request_id,
@@ -712,10 +716,14 @@ export class SahtenChat {
         /**
          * Add click tracking to recipe card links.
          */
-        const recipeLinks = container.querySelectorAll('.recipe-card a');
+        const recipeLinks = container.querySelectorAll(
+            '.recipe-card a, .sahten-recipe-card__link'
+        );
         recipeLinks.forEach(link => {
             link.addEventListener('click', (e) => {
-                const titleEl = link.querySelector('.recipe-title');
+                const titleEl =
+                    link.querySelector('.recipe-title') ||
+                    link.querySelector('.sahten-recipe-card__title');
                 this.trackEvent('click', {
                     request_id: data.request_id,
                     recipe_url: link.href,

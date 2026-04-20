@@ -39,6 +39,7 @@ class Hit:
     article_external_id: int
     article_title: str
     article_url: str
+    cover_image_url: str | None
     section_kind: str
     chunk_text: str
     score_lex: float | None
@@ -173,6 +174,7 @@ SELECT
     a.external_id AS article_external_id,
     a.title       AS article_title,
     a.url         AS article_url,
+    a.cover_image_url AS cover_image_url,
     c.kind        AS section_kind,
     c.text        AS chunk_text,
     f.score_lex,
@@ -240,6 +242,7 @@ class HybridRetriever:
                 article_external_id=r["article_external_id"],
                 article_title=r["article_title"],
                 article_url=r["article_url"],
+                cover_image_url=r["cover_image_url"],
                 section_kind=r["section_kind"],
                 chunk_text=r["chunk_text"],
                 score_lex=r["score_lex"],
