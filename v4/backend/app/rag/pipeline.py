@@ -10,6 +10,7 @@
 
 from __future__ import annotations
 
+import re
 import time
 from dataclasses import dataclass
 
@@ -25,6 +26,65 @@ from .retriever import HybridRetriever, Hit
 from .reranker import RerankedHit
 
 log = structlog.get_logger(__name__)
+
+_STOPWORDS_FR = {
+    "avec",
+    "pour",
+    "dans",
+    "une",
+    "des",
+    "les",
+    "du",
+    "de",
+    "la",
+    "le",
+    "un",
+    "est",
+    "sont",
+    "que",
+    "qui",
+    "recette",
+    "recettes",
+    "comment",
+    "fait",
+    "faire",
+    "donne",
+    "donne-moi",
+    "moi",
+    "sur",
+    "plus",
+}
+
+
+def _retrieval_fallback_queries(user_query: str, plan: QueryPlan) -> list[str]:
+    """Requêtes plus courtes / centrées ingrédient si la recherche hybride ne renvoie rien."""
+    seen: set[str] = set()
+    out: list[str] = []
+    uq = (user_query or "").strip()
+
+    def add(s: str) -> None:
+        s = " ".join(s.split())
+        if len(s) < 2 or s in seen:
+            return
+        seen.add(s)
+        out.append(s)
+
+    for slug in plan.ingredient_slugs:
+        if not slug:
+            continue
+        w = slug.replace("-", " ").strip()
+        add(w)
+        if w:
+            add(f"{w} recette")
+    for w in re.findall(r"\b[\wàâäéèêëïîôùûç]+\b", uq.lower()):
+        if w not in _STOPWORDS_FR and len(w) > 2:
+            add(w)
+            if len(w) > 4:
+                add(f"{w} recette")
+    rw = (plan.rewritten_query or "").strip()
+    if rw and rw.casefold() != uq.casefold():
+        add(rw)
+    return out[:10]
 
 
 @dataclass
@@ -112,6 +172,35 @@ class RagPipeline:
                     keyword_slugs=[],
                     final_limit=max(30, rerank_top_n * 4),
                 )
+            if not hits:
+                base = q.strip()
+                for alt in _retrieval_fallback_queries(user_query, plan):
+                    if alt.strip() == base:
+                        continue
+                    try:
+                        hits = await self.retriever.search(
+                            session,
+                            alt,
+                            chef_slugs=[],
+                            ingredient_slugs=[],
+                            category_slugs=[],
+                            keyword_slugs=[],
+                            final_limit=max(30, rerank_top_n * 4),
+                        )
+                    except Exception as exc:  # noqa: BLE001
+                        log.warning(
+                            "rag.pipeline.retrieval_fallback_failed",
+                            alt=alt[:80],
+                            error=str(exc),
+                        )
+                        continue
+                    if hits:
+                        log.info(
+                            "rag.pipeline.retrieval_fallback_hit",
+                            alt_preview=alt[:80],
+                            n_hits=len(hits),
+                        )
+                        break
         except Exception as exc:  # noqa: BLE001
             log.exception("rag.pipeline.retrieval_failed")
             hits = []

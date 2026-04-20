@@ -95,13 +95,13 @@ candidate_articles AS (
 lex AS (
     SELECT
         c.id AS chunk_id,
-        ts_rank_cd(c.search_tsv, plainto_tsquery('french', :query)) AS score,
+        ts_rank_cd(c.search_tsv, websearch_to_tsquery('french', :query)) AS score,
         ROW_NUMBER() OVER (
-            ORDER BY ts_rank_cd(c.search_tsv, plainto_tsquery('french', :query)) DESC
+            ORDER BY ts_rank_cd(c.search_tsv, websearch_to_tsquery('french', :query)) DESC
         ) AS rnk
     FROM chunks c
     WHERE c.article_id IN (SELECT id FROM candidate_articles)
-      AND c.search_tsv @@ plainto_tsquery('french', :query)
+      AND c.search_tsv @@ websearch_to_tsquery('french', :query)
     ORDER BY score DESC
     LIMIT (SELECT top_k_lex FROM params)
 ),

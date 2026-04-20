@@ -13,7 +13,10 @@ import uuid
 
 import structlog
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
+
+# Aligné sur les usages réels (recettes collées, contexte long) — au-delà, 422 côté validation.
+CHAT_INPUT_MAX_LEN = 12_000
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .. import sessions
@@ -43,8 +46,10 @@ def get_pipeline() -> RagPipeline:
 class ChatRequest(BaseModel):
     """Accepte les deux contrats : v3 (`message`) et v4 (`query`)."""
 
-    query: str | None = Field(default=None, max_length=2000)
-    message: str | None = Field(default=None, max_length=2000)
+    model_config = ConfigDict(extra="ignore")
+
+    query: str | None = Field(default=None, max_length=CHAT_INPUT_MAX_LEN)
+    message: str | None = Field(default=None, max_length=CHAT_INPUT_MAX_LEN)
     session_id: str | None = None
     debug: bool = False
     model: str | None = None

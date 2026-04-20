@@ -97,15 +97,20 @@ Règles :
   • mixed        -> plusieurs intentions
 - `chef_slugs` : slugs (kebab-case, ASCII) des chefs cités. Ex.: "Kamal Mouzawak"
   -> "kamal-mouzawak". Vide si rien.
-- `ingredient_slugs` : ingrédients en slug FR canonique. Ex.: "boulgour" ->
-  "bourghol", "tomate" -> "tomate".
+- `ingredient_slugs` : ingrédients en slug FR canonique (kebab-case ASCII). Ex.:
+  "boulgour" -> "bourghol", "tomate" -> "tomate".
+  **Obligatoire** dès qu'un ingrédient alimentaire est nommé : « recette avec du
+  concombre », « plat avec tomates », « je cherche du yaourt » → inclure au moins
+  `concombre`, `tomate`, `yaourt` dans `ingredient_slugs` (même si la phrase est
+  floue). Ne pas laisser cette liste vide dans ce cas.
 - `category_slugs` / `keyword_slugs` : slugs si la requête évoque une rubrique
   identifiable (ex.: "cuisine", "souk-el-tayeb").
 - `focus_section_kinds` : suggère les types de sections pertinents.
 - `needs_context_after` : true si la réponse devrait inclure le contexte
   culturel ou anecdotique en complément (ex.: "raconte-moi le taboulé").
 
-JAMAIS d'invention. Si l'info n'est pas claire, laisse les listes vides.
+N'invente pas de chefs ni de plats inexistants ; pour les **ingrédients
+explicitement cités** dans la requête, remplis `ingredient_slugs` comme ci-dessus.
 """
 
 
