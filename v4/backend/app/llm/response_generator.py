@@ -174,6 +174,10 @@ Règles ABSOLUES :
    L'Orient-Le Jour » ou « consultez sur OLJ » : l'interface affichera des
    liens cliquables ; contente-toi de décrire le plat et renvoie les bons
    `chunk_id`. Évite les promesses de lien sans contenu utile.
+11. N'utilise JAMAIS les formulations « mon répertoire », « plus d'autres recettes
+   pour l'instant », « explorez nos recettes sur L'Orient-Le Jour » : tu n'es
+   pas un site web, tu cites des extraits d'archives. Si le CONTEXTE est vide ou
+   insuffisant, dis-le sans inventer de politesse marketing.
 """
 
 
@@ -200,6 +204,31 @@ class ResponseGenerator:
     async def generate(
         self, user_query: str, hits: list[RerankedHit]
     ) -> GroundedAnswer:
+        if not hits:
+            # Pas d'appel LLM : sans chunks le schéma JSON serait rempli d'inventions
+            # (« plus de recettes dans mon répertoire », etc.).
+            return GroundedAnswer(
+                answer_sentences=[
+                    GroundedSentence(
+                        text=(
+                            "Je n’ai trouvé aucun extrait d’article correspondant "
+                            "dans les archives indexées pour cette question. Les "
+                            "recherches par ingrédient passent par le texte des "
+                            "recettes : reformulez ou précisez un plat, un chef ou "
+                            "un mot-clé."
+                        ),
+                        source_chunk_ids=[],
+                    )
+                ],
+                recipe_card=None,
+                chef_card=None,
+                follow_up=(
+                    "Souhaitez-vous essayer un autre ingrédient ou le nom d’un plat "
+                    "libanais ?"
+                ),
+                confidence=0.05,
+            )
+
         context = _format_context(hits)
         completion = await self._client.chat.completions.create(
             model=self._model,

@@ -65,15 +65,39 @@ class RagPipeline:
         timings["query_understanding_ms"] = int((time.perf_counter() - t0) * 1000)
 
         t1 = time.perf_counter()
+        q = plan.rewritten_query or user_query
         hits = await self.retriever.search(
             session,
-            plan.rewritten_query or user_query,
+            q,
             chef_slugs=plan.chef_slugs,
             ingredient_slugs=plan.ingredient_slugs,
             category_slugs=plan.category_slugs,
             keyword_slugs=plan.keyword_slugs,
             final_limit=max(30, rerank_top_n * 4),
         )
+        # Les tables de liaison (article_ingredients, etc.) peuvent être vides même
+        # si le texte des chunks mentionne l'ingrédient → filtres structurés = 0
+        # candidat. On retombe sur recherche hybride plein texte + vecteur sans filtre.
+        if not hits and (
+            plan.chef_slugs
+            or plan.ingredient_slugs
+            or plan.category_slugs
+            or plan.keyword_slugs
+        ):
+            log.warning(
+                "rag.pipeline.retrieval_empty_with_filters_retrying_broad",
+                ingredient_slugs=plan.ingredient_slugs,
+                chef_slugs=plan.chef_slugs,
+            )
+            hits = await self.retriever.search(
+                session,
+                q,
+                chef_slugs=[],
+                ingredient_slugs=[],
+                category_slugs=[],
+                keyword_slugs=[],
+                final_limit=max(30, rerank_top_n * 4),
+            )
         timings["retrieval_ms"] = int((time.perf_counter() - t1) * 1000)
 
         t2 = time.perf_counter()
