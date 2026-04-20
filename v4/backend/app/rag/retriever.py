@@ -65,7 +65,9 @@ candidate_articles AS (
                 JOIN persons p ON p.id = aa.person_id
                 WHERE aa.article_id = a.id
                   AND aa.role = 'featured_chef'
-                  AND p.slug = ANY ((SELECT chef_slugs FROM filters))
+                  AND p.slug IN (
+                      SELECT unnest((SELECT chef_slugs FROM filters))
+                  )
             )
         )
         AND (
@@ -73,7 +75,9 @@ candidate_articles AS (
                 SELECT 1 FROM article_ingredients ai
                 JOIN ingredients i ON i.id = ai.ingredient_id
                 WHERE ai.article_id = a.id
-                  AND i.slug = ANY ((SELECT ingredient_slugs FROM filters))
+                  AND i.slug IN (
+                      SELECT unnest((SELECT ingredient_slugs FROM filters))
+                  )
             )
         )
         AND (
@@ -81,7 +85,9 @@ candidate_articles AS (
                 SELECT 1 FROM article_categories ac
                 JOIN categories c ON c.id = ac.category_id
                 WHERE ac.article_id = a.id
-                  AND c.slug = ANY ((SELECT category_slugs FROM filters))
+                  AND c.slug IN (
+                      SELECT unnest((SELECT category_slugs FROM filters))
+                  )
             )
         )
         AND (
@@ -89,7 +95,9 @@ candidate_articles AS (
                 SELECT 1 FROM article_keywords ak
                 JOIN keywords k ON k.id = ak.keyword_id
                 WHERE ak.article_id = a.id
-                  AND k.slug = ANY ((SELECT keyword_slugs FROM filters))
+                  AND k.slug IN (
+                      SELECT unnest((SELECT keyword_slugs FROM filters))
+                  )
             )
         )
 ),
