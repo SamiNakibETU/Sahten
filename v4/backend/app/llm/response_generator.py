@@ -7,6 +7,7 @@ Format de sortie strict (JSON schema) :
         ...
       ],
       "recipe_card": { ... } | null,
+      "recipe_card_secondary": { ... } | null,
       "chef_card": { ... } | null,
       "follow_up": "...",
       "confidence": 0.83
@@ -58,6 +59,7 @@ class ChefCard(BaseModel):
 class GroundedAnswer(BaseModel):
     answer_sentences: list[GroundedSentence]
     recipe_card: RecipeCard | None = None
+    recipe_card_secondary: RecipeCard | None = None
     chef_card: ChefCard | None = None
     follow_up: str = ""
     confidence: float = 0.0
@@ -113,6 +115,34 @@ JSON_SCHEMA: dict[str, Any] = {
                     },
                 ]
             },
+            "recipe_card_secondary": {
+                "anyOf": [
+                    {"type": "null"},
+                    {
+                        "type": "object",
+                        "additionalProperties": False,
+                        "properties": {
+                            "title": {"type": "string"},
+                            "chef": {"type": ["string", "null"]},
+                            "duration_min": {"type": ["integer", "null"]},
+                            "serves": {"type": ["string", "null"]},
+                            "ingredients": {
+                                "type": "array", "items": {"type": "string"}
+                            },
+                            "steps": {
+                                "type": "array", "items": {"type": "string"}
+                            },
+                            "source_chunk_ids": {
+                                "type": "array", "items": {"type": "integer"}
+                            },
+                        },
+                        "required": [
+                            "title", "chef", "duration_min", "serves",
+                            "ingredients", "steps", "source_chunk_ids",
+                        ],
+                    },
+                ]
+            },
             "chef_card": {
                 "anyOf": [
                     {"type": "null"},
@@ -141,8 +171,8 @@ JSON_SCHEMA: dict[str, Any] = {
             "confidence": {"type": "number"},
         },
         "required": [
-            "answer_sentences", "recipe_card", "chef_card",
-            "follow_up", "confidence",
+            "answer_sentences", "recipe_card", "recipe_card_secondary",
+            "chef_card", "follow_up", "confidence",
         ],
     },
 }
@@ -163,9 +193,11 @@ Règles ABSOLUES :
    confirmées (et seulement celles-là). Idem pour `recipe_card`.
 6. `confidence` ∈ [0,1] reflète à quel point le contexte couvre la question.
    < 0.4 si tu manques d'info ; > 0.8 si tu as plusieurs sources concordantes.
-7. Chaque phrase ET chaque carte (`recipe_card`, `chef_card`) DOIVENT lister
-   dans `source_chunk_ids` uniquement des IDs présents dans le CONTEXTE
-   (copier les numéros exactement depuis les lignes [chunk_id=...]).
+7. Chaque phrase ET chaque carte (`recipe_card`, `recipe_card_secondary`,
+   `chef_card`) DOIVENT lister dans `source_chunk_ids` uniquement des IDs
+   présents dans le CONTEXTE (copier les numéros exactement depuis les lignes
+   [chunk_id=...]). Les `source_chunk_ids` d’une carte doivent appartenir à
+   **un seul article** (même `article=` dans le CONTEXTE).
 8. Ne dis jamais qu'il n'y a « plus » de recettes, « plus rien », ou « pour
    l'instant » dans le répertoire si tu proposes encore une recette ou un plat
    dans la même réponse : c'est contradictoire. Soit tu en proposes une, soit
@@ -179,9 +211,9 @@ Règles ABSOLUES :
    numérotées copiées du contexte). Objectif : donner envie d'ouvrir la fiche sur
    L'Orient-Le Jour. Dans `answer_sentences`, 2 à 4 phrases maximum : accroche
    (ambiance, occasion, idée du plat), sans recopier les quantités ni la marche
-   à suivre. Dans `recipe_card`, mets **`ingredients` et `steps` à des tableaux
-   vides `[]`** — le titre, chef, durée, portions peuvent rester si utiles ; le
-   lien article est affiché par l'interface.
+   à suivre. Dans chaque carte recette, mets **`ingredients` et `steps` à des
+   tableaux vides `[]`** — le titre, chef, durée, portions peuvent rester si utiles ;
+   le lien article est affiché par l'interface.
 11. N'utilise JAMAIS les formulations « mon répertoire », « plus d'autres recettes
    pour l'instant », « explorez nos recettes sur L'Orient-Le Jour » : tu n'es
    pas un site web, tu cites des extraits d'archives. Si le CONTEXTE est vide ou
@@ -191,7 +223,8 @@ Règles ABSOLUES :
 13. Si tu expliques que les archives **ne contiennent pas** de réponse adaptée,
    qu’aucune recette ne correspond, ou que le contenu est **insuffisant** pour la
    demande : mets **`source_chunk_ids: []` sur chaque phrase**, laisse
-   `recipe_card` et `chef_card` à **null**, et mets `confidence` ≤ 0.35.
+   `recipe_card`, `recipe_card_secondary` et `chef_card` à **null**, et mets
+   `confidence` ≤ 0.35.
    **Ne cite aucun chunk** dans ce cas — sinon la liste « Sources » afficherait des
    articles non pertinents à côté d’un texte qui dit qu’il n’y a pas de fiche.
 14. Si un **HISTORIQUE DU CHAT** est fourni et que la QUESTION ACTUELLE est courte
@@ -199,14 +232,28 @@ Règles ABSOLUES :
    dernier échange** (ta proposition précédente et la question de l’utilisateur).
    Ne réponds pas que la question est « incomplète » ou « ambiguë » si l’historique
    permet de la comprendre.
+15. **Une seconde recette = une seconde carte + citations strictes** : si tu
+   évoques **deux articles ou deux plats distincts** présents dans le CONTEXTE,
+   mets la première fiche dans `recipe_card` et la seconde dans
+   `recipe_card_secondary` (titres et `source_chunk_ids` alignés sur **leur**
+   extrait chacun). Chaque phrase du texte qui parle du plat A doit avoir des
+   `source_chunk_ids` issus de l’article A ; idem pour le plat B. **Interdit** de
+   mélanger dans une même phrase deux chefs ou deux plats sans citer les **bons**
+   chunks pour chacun.
+16. Si le CONTEXTE ne contient **qu’un seul** article pertinent, ne décris **pas**
+   une autre recette, un autre chef ou une « variante » nommée qui ne figure pas
+   dans les extraits : pas de `recipe_card_secondary`, et pas de mention
+   détaillée hors corpus.
 """
 
 
 def _format_context(hits: list[RerankedHit]) -> str:
     lines = ["CONTEXTE — chaque entrée est un extrait d'article OLJ :"]
     for h in hits:
+        title = (h.hit.article_title or "").replace("\n", " ")[:160]
         lines.append(
             f"\n[chunk_id={h.hit.chunk_id} | article={h.hit.article_external_id}"
+            f" | titre={title}"
             f" | section={h.hit.section_kind} | score={h.rerank_score:.3f}]"
             f"\n{h.hit.chunk_text}"
         )
@@ -246,6 +293,7 @@ class ResponseGenerator:
                     )
                 ],
                 recipe_card=None,
+                recipe_card_secondary=None,
                 chef_card=None,
                 follow_up=(
                     "Souhaitez-vous essayer un autre ingrédient ou le nom d’un plat "
@@ -291,6 +339,7 @@ class ResponseGenerator:
                     )
                 ],
                 recipe_card=None,
+                recipe_card_secondary=None,
                 chef_card=None,
                 follow_up="Réessayez dans un petit moment.",
                 confidence=0.0,
@@ -341,16 +390,35 @@ def validate_grounding(
     if answer.recipe_card is not None:
         rc = answer.recipe_card
         rc_ids = [cid for cid in rc.source_chunk_ids if cid in valid_ids]
-        answer.recipe_card = rc.model_copy(
-            update={
-                "source_chunk_ids": rc_ids,
-                "ingredients": [],
-                "steps": [],
-            }
-        )
+        if not rc_ids:
+            answer.recipe_card = None
+        else:
+            answer.recipe_card = rc.model_copy(
+                update={
+                    "source_chunk_ids": rc_ids,
+                    "ingredients": [],
+                    "steps": [],
+                }
+            )
+    if answer.recipe_card_secondary is not None:
+        rc2 = answer.recipe_card_secondary
+        rc2_ids = [cid for cid in rc2.source_chunk_ids if cid in valid_ids]
+        if not rc2_ids:
+            answer.recipe_card_secondary = None
+        else:
+            answer.recipe_card_secondary = rc2.model_copy(
+                update={
+                    "source_chunk_ids": rc2_ids,
+                    "ingredients": [],
+                    "steps": [],
+                }
+            )
     if answer.chef_card is not None:
         cc = answer.chef_card
         cc_ids = [cid for cid in cc.source_chunk_ids if cid in valid_ids]
-        answer.chef_card = cc.model_copy(update={"source_chunk_ids": cc_ids})
+        if not cc_ids:
+            answer.chef_card = None
+        else:
+            answer.chef_card = cc.model_copy(update={"source_chunk_ids": cc_ids})
 
     return answer

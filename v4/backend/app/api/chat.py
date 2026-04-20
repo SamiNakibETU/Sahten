@@ -76,6 +76,7 @@ class ChatResponse(BaseModel):
     model_used: str
     answer_sentences: list[dict]
     recipe_card: dict | None
+    recipe_card_secondary: dict | None = None
     chef_card: dict | None
     follow_up: str
     confidence: float
@@ -181,6 +182,8 @@ async def chat(
         answer_sentences=[s.model_dump() for s in result.answer.answer_sentences],
         recipe_card=result.answer.recipe_card.model_dump()
         if result.answer.recipe_card else None,
+        recipe_card_secondary=result.answer.recipe_card_secondary.model_dump()
+        if result.answer.recipe_card_secondary else None,
         chef_card=result.answer.chef_card.model_dump()
         if result.answer.chef_card else None,
         follow_up=result.answer.follow_up,

@@ -567,6 +567,9 @@
   background: #fff;
   overflow: hidden;
 }
+.sahten-narrative .sahten-recipe-card--preview + .sahten-recipe-card--preview {
+  margin-top: 0.65rem;
+}
 .sahten-narrative .sahten-recipe-card__link,
 .sahten-narrative .sahten-recipe-card__nolink {
   display: flex;

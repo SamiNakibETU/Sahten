@@ -368,12 +368,17 @@ def render_answer_html(
         sentences_html.append(_escape(sent.text))
     if answer.recipe_card is not None:
         used_ids.update(answer.recipe_card.source_chunk_ids)
+    if answer.recipe_card_secondary is not None:
+        used_ids.update(answer.recipe_card_secondary.source_chunk_ids)
     if answer.chef_card is not None:
         used_ids.update(answer.chef_card.source_chunk_ids)
 
     recipe_url: str | None = None
     recipe_link_title: str | None = None
     primary_recipe_hit: RerankedHit | None = None
+    recipe_url_secondary: str | None = None
+    recipe_link_title_secondary: str | None = None
+    primary_recipe_hit_secondary: RerankedHit | None = None
     chef_url: str | None = None
     chef_link_title: str | None = None
     skip_sources_ids: set[int] = set()
@@ -393,6 +398,20 @@ def render_answer_html(
         tn = _norm_article_title(recipe_link_title)
         if tn:
             skip_sources_title_norms.add(tn)
+    if answer.recipe_card_secondary is not None:
+        primary_recipe_hit_secondary = _primary_hit_for_card(
+            answer.recipe_card_secondary.source_chunk_ids, hits
+        )
+        recipe_url_secondary, recipe_link_title_secondary, rids2 = _resolve_card_article(
+            answer.recipe_card_secondary.source_chunk_ids, hits
+        )
+        skip_sources_ids |= rids2
+        nu2 = _norm_article_url(recipe_url_secondary)
+        if nu2:
+            skip_sources_urls.add(nu2)
+        tn2 = _norm_article_title(recipe_link_title_secondary)
+        if tn2:
+            skip_sources_title_norms.add(tn2)
     if answer.chef_card is not None:
         chef_url, chef_link_title, cids = _resolve_card_article(
             answer.chef_card.source_chunk_ids, hits
@@ -424,6 +443,15 @@ def render_answer_html(
                 primary_hit=primary_recipe_hit,
             )
         )
+    if answer.recipe_card_secondary is not None:
+        parts.append(
+            _render_recipe(
+                answer.recipe_card_secondary,
+                article_url=recipe_url_secondary,
+                article_title=recipe_link_title_secondary,
+                primary_hit=primary_recipe_hit_secondary,
+            )
+        )
     if answer.chef_card is not None:
         parts.append(
             _render_chef(
@@ -433,9 +461,17 @@ def render_answer_html(
             )
         )
 
-    # Une carte recette avec lien suffit : ne pas lister d’autres articles en « Sources »
-    # (sinon 2–3 liens alors qu’une seule recette est demandée).
-    if not (answer.recipe_card is not None and recipe_url):
+    # Cartes recette avec liens : ne pas dupliquer en liste « Sources » si chaque
+    # carte affichée a une URL résolue.
+    recipe_cards_cover = (
+        (answer.recipe_card is None or bool(recipe_url))
+        and (answer.recipe_card_secondary is None or bool(recipe_url_secondary))
+        and (
+            answer.recipe_card is not None
+            or answer.recipe_card_secondary is not None
+        )
+    )
+    if not recipe_cards_cover:
         parts.append(
             _render_sources(
                 hits,

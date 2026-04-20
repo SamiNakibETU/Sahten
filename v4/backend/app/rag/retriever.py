@@ -176,6 +176,16 @@ SELECT
     a.url         AS article_url,
     COALESCE(
         NULLIF(btrim(COALESCE(a.cover_image_url, '')), ''),
+        NULLIF(
+            btrim(
+                COALESCE(
+                    (a.raw_payload->'yoast_head_json'->'og_image'->0->>'url'),
+                    (a.raw_payload->'yoast_head_json'->'og_image'->>'url'),
+                    (a.raw_payload->'yoast_head_json'->>'og_image_url')
+                )
+            ),
+            ''
+        ),
         NULLIF(btrim(a.raw_payload #>> '{image,url}'), ''),
         NULLIF(btrim(a.raw_payload #>> '{image,src}'), ''),
         NULLIF(btrim(a.raw_payload #>> '{image,large}'), ''),
