@@ -116,7 +116,7 @@
     <h1>Base de connaissance Sahteïn</h1>
 
     <section class="stats" id="stats">
-      <div class="stat"><div class="label">Articles</div><div class="value" id="s-articles">…</div></div>
+      <div class="stat"><div class="label">Articles</div><div class="value" id="s-articles">…</div><div class="sub" id="s-status-breakdown"></div></div>
       <div class="stat"><div class="label">Chunks</div><div class="value" id="s-chunks">…</div><div class="sub" id="s-embedded"></div></div>
       <div class="stat"><div class="label">Personnes</div><div class="value" id="s-persons">…</div></div>
       <div class="stat"><div class="label">Catégories</div><div class="value" id="s-cats">…</div></div>
@@ -169,6 +169,11 @@
         const data = await r.json();
         const c = data.counts || {};
         document.getElementById('s-articles').textContent = (c.articles ?? 0).toLocaleString('fr-FR');
+        const bySt = c.articles_by_status || {};
+        const stParts = Object.keys(bySt).sort().map(k => `${k}: ${bySt[k]}`);
+        document.getElementById('s-status-breakdown').textContent = stParts.length
+          ? 'Statut ingestion — ' + stParts.join(' · ')
+          : '';
         document.getElementById('s-chunks').textContent = (c.chunks ?? 0).toLocaleString('fr-FR');
         document.getElementById('s-embedded').textContent = `${(c.chunks_embedded ?? 0).toLocaleString('fr-FR')} avec embedding`;
         document.getElementById('s-persons').textContent = (c.persons ?? 0).toLocaleString('fr-FR');
@@ -199,8 +204,8 @@
             const tr = document.createElement('tr');
             tr.className = 'clickable';
             const status = a.ingestion_status === 'ok'
-              ? '<span class="badge">ok</span>'
-              : `<span class="badge warn">${escapeHtml(a.ingestion_status||'?')}</span>`;
+              ? '<span class="badge" title="Complet : corps assez riche + auteur">ok</span>'
+              : `<span class="badge warn" title="Partiel ou à compléter">${escapeHtml(a.ingestion_status||'?')}</span>`;
             tr.innerHTML = `
               <td><span class="ext">${a.external_id}</span></td>
               <td><strong>${escapeHtml(a.title)}</strong></td>

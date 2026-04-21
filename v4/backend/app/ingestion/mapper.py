@@ -129,6 +129,74 @@ def _ensure_slug(value: str, fallback: str | int = "") -> str:
     return s
 
 
+# Seuil minimal pour considérer le corps comme « complet » (statut ok) côté admin.
+_MIN_BODY_CHARS_FOR_OK = 48
+
+
+def _extract_body_html(item: dict[str, Any]) -> tuple[str, list[str]]:
+    """Récupère le HTML principal selon plusieurs formes de payload WhiteBeard / CMS."""
+    notes: list[str] = []
+    contents = item.get("contents")
+    if isinstance(contents, dict):
+        html = (
+            (contents.get("html") or "").strip()
+            or (contents.get("body") or "").strip()
+            or (contents.get("raw") or "").strip()
+            or (contents.get("rendered") or "").strip()
+        )
+        if html:
+            return html, notes
+    elif isinstance(contents, str) and contents.strip():
+        return contents.strip(), notes
+
+    content = item.get("content")
+    if isinstance(content, dict):
+        html = (
+            (content.get("html") or "").strip()
+            or (content.get("body") or "").strip()
+            or (content.get("rendered") or "").strip()
+        )
+        if html:
+            return html, notes
+    elif isinstance(content, str) and content.strip():
+        return content.strip(), notes
+
+    for key in ("bodyHtml", "body_html", "html", "post_content", "articleBody"):
+        v = item.get(key)
+        if isinstance(v, str) and v.strip():
+            return v.strip(), notes
+
+    notes.append("corps HTML absent (contents/content/html)")
+    return "", notes
+
+
+def _collect_authors(item: dict[str, Any]) -> list[MappedAuthor]:
+    """Auteurs depuis authors[], ou objet author, ou chaîne author."""
+    raw = item.get("authors")
+    if isinstance(raw, list) and raw:
+        return _map_authors(raw)
+    solo = item.get("author")
+    if isinstance(solo, dict) and _pick(solo, "name", "fullname", "displayName"):
+        return _map_authors([solo])
+    if isinstance(solo, str) and solo.strip():
+        name = solo.strip()
+        return [
+            MappedAuthor(
+                external_id=None,
+                name=name,
+                slug=_ensure_slug(name),
+                role="journalist",
+                department=None,
+                biography_html=None,
+                biography_text=None,
+                description=None,
+                image_url=None,
+                raw={"from": "author_string"},
+            )
+        ]
+    return []
+
+
 def map_article(payload: dict[str, Any]) -> MappedArticle:
     """Transforme le payload WhiteBeard brut en `MappedArticle` complet.
 
@@ -159,16 +227,17 @@ def map_article(payload: dict[str, Any]) -> MappedArticle:
     signature = _pick(item, "signature")
     seo = item.get("seo") if isinstance(item.get("seo"), dict) else None
 
-    contents = item.get("contents")
-    if isinstance(contents, dict):
-        body_html = contents.get("html") or contents.get("body") or ""
-    elif isinstance(contents, str):
-        body_html = contents
-    else:
-        body_html = ""
+    body_html, body_notes = _extract_body_html(item)
+    notes.extend(body_notes)
+
+    # Dernier recours : introduction/chapo parfois seul bloc texte renvoyé par l’API
+    if not body_html.strip() and introduction:
+        intro = introduction.strip()
+        if intro:
+            body_html = intro if "<" in intro and ">" in intro else f"<p>{intro}</p>"
+            notes.append("corps: fallback introduction")
+
     body_text = _html_to_text(body_html)
-    if not body_html:
-        notes.append("contents.html absent")
 
     cover = item.get("image") or item.get("cover") or {}
     if isinstance(cover, dict):
@@ -189,13 +258,13 @@ def map_article(payload: dict[str, Any]) -> MappedArticle:
             )
         ]
 
-    authors = _map_authors(item.get("authors") or [])
+    authors = _collect_authors(item)
     keywords = _map_keywords(item.get("keywords") or [])
     categories = _map_categories(item.get("categories") or [])
 
     if not authors:
         # Fallback : signature texte -> author "name only"
-        sig = item.get("signature") or item.get("author")
+        sig = item.get("signature")
         if isinstance(sig, str) and sig.strip():
             authors = [
                 MappedAuthor(
@@ -212,11 +281,36 @@ def map_article(payload: dict[str, Any]) -> MappedArticle:
                 )
             ]
 
-    status = "ok"
-    if not body_html or not authors:
-        status = "partial"
-    if not body_html and not summary and not authors:
+    body_stripped = (body_html or "").strip()
+    has_substantial_body = len(body_stripped) >= _MIN_BODY_CHARS_FOR_OK
+
+    if not authors and has_substantial_body:
+        # API souvent sans auteurs : statut « ok » possible pour la base RAG
+        notes.append("auteur: Rédaction L'Orient-Le Jour (API sans auteurs)")
+        authors = [
+            MappedAuthor(
+                external_id=None,
+                name="Rédaction L'Orient-Le Jour",
+                slug="redaction-lorient-le-jour",
+                role="journalist",
+                department=None,
+                biography_html=None,
+                biography_text=None,
+                description=None,
+                image_url=None,
+                raw={"from": "default_editorial"},
+            )
+        ]
+
+    has_teaser = bool((summary or "").strip() or (introduction or "").strip())
+
+    # ok = corps assez riche + au moins un auteur (y compris défaut rédaction)
+    # needs_playwright = rien à indexer (pas de HTML, pas de chapo/résumé, pas d’auteur)
+    status = "partial"
+    if not body_stripped and not has_teaser and not authors:
         status = "needs_playwright"
+    elif has_substantial_body and authors:
+        status = "ok"
 
     return MappedArticle(
         external_id=external_id,

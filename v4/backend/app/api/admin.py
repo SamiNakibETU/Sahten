@@ -53,6 +53,17 @@ async def stats(session: AsyncSession = Depends(get_session)) -> dict[str, Any]:
         select(func.count()).select_from(Chunk).where(Chunk.embedding.is_not(None))
     )
     counts["chunks_embedded"] = int(embedded.scalar_one() or 0)
+
+    by_status = (
+        await session.execute(
+            select(Article.ingestion_status, func.count())
+            .group_by(Article.ingestion_status)
+            .order_by(Article.ingestion_status)
+        )
+    ).all()
+    counts["articles_by_status"] = {
+        str(row[0]): int(row[1]) for row in by_status if row[0]
+    }
     return {"counts": counts}
 
 
