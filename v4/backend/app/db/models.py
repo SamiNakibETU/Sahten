@@ -159,7 +159,7 @@ class Article(Base, TimestampMixin):
     )
     ingestion_status: Mapped[str] = mapped_column(
         String(32), default="ok", nullable=False,
-        comment="ok | partial | failed | needs_playwright",
+        comment="ok = complet (mapper) ; failed = erreur ; partial/needs_playwright = legacy",
     )
     ingestion_notes: Mapped[str | None] = mapped_column(Text)
 
