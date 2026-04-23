@@ -244,6 +244,14 @@ Règles ABSOLUES :
    une autre recette, un autre chef ou une « variante » nommée qui ne figure pas
    dans les extraits : pas de `recipe_card_secondary`, et pas de mention
    détaillée hors corpus.
+17. **Recette demandée absente, alternative pertinente** : si l'utilisateur cite un
+   **plat ou une fiche précise** absente du CONTEXTE mais qu'un autre extrait
+   reste pertinent (même ingrédient principal, même esprit libanais ou
+   méditerranéen), fais commencer la réponse par cette phrase **exacte** :
+   « Je suis désolé, mais je n'ai pas cette recette dans mes carnets. Mais pour me faire pardonner je peux te proposer »
+   puis présente la recette retenue (chunks de **cet** article). N'utilise pas
+   cette accroche si le CONTEXTE contient déjà la recette exacte, ni pour des
+   requêtes vagues (« idée d'hiver », « un truc rapide ») sans plat nommé.
 """
 
 
@@ -420,5 +428,29 @@ def validate_grounding(
             answer.chef_card = None
         else:
             answer.chef_card = cc.model_copy(update={"source_chunk_ids": cc_ids})
+
+    # Même article ou même titre : une seule carte (évite doublon visuel dans le widget).
+    if answer.recipe_card is not None and answer.recipe_card_secondary is not None:
+
+        def _article_id_for(rc: RecipeCard) -> int | None:
+            want = {cid for cid in rc.source_chunk_ids if cid in valid_ids}
+            for h in hits:
+                if h.hit.chunk_id in want:
+                    return int(h.hit.article_external_id)
+            return None
+
+        def _norm_recipe_title(t: str) -> str:
+            return " ".join(t.strip().lower().replace("’", "'").split())
+
+        a1, a2 = _article_id_for(answer.recipe_card), _article_id_for(
+            answer.recipe_card_secondary
+        )
+        if a1 is not None and a2 is not None and a1 == a2:
+            answer.recipe_card_secondary = None
+        else:
+            t1 = _norm_recipe_title(answer.recipe_card.title)
+            t2 = _norm_recipe_title(answer.recipe_card_secondary.title)
+            if t1 and t2 and t1 == t2:
+                answer.recipe_card_secondary = None
 
     return answer

@@ -1,6 +1,6 @@
 /**
- * SAHTEN CLIENT (v2.1)
- * Persona: Editorial Chef from L'Orient-Le Jour
+ * Sahteïn — client widget (v2.2)
+ * L’Orient-Le Jour · assistant recettes
  * 
  * Features:
  * - Model selection (nano/mini/auto)
@@ -143,6 +143,9 @@ export class SahtenChat {
         this._a11yLive = null;
         /** Texte affiché à gauche du bouton flottant (sans survol). */
         this.TRIGGER_HINT_TEXT = 'Une idée recette ?';
+        /** Sauvegarde des derniers échanges côté client (complète la session serveur / Redis). */
+        this._localTurnsKey = 'sahten_v4_conversation';
+        this._maxLocalTurns = 5;
 
         this.init();
     }
@@ -154,6 +157,7 @@ export class SahtenChat {
         this.ensureA11yLiveRegion();
         const initialSize = this.dom.container.dataset.size || this.state.size;
         this.setSize(initialSize);
+        this._restoreLocalHistoryIfAny();
         this.loadModels();
     }
 
@@ -226,6 +230,65 @@ export class SahtenChat {
         }
         
         return sessionId;
+    }
+
+    _restoreLocalHistoryIfAny() {
+        if (!this.dom.body) return;
+        try {
+            const raw = localStorage.getItem(this._localTurnsKey);
+            if (!raw) return;
+            const data = JSON.parse(raw);
+            if (
+                !data ||
+                data.sessionId !== this.state.sessionId ||
+                !Array.isArray(data.turns) ||
+                data.turns.length === 0
+            ) {
+                return;
+            }
+            this.dom.body.innerHTML = '';
+            for (const t of data.turns) {
+                if (!t || typeof t.user !== 'string' || typeof t.html !== 'string') continue;
+                this.appendUserMessage(t.user);
+                this.appendBotMessage(
+                    { html: t.html, request_id: t.request_id ?? null },
+                    { skipPersist: true }
+                );
+            }
+        } catch {
+            /* quota / parse */
+        }
+    }
+
+    _persistLocalHistory() {
+        if (!this.dom.body) return;
+        try {
+            const turns = [];
+            const userNodes = this.dom.body.querySelectorAll('.msg-user');
+            userNodes.forEach((un) => {
+                const ub = un.querySelector('.msg-user-bubble');
+                if (!ub) return;
+                const uText = ub.textContent.replace(/\s+/g, ' ').trim();
+                let next = un.nextElementSibling;
+                while (next && next.classList.contains('loading-indicator')) {
+                    next = next.nextElementSibling;
+                }
+                if (!next || !next.classList.contains('msg-bot')) return;
+                let html = next.innerHTML;
+                if (html.length > 120_000) {
+                    html = html.slice(0, 120_000);
+                }
+                const rid = next.dataset.requestId || null;
+                turns.push({ user: uText, html, request_id: rid });
+            });
+            const last = turns.slice(-this._maxLocalTurns);
+            localStorage.setItem(
+                this._localTurnsKey,
+                JSON.stringify({ sessionId: this.state.sessionId, turns: last })
+            );
+        } catch {
+            /* private mode / quota */
+        }
     }
 
     async loadModels() {
@@ -633,10 +696,14 @@ export class SahtenChat {
         this.scrollToBottom();
     }
 
-    appendBotMessage(data) {
+    appendBotMessage(data, options = {}) {
+        const skipPersist = options.skipPersist === true;
         const div = document.createElement('div');
         div.className = 'msg msg-bot';
         div.innerHTML = sanitizeHTML(data.html);
+        if (data.request_id) {
+            div.dataset.requestId = data.request_id;
+        }
 
         if (data.request_id) {
             this.trackImpressions(div, data);
@@ -647,6 +714,9 @@ export class SahtenChat {
         this.dom.body.appendChild(div);
         this.initializeRestaurantMap(div);
         this.scrollToResponseStart();
+        if (!skipPersist) {
+            this._persistLocalHistory();
+        }
     }
 
     initializeRestaurantMap(container) {
