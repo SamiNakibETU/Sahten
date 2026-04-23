@@ -1,15 +1,16 @@
 """Pipeline RAG complet de bout-en-bout.
 
     user_query
-        -> QueryAnalyzer (LLM, JSON schema)        # filtres + reformulation
-        -> HybridRetriever (pgvector + tsvector)   # candidats fusionnés RRF
+        -> QueryAnalyzer (LLM) + SessionFocus (LLM, si historique)  # plan + fil
+        -> HybridRetriever (pgvector + tsvector)   # RRF, élargissement corpus
         -> Reranker (Cohere ou BGE local)          # cross-encoder
-        -> ResponseGenerator (LLM, JSON schema)    # réponse + grounding
+        -> ResponseGenerator (LLM)                  # réponse + grounding
         -> validate_grounding                      # filtre des phrases non sourcées
 """
 
 from __future__ import annotations
 
+import asyncio
 import re
 import time
 from dataclasses import dataclass
@@ -19,6 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from .. import sessions as sessions_store
 from ..llm.query_understanding import QueryAnalyzer, QueryPlan
+from ..llm.session_focus import SessionFocus, SessionFocusAnalyzer
 from ..llm.response_generator import GroundedAnswer, ResponseGenerator
 from ..settings import get_settings
 from .embeddings import OpenAIEmbeddings
@@ -28,119 +30,19 @@ from .reranker import RerankedHit
 
 log = structlog.get_logger(__name__)
 
-def _query_for_query_analyzer(
-    user_query: str, conversation_history: str | None,
-) -> str:
-    """Attache l'historique pour les suites de conversation (encore, oui, relances…)
-    afin que la reformulation de recherche garde le fil (ingrédient, thème, réponse
-    à une question de relance comme le fattouche)."""
-    t = (user_query or "").strip()
-    h = (conversation_history or "").strip()
-    if not t or not h:
-        return t
-    if len(t) > 220:
-        return t
-    tl = t.lower()
-    words = t.split()
-    continuation = any(
-        m in tl
-        for m in (
-            "encore",
-            "une autre",
-            "un autre",
-            "autre recette",
-            "autre idée",
-            "autre suggestion",
-            "autre variante",
-            "la suite",
-            "autrement",
-            "et sinon",
-        )
-    ) or tl in (
-        "autre",
-        "encore",
-        "suggestion suivante",
-    )
-    # Réponses courtes : interprétation par rapport au dernier échange / relance
-    if not continuation and len(words) <= 10 and len(t) <= 160:
-        continuation = True
-    if not continuation:
-        return t
-    return (
-        f"{t}\n\n[Contexte de la conversation en cours — à utiliser pour reformuler "
-        f"la recherche, en particulier l'ingrédient, le thème ou le type de plat]:\n{h}"
-    )
 
-
-# (phrase dans un tour Utilisateur) -> slug ingrédient (kebab) pour le filtre SQL
-_USER_ING_TO_SLUG: list[tuple[str, str]] = [
-    ("concombre", "concombre"),
-    ("courgette", "courgette"),
-    ("aubergine", "aubergine"),
-    ("tomate", "tomate"),
-    ("poulet", "poulet"),
-    ("poulets", "poulet"),
-    ("agneau", "agneau"),
-    ("bœuf", "boeuf"),
-    ("boeuf", "boeuf"),
-    ("pois chiche", "pois-chiche"),
-    ("boulgour", "boulgour"),
-    ("boulghour", "boulgour"),
-    ("bourghol", "boulgour"),
-    ("semoule", "semoule"),
-    ("sémoule", "semoule"),
-    ("yaourt", "yaourt"),
-    ("yogourt", "yaourt"),
-    ("lentille", "lentille"),
-    ("riz", "riz"),
-]
-
-
-def _ingredient_slugs_from_user_history_block(conversation_history: str) -> list[str]:
-    """Relit uniquement les lignes « Utilisateur : » (pas les relances du bot)."""
-    out: list[str] = []
-    for line in (conversation_history or "").splitlines():
-        low = line.lower()
-        if not low.lstrip().startswith("utilisateur :"):
+def _dedupe_merge_hits(primary: list[Hit], secondary: list[Hit], *, cap: int = 100) -> list[Hit]:
+    """Préserve l’ordre (fusionner sans doublon de chunk) pour alimenter le reranker."""
+    seen: set[int] = {h.chunk_id for h in primary}
+    out = list(primary)
+    for h in secondary:
+        if h.chunk_id in seen:
             continue
-        uline = line.split(":", 1)[-1] if ":" in line else line
-        ulow = uline.lower()
-        for phrase, slug in _USER_ING_TO_SLUG:
-            if phrase in ulow and slug not in out:
-                out.append(slug)
+        seen.add(h.chunk_id)
+        out.append(h)
+        if len(out) >= cap:
+            break
     return out
-
-
-def _looks_like_same_thread_followup(user_query: str) -> bool:
-    """Tours où l’utilisateur vise le même thème/ingrédient (« autre recette »…)."""
-    u = (user_query or "").lower()
-    if len(u.split()) > 20:
-        return False
-    if re.search(
-        r"\b(autre|encore|plut[ôo]t|pr[ée]f[éeè]r|pr[ée]fr|j['’]aimer|"
-        r"suggestion|suite|autrement|d['’]autre|d['’]autres)\b",
-        u,
-    ):
-        return True
-    return u.strip() in ("oui", "non", "ok", "d'accord", "merci", "s'il te plait", "si")
-
-
-def _enrich_plan_from_user_history(
-    user_query: str,
-    conversation_history: str | None,
-    plan: QueryPlan,
-) -> QueryPlan:
-    """Sécurise le fil d’ingrédient : le LLM oublie parfois « concombre » sur « autre recette »."""
-    h = (conversation_history or "").strip()
-    if not h or not _looks_like_same_thread_followup(user_query):
-        return plan
-    from_hist = _ingredient_slugs_from_user_history_block(h)
-    if not from_hist:
-        return plan
-    merged = list(dict.fromkeys([*(plan.ingredient_slugs or []), *from_hist]))
-    if merged == list(plan.ingredient_slugs or []):
-        return plan
-    return plan.model_copy(update={"ingredient_slugs": merged})
 
 
 def _expand_search_q_with_ingredients(base_q: str, plan: QueryPlan) -> str:
@@ -238,6 +140,7 @@ class RagPipeline:
         generator: ResponseGenerator | None = None,
     ) -> None:
         self.analyzer = analyzer or QueryAnalyzer()
+        self._session_focus = SessionFocusAnalyzer()
         self.retriever = retriever or HybridRetriever(OpenAIEmbeddings())
         self.reranker = reranker or build_default_reranker()
         self.generator = generator or ResponseGenerator()
@@ -251,10 +154,21 @@ class RagPipeline:
         q: str,
         rerank_top_n: int,
         exclude_article_external_ids: list[int],
+        *,
+        force_corpus_broaden: bool = False,
     ) -> list[Hit]:
-        """Recherche hybride + retries (filtres, fallbacks)."""
-        final_limit = max(30, rerank_top_n * 4)
+        """Recherche hybride + retries (filtres, fallbacks, élargissement corpus)."""
+        s = self.settings
         excl = exclude_article_external_ids
+        ex_boost = min(80, len(excl) * s.rag_retrieval_extra_limit_per_excluded)
+        final_limit = max(30, rerank_top_n * 4) + ex_boost
+
+        has_sql_filters = bool(
+            plan.chef_slugs
+            or plan.ingredient_slugs
+            or plan.category_slugs
+            or plan.keyword_slugs
+        )
 
         hits = await self.retriever.search(
             session,
@@ -266,12 +180,7 @@ class RagPipeline:
             final_limit=final_limit,
             exclude_article_external_ids=excl,
         )
-        if not hits and (
-            plan.chef_slugs
-            or plan.ingredient_slugs
-            or plan.category_slugs
-            or plan.keyword_slugs
-        ):
+        if not hits and has_sql_filters:
             log.warning(
                 "rag.pipeline.retrieval_empty_with_filters_retrying_broad",
                 ingredient_slugs=plan.ingredient_slugs,
@@ -287,6 +196,37 @@ class RagPipeline:
                 final_limit=final_limit,
                 exclude_article_external_ids=excl,
             )
+        if (
+            s.rag_retrieval_widen_enabled
+            and has_sql_filters
+            and hits
+            and (
+                force_corpus_broaden
+                or len(hits) < s.rag_retrieval_widen_min_hits
+            )
+        ):
+            try:
+                broad = await self.retriever.search(
+                    session,
+                    q,
+                    chef_slugs=[],
+                    ingredient_slugs=[],
+                    category_slugs=[],
+                    keyword_slugs=[],
+                    final_limit=final_limit + 24,
+                    exclude_article_external_ids=excl,
+                )
+                n0 = len(hits)
+                hits = _dedupe_merge_hits(hits, broad, cap=120)
+                if len(hits) > n0:
+                    log.info(
+                        "rag.pipeline.retrieval_merged_corpus_broaden",
+                        n_before=n0,
+                        n_after=len(hits),
+                        force=force_corpus_broaden,
+                    )
+            except Exception as exc:  # noqa: BLE001
+                log.warning("rag.pipeline.retrieval_widen_merge_failed", error=str(exc))
         if not hits:
             base = q.strip()
             for alt in _retrieval_fallback_queries(user_query, plan):
@@ -332,30 +272,48 @@ class RagPipeline:
         rerank_top_n = rerank_top_n or self.settings.rag_rerank_top_k
 
         t0 = time.perf_counter()
+        focus: SessionFocus | None = None
         try:
-            plan = await self.analyzer.analyze(
-                _query_for_query_analyzer(user_query, conversation_history)
-            )
+            if conversation_history and conversation_history.strip():
+                plan, focus = await asyncio.gather(
+                    self.analyzer.analyze(
+                        user_query, conversation_history=conversation_history
+                    ),
+                    self._session_focus.infer(
+                        user_query, conversation_history
+                    ),
+                )
+            else:
+                plan = await self.analyzer.analyze(
+                    user_query, conversation_history=None
+                )
         except Exception as exc:  # noqa: BLE001
-            log.warning("rag.pipeline.query_analyze_failed_fallback", error=str(exc))
-            plan = QueryPlan(
-                rewritten_query=(user_query or "").strip(),
-                intent="mixed",
-                chef_slugs=[],
-                ingredient_slugs=[],
-                category_slugs=[],
-                keyword_slugs=[],
-                focus_section_kinds=[],
-                needs_context_after=False,
-            )
-        plan = _enrich_plan_from_user_history(
-            user_query, conversation_history, plan
-        )
+            log.warning("rag.pipeline.query_focus_failed_fallback", error=str(exc))
+            try:
+                plan = await self.analyzer.analyze(
+                    user_query, conversation_history=conversation_history
+                )
+            except Exception as exc2:  # noqa: BLE001
+                log.warning("rag.pipeline.query_analyze_failed_fallback", error=str(exc2))
+                plan = QueryPlan(
+                    rewritten_query=(user_query or "").strip(),
+                    intent="mixed",
+                    chef_slugs=[],
+                    ingredient_slugs=[],
+                    category_slugs=[],
+                    keyword_slugs=[],
+                    focus_section_kinds=[],
+                    needs_context_after=False,
+                )
+            focus = None
         timings["query_understanding_ms"] = int((time.perf_counter() - t0) * 1000)
 
         t1 = time.perf_counter()
         base_q = (plan.rewritten_query or user_query or "").strip()
         q = _expand_search_q_with_ingredients(base_q, plan)
+        if focus and (focus.search_boost_phrase or "").strip():
+            q = f"{q} {(focus.search_boost_phrase or '').strip()}".strip()
+        force_broaden = bool(focus and focus.suggest_broaden_corpus_search)
         excluded: list[int] = []
         if session_id:
             try:
@@ -364,7 +322,13 @@ class RagPipeline:
                 log.warning("rag.pipeline.session_exclusions_failed", error=str(exc))
         try:
             hits = await self._retrieve_hits(
-                session, user_query, plan, q, rerank_top_n, excluded
+                session,
+                user_query,
+                plan,
+                q,
+                rerank_top_n,
+                excluded,
+                force_corpus_broaden=force_broaden,
             )
             if not hits and excluded:
                 log.info(
@@ -372,7 +336,13 @@ class RagPipeline:
                     n_excluded=len(excluded),
                 )
                 hits = await self._retrieve_hits(
-                    session, user_query, plan, q, rerank_top_n, []
+                    session,
+                    user_query,
+                    plan,
+                    q,
+                    rerank_top_n,
+                    [],
+                    force_corpus_broaden=force_broaden,
                 )
         except Exception as exc:  # noqa: BLE001
             log.exception("rag.pipeline.retrieval_failed")
@@ -380,7 +350,7 @@ class RagPipeline:
         timings["retrieval_ms"] = int((time.perf_counter() - t1) * 1000)
 
         t2 = time.perf_counter()
-        rq = _expand_search_q_with_ingredients(base_q, plan)
+        rq = q
         try:
             reranked = await self.reranker.rerank(rq, hits, top_n=rerank_top_n)
         except Exception as exc:  # noqa: BLE001
@@ -396,10 +366,16 @@ class RagPipeline:
         timings["rerank_ms"] = int((time.perf_counter() - t2) * 1000)
 
         t3 = time.perf_counter()
+        thread_summary = (
+            (focus.thread_summary or "").strip()
+            if focus
+            else ""
+        )
         answer = await self.generator.generate(
             user_query,
             reranked,
             conversation_history=conversation_history,
+            session_thread_summary=thread_summary or None,
         )
         timings["generation_ms"] = int((time.perf_counter() - t3) * 1000)
         timings["total_ms"] = sum(timings.values())

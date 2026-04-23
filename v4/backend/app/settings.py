@@ -66,6 +66,11 @@ class Settings(BaseSettings):
     rag_rerank_top_k: int = 8
     rag_min_rerank_score: float = 0.20
     rag_rrf_k: int = 60
+    # Retrieval : si peu de candidats avec filtres SQL (tags), fusion avec une passe « texte seul »
+    rag_retrieval_widen_enabled: bool = True
+    rag_retrieval_widen_min_hits: int = 8
+    # +candidats quand on exclut des articles session (diversité)
+    rag_retrieval_extra_limit_per_excluded: int = 12
 
     @field_validator("log_level")
     @classmethod

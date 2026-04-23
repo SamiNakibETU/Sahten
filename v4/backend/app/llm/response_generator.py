@@ -293,6 +293,7 @@ class ResponseGenerator:
         hits: list[RerankedHit],
         *,
         conversation_history: str | None = None,
+        session_thread_summary: str | None = None,
     ) -> GroundedAnswer:
         if not hits:
             # Pas d'appel LLM : sans chunks le schéma JSON serait rempli d'inventions
@@ -342,6 +343,12 @@ class ResponseGenerator:
                 "suivant). Le message actuel de l’utilisateur est la ligne "
                 "QUESTION ci-dessous :\n"
                 + conversation_history.strip()
+            )
+        if session_thread_summary and session_thread_summary.strip():
+            user_parts.append(
+                "Synthèse du fil (module session, à prendre en compte pour la "
+                "cohérence, sans contredire le CONTEXTE) :\n"
+                + session_thread_summary.strip()
             )
         user_parts.append(f"QUESTION : {user_query.strip()}")
         user_parts.append(context)
