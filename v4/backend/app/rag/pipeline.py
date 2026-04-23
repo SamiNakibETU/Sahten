@@ -72,6 +72,94 @@ def _query_for_query_analyzer(
     )
 
 
+# (phrase dans un tour Utilisateur) -> slug ingrédient (kebab) pour le filtre SQL
+_USER_ING_TO_SLUG: list[tuple[str, str]] = [
+    ("concombre", "concombre"),
+    ("courgette", "courgette"),
+    ("aubergine", "aubergine"),
+    ("tomate", "tomate"),
+    ("poulet", "poulet"),
+    ("poulets", "poulet"),
+    ("agneau", "agneau"),
+    ("bœuf", "boeuf"),
+    ("boeuf", "boeuf"),
+    ("pois chiche", "pois-chiche"),
+    ("boulgour", "boulgour"),
+    ("boulghour", "boulgour"),
+    ("bourghol", "boulgour"),
+    ("semoule", "semoule"),
+    ("sémoule", "semoule"),
+    ("yaourt", "yaourt"),
+    ("yogourt", "yaourt"),
+    ("lentille", "lentille"),
+    ("riz", "riz"),
+]
+
+
+def _ingredient_slugs_from_user_history_block(conversation_history: str) -> list[str]:
+    """Relit uniquement les lignes « Utilisateur : » (pas les relances du bot)."""
+    out: list[str] = []
+    for line in (conversation_history or "").splitlines():
+        low = line.lower()
+        if not low.lstrip().startswith("utilisateur :"):
+            continue
+        uline = line.split(":", 1)[-1] if ":" in line else line
+        ulow = uline.lower()
+        for phrase, slug in _USER_ING_TO_SLUG:
+            if phrase in ulow and slug not in out:
+                out.append(slug)
+    return out
+
+
+def _looks_like_same_thread_followup(user_query: str) -> bool:
+    """Tours où l’utilisateur vise le même thème/ingrédient (« autre recette »…)."""
+    u = (user_query or "").lower()
+    if len(u.split()) > 20:
+        return False
+    if re.search(
+        r"\b(autre|encore|plut[ôo]t|pr[ée]f[éeè]r|pr[ée]fr|j['’]aimer|"
+        r"suggestion|suite|autrement|d['’]autre|d['’]autres)\b",
+        u,
+    ):
+        return True
+    return u.strip() in ("oui", "non", "ok", "d'accord", "merci", "s'il te plait", "si")
+
+
+def _enrich_plan_from_user_history(
+    user_query: str,
+    conversation_history: str | None,
+    plan: QueryPlan,
+) -> QueryPlan:
+    """Sécurise le fil d’ingrédient : le LLM oublie parfois « concombre » sur « autre recette »."""
+    h = (conversation_history or "").strip()
+    if not h or not _looks_like_same_thread_followup(user_query):
+        return plan
+    from_hist = _ingredient_slugs_from_user_history_block(h)
+    if not from_hist:
+        return plan
+    merged = list(dict.fromkeys([*(plan.ingredient_slugs or []), *from_hist]))
+    if merged == list(plan.ingredient_slugs or []):
+        return plan
+    return plan.model_copy(update={"ingredient_slugs": merged})
+
+
+def _expand_search_q_with_ingredients(base_q: str, plan: QueryPlan) -> str:
+    """Aligne requête BM25/embedding sur les mots d’ingrédient s’ils ne sont pas déjà dans q."""
+    qn = (base_q or "").strip()
+    qlow = qn.lower()
+    extra: list[str] = []
+    for s in plan.ingredient_slugs or []:
+        w = s.replace("-", " ").strip()
+        if not w:
+            continue
+        if w.lower() in qlow:
+            continue
+        extra.append(w)
+    if not extra:
+        return qn
+    return f"{qn} {' '.join(extra)}".strip()
+
+
 _STOPWORDS_FR = {
     "avec",
     "pour",
@@ -260,10 +348,14 @@ class RagPipeline:
                 focus_section_kinds=[],
                 needs_context_after=False,
             )
+        plan = _enrich_plan_from_user_history(
+            user_query, conversation_history, plan
+        )
         timings["query_understanding_ms"] = int((time.perf_counter() - t0) * 1000)
 
         t1 = time.perf_counter()
-        q = plan.rewritten_query or user_query
+        base_q = (plan.rewritten_query or user_query or "").strip()
+        q = _expand_search_q_with_ingredients(base_q, plan)
         excluded: list[int] = []
         if session_id:
             try:
@@ -288,7 +380,7 @@ class RagPipeline:
         timings["retrieval_ms"] = int((time.perf_counter() - t1) * 1000)
 
         t2 = time.perf_counter()
-        rq = plan.rewritten_query or user_query
+        rq = _expand_search_q_with_ingredients(base_q, plan)
         try:
             reranked = await self.reranker.rerank(rq, hits, top_n=rerank_top_n)
         except Exception as exc:  # noqa: BLE001

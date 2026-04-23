@@ -205,7 +205,10 @@ Règles ABSOLUES :
 9. Pour une question répétée (même ingrédient), privilégie un AUTRE article
    du contexte que celui déjà évoqué si le contexte le permet ; sinon dis
    clairement que les archives ne montrent pas d'autre fiche pour cette
-   requête.
+   requête. Si les lignes du CONTEXTE portent sur **au moins deux** numéros
+   `article=` distincts, il existe d’autre(s) fiche(s) dans ce contexte : ne
+   dis pas qu’il n’y a « aucune autre recette » sur cet ingrédient sans
+   t’appuyer sur **un** de ces extraits (carte + citations).
 10. **Trafic vers l'article (obligatoire pour les recettes)** : le widget ne doit
    PAS reproduire la recette complète (ni liste d'ingrédients détaillée, ni étapes
    numérotées copiées du contexte). Objectif : donner envie d'ouvrir la fiche sur
@@ -318,7 +321,19 @@ class ResponseGenerator:
             )
 
         context = _format_context(hits)
+        n_articles = len({h.hit.article_external_id for h in hits})
         user_parts: list[str] = []
+        uq0 = (user_query or "").lower()
+        if n_articles > 1 and any(
+            w in uq0 for w in ("autre", "encore", "préfér", "prefere", "préfr", "suite")
+        ):
+            user_parts.append(
+                f"Note (session) : le CONTEXTE ci-dessous contient **{n_articles}** "
+                f"articles (`article=`) distincts. Pour « une autre recette » sur le "
+                f"même fil, tu dois t’appuyer sur un article **différent** de celui "
+                f"évoqué en dernier dans l’HISTORIQUE si un tel extrait s’y prête, "
+                f"et citer les bons `chunk_id`."
+            )
         if conversation_history and conversation_history.strip():
             user_parts.append(
                 "HISTORIQUE DU CHAT (tours précédents complets : questions, "
