@@ -99,6 +99,13 @@
     .chunk header { display: flex; gap: 8px; font-size: 11px; color: var(--ink-2); margin-bottom: 4px; font-family: var(--mono); }
     .chunk pre { white-space: pre-wrap; font-family: var(--ui); font-size: 12.5px; color: var(--ink); }
     .close-btn { float: right; background: transparent; color: var(--ink-2); border: 1px solid var(--line); }
+    .article-recap { white-space: pre-wrap; line-height: 1.45; font-size: 13px; }
+    .body-preview {
+      display: block; max-height: 38vh; overflow: auto; margin: 0;
+      padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px;
+      background: var(--bg); font-family: var(--ui); font-size: 12.5px;
+      line-height: 1.45; white-space: pre-wrap; word-break: break-word;
+    }
   </style>
 </head>
 <body>
@@ -250,7 +257,12 @@
           ${a.n_chunks} chunks
         `;
         if (a.subtitle) summary.innerHTML += `<p style="font-style:italic;color:var(--ink-2)">${escapeHtml(a.subtitle)}</p>`;
-        if (a.summary) summary.innerHTML += `<p>${escapeHtml(a.summary)}</p>`;
+        const recap = (a.summary_plain && a.summary_plain.trim()) ? a.summary_plain : (a.summary || '');
+        if (recap) summary.innerHTML += `<p class="article-recap">${escapeHtml(recap)}</p>`;
+        if (a.body_text_preview) {
+          const full = a.body_text_preview.length >= 24000;
+          summary.innerHTML += `<h3 style="font-size:14px;margin:12px 0 6px">Texte indexé (corps)</h3><pre class="body-preview">${escapeHtml(a.body_text_preview)}${full ? '…' : ''}</pre>`;
+        }
         if (a.ingestion_notes) summary.innerHTML += `<p style="color:#b35900;font-size:12px">⚠ ${escapeHtml(a.ingestion_notes)}</p>`;
         chunks.innerHTML = '<h3 style="font-family:var(--serif);font-size:16px;margin:8px 0">Chunks indexés</h3>';
         (a.chunks || []).forEach(c => {

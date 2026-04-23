@@ -16,6 +16,7 @@ insérés dans la table `chunks`.
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -45,21 +46,100 @@ def _count_tokens(text: str) -> int:
     return len(_enc.encode(text or "", disallowed_special=()))
 
 
+_SENTENCE_SPLIT = re.compile(r"(?<=[.!?…])\s+")
+
+
 def _split_long(text: str, max_tokens: int, overlap: int) -> list[str]:
-    """Split greedy par tokens, avec chevauchement pour préserver le contexte."""
-    ids = _enc.encode(text, disallowed_special=())
-    if len(ids) <= max_tokens:
-        return [text]
+    """Découpe sans couper au milieu d’un mot : phrases d’abord, puis fenêtres
+    avec borne droite sur un espace (plus de fragments du type « bour… » + « , versez »).
+    """
+    t = (text or "").strip()
+    if not t:
+        return []
+    if _count_tokens(t) <= max_tokens:
+        return [t]
+
+    # 1) Blocs par phrases courtes
+    sentences = [s.strip() for s in _SENTENCE_SPLIT.split(t) if s.strip()]
+    if len(sentences) <= 1:
+        sentences = [t]
+
+    parts: list[str] = []
+    buf: list[str] = []
+    tok = 0
+    gap = 1  # espace entre phrases
+
+    def flush() -> None:
+        nonlocal buf, tok
+        if buf:
+            parts.append(" ".join(buf))
+            buf = []
+            tok = 0
+
+    for sent in sentences:
+        stoks = _count_tokens(sent)
+        if stoks > max_tokens:
+            flush()
+            parts.extend(_split_long_overflow_sentence(sent, max_tokens, overlap))
+            continue
+        if not buf:
+            buf.append(sent)
+            tok = stoks
+            continue
+        if tok + gap + stoks <= max_tokens:
+            buf.append(sent)
+            tok += gap + stoks
+        else:
+            flush()
+            buf = [sent]
+            tok = stoks
+    flush()
+
     out: list[str] = []
-    step = max(1, max_tokens - overlap)
-    for start in range(0, len(ids), step):
-        window = ids[start : start + max_tokens]
-        if not window:
+    for p in parts:
+        if _count_tokens(p) <= max_tokens:
+            out.append(p)
+        else:
+            out.extend(_split_long_overflow_sentence(p, max_tokens, overlap))
+    return [x for x in out if x.strip()]
+
+
+def _split_long_overflow_sentence(text: str, max_tokens: int, overlap: int) -> list[str]:
+    """Découpe un long paragraphe : fenêtre max tokens puis reculer à la dernière espace.
+
+    Pas de chevauchement token-par-token (causait des morceils « , suite… » au début du 2ᵉ chunk).
+    Le paramètre ``overlap`` est conservé pour compat ; le découpage reste propre.
+    """
+    _ = overlap  # conservé pour compat d’API ; overlap optionnel pour une V2
+    n = len(text)
+    chunks: list[str] = []
+    start = 0
+    while start < n:
+        lo, hi = start + 1, n
+        cut = start
+        while lo <= hi:
+            mid = (lo + hi) // 2
+            frag = text[start:mid]
+            if frag.strip() and _count_tokens(frag) <= max_tokens:
+                cut = mid
+                lo = mid + 1
+            else:
+                hi = mid - 1
+        if cut <= start:
+            cut = min(start + 1, n)
+        piece = text[start:cut]
+        if cut < n:
+            sp = piece.rfind(" ")
+            if sp > max(20, len(piece) // 4):
+                piece = piece[:sp]
+                cut = start + sp
+        piece = piece.strip()
+        if piece:
+            chunks.append(piece)
+        if cut >= n:
             break
-        out.append(_enc.decode(window))
-        if start + max_tokens >= len(ids):
-            break
-    return out
+        start = cut
+    return [c for c in chunks if c.strip()]
 
 
 def chunk_article(

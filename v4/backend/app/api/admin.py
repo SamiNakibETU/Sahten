@@ -31,6 +31,7 @@ from ..db.models import (
     Keyword,
     Person,
 )
+from ..ingestion.mapper import _html_to_text
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
@@ -287,6 +288,9 @@ async def article_detail(
         )
     ).all()
 
+    summary = article.summary or ""
+    body = article.body_text or ""
+
     return {
         "id": article.id,
         "external_id": article.external_id,
@@ -294,6 +298,8 @@ async def article_detail(
         "subtitle": article.subtitle,
         "url": article.url,
         "summary": article.summary,
+        "summary_plain": _html_to_text(summary) if summary.strip() else "",
+        "body_text_preview": body[:24000],
         "is_premium": article.is_premium,
         "first_published_at": article.first_published_at.isoformat()
         if article.first_published_at else None,
