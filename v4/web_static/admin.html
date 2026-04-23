@@ -96,8 +96,31 @@
       border: 1px solid var(--line); border-radius: 8px;
       padding: 10px 12px; margin-bottom: 8px; background: var(--bg);
     }
-    .chunk header { display: flex; gap: 8px; font-size: 11px; color: var(--ink-2); margin-bottom: 4px; font-family: var(--mono); }
+    .chunk header { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; font-size: 11px; color: var(--ink-2); margin-bottom: 6px; font-family: var(--mono); }
     .chunk pre { white-space: pre-wrap; font-family: var(--ui); font-size: 12.5px; color: var(--ink); }
+    .kind-badge {
+      display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.04em; font-family: var(--mono);
+    }
+    .kind-badge.recipe_meta { background: rgba(90,120,180,0.15); color: #345; }
+    .kind-badge.recipe_summary { background: rgba(120,90,160,0.12); color: #423; }
+    .kind-badge.ingredients_list { background: rgba(40,140,100,0.15); color: #163; }
+    .kind-badge.recipe_steps { background: rgba(180,120,40,0.15); color: #630; }
+    .kind-badge.recipe_history { background: rgba(100,100,180,0.14); color: #224; }
+    .kind-badge.chef_astuce { background: rgba(200,140,60,0.15); color: #640; }
+    .kind-badge.chef_bio { background: rgba(60,130,130,0.15); color: #044; }
+    .kind-badge.intro { background: rgba(120,120,120,0.12); color: #444; }
+    .kind-badge.default { background: rgba(0,0,0,0.06); color: var(--ink-2); }
+    .embed-pill { font-size: 10px; padding: 2px 7px; border-radius: 999px; font-weight: 600; }
+    .embed-pill.yes { background: rgba(40,160,90,0.2); color: #0a5; }
+    .embed-pill.no { background: rgba(200,60,60,0.12); color: #a30; }
+    .sections-grid { display: grid; gap: 8px; margin: 12px 0 20px; }
+    .section-card {
+      border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; background: rgba(148,194,174,0.04);
+    }
+    .section-card header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
+    .section-card .ph { font-size: 11px; color: var(--ink-3); }
+    .section-card pre { font-size: 12px; color: var(--ink-2); white-space: pre-wrap; margin: 0; line-height: 1.4; }
     .close-btn { float: right; background: transparent; color: var(--ink-2); border: 1px solid var(--line); }
     .article-recap { white-space: pre-wrap; line-height: 1.45; font-size: 13px; }
     .body-preview {
@@ -169,6 +192,11 @@
 
     function escapeHtml(s) { return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
     function fmtDate(s) { if (!s) return '—'; try { return new Date(s).toLocaleDateString('fr-FR'); } catch { return s; } }
+    function kindBadgeClass(kind) {
+      const k = (kind || 'default').replace(/[^a-z0-9_]/gi, '');
+      const known = ['recipe_meta','recipe_summary','ingredients_list','recipe_steps','recipe_history','chef_astuce','chef_bio','intro','list','paragraph'];
+      return known.includes(k) ? k : 'default';
+    }
 
     async function loadStats() {
       try {
@@ -254,7 +282,7 @@
           ${fmtDate(a.first_published_at)} ·
           <a href="${escapeHtml(a.url)}" target="_blank" rel="noopener">${escapeHtml(a.url)}</a> ·
           ${a.is_premium ? '<span class="badge warn">premium</span>' : '<span class="badge">free</span>'} ·
-          ${a.n_chunks} chunks
+          ${a.n_sections ?? 0} section(s) · ${a.n_chunks} chunk(s)
         `;
         if (a.subtitle) summary.innerHTML += `<p style="font-style:italic;color:var(--ink-2)">${escapeHtml(a.subtitle)}</p>`;
         const recap = (a.summary_plain && a.summary_plain.trim()) ? a.summary_plain : (a.summary || '');
@@ -264,15 +292,42 @@
           summary.innerHTML += `<h3 style="font-size:14px;margin:12px 0 6px">Texte indexé (corps)</h3><pre class="body-preview">${escapeHtml(a.body_text_preview)}${full ? '…' : ''}</pre>`;
         }
         if (a.ingestion_notes) summary.innerHTML += `<p style="color:#b35900;font-size:12px">⚠ ${escapeHtml(a.ingestion_notes)}</p>`;
-        chunks.innerHTML = '<h3 style="font-family:var(--serif);font-size:16px;margin:8px 0">Chunks indexés</h3>';
+        let below = '';
+        const secList = a.sections || [];
+        if (secList.length) {
+          below += `<h3 style="font-family:var(--serif);font-size:16px;margin:16px 0 8px">Sections détectées (${secList.length})</h3>`;
+          below += `<div class="sections-grid" role="list">`;
+          secList.forEach(s => {
+            const kb = kindBadgeClass(s.kind);
+            below += `<div class="section-card" role="listitem"><header>
+              <span class="kind-badge ${kb}">${escapeHtml(s.kind)}</span>
+              <span class="ph">#${s.position}${s.heading ? ' · ' + escapeHtml(s.heading) : ''}</span>
+            </header><pre>${escapeHtml(s.text_preview || '')}</pre></div>`;
+          });
+          below += `</div>`;
+        }
+        below += '<h3 style="font-family:var(--serif);font-size:16px;margin:8px 0">Chunks indexés (RAG)</h3>';
+        chunks.innerHTML = below;
         (a.chunks || []).forEach(c => {
           const div = document.createElement('div');
           div.className = 'chunk';
+          const kb = kindBadgeClass(c.kind);
+          const sk = c.section_kind ? kindBadgeClass(c.section_kind) : 'default';
+          const secLine = c.section_id
+            ? `<span class="kind-badge ${sk}" title="Section source">↳ ${escapeHtml(c.section_kind || '')}</span>`
+            : '';
+          const emb = c.has_embedding
+            ? '<span class="embed-pill yes">vecteur</span>'
+            : '<span class="embed-pill no">sans embedding</span>';
           div.innerHTML = `
             <header>
-              <span>#${c.position} · ${escapeHtml(c.kind)}</span>
-              <span>${c.token_count || '?'} tokens</span>
-              <span>${escapeHtml(c.embedding_model || 'no-embed')}</span>
+              <span class="kind-badge ${kb}">${escapeHtml(c.kind)}</span>
+              ${secLine}
+              <span>#${c.position}</span>
+              <span>id ${c.id}</span>
+              <span>${c.token_count != null ? c.token_count + ' tok' : '—'}</span>
+              ${emb}
+              <span>${escapeHtml(c.embedding_model || '—')}</span>
             </header>
             <pre>${escapeHtml(c.text_preview)}${c.text_preview && c.text_preview.length === 300 ? '…' : ''}</pre>
           `;

@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "description": "Jeu d'or Sahteïn v4 : retrieval (external_id) + sous-chaînes attendues dans la réponse.",
+  "items": [
+    {
+      "id": "taboule-commandements",
+      "query": "Quels sont les commandements du taboulé de Kamal Mouzawak ?",
+      "expected_article_external_ids": [1227694],
+      "answer_must_contain": ["persil", "commandement"]
+    },
+    {
+      "id": "chef-souk",
+      "query": "Qui est le fondateur de Souk el-Tayeb ?",
+      "expected_article_external_ids": [1227694],
+      "answer_must_contain": ["Souk", "Mouzawak"]
+    },
+    {
+      "id": "ingredient-poulet",
+      "query": "Propose-moi un plat libanais avec du poulet pour plusieurs convives",
+      "expected_article_external_ids": [],
+      "answer_must_contain": ["poulet"]
+    }
+  ]
+}

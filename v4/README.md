@@ -62,8 +62,11 @@ pytest tests/test_html_sectionizer.py tests/test_mapper.py -v
 # 6. Ingestion d'un article spécifique (le taboulé de Mouzawak)
 python scripts/ingest_cli.py one 1227694
 
-# 7. Évaluation RAGAS sur le golden set
-python scripts/eval_rag.py --golden tests/golden/golden_set.jsonl
+# 7. Évaluation RAG (golden set)
+#    Windows: set PYTHONPATH=backend
+#    Linux/macOS: export PYTHONPATH=backend
+python scripts/run_rag_eval.py --golden data/golden_eval_fr.json
+#    Voir docs/eval-golden-set.md ; RAGAS optionnel via pip install -e .[eval]
 
 # 8. Serveur dev
 uvicorn backend.main:app --reload
@@ -80,7 +83,7 @@ uvicorn backend.main:app --reload
 | 4 | RAG hybride | `chunker`, `embeddings`, `indexer`, `retriever` (RRF SQL pur), `reranker` |
 | 5 | LLM | `query_understanding`, `response_generator` (grounding), `pipeline`, API `/api/chat` |
 | 6 | Worker | `worker/tasks.py` (arq), `scripts/ingest_cli.py` |
-| 7 | Évaluation | `tests/golden/golden_set.jsonl`, `scripts/eval_rag.py`, GitHub Actions `ci.yml` |
+| 7 | Évaluation | `data/golden_eval_fr.json`, `scripts/run_rag_eval.py`, `docs/eval-golden-set.md` |
 | 8 | Déploiement | `Dockerfile.{web,worker,migrations}`, `railway.toml`, `.gitignore` |
 | 9 | Frontend | (à faire — voir section *Reste à faire*) |
 

@@ -26,6 +26,7 @@ from ..rag.retriever import HybridRetriever
 from ..settings import get_settings
 from ..db.models import (
     Article,
+    ArticleSection,
     Category,
     Chunk,
     Keyword,
@@ -277,19 +278,79 @@ async def article_detail(
     if article is None:
         raise HTTPException(status_code=404, detail="article introuvable")
 
-    chunks = (
+    section_rows = (
         await session.execute(
             select(
-                Chunk.id, Chunk.position, Chunk.kind, Chunk.text,
-                Chunk.token_count, Chunk.embedding_model,
+                ArticleSection.id,
+                ArticleSection.position,
+                ArticleSection.kind,
+                ArticleSection.heading,
+                ArticleSection.text,
             )
-            .where(Chunk.article_id == article_id)
-            .order_by(Chunk.position)
+            .where(ArticleSection.article_id == article_id)
+            .order_by(ArticleSection.position)
         )
     ).all()
 
+    section_by_id: dict[int, dict[str, Any]] = {}
+    sections_out: list[dict[str, Any]] = []
+    for s in section_rows:
+        sid = int(s.id)
+        txt = s.text or ""
+        section_by_id[sid] = {
+            "kind": s.kind,
+            "heading": (s.heading or None),
+        }
+        sections_out.append(
+            {
+                "id": sid,
+                "position": s.position,
+                "kind": s.kind,
+                "heading": (s.heading or None),
+                "text_preview": txt[:400] + ("…" if len(txt) > 400 else ""),
+            }
+        )
+
+    chunk_result = await session.execute(
+        select(
+            Chunk.id,
+            Chunk.position,
+            Chunk.kind,
+            Chunk.text,
+            Chunk.token_count,
+            Chunk.embedding_model,
+            Chunk.section_id,
+            Chunk.metadata_json,
+            Chunk.embedding.is_not(None).label("has_embedding"),
+        )
+        .where(Chunk.article_id == article_id)
+        .order_by(Chunk.position)
+    )
+    chunk_rows = chunk_result.mappings().all()
+
     summary = article.summary or ""
     body = article.body_text or ""
+
+    chunks_out: list[dict[str, Any]] = []
+    for c in chunk_rows:
+        sec_raw = c.get("section_id")
+        sec_id = int(sec_raw) if sec_raw is not None else None
+        sec_info = section_by_id.get(sec_id) if sec_id is not None else None
+        chunks_out.append(
+            {
+                "id": c["id"],
+                "position": c["position"],
+                "kind": c["kind"],
+                "token_count": c["token_count"],
+                "embedding_model": c["embedding_model"],
+                "has_embedding": bool(c.get("has_embedding")),
+                "section_id": sec_id,
+                "section_kind": sec_info["kind"] if sec_info else None,
+                "section_heading": sec_info["heading"] if sec_info else None,
+                "metadata": c["metadata_json"] if c["metadata_json"] else None,
+                "text_preview": (c["text"] or "")[:300],
+            }
+        )
 
     return {
         "id": article.id,
@@ -305,18 +366,10 @@ async def article_detail(
         if article.first_published_at else None,
         "ingestion_status": article.ingestion_status,
         "ingestion_notes": article.ingestion_notes,
-        "n_chunks": len(chunks),
-        "chunks": [
-            {
-                "id": c.id,
-                "position": c.position,
-                "kind": c.kind,
-                "token_count": c.token_count,
-                "embedding_model": c.embedding_model,
-                "text_preview": (c.text or "")[:300],
-            }
-            for c in chunks
-        ],
+        "n_sections": len(sections_out),
+        "n_chunks": len(chunks_out),
+        "sections": sections_out,
+        "chunks": chunks_out,
     }
 
 
