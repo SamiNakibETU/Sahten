@@ -79,6 +79,12 @@ Règles :
   mentionnent un ingrédient dans le texte **sans** être taguées en base (corpus
   inhomogène) — l’orchestrateur élargira alors la recherche. Pas d’invention
   d’ingrédients : seulement ce que l’échange indique.
+- Après **plusieurs** propositions de recettes (l’assistant a déjà mis des titres
+  en avant), un message du type « encore une autre » doit **poursuivre** le fil
+  (même ingrédient, angle salade / entrée / relance restante comme le fattouche)
+  plutôt que réinitialiser : indique dans `thread_summary` qu’il s’agit d’un
+  **tour N** et qu’il faut éviter de reproposer le **même type** dominant (ex.
+  enchaîner encore une sauce) ou un plat **hors piste** par rapport aux relances.
 """
 
 

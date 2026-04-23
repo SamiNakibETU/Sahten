@@ -13,6 +13,7 @@ from __future__ import annotations
 import asyncio
 import re
 import time
+from collections import defaultdict
 from dataclasses import dataclass
 
 import structlog
@@ -29,6 +30,34 @@ from .retriever import HybridRetriever, Hit
 from .reranker import RerankedHit
 
 log = structlog.get_logger(__name__)
+
+
+def _interleave_hits_by_article(hits: list[Hit]) -> list[Hit]:
+    """Mélange les extraits : un chunk par article en tour à tour, ordre d’abord
+    d’apparition dans `hits` (souvent score RRF décroissant). Aide le reranker
+    à voir plusieurs fiches, pas 10 chunks d’une seule (ex. seulement « sauce »)."""
+    if not hits or len(hits) < 2:
+        return hits
+
+    by_art: dict[int, list[Hit]] = defaultdict(list)
+    for h in hits:
+        by_art[h.article_external_id].append(h)
+    order: list[int] = []
+    seen: set[int] = set()
+    for h in hits:
+        a = h.article_external_id
+        if a not in seen:
+            seen.add(a)
+            order.append(a)
+    buckets = [by_art[aid] for aid in order]
+    out: list[Hit] = []
+    i = 0
+    while any(i < len(b) for b in buckets):
+        for b in buckets:
+            if i < len(b):
+                out.append(b[i])
+        i += 1
+    return out
 
 
 def _dedupe_merge_hits(primary: list[Hit], secondary: list[Hit], *, cap: int = 100) -> list[Hit]:
@@ -351,14 +380,26 @@ class RagPipeline:
 
         t2 = time.perf_counter()
         rq = q
+        hits_for_rerank = hits
+        if self.settings.rag_prererank_interleave and len(hits) > 1:
+            hits_for_rerank = _interleave_hits_by_article(hits)
+            n_art = len({h.article_external_id for h in hits})
+            if n_art > 1 and len(hits_for_rerank) == len(hits):
+                log.info(
+                    "rag.pipeline.prererank_interleave",
+                    n_hits=len(hits),
+                    n_articles=n_art,
+                )
         try:
-            reranked = await self.reranker.rerank(rq, hits, top_n=rerank_top_n)
+            reranked = await self.reranker.rerank(
+                rq, hits_for_rerank, top_n=rerank_top_n
+            )
         except Exception as exc:  # noqa: BLE001
             # Cohere indispo, timeout, quota, etc. — on continue sans rerank.
             log.warning("rag.pipeline.rerank_failed_fallback", error=str(exc))
             reranked = [
                 RerankedHit(hit=h, rerank_score=float(h.score_rrf or 0.0))
-                for h in hits[:rerank_top_n]
+                for h in hits_for_rerank[:rerank_top_n]
             ]
         reranked = [
             r for r in reranked if r.rerank_score >= self.settings.rag_min_rerank_score

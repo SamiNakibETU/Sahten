@@ -71,6 +71,8 @@ class Settings(BaseSettings):
     rag_retrieval_widen_min_hits: int = 8
     # +candidats quand on exclut des articles session (diversité)
     rag_retrieval_extra_limit_per_excluded: int = 12
+    # Avant rerank : entrelace les chunks par article (évite qu’un seul article sature le haut)
+    rag_prererank_interleave: bool = True
 
     @field_validator("log_level")
     @classmethod

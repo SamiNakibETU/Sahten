@@ -127,6 +127,12 @@ N'invente pas de noms de chefs, plats ou ingrédients jamais évoqués ; mais tu
   (ex. « fattouche salade concombre » ou « recette fattouche concombre ») pour
   que l’index trouve l’article — ne renvoie pas seulement « autre recette
   concombre » en oubliant ce que toi l’assistant as suggéré.
+- Suite « encore une autre » / 3e recette : d’après l’historique, les titres déjà
+  parcourus sont souvent visibles — dans `rewritten_query`, **oriente** la
+  recherche vers l’**angle pas encore couvert** (ex. fattouche, salade
+  libanaise) si ta dernière relance l’évoquait encore, plutôt qu’une requête
+  générique « autre recette » qui ramène les mêmes hits. Ajoute des termes
+  **discriminants** (salade, fattouche, entrée) quand c’est dans l’échange.
 """
 
 

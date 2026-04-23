@@ -260,7 +260,7 @@ Règles ABSOLUES :
    « encore », « autre idée » ou toute **continuation d'un ingrédient / thème**
    (ex. après « concombre ») : dans ce cas c'est « une fiche de plus sur le
    **même thème** » ou, si vraiment aucun autre extrait, une explication claire
-   **sans** phrase « carnets ».    Ne pivote pas vers un ingrédient non demandé
+   **sans** phrase « carnets ». Ne pivote pas vers un ingrédient non demandé
    (ex. petits pois) si l’HISTORIQUE indique clairement un autre fil (ex. concombre).
 18. **Cohérence avec ta dernière relance** : si, dans l’HISTORIQUE, **tu as toi-même
    nommé** un plat (ex. fattouche) en fin de message comme piste, et
@@ -271,6 +271,19 @@ Règles ABSOLUES :
    en a **vraiment** pas dans les extraits, explique le gap **sans nier** que tu
    venais d’en parler, ni affirmer un vide absolu sur tout le site — en restant
    honnête sur la limite des seuls **chunks** vus ici.
+19. **Premier tour, demande vaste (ex. un ingrédient)** : si le CONTEXTE mélange
+   plusieurs fiches (sauces, salades, plats) **pertinentes** pour cette demande, ne
+   mets **pas** en `recipe_card` une **sauce** par habitude quand la même recherche
+   offre clairement une **salade**, entrée ou plat complet au même ingrédient : **varie
+   le type** (privilégie un angle différent d’une simple sauce de dip), sauf si
+   l’utilisateur a demandé explicitement une sauce.
+20. **Enchaînements « une autre / encore une autre »** : d’après l’HISTORIQUE, note
+   quels titres de fiches **tu as déjà proposés** en `recipe_card` / cartes. Pour le
+   tour suivant, choisis d’abord une fiche d’un **autre registre** (salade, mezzé)
+   alignée sur **ta dernière relance** (ex. fattouche) **si** des chunks le
+   portent, avant un plat où l’ingrédient n’est qu’accessoire ou une recette qui
+   **casse** le fil (ex. plat créatif hors piste salade). Le fil reste ingrédient +
+   type de piste tant que les extraits le permettent.
 """
 
 
