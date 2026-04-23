@@ -1,0 +1,179 @@
+{
+  "data": [
+    {
+      "objectType": "Article",
+      "id": "1486181",
+      "signature": "Article:1486181",
+      "url": "https://www.lorientlejour.com/article/1486181/andrea-boueiz-etoile-montante-de-la-restauration-au-liban.html",
+      "shorturl": "https://olj.me/1486181",
+      "slug": "andrea-boueiz-etoile-montante-de-la-restauration-au-liban",
+      "contentType": {
+        "id": "5",
+        "name": "Chef",
+        "slug": "",
+        "editor": "default"
+      },
+      "views": 5,
+      "comments": 0,
+      "preview_limit": null,
+      "rating": 0,
+      "excludedFromGoogleSearchEngine": 0,
+      "status": "publish",
+      "title": "Andrea Boueiz, étoile montante de la restauration",
+      "firstPublished": "2025-11-25 22:25:19",
+      "lastUpdate": "2025-11-25 22:25:19",
+      "categories": [
+        {
+          "id": "1035",
+          "name": "Chefs 2",
+          "signature": "Category:1035",
+          "slug": "chefs",
+          "typeId": {
+            "typeId": "18",
+            "name": "Chef",
+            "slug": "",
+            "includeInIssue": "0",
+            "shortened_domain": "",
+            "stylesheetClass": "",
+            "domain": null,
+            "articleUrlPrefix": "",
+            "access_groups": "[]",
+            "locale": "fr-FR",
+            "preview_limit": null,
+            "sitemapUrlPrefix": null,
+            "authorUrlPrefix": null
+          },
+          "parentId": null,
+          "parent": [],
+          "image": "",
+          "cover": "",
+          "logo": "",
+          "paid": "0",
+          "objectType": "Category",
+          "url": "https://www.lorientlejour.com/category/1035-chefs",
+          "cssCode": "",
+          "template": "default",
+          "tagline": "",
+          "link_param": null,
+          "description": "",
+          "metaDescription": "",
+          "order": "0",
+          "pageId": null,
+          "articlesCount": null,
+          "allowComments": "1",
+          "accessType": "freecount",
+          "status": "1",
+          "children": [],
+          "cached": true
+        }
+      ],
+      "access_groups": [],
+      "access_control": false,
+      "counted_in_paywall": true,
+      "content_length": 790,
+      "contents": "<p>Sur la scène libanaise, la cheffe Andréa Boueiz est une figure qui va compter dans les années à venir. Après avoir fait l’école hôtelière de Glion, en Suisse, elle rentre au Liban et devient chef de cuisine au restaurant Tawlet pendant un an et demi. Puis, avec sa sœur et Carma, elle renouvelle l’adresse Peck à Gemmayzé, lui redorant son image et son menu. La jeune femme a également travaillé pour les soirées d’or de l’hôtel al-Bustan, quand elle n’avait que 22 ans</p><p>En 2024, elle ouvre son nouveau restaurant, Un peu fou, à Gemmayzé. Pour cette nouvelle enseigne, au sein de laquelle elle peut laisser parler toute sa créativité, elle s’est associée à quatre partenaires pour ouvrir cette nouvelle enseigne, sa sœur Rhéa et son amie Carma Andraos, ainsi que Amine Kallas et Tiffany Trad.</p>",
+      "subtitle": "",
+      "subtitle_en": "",
+      "attachments": [
+        {
+          "id": "537115",
+          "name": "",
+          "description": "",
+          "focal": "51.83% 14.49%",
+          "width": 1033,
+          "height": 1052,
+          "url": "https://s.lorientlejour.com/storage/attachments/1487/AndreaBoueiz-183973_981281.jpg",
+          "transforms": [
+            {
+              "x": 245,
+              "y": 164,
+              "url": "https://s.lorientlejour.com/storage/attachments/1487/AndreaBoueiz-183973_981281.jpg/r/245/AndreaBoueiz-183973_981281.jpg"
+            },
+            {
+              "x": 400,
+              "y": 270,
+              "url": "https://s.lorientlejour.com/storage/attachments/1487/AndreaBoueiz-183973_981281.jpg/r/400/AndreaBoueiz-183973_981281.jpg"
+            },
+            {
+              "x": 800,
+              "y": 600,
+              "url": "https://s.lorientlejour.com/storage/attachments/1487/AndreaBoueiz-183973_981281.jpg/r/800/AndreaBoueiz-183973_981281.jpg"
+            },
+            {
+              "x": 1200,
+              "y": 800,
+              "url": "https://s.lorientlejour.com/storage/attachments/1487/AndreaBoueiz-183973_981281.jpg/r/1200/AndreaBoueiz-183973_981281.jpg"
+            },
+            {
+              "x": 2400,
+              "y": 1600,
+              "url": "https://s.lorientlejour.com/storage/attachments/1487/AndreaBoueiz-183973_981281.jpg/r/2400/AndreaBoueiz-183973_981281.jpg"
+            }
+          ],
+          "url_thumbnail": "https://s.lorientlejour.com/storage/attachments/1487/AndreaBoueiz-183973_981281.jpg/r/245/AndreaBoueiz-183973_981281.jpg",
+          "url_medium": "https://s.lorientlejour.com/storage/attachments/1487/AndreaBoueiz-183973_981281.jpg/r/400/AndreaBoueiz-183973_981281.jpg",
+          "url_large": "https://s.lorientlejour.com/storage/attachments/1487/AndreaBoueiz-183973_981281.jpg/r/800/AndreaBoueiz-183973_981281.jpg",
+          "url_home_slideshow": "https://s.lorientlejour.com/storage/attachments/1487/AndreaBoueiz-183973_981281.jpg/r/1200/AndreaBoueiz-183973_981281.jpg",
+          "url_highres": "https://s.lorientlejour.com/storage/attachments/1487/AndreaBoueiz-183973_981281.jpg/r/2400/AndreaBoueiz-183973_981281.jpg",
+          "type": "image"
+        }
+      ],
+      "inline_attachments": [
+        {
+          "id": "537114",
+          "name": "",
+          "description": "",
+          "focal": "50% 50%",
+          "width": 0,
+          "height": 0,
+          "url": "https://s.lorientlejour.com/storage/attachments/1487/AndreaBoueiz-183973_207173_947c4d91ecf11042ecc248bbae26ea80.jpg",
+          "transforms": [
+            {
+              "x": 245,
+              "y": 164,
+              "url": "https://s.lorientlejour.com/storage/attachments/1487/AndreaBoueiz-183973_207173_947c4d91ecf11042ecc248bbae26ea80.jpg/r/245/AndreaBoueiz-183973_207173_947c4d91ecf11042ecc248bbae26ea80.jpg"
+            },
+            {
+              "x": 400,
+              "y": 270,
+              "url": "https://s.lorientlejour.com/storage/attachments/1487/AndreaBoueiz-183973_207173_947c4d91ecf11042ecc248bbae26ea80.jpg/r/400/AndreaBoueiz-183973_207173_947c4d91ecf11042ecc248bbae26ea80.jpg"
+            },
+            {
+              "x": 800,
+              "y": 600,
+              "url": "https://s.lorientlejour.com/storage/attachments/1487/AndreaBoueiz-183973_207173_947c4d91ecf11042ecc248bbae26ea80.jpg/r/800/AndreaBoueiz-183973_207173_947c4d91ecf11042ecc248bbae26ea80.jpg"
+            },
+            {
+              "x": 1200,
+              "y": 800,
+              "url": "https://s.lorientlejour.com/storage/attachments/1487/AndreaBoueiz-183973_207173_947c4d91ecf11042ecc248bbae26ea80.jpg/r/1200/AndreaBoueiz-183973_207173_947c4d91ecf11042ecc248bbae26ea80.jpg"
+            },
+            {
+              "x": 2400,
+              "y": 1600,
+              "url": "https://s.lorientlejour.com/storage/attachments/1487/AndreaBoueiz-183973_207173_947c4d91ecf11042ecc248bbae26ea80.jpg/r/2400/AndreaBoueiz-183973_207173_947c4d91ecf11042ecc248bbae26ea80.jpg"
+            }
+          ],
+          "url_thumbnail": "https://s.lorientlejour.com/storage/attachments/1487/AndreaBoueiz-183973_207173_947c4d91ecf11042ecc248bbae26ea80.jpg/r/245/AndreaBoueiz-183973_207173_947c4d91ecf11042ecc248bbae26ea80.jpg",
+          "url_medium": "https://s.lorientlejour.com/storage/attachments/1487/AndreaBoueiz-183973_207173_947c4d91ecf11042ecc248bbae26ea80.jpg/r/400/AndreaBoueiz-183973_207173_947c4d91ecf11042ecc248bbae26ea80.jpg",
+          "url_large": "https://s.lorientlejour.com/storage/attachments/1487/AndreaBoueiz-183973_207173_947c4d91ecf11042ecc248bbae26ea80.jpg/r/800/AndreaBoueiz-183973_207173_947c4d91ecf11042ecc248bbae26ea80.jpg",
+          "url_home_slideshow": "https://s.lorientlejour.com/storage/attachments/1487/AndreaBoueiz-183973_207173_947c4d91ecf11042ecc248bbae26ea80.jpg/r/1200/AndreaBoueiz-183973_207173_947c4d91ecf11042ecc248bbae26ea80.jpg",
+          "url_highres": "https://s.lorientlejour.com/storage/attachments/1487/AndreaBoueiz-183973_207173_947c4d91ecf11042ecc248bbae26ea80.jpg/r/2400/AndreaBoueiz-183973_207173_947c4d91ecf11042ecc248bbae26ea80.jpg",
+          "type": "inline_image"
+        }
+      ],
+      "summary": "<p>Andrea Boueiz, rising star of the restaurant scene</p>",
+      "introduction": "<p>On the Lebanese culinary scene, chef Andrea Boueiz is the person to watch in the years to come. After attending the Glion Institute of Higher Education in Switzerland, she returned to Lebanon and became head chef at the Tawlet restaurant for a year and a half.</p><p>Then, with her sister Rhea and her friend Carma Andraos, she revitalized the Peck restaurant in Gemmayzeh, restoring its image and menu. She also worked for the Golden Evenings at the Al-Bustan Hotel when she was only 22.</p><p>In 2024, she opened her new restaurant, Un peu fou (A little crazy), in Gemmayzeh. For this new venture, where she can fully express her creativity, she partnered with four other chefs: Rhea, Andraos, as well as Amine Kallas and Tiffany Trad.</p>",
+      "elements": [],
+      "seo": {
+        "search_title": "Andrea Boueiz, étoile montante de la restauration",
+        "search_description": "Andrea Boueiz, rising star of the restaurant scene…",
+        "social_title": "Andrea Boueiz, étoile montante de la restauration",
+        "social_description": "Andrea Boueiz, rising star of the restaurant scene…",
+        "social_image": ""
+      },
+      "time_to_read": 54,
+      "cached": true
+    }
+  ]
+}

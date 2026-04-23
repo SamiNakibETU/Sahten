@@ -5,10 +5,17 @@ Usage :
     python -m scripts.ingest_cli backfill --category Cuisine --max-pages 10
     python -m scripts.ingest_cli from-ids --file data/olj_seed_ids.json
     python -m scripts.ingest_cli reindex 1227694
+    python -m scripts.ingest_cli reindex-all --publication 17 --content-type 4
 
 Note : `backfill` appelle `LIST /content` qui exige une clé WhiteBeard admin.
 Si tu as une clé "lecture par ID" uniquement, utilise `from-ids` à la place
 (boucle sur `GET /content/{id}` autorisé).
+
+`reindex-all` est la commande à utiliser pour la mise à jour complète de la
+rubrique recettes après un changement de mapper/chunker : elle liste tous
+les articles via ``/publication/17/content?content_type=4`` puis ré-ingère
+ET ré-indexe chacun (chunks + embeddings). Idempotente : l'upsert ne crée
+pas de doublon.
 """
 
 from __future__ import annotations
@@ -138,6 +145,112 @@ async def cmd_reindex(article_external_id: int) -> None:
     print(f"reindexed chunks={n}")
 
 
+async def cmd_reindex_all(
+    *,
+    publication_id: int,
+    content_type: int | None,
+    page_size: int,
+    max_pages: int | None,
+    limit: int | None,
+    skip_ingest: bool,
+    dry_run: bool,
+    seed_file: str | None = None,
+    seed_only: bool = False,
+) -> None:
+    """Re-ingère **et** ré-indexe tous les articles d'une publication.
+
+    Workflow :
+      1. ``GET /publication/{publication_id}/content?content_type=…`` paginé,
+      2. Pour chaque ID : ``ingest_article_id`` (avec enrichissement chef bio),
+      3. Puis ``reindex_article`` pour produire les chunks + embeddings.
+
+    Idempotent : l'upsert se base sur ``Article.external_id`` ; les chunks
+    existants sont remplacés par ``reindex_article``.
+    """
+    sm = get_sessionmaker()
+    embedder = OpenAIEmbeddings()
+
+    counts: dict[str, int] = {"ok": 0, "partial": 0, "failed": 0, "chunks": 0}
+    ids_seen: list[int] = []
+    seen_set: set[int] = set()
+
+    def _add(ext: int) -> bool:
+        if ext in seen_set:
+            return False
+        seen_set.add(ext)
+        ids_seen.append(ext)
+        return True
+
+    async with WhiteBeardClient() as cli:
+        if not seed_only:
+            print(
+                f"[reindex-all] listing publication={publication_id} "
+                f"content_type={content_type} page_size={page_size}"
+            )
+            async for ext_id in cli.iter_publication_ids(
+                publication_id=publication_id,
+                content_type=content_type,
+                page_size=page_size,
+                max_pages=max_pages,
+            ):
+                _add(ext_id)
+                if limit is not None and len(ids_seen) >= limit:
+                    break
+            print(f"[reindex-all] {len(ids_seen)} IDs depuis l'API")
+
+        if seed_file:
+            seed_ids = _load_ids(Path(seed_file))
+            before = len(ids_seen)
+            for sid in seed_ids:
+                if limit is not None and len(ids_seen) >= limit:
+                    break
+                _add(sid)
+            print(
+                f"[reindex-all] {len(seed_ids)} IDs lus depuis {seed_file} "
+                f"(+{len(ids_seen) - before} après dédoublonnage)"
+            )
+        print(f"[reindex-all] {len(ids_seen)} articles uniques à traiter")
+        if dry_run:
+            print(f"[reindex-all] DRY RUN — IDs : {ids_seen[:20]}{'…' if len(ids_seen) > 20 else ''}")
+            return
+
+        for idx, ext_id in enumerate(ids_seen, 1):
+            async with sm() as session:
+                try:
+                    if not skip_ingest:
+                        res = await ingest_article_id(session, ext_id, client=cli)
+                        article_obj = await session.get(Article, res.article_id)
+                        status = res.status
+                    else:
+                        from sqlalchemy import select
+
+                        sel = await session.execute(
+                            select(Article).where(Article.external_id == ext_id)
+                        )
+                        article_obj = sel.scalar_one_or_none()
+                        if article_obj is None:
+                            counts["failed"] += 1
+                            print(f"  [{idx}/{len(ids_seen)}] {ext_id} — absent (skip-ingest)", file=sys.stderr)
+                            continue
+                        status = "ok"
+
+                    n_chunks = 0
+                    if article_obj is not None:
+                        n_chunks = await reindex_article(session, article_obj, embedder)
+                        counts["chunks"] += n_chunks
+                    await session.commit()
+                    counts[status] = counts.get(status, 0) + 1
+                    print(
+                        f"  [{idx}/{len(ids_seen)}] {ext_id} — status={status} chunks={n_chunks}"
+                    )
+                except Exception as exc:  # noqa: BLE001
+                    await session.rollback()
+                    counts["failed"] += 1
+                    print(f"  [{idx}/{len(ids_seen)}] {ext_id} — ERREUR: {exc}", file=sys.stderr)
+
+    print(f"[reindex-all] terminé : {counts}")
+
+
 def main() -> None:
     p = argparse.ArgumentParser()
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -165,6 +278,32 @@ def main() -> None:
     p_r = sub.add_parser("reindex")
     p_r.add_argument("article_id", type=int)
 
+    p_ra = sub.add_parser(
+        "reindex-all",
+        help="Re-ingestion + ré-indexation complète d'une publication WhiteBeard",
+    )
+    p_ra.add_argument("--publication", type=int, default=17, help="ID publication (défaut 17 = À table)")
+    p_ra.add_argument(
+        "--content-type", type=int, default=4,
+        help="content_type (défaut 4 = Recipes ; passer 0 pour tout type)",
+    )
+    p_ra.add_argument("--page-size", type=int, default=50)
+    p_ra.add_argument("--max-pages", type=int, default=None)
+    p_ra.add_argument("--limit", type=int, default=None, help="Borne dure sur le nombre d'articles à traiter")
+    p_ra.add_argument(
+        "--skip-ingest", action="store_true",
+        help="Ne pas refetcher l'API : juste ré-indexer les chunks à partir de la DB",
+    )
+    p_ra.add_argument(
+        "--seed-file", type=str, default=None,
+        help="Fichier JSON/TXT d'IDs supplémentaires à fusionner (workaround pagination cassée)",
+    )
+    p_ra.add_argument(
+        "--seed-only", action="store_true",
+        help="Ignorer l'API publication et n'utiliser que --seed-file",
+    )
+    p_ra.add_argument("--dry-run", action="store_true")
+
     args = p.parse_args()
     if args.cmd == "one":
         asyncio.run(cmd_one(args.article_id))
@@ -181,6 +320,21 @@ def main() -> None:
         )
     elif args.cmd == "reindex":
         asyncio.run(cmd_reindex(args.article_id))
+    elif args.cmd == "reindex-all":
+        ct = args.content_type if args.content_type and args.content_type > 0 else None
+        asyncio.run(
+            cmd_reindex_all(
+                publication_id=args.publication,
+                content_type=ct,
+                page_size=args.page_size,
+                max_pages=args.max_pages,
+                limit=args.limit,
+                skip_ingest=args.skip_ingest,
+                dry_run=args.dry_run,
+                seed_file=args.seed_file,
+                seed_only=args.seed_only,
+            )
+        )
 
 
 if __name__ == "__main__":

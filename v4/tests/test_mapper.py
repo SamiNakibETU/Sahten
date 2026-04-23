@@ -1,61 +1,100 @@
-"""Tests du mapping payload WhiteBeard -> MappedArticle."""
+"""Tests du mapping payload WhiteBeard -> MappedArticle.
+
+Vérité terrain : on charge les vrais payloads téléchargés via
+``scripts/audit_whitebeard.py`` et on s'assure que le mapping refactor
+n'oublie aucune section utile au RAG (ingrédients, étapes,
+commandements, astuce, bio chef, metadata structurées).
+"""
 
 from __future__ import annotations
 
-import json
-from pathlib import Path
-
 from backend.app.ingestion.mapper import map_article
 
-FIXTURE = (
-    Path(__file__).parent / "fixtures" / "whitebeard_1227694_mock.json"
-)
 
-
-def _load() -> dict:
-    return json.loads(FIXTURE.read_text(encoding="utf-8"))
-
-
-def test_map_article_basic_fields():
-    m = map_article(_load())
+def test_taboule_basic_fields(taboule_payload):
+    m = map_article(taboule_payload)
     assert m.external_id == 1227694
-    assert m.url.startswith("https://www.lorientlejour.com/")
-    assert "Mouzawak" in m.title
-    assert m.summary and "Souk el-Tayeb" in m.summary
-    assert m.introduction and "Libanais" in m.introduction
-    assert m.body_html and "commandements" in m.body_html.lower()
-    assert m.body_text and "persil" in m.body_text.lower()
-    assert m.cover_image_url and m.cover_image_url.endswith(".jpg")
-    assert m.cover_image_caption and "Marc Fayad" in m.cover_image_caption
+    assert m.url.endswith(".html")
+    assert "taboulé" in m.title.lower() or "taboule" in m.title.lower()
+    assert m.summary  # description éditoriale (et non plus HTML d'ingrédients)
+    assert "<ul>" not in m.summary, "summary doit rester du texte propre"
     assert m.first_published_at is not None
     assert m.is_premium is False
 
 
-def test_map_article_authors_with_bio():
-    m = map_article(_load())
+def test_taboule_body_html_contains_all_sections(taboule_payload):
+    m = map_article(taboule_payload)
+    assert m.body_html is not None
+    body = m.body_html.lower()
+    # Les balises sémantiques injectées par _assemble_body_html.
+    for kind in (
+        "data-kind=\"recipe_meta\"",
+        "data-kind=\"recipe_summary\"",
+        "data-kind=\"recipe_history\"",
+        "data-kind=\"ingredients_list\"",
+        "data-kind=\"recipe_steps\"",
+        "data-kind=\"chef_astuce\"",
+        "data-kind=\"chef_bio\"",
+    ):
+        assert kind in body, f"section manquante dans body_html : {kind}"
+    # Contenu : commandements + astuce + bio chef.
+    assert "commandement" in body
+    assert "persil" in body  # ingrédient & astuce
+    assert "souk el-tayeb" in body  # bio chef Kamal Mouzawak
+    assert "kamal mouzawak" in body
+
+
+def test_taboule_chef_promoted_to_author(taboule_payload):
+    m = map_article(taboule_payload)
     names = {a.name for a in m.authors}
     assert "Kamal Mouzawak" in names
     chef = next(a for a in m.authors if a.name == "Kamal Mouzawak")
     assert chef.role == "featured_chef"
     assert chef.biography_text and "Souk el-Tayeb" in chef.biography_text
-    assert chef.department == "Cuisine"
+    assert chef.department == "cuisine"
+    assert chef.image_url and chef.image_url.startswith("https://")
 
 
-def test_map_article_keywords_and_categories():
-    m = map_article(_load())
-    kw_names = {k.name for k in m.keywords}
-    assert {"Taboulé", "Kamal Mouzawak", "Souk el-Tayeb", "Liban"} <= kw_names
-    cat_names = {c.name for c in m.categories}
-    assert "Cuisine" in cat_names
+def test_taboule_keywords_normalized(taboule_payload):
+    m = map_article(taboule_payload)
+    names = {k.name.lower() for k in m.keywords}
+    # Keywords sous le nouveau format `{ "data": { "name": ... } }`
+    assert any("recette" in n for n in names)
+    assert any("liban" in n or "moyen-orient" in n or "méditerran" in n for n in names)
+    # Pas de doublons (slug unique).
+    slugs = [k.slug for k in m.keywords]
+    assert len(slugs) == len(set(slugs))
 
 
-def test_map_article_sections_present():
-    m = map_article(_load())
-    kinds = {s.kind for s in m.sections}
-    assert {"bio", "ingredients_list", "recipe_steps", "quote"} <= kinds
+def test_taboule_categories_with_parent(taboule_payload):
+    m = map_article(taboule_payload)
+    names = {c.name for c in m.categories}
+    # On doit retrouver la sous-catégorie ET la racine "Recettes".
+    assert "Recettes" in names
 
 
-def test_map_article_status_ok_when_full_payload():
-    m = map_article(_load())
+def test_taboule_cover_from_attachments(taboule_payload):
+    m = map_article(taboule_payload)
+    assert m.cover_image_url and m.cover_image_url.startswith("https://")
+
+
+def test_spaghettis_minimal_recipe_still_complete(spaghettis_payload):
+    """Recette sans astuce ni history doit quand même produire les sections de base."""
+    m = map_article(spaghettis_payload)
+    assert m.body_html is not None
+    body = m.body_html.lower()
+    for kind in (
+        "data-kind=\"recipe_meta\"",
+        "data-kind=\"ingredients_list\"",
+        "data-kind=\"recipe_steps\"",
+        "data-kind=\"chef_bio\"",
+    ):
+        assert kind in body
+    # Pas d'astuce/history pour cette recette → pas de section vide.
+    assert "data-kind=\"chef_astuce\"" not in body
+    assert "data-kind=\"recipe_history\"" not in body
+
+
+def test_status_ok_when_full_payload(taboule_payload):
+    m = map_article(taboule_payload)
     assert m.ingestion_status == "ok"
-    assert m.ingestion_notes is None

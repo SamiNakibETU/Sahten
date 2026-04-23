@@ -81,6 +81,102 @@ class WhiteBeardClient:
             params["keyword"] = keyword
         return await self._get("/content", params=params)
 
+    async def list_publication_content(
+        self,
+        *,
+        publication_id: int,
+        content_type: int | None = None,
+        limit: int = 50,
+        page: int = 1,
+    ) -> dict[str, Any]:
+        """``GET /publication/{publication_id}/content?content_type=…&page=N``.
+
+        Endpoint indiqué par l'équipe WhiteBeard (Joseph, janvier 2026)
+        pour cibler une rubrique précise (publication 17 = "À table - OLJ",
+        content_type 4 = recettes).
+
+        ⚠️ La pagination de cet endpoint utilise un numéro de **page**
+        (1-indexé) et **non** un offset en lignes : on observe que
+        ``offset`` est silencieusement ignoré au-delà du premier appel.
+        La réponse contient ``{"total": N, "page": 1, "data": [...]}``.
+        """
+        params: dict[str, Any] = {"limit": limit, "page": page}
+        if content_type is not None:
+            params["content_type"] = content_type
+        return await self._get(f"/publication/{publication_id}/content", params=params)
+
+    async def iter_publication_ids(
+        self,
+        *,
+        publication_id: int,
+        content_type: int | None = None,
+        page_size: int = 50,
+        max_pages: int | None = None,
+        delay_s: float = 0.2,
+    ):
+        """Itère sur tous les IDs d'articles d'une publication.
+
+        Robustesse :
+          * pagination par ``page`` (1-indexée) car l'API ignore l'offset
+            en lignes ;
+          * dédoublonnage via ``seen`` ;
+          * arrêt anticipé dès qu'une page n'apporte aucun ID nouveau ou
+            que le nombre total annoncé (``total``) est atteint.
+        """
+        seen: set[int] = set()
+        empty_pages = 0
+        page = 0
+        total = None
+        while True:
+            page += 1
+            payload = await self.list_publication_content(
+                publication_id=publication_id,
+                content_type=content_type,
+                limit=page_size,
+                page=page,
+            )
+            if total is None:
+                t = payload.get("total")
+                if isinstance(t, int):
+                    total = t
+            data = payload.get("data") or payload.get("items") or []
+            if isinstance(data, dict):
+                data = list(data.values())
+            if not data:
+                return
+            new_ids: list[int] = []
+            for item in data:
+                if not isinstance(item, dict):
+                    continue
+                for k in ("id", "article_id", "content_id", "external_id"):
+                    v = item.get(k)
+                    if v is None:
+                        continue
+                    try:
+                        ext = int(v)
+                    except (TypeError, ValueError):
+                        continue
+                    if ext in seen:
+                        break
+                    seen.add(ext)
+                    new_ids.append(ext)
+                    break
+            for ext in new_ids:
+                yield ext
+            if not new_ids:
+                empty_pages += 1
+                if empty_pages >= 2:
+                    return
+            else:
+                empty_pages = 0
+            if total is not None and len(seen) >= total:
+                return
+            if len(data) < page_size:
+                return
+            if max_pages is not None and page >= max_pages:
+                return
+            await asyncio.sleep(delay_s)
+
     async def iter_all_articles(
         self,
         *,

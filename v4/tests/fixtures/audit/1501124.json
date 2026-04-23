@@ -1,0 +1,434 @@
+{
+  "data": [
+    {
+      "objectType": "Article",
+      "id": "1501124",
+      "signature": "Article:1501124",
+      "url": "https://www.lorientlejour.com/cuisine-liban-a-table/1501124/le-cake-vanille-sumac-de-carla-rebeiz-.html",
+      "shorturl": "https://olj.me/1501124",
+      "slug": "le-cake-vanille-sumac-de-carla-rebeiz-",
+      "contentType": {
+        "id": "4",
+        "name": "Recipes",
+        "slug": "",
+        "editor": "default"
+      },
+      "views": 424,
+      "comments": 0,
+      "preview_limit": "850",
+      "rating": 4.67,
+      "rating_count": 9,
+      "excludedFromGoogleSearchEngine": 0,
+      "status": "publish",
+      "title": "Le cake vanille sumac de Carla Rebeiz ",
+      "firstPublished": "2026-04-01 10:24:57",
+      "lastUpdate": "2026-04-01 10:24:57",
+      "categories": [
+        {
+          "id": "1037",
+          "name": "Variations autour d’un thème",
+          "seo_name": "",
+          "signature": "Category:1037",
+          "slug": "variations-autour-dun-theme",
+          "typeId": {
+            "typeId": "17",
+            "name": "A table - OLJ",
+            "slug": "cuisine-liban-a-table",
+            "includeInIssue": "0",
+            "shortened_domain": "",
+            "stylesheetClass": "",
+            "domain": null,
+            "articleUrlPrefix": "cuisine-liban-a-table",
+            "access_groups": "[\"olj\",\"premium\",\"integrale\",\"premium_open\",\"donation_access\",\"premium_ot\",\"olj_basic\"]",
+            "locale": "fr-FR",
+            "preview_limit": "850",
+            "sitemapUrlPrefix": null,
+            "authorUrlPrefix": null
+          },
+          "parentId": "1031",
+          "parent": {
+            "id": "1031",
+            "name": "Recettes",
+            "signature": "Category:1031",
+            "slug": "recettes",
+            "parentId": null,
+            "parent": [],
+            "image": "",
+            "cover": "",
+            "logo": "",
+            "paid": "0",
+            "objectType": "Category",
+            "url": "https://www.lorientlejour.com/cuisine-liban-a-table/1031-recettes",
+            "cssCode": "",
+            "template": "default",
+            "tagline": "",
+            "link_param": null,
+            "description": "Des recettes signées par de grands chefs libanais, des passionnés de cuisine ou encore des personnalités libanaises que nous avons invitées à passer derrière les fourneaux.",
+            "metaDescription": "Des recettes signées par de grands chefs libanais, des passionnés de cuisine ou encore des personnalités libanaises que nous avons invitées à passer derrière les fourneaux.",
+            "order": "0",
+            "pageId": null,
+            "articlesCount": null,
+            "allowComments": "1",
+            "accessType": "freecount",
+            "status": "1",
+            "children": [],
+            "cached": true
+          },
+          "image": "",
+          "cover": "",
+          "logo": "",
+          "paid": "0",
+          "objectType": "Category",
+          "url": "https://www.lorientlejour.com/cuisine-liban-a-table/1037-variations-autour-dun-theme",
+          "cssCode": "",
+          "template": "default",
+          "tagline": "",
+          "link_param": null,
+          "description": "",
+          "metaDescription": "",
+          "order": "0",
+          "pageId": null,
+          "articlesCount": "187",
+          "allowComments": "1",
+          "accessType": "freecount",
+          "status": "1",
+          "children": [],
+          "cached": true
+        }
+      ],
+      "access_groups": [
+        "olj",
+        "premium",
+        "integrale",
+        "premium_open",
+        "donation_access",
+        "premium_ot",
+        "olj_basic"
+      ],
+      "access_control": false,
+      "counted_in_paywall": true,
+      "content_length": 1654,
+      "contents": "<ol><li>Préchauffer le four à 180 °C.</li><li>Séparer les blancs des jaunes d’œuf.</li><li>Battre les jaunes d’œuf avec les graines de la gousse de vanille et le sucre (1) jusqu&#39;à ce que le mélange blanchisse. C&#39;est à dire au moins une minute. (Pour obtenir les graines de vanille : fendre les gousses en deux dans la longueur avec la pointe d&#39;un couteau, puis racler l&#39;intérieur avec la lame pour récupérer les graines).</li><li>Ajouter le beurre en pommade et le lait, continuer à fouetter.</li><li>Incorporer ensuite la poudre d’amande, la farine et la levure chimique.</li><li>Monter les blancs en neige avec le sucre (2). Les incorporer délicatement au premier mélange.</li><li>Huiler et fariner un moule à cake, y verser l’appareil et enfourner pour 45 à 60 minutes (pour des petits cakes individuels, compter 55 g de pâte par moule). Vérifier la cuisson en plantant un couteau au milieu du cake : la lame doit ressortir propre et légèrement humide.</li><li>Pendant que le cake cuit, réaliser le sirop : porter à ébulition le mélange eau et sucre, faire chauffer jusqu&#39;à dissolution totale du sucre dans l&#39;eau.</li><li>À la sortie du four, démouler le cake, le replacer dans le moule pour l’imbiber en versant la totalité du sirop. Le laisser refroidir avant de glacer.</li><li>Préparer le glaçage : mélanger le jus de citron et le sucre glace.</li><li>Poser le cake refroidi sur une grille et verser le glaçage par-dessus en recouvrant bien toute la surface à l’aide d’une spatule.</li><li>Saupoudrer le dessus du cake avec le mélange sucre semoule et sumac et enfourner pour 2 minutes.</li><li>Laisser refroidir à température ambiante 1 à 2 heures avant de déguster.<br class=\"soft-break\"><br></li></ol><p>Cette recette est tirée du livre « <em>Ma table libanaise</em> » de Carla Rebeiz.</p>",
+      "tag": "Recette de chef",
+      "authors": [],
+      "byline": "",
+      "keywords": [
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "56615",
+            "name": "dessert",
+            "url": "https://www.lorientlejour.com/keyword/56615-dessert",
+            "slug": "dessert",
+            "description": "<p><br></p>",
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": "Dessert",
+            "translations": "{\"default\":{\"metatitle\":\"\",\"metadescription\":\"\"},\"en\":{\"displayname\":\"Dessert\",\"description\":\"<p>Discover our dessert recipes to end your meals on a sweet note. From Lebanese tradition to reimagined classics, get inspired with our sweet creations.<\\/p>\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"Dessert\",\"description\":\"<p>D\\u00e9couvrez nos recettes de desserts pour finir vos repas sur une touche sucr\\u00e9e. De la tradition libanaise aux classiques revisit\\u00e9s, faites le plein d\\u2019inspirations gourmandes.<\\/p>\",\"metatitle\":\"Dessert : id\\u00e9es sucr\\u00e9es, recettes libanaises, tendances\",\"metadescription\":\"D\\u00e9couvrez nos recettes de desserts pour finir vos repas sur une touche sucr\\u00e9e. De la tradition libanaise aux classiques revisit\\u00e9s, faites le plein d\\u2019inspirations gourmandes.\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "56909",
+            "name": "recettes carla rebeiz",
+            "url": "https://www.lorientlejour.com/keyword/56909-recettes-carla-rebeiz",
+            "slug": "recettes-carla-rebeiz",
+            "description": null,
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": null,
+            "translations": "{\"default\":{\"metatitle\":\"\",\"metadescription\":\"\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"Les recettes de Carla Rebeiz\",\"description\":\"<p>D\\u00e9couvrez une s\\u00e9lection de recettes que la cheffe libanaise Carla Rebeiz a partag\\u00e9e avec nous.<\\/p>\",\"metatitle\":\"\",\"metadescription\":\"\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "21954",
+            "name": "cuisine libanaise",
+            "url": "https://www.lorientlejour.com/keyword/21954-cuisine-libanaise",
+            "slug": "cuisine-libanaise",
+            "description": null,
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": null,
+            "translations": null,
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "55861",
+            "name": "cuisine du moyen-orient",
+            "url": "https://www.lorientlejour.com/keyword/55861-cuisine-du-moyen-orient",
+            "slug": "cuisine-du-moyen-orient",
+            "description": "Recettes authentiques ou revisitées, la cuisine du Moyen-Orient vous invite à sa table.",
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": "Cuisine du Moyen-Orient",
+            "translations": "{\"default\":{\"metatitle\":\"Cuisine du Moyen-Orient : recettes, saveurs et actualit\\u00e9s\",\"metadescription\":\"Recettes authentiques ou revisit\\u00e9es, la cuisine du Moyen-Orient vous invite \\u00e0 sa table.\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "56639",
+            "name": "recette végétarienne",
+            "url": "https://www.lorientlejour.com/keyword/56639-recette-vegetarienne",
+            "slug": "recette-vegetarienne",
+            "description": "Une sélection de recettes végétariennes tirées essentiellement de la cuisine libanaise et levantine.",
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": "Recette végétarienne",
+            "translations": "{\"default\":{\"metatitle\":\"Recettes v\\u00e9g\\u00e9tariennes : libanaises et m\\u00e9diterran\\u00e9ennes\",\"metadescription\":\"Une s\\u00e9lection de recettes v\\u00e9g\\u00e9tariennes tir\\u00e9es essentiellement de la cuisine libanaise et levantine.\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "55889",
+            "name": "recette libanaise",
+            "url": "https://www.lorientlejour.com/keyword/55889-recette-libanaise",
+            "slug": "recette-libanaise",
+            "description": "Retrouvez ici les meilleures recettes libanaises, de la cuisine de nos grands-mères aux créations modernes de chefs établis au Liban ou ailleurs.",
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": "Recette libanaise",
+            "translations": "{\"default\":{\"metatitle\":\"Recettes libanaises : plats traditionnels, revisit\\u00e9s et tendances\",\"metadescription\":\"Retrouvez ici les meilleures recettes libanaises, de la cuisine de nos grands-m\\u00e8res aux cr\\u00e9ations modernes de chefs \\u00e9tablis au Liban ou ailleurs.\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"Recette libanaise\",\"description\":\"Retrouvez ici les meilleures recettes libanaises, de la cuisine de nos grands-m\\u00e8res aux cr\\u00e9ations modernes de chefs \\u00e9tablis au Liban ou ailleurs.\",\"metatitle\":\"\",\"metadescription\":\"\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        }
+      ],
+      "description": "Un dessert délicatement parfumé, qui allie douceur de la vanille à la pointe acidulée du sumac.",
+      "attachments": [
+        {
+          "id": "570311",
+          "name": "",
+          "description": "Un dessert élégant et original. Crédit photo : Akiko Ida.",
+          "focal": "50% 50%",
+          "width": 960,
+          "height": 1180,
+          "url": "https://s.lorientlejour.com/storage/attachments/1502/CAKE_581302.jpeg",
+          "transforms": [
+            {
+              "x": 245,
+              "y": 164,
+              "url": "https://s.lorientlejour.com/storage/attachments/1502/CAKE_581302.jpeg/r/245/CAKE_581302.jpeg"
+            },
+            {
+              "x": 400,
+              "y": 270,
+              "url": "https://s.lorientlejour.com/storage/attachments/1502/CAKE_581302.jpeg/r/400/CAKE_581302.jpeg"
+            },
+            {
+              "x": 800,
+              "y": 600,
+              "url": "https://s.lorientlejour.com/storage/attachments/1502/CAKE_581302.jpeg/r/800/CAKE_581302.jpeg"
+            },
+            {
+              "x": 1200,
+              "y": 800,
+              "url": "https://s.lorientlejour.com/storage/attachments/1502/CAKE_581302.jpeg/r/1200/CAKE_581302.jpeg"
+            },
+            {
+              "x": 2400,
+              "y": 1600,
+              "url": "https://s.lorientlejour.com/storage/attachments/1502/CAKE_581302.jpeg/r/2400/CAKE_581302.jpeg"
+            }
+          ],
+          "url_thumbnail": "https://s.lorientlejour.com/storage/attachments/1502/CAKE_581302.jpeg/r/245/CAKE_581302.jpeg",
+          "url_medium": "https://s.lorientlejour.com/storage/attachments/1502/CAKE_581302.jpeg/r/400/CAKE_581302.jpeg",
+          "url_large": "https://s.lorientlejour.com/storage/attachments/1502/CAKE_581302.jpeg/r/800/CAKE_581302.jpeg",
+          "url_home_slideshow": "https://s.lorientlejour.com/storage/attachments/1502/CAKE_581302.jpeg/r/1200/CAKE_581302.jpeg",
+          "url_highres": "https://s.lorientlejour.com/storage/attachments/1502/CAKE_581302.jpeg/r/2400/CAKE_581302.jpeg",
+          "type": "image"
+        }
+      ],
+      "recipe_name": "Le cake vanille sumac de Carla Rebeiz",
+      "preparation_time": 60,
+      "cooking_time": "45 à 60 ",
+      "persons": 8,
+      "difficulty": "Difficile",
+      "summary": "<ul><li>6 œufs</li><li>1 ½ gousse de vanille</li><li>110 g de sucre (1)</li><li>225 g de beurre</li><li>35 g de lait</li><li>70 g de poudre d’amande</li><li>170 g de farine + un peu pour fariner le moule</li><li>9 g de levure chimique</li><li>55 g de sucre (2)</li><li>Huile pour le moule.</li><li><strong>Pour le sirop</strong></li><li>50 g de sucre</li><li>150 g d’eau.</li><li><strong>Pour le glaçage</strong></li><li>20 g de jus de citron</li><li>200 g de sucre glace</li><li>12 g de sucre semoule</li><li>12 g de sumac.</li></ul>",
+      "astuce": "",
+      "recipe_history_title": "",
+      "introduction": "<p><br></p>",
+      "chef": {
+        "objectType": "Article",
+        "id": "1464897",
+        "signature": "Article:1464897",
+        "url": "https://www.lorientlejour.com/article/1464897/carla-rebeiz-de-la-finance-a-la-cuisine.html",
+        "shorturl": "https://olj.me/1464897",
+        "slug": "carla-rebeiz-de-la-finance-a-la-cuisine",
+        "contentType": {
+          "id": "5",
+          "name": "Chef",
+          "slug": "",
+          "editor": "default"
+        },
+        "views": 0,
+        "comments": 0,
+        "preview_limit": null,
+        "rating": 0,
+        "excludedFromGoogleSearchEngine": 0,
+        "status": "publish",
+        "title": "Carla Rebeiz, de la finance à la cuisine",
+        "firstPublished": "2025-06-15 19:04:12",
+        "lastUpdate": "2025-06-15 19:04:12",
+        "categories": [
+          {
+            "id": "1035",
+            "name": "Chefs 2",
+            "signature": "Category:1035",
+            "slug": "chefs",
+            "typeId": {
+              "typeId": "18",
+              "name": "Chef",
+              "slug": "",
+              "includeInIssue": "0",
+              "shortened_domain": "",
+              "stylesheetClass": "",
+              "domain": null,
+              "articleUrlPrefix": "",
+              "access_groups": "[]",
+              "locale": "fr-FR",
+              "preview_limit": null,
+              "sitemapUrlPrefix": null,
+              "authorUrlPrefix": null
+            },
+            "parentId": null,
+            "parent": [],
+            "image": "",
+            "cover": "",
+            "logo": "",
+            "paid": "0",
+            "objectType": "Category",
+            "url": "https://www.lorientlejour.com/category/1035-chefs",
+            "cssCode": "",
+            "template": "default",
+            "tagline": "",
+            "link_param": null,
+            "description": "",
+            "metaDescription": "",
+            "order": "0",
+            "pageId": null,
+            "articlesCount": null,
+            "allowComments": "1",
+            "accessType": "freecount",
+            "status": "1",
+            "children": [],
+            "cached": false
+          }
+        ],
+        "access_groups": [],
+        "access_control": false,
+        "counted_in_paywall": true,
+        "content_length": 1148,
+        "contents": "",
+        "subtitle": "",
+        "subtitle_en": "",
+        "attachments": [
+          {
+            "id": "503595",
+            "name": "",
+            "description": "",
+            "focal": "46.34% 12.63%",
+            "width": 1361,
+            "height": 1365,
+            "url": "https://s.lorientlejour.com/storage/attachments/1465/Carlaouverture_644382_344214.jpeg",
+            "transforms": [
+              {
+                "x": 245,
+                "y": 164,
+                "url": "https://s.lorientlejour.com/storage/attachments/1465/Carlaouverture_644382_344214.jpeg/r/245/Carlaouverture_644382_344214.jpeg"
+              },
+              {
+                "x": 400,
+                "y": 270,
+                "url": "https://s.lorientlejour.com/storage/attachments/1465/Carlaouverture_644382_344214.jpeg/r/400/Carlaouverture_644382_344214.jpeg"
+              },
+              {
+                "x": 800,
+                "y": 600,
+                "url": "https://s.lorientlejour.com/storage/attachments/1465/Carlaouverture_644382_344214.jpeg/r/800/Carlaouverture_644382_344214.jpeg"
+              },
+              {
+                "x": 1200,
+                "y": 800,
+                "url": "https://s.lorientlejour.com/storage/attachments/1465/Carlaouverture_644382_344214.jpeg/r/1200/Carlaouverture_644382_344214.jpeg"
+              },
+              {
+                "x": 2400,
+                "y": 1600,
+                "url": "https://s.lorientlejour.com/storage/attachments/1465/Carlaouverture_644382_344214.jpeg/r/2400/Carlaouverture_644382_344214.jpeg"
+              }
+            ],
+            "url_thumbnail": "https://s.lorientlejour.com/storage/attachments/1465/Carlaouverture_644382_344214.jpeg/r/245/Carlaouverture_644382_344214.jpeg",
+            "url_medium": "https://s.lorientlejour.com/storage/attachments/1465/Carlaouverture_644382_344214.jpeg/r/400/Carlaouverture_644382_344214.jpeg",
+            "url_large": "https://s.lorientlejour.com/storage/attachments/1465/Carlaouverture_644382_344214.jpeg/r/800/Carlaouverture_644382_344214.jpeg",
+            "url_home_slideshow": "https://s.lorientlejour.com/storage/attachments/1465/Carlaouverture_644382_344214.jpeg/r/1200/Carlaouverture_644382_344214.jpeg",
+            "url_highres": "https://s.lorientlejour.com/storage/attachments/1465/Carlaouverture_644382_344214.jpeg/r/2400/Carlaouverture_644382_344214.jpeg",
+            "type": "image"
+          }
+        ],
+        "summary": "",
+        "introduction": "",
+        "elements": [],
+        "seo": {
+          "search_title": "Carla Rebeiz, de la finance à la cuisine",
+          "search_description": "Carla Rebeiz, from finance to cooking…",
+          "social_title": "Carla Rebeiz, de la finance à la cuisine",
+          "social_description": "Carla Rebeiz, from finance to cooking…",
+          "social_image": ""
+        },
+        "time_to_read": 77,
+        "cached": true
+      },
+      "options": {
+        "recipe_name": "Le cake vanille sumac de Carla Rebeiz",
+        "preparation_time": 60,
+        "cooking_time": "45 à 60 ",
+        "persons": 8,
+        "difficulty": "Difficile",
+        "astuce": "",
+        "recipe_history_title": "",
+        "chef": 1464897,
+        "full_width_image": 1,
+        "sommaire_page": "",
+        "priority": 2,
+        "urgent": "0",
+        "articleFromCdl": "0",
+        "premium": "0",
+        "full_width_article": "0",
+        "arabic_article": "0",
+        "free": "0",
+        "hide_image": "0",
+        "elections": "0",
+        "video": "0",
+        "hide": "0"
+      },
+      "freemium": false,
+      "elements": [],
+      "seo": {
+        "search_title": "Le cake vanille sumac de Carla Rebeiz ",
+        "search_description": "Un dessert délicatement parfumé, qui allie douceur de la vanille à la pointe acidulée du sumac.",
+        "social_title": "Le cake vanille sumac de Carla Rebeiz ",
+        "social_description": "Un dessert délicatement parfumé, qui allie douceur de la vanille à la pointe acidulée du sumac.",
+        "social_image": ""
+      },
+      "time_to_read": 69,
+      "cached": true
+    }
+  ]
+}

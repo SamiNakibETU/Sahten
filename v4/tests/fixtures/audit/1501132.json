@@ -1,0 +1,450 @@
+{
+  "data": [
+    {
+      "objectType": "Article",
+      "id": "1501132",
+      "signature": "Article:1501132",
+      "url": "https://www.lorientlejour.com/cuisine-liban-a-table/1501132/la-kebbe-de-tomate-de-carla-rebeiz.html",
+      "shorturl": "https://olj.me/1501132",
+      "slug": "la-kebbe-de-tomate-de-carla-rebeiz",
+      "contentType": {
+        "id": "4",
+        "name": "Recipes",
+        "slug": "",
+        "editor": "default"
+      },
+      "views": 628,
+      "comments": 0,
+      "preview_limit": "850",
+      "rating": 3.73,
+      "rating_count": 15,
+      "excludedFromGoogleSearchEngine": 0,
+      "status": "publish",
+      "title": "La kebbé de tomate de Carla Rebeiz",
+      "firstPublished": "2026-04-07 10:07:14",
+      "lastUpdate": "2026-04-07 10:07:14",
+      "categories": [
+        {
+          "id": "1037",
+          "name": "Variations autour d’un thème",
+          "seo_name": "",
+          "signature": "Category:1037",
+          "slug": "variations-autour-dun-theme",
+          "typeId": {
+            "typeId": "17",
+            "name": "A table - OLJ",
+            "slug": "cuisine-liban-a-table",
+            "includeInIssue": "0",
+            "shortened_domain": "",
+            "stylesheetClass": "",
+            "domain": null,
+            "articleUrlPrefix": "cuisine-liban-a-table",
+            "access_groups": "[\"olj\",\"premium\",\"integrale\",\"premium_open\",\"donation_access\",\"premium_ot\",\"olj_basic\"]",
+            "locale": "fr-FR",
+            "preview_limit": "850",
+            "sitemapUrlPrefix": null,
+            "authorUrlPrefix": null
+          },
+          "parentId": "1031",
+          "parent": {
+            "id": "1031",
+            "name": "Recettes",
+            "signature": "Category:1031",
+            "slug": "recettes",
+            "parentId": null,
+            "parent": [],
+            "image": "",
+            "cover": "",
+            "logo": "",
+            "paid": "0",
+            "objectType": "Category",
+            "url": "https://www.lorientlejour.com/cuisine-liban-a-table/1031-recettes",
+            "cssCode": "",
+            "template": "default",
+            "tagline": "",
+            "link_param": null,
+            "description": "Des recettes signées par de grands chefs libanais, des passionnés de cuisine ou encore des personnalités libanaises que nous avons invitées à passer derrière les fourneaux.",
+            "metaDescription": "Des recettes signées par de grands chefs libanais, des passionnés de cuisine ou encore des personnalités libanaises que nous avons invitées à passer derrière les fourneaux.",
+            "order": "0",
+            "pageId": null,
+            "articlesCount": null,
+            "allowComments": "1",
+            "accessType": "freecount",
+            "status": "1",
+            "children": [],
+            "cached": true
+          },
+          "image": "",
+          "cover": "",
+          "logo": "",
+          "paid": "0",
+          "objectType": "Category",
+          "url": "https://www.lorientlejour.com/cuisine-liban-a-table/1037-variations-autour-dun-theme",
+          "cssCode": "",
+          "template": "default",
+          "tagline": "",
+          "link_param": null,
+          "description": "",
+          "metaDescription": "",
+          "order": "0",
+          "pageId": null,
+          "articlesCount": "187",
+          "allowComments": "1",
+          "accessType": "freecount",
+          "status": "1",
+          "children": [],
+          "cached": true
+        }
+      ],
+      "access_groups": [
+        "olj",
+        "premium",
+        "integrale",
+        "premium_open",
+        "donation_access",
+        "premium_ot",
+        "olj_basic"
+      ],
+      "access_control": false,
+      "counted_in_paywall": true,
+      "content_length": 604,
+      "contents": "<ol><li>Mettre le boulgour dans un bol, verser 25 g d’eau chaude et laisser reposer 15 minutes.</li><li>Préchauffer le four à 180°C et huiler un plat allant au four.</li><li>Mettre tous les ingrédients dans un mixeur sauf le boulgour. Mixer jusqu’à obtenir une pâte.</li><li>Ajouter le boulgour et mixer de nouveau jusqu’à obtenir une texture lisse.</li><li>Tremper les mains dans de l’eau très froide, puis étaler la préparation dans le plat sur 2 cm d’épaisseur.</li><li>Réaliser des croisillons sur le dessus avec un couteau ou une fourchette.</li><li>Enfourner 15 à 20 minutes.</li><li>Servir avec de la mouhammara ou du yaourt grec, une salade ou du yaourt au concombre.</li></ol>",
+      "tag": "Recette de chef ",
+      "authors": [],
+      "byline": "",
+      "keywords": [
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "56638",
+            "name": "plat principal",
+            "url": "https://www.lorientlejour.com/keyword/56638-plat-principal",
+            "slug": "plat-principal",
+            "description": "Des recettes savoureuses de plats principaux libanais ou autre, pour régaler toute la famille. Viandes, poissons ou options végétariennes : vous trouverez, ici, une série de mets généreux mais aussi originaux.",
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": "Plat principal",
+            "translations": "{\"default\":{\"metatitle\":\"Plat principal : recettes libanaises, m\\u00e9diterran\\u00e9ennes et actus\",\"metadescription\":\"Des recettes savoureuses de plats principaux libanais ou autre, pour r\\u00e9galer toute la famille. Viandes, poissons ou options v\\u00e9g\\u00e9tariennes : vous trouverez, ici, une s\\u00e9rie de mets g\\u00e9n\\u00e9reux mais aussi originaux.\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"Plat principal\",\"description\":\"Des recettes savoureuses de plats principaux libanais ou autre, pour r\\u00e9galer toute la famille. Viandes, poissons ou options v\\u00e9g\\u00e9tariennes : vous trouverez, ici, une s\\u00e9rie de mets g\\u00e9n\\u00e9reux mais aussi originaux.\",\"metatitle\":\"\",\"metadescription\":\"\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "56909",
+            "name": "recettes carla rebeiz",
+            "url": "https://www.lorientlejour.com/keyword/56909-recettes-carla-rebeiz",
+            "slug": "recettes-carla-rebeiz",
+            "description": null,
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": null,
+            "translations": "{\"default\":{\"metatitle\":\"\",\"metadescription\":\"\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"Les recettes de Carla Rebeiz\",\"description\":\"<p>D\\u00e9couvrez une s\\u00e9lection de recettes que la cheffe libanaise Carla Rebeiz a partag\\u00e9e avec nous.<\\/p>\",\"metatitle\":\"\",\"metadescription\":\"\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "55889",
+            "name": "recette libanaise",
+            "url": "https://www.lorientlejour.com/keyword/55889-recette-libanaise",
+            "slug": "recette-libanaise",
+            "description": "Retrouvez ici les meilleures recettes libanaises, de la cuisine de nos grands-mères aux créations modernes de chefs établis au Liban ou ailleurs.",
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": "Recette libanaise",
+            "translations": "{\"default\":{\"metatitle\":\"Recettes libanaises : plats traditionnels, revisit\\u00e9s et tendances\",\"metadescription\":\"Retrouvez ici les meilleures recettes libanaises, de la cuisine de nos grands-m\\u00e8res aux cr\\u00e9ations modernes de chefs \\u00e9tablis au Liban ou ailleurs.\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"Recette libanaise\",\"description\":\"Retrouvez ici les meilleures recettes libanaises, de la cuisine de nos grands-m\\u00e8res aux cr\\u00e9ations modernes de chefs \\u00e9tablis au Liban ou ailleurs.\",\"metatitle\":\"\",\"metadescription\":\"\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "21954",
+            "name": "cuisine libanaise",
+            "url": "https://www.lorientlejour.com/keyword/21954-cuisine-libanaise",
+            "slug": "cuisine-libanaise",
+            "description": null,
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": null,
+            "translations": null,
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "55861",
+            "name": "cuisine du moyen-orient",
+            "url": "https://www.lorientlejour.com/keyword/55861-cuisine-du-moyen-orient",
+            "slug": "cuisine-du-moyen-orient",
+            "description": "Recettes authentiques ou revisitées, la cuisine du Moyen-Orient vous invite à sa table.",
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": "Cuisine du Moyen-Orient",
+            "translations": "{\"default\":{\"metatitle\":\"Cuisine du Moyen-Orient : recettes, saveurs et actualit\\u00e9s\",\"metadescription\":\"Recettes authentiques ou revisit\\u00e9es, la cuisine du Moyen-Orient vous invite \\u00e0 sa table.\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "56639",
+            "name": "recette végétarienne",
+            "url": "https://www.lorientlejour.com/keyword/56639-recette-vegetarienne",
+            "slug": "recette-vegetarienne",
+            "description": "Une sélection de recettes végétariennes tirées essentiellement de la cuisine libanaise et levantine.",
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": "Recette végétarienne",
+            "translations": "{\"default\":{\"metatitle\":\"Recettes v\\u00e9g\\u00e9tariennes : libanaises et m\\u00e9diterran\\u00e9ennes\",\"metadescription\":\"Une s\\u00e9lection de recettes v\\u00e9g\\u00e9tariennes tir\\u00e9es essentiellement de la cuisine libanaise et levantine.\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "56640",
+            "name": "recette vegan",
+            "url": "https://www.lorientlejour.com/keyword/56640-recette-vegan",
+            "slug": "recette-vegan",
+            "description": "Voici une sélection de recettes à la fois vegan et savoureuses.",
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": "Recette vegan",
+            "translations": "{\"default\":{\"metatitle\":\"Recette vegan : id\\u00e9es, actualit\\u00e9s et plats 100% vegans\",\"metadescription\":\"Voici une s\\u00e9lection de recettes \\u00e0 la fois vegan et savoureuses.\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        }
+      ],
+      "description": "Version végétarienne et parfumée du classique libanais, cette kebbé de tomate se savoure chaude ou tiède, accompagnée d’une salade ou d’une sauce fraîche.",
+      "attachments": [
+        {
+          "id": "570324",
+          "name": "",
+          "description": "Servir avec de la mouhammara, une salade ou du yaourt. Crédit photo : Akiko Ida.",
+          "focal": "50% 50%",
+          "width": 960,
+          "height": 1384,
+          "url": "https://s.lorientlejour.com/storage/attachments/1502/kebb_343507.jpeg",
+          "transforms": [
+            {
+              "x": 245,
+              "y": 164,
+              "url": "https://s.lorientlejour.com/storage/attachments/1502/kebb_343507.jpeg/r/245/kebb_343507.jpeg"
+            },
+            {
+              "x": 400,
+              "y": 270,
+              "url": "https://s.lorientlejour.com/storage/attachments/1502/kebb_343507.jpeg/r/400/kebb_343507.jpeg"
+            },
+            {
+              "x": 800,
+              "y": 600,
+              "url": "https://s.lorientlejour.com/storage/attachments/1502/kebb_343507.jpeg/r/800/kebb_343507.jpeg"
+            },
+            {
+              "x": 1200,
+              "y": 800,
+              "url": "https://s.lorientlejour.com/storage/attachments/1502/kebb_343507.jpeg/r/1200/kebb_343507.jpeg"
+            },
+            {
+              "x": 2400,
+              "y": 1600,
+              "url": "https://s.lorientlejour.com/storage/attachments/1502/kebb_343507.jpeg/r/2400/kebb_343507.jpeg"
+            }
+          ],
+          "url_thumbnail": "https://s.lorientlejour.com/storage/attachments/1502/kebb_343507.jpeg/r/245/kebb_343507.jpeg",
+          "url_medium": "https://s.lorientlejour.com/storage/attachments/1502/kebb_343507.jpeg/r/400/kebb_343507.jpeg",
+          "url_large": "https://s.lorientlejour.com/storage/attachments/1502/kebb_343507.jpeg/r/800/kebb_343507.jpeg",
+          "url_home_slideshow": "https://s.lorientlejour.com/storage/attachments/1502/kebb_343507.jpeg/r/1200/kebb_343507.jpeg",
+          "url_highres": "https://s.lorientlejour.com/storage/attachments/1502/kebb_343507.jpeg/r/2400/kebb_343507.jpeg",
+          "type": "image"
+        }
+      ],
+      "recipe_name": "La kebbé de tomate de Carla Rebeiz",
+      "preparation_time": 10,
+      "cooking_time": 15,
+      "persons": 4,
+      "difficulty": "Facile",
+      "summary": "<ul><li>180 g de boulgour</li><li>1 tomate</li><li>1 poivron</li><li>1 oignon</li><li>60 g d’huile + un filet pour le plat</li><li>1 c. à s. de concentré de tomates</li><li>1 c. à s. de cumin</li><li>1 c. à s. de poivre noir</li><li>1 c. à s. de menthe sèche</li><li>1 c. à s. de paprika</li><li>Sel</li></ul>",
+      "astuce": "",
+      "recipe_history_title": "",
+      "introduction": "<p><br></p>",
+      "chef": {
+        "objectType": "Article",
+        "id": "1464897",
+        "signature": "Article:1464897",
+        "url": "https://www.lorientlejour.com/article/1464897/carla-rebeiz-de-la-finance-a-la-cuisine.html",
+        "shorturl": "https://olj.me/1464897",
+        "slug": "carla-rebeiz-de-la-finance-a-la-cuisine",
+        "contentType": {
+          "id": "5",
+          "name": "Chef",
+          "slug": "",
+          "editor": "default"
+        },
+        "views": 0,
+        "comments": 0,
+        "preview_limit": null,
+        "rating": 0,
+        "excludedFromGoogleSearchEngine": 0,
+        "status": "publish",
+        "title": "Carla Rebeiz, de la finance à la cuisine",
+        "firstPublished": "2025-06-15 19:04:12",
+        "lastUpdate": "2025-06-15 19:04:12",
+        "categories": [
+          {
+            "id": "1035",
+            "name": "Chefs 2",
+            "signature": "Category:1035",
+            "slug": "chefs",
+            "typeId": {
+              "typeId": "18",
+              "name": "Chef",
+              "slug": "",
+              "includeInIssue": "0",
+              "shortened_domain": "",
+              "stylesheetClass": "",
+              "domain": null,
+              "articleUrlPrefix": "",
+              "access_groups": "[]",
+              "locale": "fr-FR",
+              "preview_limit": null,
+              "sitemapUrlPrefix": null,
+              "authorUrlPrefix": null
+            },
+            "parentId": null,
+            "parent": [],
+            "image": "",
+            "cover": "",
+            "logo": "",
+            "paid": "0",
+            "objectType": "Category",
+            "url": "https://www.lorientlejour.com/category/1035-chefs",
+            "cssCode": "",
+            "template": "default",
+            "tagline": "",
+            "link_param": null,
+            "description": "",
+            "metaDescription": "",
+            "order": "0",
+            "pageId": null,
+            "articlesCount": null,
+            "allowComments": "1",
+            "accessType": "freecount",
+            "status": "1",
+            "children": [],
+            "cached": false
+          }
+        ],
+        "access_groups": [],
+        "access_control": false,
+        "counted_in_paywall": true,
+        "content_length": 1148,
+        "contents": "",
+        "subtitle": "",
+        "subtitle_en": "",
+        "attachments": [
+          {
+            "id": "503595",
+            "name": "",
+            "description": "",
+            "focal": "46.34% 12.63%",
+            "width": 1361,
+            "height": 1365,
+            "url": "https://s.lorientlejour.com/storage/attachments/1465/Carlaouverture_644382_344214.jpeg",
+            "transforms": [
+              {
+                "x": 245,
+                "y": 164,
+                "url": "https://s.lorientlejour.com/storage/attachments/1465/Carlaouverture_644382_344214.jpeg/r/245/Carlaouverture_644382_344214.jpeg"
+              },
+              {
+                "x": 400,
+                "y": 270,
+                "url": "https://s.lorientlejour.com/storage/attachments/1465/Carlaouverture_644382_344214.jpeg/r/400/Carlaouverture_644382_344214.jpeg"
+              },
+              {
+                "x": 800,
+                "y": 600,
+                "url": "https://s.lorientlejour.com/storage/attachments/1465/Carlaouverture_644382_344214.jpeg/r/800/Carlaouverture_644382_344214.jpeg"
+              },
+              {
+                "x": 1200,
+                "y": 800,
+                "url": "https://s.lorientlejour.com/storage/attachments/1465/Carlaouverture_644382_344214.jpeg/r/1200/Carlaouverture_644382_344214.jpeg"
+              },
+              {
+                "x": 2400,
+                "y": 1600,
+                "url": "https://s.lorientlejour.com/storage/attachments/1465/Carlaouverture_644382_344214.jpeg/r/2400/Carlaouverture_644382_344214.jpeg"
+              }
+            ],
+            "url_thumbnail": "https://s.lorientlejour.com/storage/attachments/1465/Carlaouverture_644382_344214.jpeg/r/245/Carlaouverture_644382_344214.jpeg",
+            "url_medium": "https://s.lorientlejour.com/storage/attachments/1465/Carlaouverture_644382_344214.jpeg/r/400/Carlaouverture_644382_344214.jpeg",
+            "url_large": "https://s.lorientlejour.com/storage/attachments/1465/Carlaouverture_644382_344214.jpeg/r/800/Carlaouverture_644382_344214.jpeg",
+            "url_home_slideshow": "https://s.lorientlejour.com/storage/attachments/1465/Carlaouverture_644382_344214.jpeg/r/1200/Carlaouverture_644382_344214.jpeg",
+            "url_highres": "https://s.lorientlejour.com/storage/attachments/1465/Carlaouverture_644382_344214.jpeg/r/2400/Carlaouverture_644382_344214.jpeg",
+            "type": "image"
+          }
+        ],
+        "summary": "",
+        "introduction": "",
+        "elements": [],
+        "seo": {
+          "search_title": "Carla Rebeiz, de la finance à la cuisine",
+          "search_description": "Carla Rebeiz, from finance to cooking…",
+          "social_title": "Carla Rebeiz, de la finance à la cuisine",
+          "social_description": "Carla Rebeiz, from finance to cooking…",
+          "social_image": ""
+        },
+        "time_to_read": 77,
+        "cached": true
+      },
+      "options": {
+        "recipe_name": "La kebbé de tomate de Carla Rebeiz",
+        "preparation_time": 10,
+        "cooking_time": 15,
+        "persons": 4,
+        "difficulty": "Facile",
+        "astuce": "",
+        "recipe_history_title": "",
+        "chef": 1464897,
+        "full_width_image": 1,
+        "sommaire_page": "",
+        "priority": 2,
+        "urgent": "0",
+        "articleFromCdl": "0",
+        "premium": "0",
+        "full_width_article": "0",
+        "arabic_article": "0",
+        "free": "0",
+        "hide_image": "0",
+        "elections": "0",
+        "video": "0",
+        "hide": "0"
+      },
+      "freemium": false,
+      "elements": [],
+      "seo": {
+        "search_title": "La kebbé de tomate de Carla Rebeiz",
+        "search_description": "Version végétarienne et parfumée du classique libanais, cette kebbé de tomate se savoure chaude ou tiède, accompagnée d’une salade ou d’une sauce fraîche.",
+        "social_title": "La kebbé de tomate de Carla Rebeiz",
+        "social_description": "Version végétarienne et parfumée du classique libanais, cette kebbé de tomate se savoure chaude ou tiède, accompagnée d’une salade ou d’une sauce fraîche.",
+        "social_image": ""
+      },
+      "time_to_read": 29,
+      "cached": true
+    }
+  ]
+}

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass
+from typing import Any
 
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,6 +15,51 @@ from .repository import upsert_article
 from .whitebeard_client import WhiteBeardClient
 
 log = structlog.get_logger(__name__)
+
+
+def _payload_item(payload: dict[str, Any]) -> dict[str, Any]:
+    """Renvoie l'objet article quel que soit l'enrobage `{data: [...]}`."""
+    data = payload.get("data") if isinstance(payload, dict) else None
+    if isinstance(data, list) and data:
+        first = data[0]
+        return first if isinstance(first, dict) else {}
+    if isinstance(data, dict):
+        return data
+    return payload if isinstance(payload, dict) else {}
+
+
+async def _enrich_chef_bio(
+    payload: dict[str, Any], cli: WhiteBeardClient
+) -> dict[str, Any]:
+    """Si le payload référence un chef sans bio, fetcher sa fiche complète.
+
+    Le payload ``/content/{recette_id}`` n'inclut PAS le champ ``contents``
+    (bio HTML) du chef ; il faut un 2ᵉ ``GET /content/{chef_id}``. On
+    patche directement l'objet ``chef`` du payload pour que le mapper
+    récupère la bio comme s'il s'agissait d'un payload natif riche.
+    """
+    item = _payload_item(payload)
+    chef = item.get("chef") if isinstance(item, dict) else None
+    if not isinstance(chef, dict):
+        return payload
+    if isinstance(chef.get("contents"), str) and chef["contents"].strip():
+        return payload
+    chef_id = chef.get("id")
+    try:
+        chef_id_int = int(chef_id) if chef_id is not None else None
+    except (TypeError, ValueError):
+        chef_id_int = None
+    if not chef_id_int:
+        return payload
+    try:
+        chef_payload = await cli.fetch_content(chef_id_int)
+    except Exception as exc:  # noqa: BLE001
+        log.warning("ingest.chef_fetch_failed", chef_id=chef_id_int, error=str(exc))
+        return payload
+    chef_full = _payload_item(chef_payload)
+    if isinstance(chef_full, dict) and chef_full:
+        item["chef"] = chef_full
+    return payload
 
 
 @dataclass
@@ -42,6 +88,7 @@ async def ingest_article_id(
 
     try:
         payload = await cli.fetch_content(external_id)
+        payload = await _enrich_chef_bio(payload, cli)
         payload_size = len(str(payload))
         mapped = map_article(payload)
         article = await upsert_article(session, mapped)

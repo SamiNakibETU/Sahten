@@ -1,0 +1,449 @@
+{
+  "data": [
+    {
+      "objectType": "Article",
+      "id": "1495342",
+      "signature": "Article:1495342",
+      "url": "https://www.lorientlejour.com/cuisine-liban-a-table/1495342/la-salade-de-baba-ghanouj-puree-daubergine-de-liza-soughayar-asseily-.html",
+      "shorturl": "https://olj.me/1495342",
+      "slug": "la-salade-de-baba-ghanouj-puree-daubergine-de-liza-soughayar-asseily-",
+      "contentType": {
+        "id": "4",
+        "name": "Recipes",
+        "slug": "",
+        "editor": "default"
+      },
+      "views": 708,
+      "comments": 0,
+      "preview_limit": "850",
+      "rating": 4.7,
+      "rating_count": 10,
+      "excludedFromGoogleSearchEngine": 0,
+      "status": "publish",
+      "title": "La salade de baba ghanouj (purée d'aubergine) de Liza Soughayar Asseily ",
+      "firstPublished": "2026-03-09 14:20:51",
+      "lastUpdate": "2026-03-09 14:20:51",
+      "categories": [
+        {
+          "id": "1037",
+          "name": "Variations autour d’un thème",
+          "signature": "Category:1037",
+          "slug": "variations-autour-dun-theme",
+          "typeId": {
+            "typeId": "17",
+            "name": "A table - OLJ",
+            "slug": "cuisine-liban-a-table",
+            "includeInIssue": "0",
+            "shortened_domain": "",
+            "stylesheetClass": "",
+            "domain": null,
+            "articleUrlPrefix": "cuisine-liban-a-table",
+            "access_groups": "[\"olj\",\"premium\",\"integrale\",\"premium_open\",\"donation_access\",\"premium_ot\",\"olj_basic\"]",
+            "locale": "fr-FR",
+            "preview_limit": "850",
+            "sitemapUrlPrefix": null,
+            "authorUrlPrefix": null
+          },
+          "parentId": "1031",
+          "parent": {
+            "id": "1031",
+            "name": "Recettes",
+            "signature": "Category:1031",
+            "slug": "recettes",
+            "parentId": null,
+            "parent": [],
+            "image": "",
+            "cover": "",
+            "logo": "",
+            "paid": "0",
+            "objectType": "Category",
+            "url": "https://www.lorientlejour.com/cuisine-liban-a-table/1031-recettes",
+            "cssCode": "",
+            "template": "default",
+            "tagline": "",
+            "link_param": null,
+            "description": "Des recettes signées par de grands chefs libanais, des passionnés de cuisine ou encore des personnalités libanaises que nous avons invitées à passer derrière les fourneaux.",
+            "metaDescription": "Des recettes signées par de grands chefs libanais, des passionnés de cuisine ou encore des personnalités libanaises que nous avons invitées à passer derrière les fourneaux.",
+            "order": "0",
+            "pageId": null,
+            "articlesCount": null,
+            "allowComments": "1",
+            "accessType": "freecount",
+            "status": "1",
+            "children": [],
+            "cached": true
+          },
+          "image": "",
+          "cover": "",
+          "logo": "",
+          "paid": "0",
+          "objectType": "Category",
+          "url": "https://www.lorientlejour.com/cuisine-liban-a-table/1037-variations-autour-dun-theme",
+          "cssCode": "",
+          "template": "default",
+          "tagline": "",
+          "link_param": null,
+          "description": "",
+          "metaDescription": "",
+          "order": "0",
+          "pageId": null,
+          "articlesCount": null,
+          "allowComments": "1",
+          "accessType": "freecount",
+          "status": "1",
+          "children": [],
+          "cached": false
+        }
+      ],
+      "access_groups": [
+        "olj",
+        "premium",
+        "integrale",
+        "premium_open",
+        "donation_access",
+        "premium_ot",
+        "olj_basic"
+      ],
+      "access_control": false,
+      "counted_in_paywall": true,
+      "content_length": 860,
+      "contents": "<p><strong>Pour la purée d’aubergine :</strong></p><ol><li>Préchauffer le four à 200 °C.</li><li>Faire griller les aubergines entières ~ 20 min (au four, au gril ou à la flamme pour un goût fumé).</li><li>Les plonger chaudes dans de l’eau glacée puis les éplucher.</li><li>Égoutter et hacher grossièrement la chair.</li><li>L’écraser à la fourchette pour obtenir une purée texturée.</li><li>Ciseler l’échalote et la ciboulette.</li><li>Mixer les aubergines avec le tahini, l’échalote, le yaourt, sel et poivre.</li><li>Ajouter progressivement le jus de citron jusqu’à texture homogène.</li><li>Incorporer la ciboulette et rectifier l’assaisonnement.</li></ol><p><strong>Pour la salade :</strong></p><ol><li>Laver et effeuiller le pourpier.</li><li>Ciseler les cébettes.</li><li>Couper les tomates en petits dés.</li><li>Mélanger avec l’huile d’olive, les graines de grenade, sel et poivre.</li></ol><p><strong>Pour le dressage</strong></p><ol><li>Étaler la purée d’aubergines dans une assiette.</li><li>Déposer une cuillerée de salade au centre.</li><li>Servir frais ou à température ambiante.</li></ol>",
+      "tag": "Recette de carême ",
+      "authors": [],
+      "byline": "",
+      "keywords": [
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "56637",
+            "name": "entrée",
+            "url": "https://www.lorientlejour.com/keyword/56637-entree",
+            "slug": "entree",
+            "description": "Toutes nos recettes d’entrées, issues de la cuisine libanaise traditionnelle et d’ailleurs, pour réveiller les papilles et débuter vos repas en beauté.",
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": "Entrée",
+            "translations": "{\"default\":{\"metatitle\":\"Entr\\u00e9e : id\\u00e9es, recettes et derni\\u00e8res actualit\\u00e9s culinaires\",\"metadescription\":\"Toutes nos recettes d\\u2019entr\\u00e9es, issues de la cuisine libanaise traditionnelle et d\\u2019ailleurs, pour r\\u00e9veiller les papilles et d\\u00e9buter vos repas en beaut\\u00e9.\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "56908",
+            "name": "salade",
+            "url": "https://www.lorientlejour.com/keyword/56908-salade",
+            "slug": "salade",
+            "description": null,
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": null,
+            "translations": "{\"default\":{\"metatitle\":\"\",\"metadescription\":\"\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"Nos recettes de salades\",\"description\":\"<p>D\\u00e9couvrez toutes nos recettes de salades, une v\\u00e9ritable farandole de saveurs libanaises et m\\u00e9diterran\\u00e9ennes. Parmi nos recettes se trouvent celles propos\\u00e9es par des chefs libanais. <\\/p>\",\"metatitle\":\"\",\"metadescription\":\"\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "55889",
+            "name": "recette libanaise",
+            "url": "https://www.lorientlejour.com/keyword/55889-recette-libanaise",
+            "slug": "recette-libanaise",
+            "description": "Retrouvez ici les meilleures recettes libanaises, de la cuisine de nos grands-mères aux créations modernes de chefs établis au Liban ou ailleurs.",
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": "Recette libanaise",
+            "translations": "{\"default\":{\"metatitle\":\"Recettes libanaises : plats traditionnels, revisit\\u00e9s et tendances\",\"metadescription\":\"Retrouvez ici les meilleures recettes libanaises, de la cuisine de nos grands-m\\u00e8res aux cr\\u00e9ations modernes de chefs \\u00e9tablis au Liban ou ailleurs.\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"Recette libanaise\",\"description\":\"Retrouvez ici les meilleures recettes libanaises, de la cuisine de nos grands-m\\u00e8res aux cr\\u00e9ations modernes de chefs \\u00e9tablis au Liban ou ailleurs.\",\"metatitle\":\"\",\"metadescription\":\"\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "56910",
+            "name": "recettes liza soughayar asseily",
+            "url": "https://www.lorientlejour.com/keyword/56910-recettes-liza-soughayar-asseily",
+            "slug": "recettes-liza-soughayar-asseily",
+            "description": null,
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": null,
+            "translations": "{\"default\":{\"metatitle\":\"\",\"metadescription\":\"\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"Les recettes de Liza Soughayar Asseily\",\"description\":\"<h2>D\\u00e9couvrez une s\\u00e9lection de recettes que la cheffe Liza Soughayar Asseily a partag\\u00e9es avec nous.<\\/h2>\",\"metatitle\":\"\",\"metadescription\":\"\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "21954",
+            "name": "cuisine libanaise",
+            "url": "https://www.lorientlejour.com/keyword/21954-cuisine-libanaise",
+            "slug": "cuisine-libanaise",
+            "description": null,
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": null,
+            "translations": null,
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "56536",
+            "name": "recette de carême",
+            "url": "https://www.lorientlejour.com/keyword/56536-recette-de-careme",
+            "slug": "recette-de-careme",
+            "description": "<p><br></p>",
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": null,
+            "translations": "{\"default\":{\"metatitle\":\"\",\"metadescription\":\"\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"Nos recettes pour le car\\u00eame\",\"description\":\"<p>D\\u00e9couvrez notre s\\u00e9lection de recettes, libanaises ou autres, sans viande, poulet, poisson ou produits laitiers. Des recettes id\\u00e9ales pour le car\\u00eame !<\\/p>\",\"metatitle\":\"Recettes libanaises ou autre pour le car\\u00eame\",\"metadescription\":\"D\\u00e9couvrez notre s\\u00e9lection de recettes, libanaises ou autres, sans viande, poulet, poisson ou produits laitiers. Des recettes id\\u00e9ales pour le car\\u00eame !\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "56639",
+            "name": "recette végétarienne",
+            "url": "https://www.lorientlejour.com/keyword/56639-recette-vegetarienne",
+            "slug": "recette-vegetarienne",
+            "description": "Une sélection de recettes végétariennes tirées essentiellement de la cuisine libanaise et levantine.",
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": "Recette végétarienne",
+            "translations": "{\"default\":{\"metatitle\":\"Recettes v\\u00e9g\\u00e9tariennes : libanaises et m\\u00e9diterran\\u00e9ennes\",\"metadescription\":\"Une s\\u00e9lection de recettes v\\u00e9g\\u00e9tariennes tir\\u00e9es essentiellement de la cuisine libanaise et levantine.\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        }
+      ],
+      "description": "L'onctuosité de la purée d'aubergine et le croquant de la salade... ",
+      "attachments": [
+        {
+          "id": "557447",
+          "name": "",
+          "description": "Un mezzé coloré et savoureux, à déguster frais ou à température ambiante. Photo fournie par Liza Soughayar Asseily",
+          "focal": "50% 50%",
+          "width": 0,
+          "height": 0,
+          "url": "https://s.lorientlejour.com/storage/attachments/1496/babaganoush_171copy_436123.jpg",
+          "transforms": [
+            {
+              "x": 245,
+              "y": 164,
+              "url": "https://s.lorientlejour.com/storage/attachments/1496/babaganoush_171copy_436123.jpg/r/245/babaganoush_171copy_436123.jpg"
+            },
+            {
+              "x": 400,
+              "y": 270,
+              "url": "https://s.lorientlejour.com/storage/attachments/1496/babaganoush_171copy_436123.jpg/r/400/babaganoush_171copy_436123.jpg"
+            },
+            {
+              "x": 800,
+              "y": 600,
+              "url": "https://s.lorientlejour.com/storage/attachments/1496/babaganoush_171copy_436123.jpg/r/800/babaganoush_171copy_436123.jpg"
+            },
+            {
+              "x": 1200,
+              "y": 800,
+              "url": "https://s.lorientlejour.com/storage/attachments/1496/babaganoush_171copy_436123.jpg/r/1200/babaganoush_171copy_436123.jpg"
+            },
+            {
+              "x": 2400,
+              "y": 1600,
+              "url": "https://s.lorientlejour.com/storage/attachments/1496/babaganoush_171copy_436123.jpg/r/2400/babaganoush_171copy_436123.jpg"
+            }
+          ],
+          "url_thumbnail": "https://s.lorientlejour.com/storage/attachments/1496/babaganoush_171copy_436123.jpg/r/245/babaganoush_171copy_436123.jpg",
+          "url_medium": "https://s.lorientlejour.com/storage/attachments/1496/babaganoush_171copy_436123.jpg/r/400/babaganoush_171copy_436123.jpg",
+          "url_large": "https://s.lorientlejour.com/storage/attachments/1496/babaganoush_171copy_436123.jpg/r/800/babaganoush_171copy_436123.jpg",
+          "url_home_slideshow": "https://s.lorientlejour.com/storage/attachments/1496/babaganoush_171copy_436123.jpg/r/1200/babaganoush_171copy_436123.jpg",
+          "url_highres": "https://s.lorientlejour.com/storage/attachments/1496/babaganoush_171copy_436123.jpg/r/2400/babaganoush_171copy_436123.jpg",
+          "type": "image"
+        }
+      ],
+      "recipe_name": "La salade de baba ghanouj (purée d'aubergine) de Liza Soughayar Asseily ",
+      "preparation_time": 20,
+      "cooking_time": 20,
+      "persons": 8,
+      "difficulty": "Facile",
+      "summary": "<ul><li><strong>Pour la purée d’aubergine :</strong></li><li>1,5 kg d’aubergines</li><li>20 g d’échalote</li><li>1/2 botte de ciboulette</li><li>200 g de tahini</li><li>200 g de yaourt grec</li><li>10 cl de jus de citron frais</li><li>Sel, poivre</li><li><strong>Pour la salade :</strong></li><li>1 botte de pourpier</li><li>1 botte de cébettes</li><li>2 tomates</li><li>30 g d’huile d’olive</li><li>50 g de graines de grenade</li><li>Sel, poivre</li></ul>",
+      "astuce": "",
+      "recipe_history_title": "",
+      "introduction": "<p><br></p>",
+      "chef": {
+        "objectType": "Article",
+        "id": "1464901",
+        "signature": "Article:1464901",
+        "url": "https://www.lorientlejour.com/article/1464901/liza-soughayar-asseily-un-chef-et-un-prenom.html",
+        "shorturl": "https://olj.me/1464901",
+        "slug": "liza-soughayar-asseily-un-chef-et-un-prenom",
+        "contentType": {
+          "id": "5",
+          "name": "Chef",
+          "slug": "",
+          "editor": "default"
+        },
+        "views": 0,
+        "comments": 0,
+        "preview_limit": null,
+        "rating": 0,
+        "excludedFromGoogleSearchEngine": 0,
+        "status": "publish",
+        "title": "Liza Soughayar Asseily : un chef et un prénom",
+        "firstPublished": "2025-06-15 19:24:18",
+        "lastUpdate": "2025-06-15 19:24:18",
+        "categories": [
+          {
+            "id": "1035",
+            "name": "Chefs 2",
+            "signature": "Category:1035",
+            "slug": "chefs",
+            "typeId": {
+              "typeId": "18",
+              "name": "Chef",
+              "slug": "",
+              "includeInIssue": "0",
+              "shortened_domain": "",
+              "stylesheetClass": "",
+              "domain": null,
+              "articleUrlPrefix": "",
+              "access_groups": "[]",
+              "locale": "fr-FR",
+              "preview_limit": null,
+              "sitemapUrlPrefix": null,
+              "authorUrlPrefix": null
+            },
+            "parentId": null,
+            "parent": [],
+            "image": "",
+            "cover": "",
+            "logo": "",
+            "paid": "0",
+            "objectType": "Category",
+            "url": "https://www.lorientlejour.com/category/1035-chefs",
+            "cssCode": "",
+            "template": "default",
+            "tagline": "",
+            "link_param": null,
+            "description": "",
+            "metaDescription": "",
+            "order": "0",
+            "pageId": null,
+            "articlesCount": null,
+            "allowComments": "1",
+            "accessType": "freecount",
+            "status": "1",
+            "children": [],
+            "cached": false
+          }
+        ],
+        "access_groups": [],
+        "access_control": false,
+        "counted_in_paywall": true,
+        "content_length": 829,
+        "contents": "",
+        "subtitle": "",
+        "subtitle_en": "",
+        "attachments": [
+          {
+            "id": "503599",
+            "name": "",
+            "description": "",
+            "focal": "69.84% 17.23%",
+            "width": 1224,
+            "height": 1224,
+            "url": "https://s.lorientlejour.com/storage/attachments/1465/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg",
+            "transforms": [
+              {
+                "x": 245,
+                "y": 164,
+                "url": "https://s.lorientlejour.com/storage/attachments/1465/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg/r/245/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg"
+              },
+              {
+                "x": 400,
+                "y": 270,
+                "url": "https://s.lorientlejour.com/storage/attachments/1465/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg/r/400/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg"
+              },
+              {
+                "x": 800,
+                "y": 600,
+                "url": "https://s.lorientlejour.com/storage/attachments/1465/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg/r/800/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg"
+              },
+              {
+                "x": 1200,
+                "y": 800,
+                "url": "https://s.lorientlejour.com/storage/attachments/1465/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg/r/1200/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg"
+              },
+              {
+                "x": 2400,
+                "y": 1600,
+                "url": "https://s.lorientlejour.com/storage/attachments/1465/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg/r/2400/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg"
+              }
+            ],
+            "url_thumbnail": "https://s.lorientlejour.com/storage/attachments/1465/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg/r/245/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg",
+            "url_medium": "https://s.lorientlejour.com/storage/attachments/1465/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg/r/400/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg",
+            "url_large": "https://s.lorientlejour.com/storage/attachments/1465/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg/r/800/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg",
+            "url_home_slideshow": "https://s.lorientlejour.com/storage/attachments/1465/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg/r/1200/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg",
+            "url_highres": "https://s.lorientlejour.com/storage/attachments/1465/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg/r/2400/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg",
+            "type": "image"
+          }
+        ],
+        "summary": "",
+        "introduction": "",
+        "elements": [],
+        "seo": {
+          "search_title": "Liza Soughayar Asseily : un chef et un prénom",
+          "search_description": "Liza Soughayar Asseily: a chef and a name…",
+          "social_title": "Liza Soughayar Asseily : un chef et un prénom",
+          "social_description": "Liza Soughayar Asseily: a chef and a name…",
+          "social_image": ""
+        },
+        "time_to_read": 60,
+        "cached": true
+      },
+      "options": {
+        "recipe_name": "La salade de baba ghanouj (purée d'aubergine) de Liza Soughayar Asseily ",
+        "preparation_time": 20,
+        "cooking_time": 20,
+        "persons": 8,
+        "difficulty": "Facile",
+        "astuce": "",
+        "recipe_history_title": "",
+        "chef": 1464901,
+        "full_width_image": 1,
+        "sommaire_page": "",
+        "priority": 2,
+        "urgent": "0",
+        "articleFromCdl": "0",
+        "premium": "0",
+        "full_width_article": "0",
+        "arabic_article": "0",
+        "free": "0",
+        "hide_image": "0",
+        "elections": "0",
+        "video": "0",
+        "hide": "0"
+      },
+      "freemium": false,
+      "elements": [],
+      "seo": {
+        "search_title": "La salade de baba ghanouj (purée d'aubergine) de Liza Soughayar Asseily ",
+        "search_description": "L'onctuosité de la purée d'aubergine et le croquant de la salade... ",
+        "social_title": "La salade de baba ghanouj (purée d'aubergine) de Liza Soughayar Asseily ",
+        "social_description": "L'onctuosité de la purée d'aubergine et le croquant de la salade... ",
+        "social_image": ""
+      },
+      "time_to_read": 34,
+      "cached": true
+    }
+  ]
+}

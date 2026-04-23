@@ -1,0 +1,135 @@
+{
+  "data": [
+    {
+      "objectType": "Article",
+      "id": "1464898",
+      "signature": "Article:1464898",
+      "url": "https://www.lorientlejour.com/article/1464898/karim-haidar-chef-tous-azimuts.html",
+      "shorturl": "https://olj.me/1464898",
+      "slug": "karim-haidar-chef-tous-azimuts",
+      "contentType": {
+        "id": "5",
+        "name": "Chef",
+        "slug": "",
+        "editor": "default"
+      },
+      "views": 0,
+      "comments": 0,
+      "preview_limit": null,
+      "rating": 0,
+      "excludedFromGoogleSearchEngine": 0,
+      "status": "publish",
+      "title": "Karim Haïdar, chef tous azimuts",
+      "firstPublished": "2025-06-15 19:15:29",
+      "lastUpdate": "2025-06-15 19:15:29",
+      "categories": [
+        {
+          "id": "1035",
+          "name": "Chefs 2",
+          "signature": "Category:1035",
+          "slug": "chefs",
+          "typeId": {
+            "typeId": "18",
+            "name": "Chef",
+            "slug": "",
+            "includeInIssue": "0",
+            "shortened_domain": "",
+            "stylesheetClass": "",
+            "domain": null,
+            "articleUrlPrefix": "",
+            "access_groups": "[]",
+            "locale": "fr-FR",
+            "preview_limit": null,
+            "sitemapUrlPrefix": null,
+            "authorUrlPrefix": null
+          },
+          "parentId": null,
+          "parent": [],
+          "image": "",
+          "cover": "",
+          "logo": "",
+          "paid": "0",
+          "objectType": "Category",
+          "url": "https://www.lorientlejour.com/category/1035-chefs",
+          "cssCode": "",
+          "template": "default",
+          "tagline": "",
+          "link_param": null,
+          "description": "",
+          "metaDescription": "",
+          "order": "0",
+          "pageId": null,
+          "articlesCount": null,
+          "allowComments": "1",
+          "accessType": "freecount",
+          "status": "1",
+          "children": [],
+          "cached": true
+        }
+      ],
+      "access_groups": [],
+      "access_control": false,
+      "counted_in_paywall": true,
+      "content_length": 1274,
+      "contents": "<p>Ancien juriste, Karim Haïdar a atterri derrière les fourneaux par passion. Et c’est par passion qu’en 20 ans, il n’a cessé de multiplier les expériences culinaires à Paris, Beyrouth et Londres. Que ce soit en version bistro (Liza, Au 29, Kébi), en version gastronomique (Zabad, Fakhreldine ou la Branche d’Olivier), ou en restauration rapide (Comptoir Libanais, Ya Bayté) et même en mode traiteur.</p><p>Via ses livres, traduits en plusieurs langues, et ses émissions de télévision, il partage son bonheur de cuisiner. Et pour aller plus loin encore, il a créé l’Académie de cuisine du monde arabe avec des chefs et des personnalités de la gastronomie et de la culture…</p><p>Sa dernière série d&#39;émissions sur Fatafeat TV a permis d’ouvrir une fenêtre sur les cuisines et la culture du monde arabe. Aujourd’hui, ses cours de cuisine sont disponibles sur Instagram, sur le compte suivant : @artesane_artsculinaires.</p><p>À Paris où il vit, il partage son temps entre ses deux nouvelles adresses dans le 15e arrondissement où se trouve sa « boutique à manger » baptisée « Les mots et le ciel » et dans le 11e où il vient d’ouvrir Sama, un bistro libanais contemporain. Sa passion : « Dépoussiérer et promouvoir notre culture culinaire, notre terroir et notre art de recevoir et de partager. »</p>",
+      "subtitle": "",
+      "subtitle_en": "",
+      "attachments": [
+        {
+          "id": "503597",
+          "name": "",
+          "description": "",
+          "focal": "50% 26.322751322751%",
+          "width": 642,
+          "height": 756,
+          "url": "https://s.lorientlejour.com/storage/attachments/1465/karimhaidarouverture_541161_951859.jpg",
+          "transforms": [
+            {
+              "x": 245,
+              "y": 164,
+              "url": "https://s.lorientlejour.com/storage/attachments/1465/karimhaidarouverture_541161_951859.jpg/r/245/karimhaidarouverture_541161_951859.jpg"
+            },
+            {
+              "x": 400,
+              "y": 270,
+              "url": "https://s.lorientlejour.com/storage/attachments/1465/karimhaidarouverture_541161_951859.jpg/r/400/karimhaidarouverture_541161_951859.jpg"
+            },
+            {
+              "x": 800,
+              "y": 600,
+              "url": "https://s.lorientlejour.com/storage/attachments/1465/karimhaidarouverture_541161_951859.jpg/r/800/karimhaidarouverture_541161_951859.jpg"
+            },
+            {
+              "x": 1200,
+              "y": 800,
+              "url": "https://s.lorientlejour.com/storage/attachments/1465/karimhaidarouverture_541161_951859.jpg/r/1200/karimhaidarouverture_541161_951859.jpg"
+            },
+            {
+              "x": 2400,
+              "y": 1600,
+              "url": "https://s.lorientlejour.com/storage/attachments/1465/karimhaidarouverture_541161_951859.jpg/r/2400/karimhaidarouverture_541161_951859.jpg"
+            }
+          ],
+          "url_thumbnail": "https://s.lorientlejour.com/storage/attachments/1465/karimhaidarouverture_541161_951859.jpg/r/245/karimhaidarouverture_541161_951859.jpg",
+          "url_medium": "https://s.lorientlejour.com/storage/attachments/1465/karimhaidarouverture_541161_951859.jpg/r/400/karimhaidarouverture_541161_951859.jpg",
+          "url_large": "https://s.lorientlejour.com/storage/attachments/1465/karimhaidarouverture_541161_951859.jpg/r/800/karimhaidarouverture_541161_951859.jpg",
+          "url_home_slideshow": "https://s.lorientlejour.com/storage/attachments/1465/karimhaidarouverture_541161_951859.jpg/r/1200/karimhaidarouverture_541161_951859.jpg",
+          "url_highres": "https://s.lorientlejour.com/storage/attachments/1465/karimhaidarouverture_541161_951859.jpg/r/2400/karimhaidarouverture_541161_951859.jpg",
+          "type": "image"
+        }
+      ],
+      "summary": "<p>Karim Haïdar, chef extraordinaire</p>",
+      "introduction": "<p>A former lawyer, Karim Haïdar ended up in the kitchen out of passion. And it is through passion that, over the past 20 years, he has continued to expand his culinary endeavours in Paris, Beirut, and London. From bistros (Liza, Au 29, Kébi) to fine dining (Zabad, Fakhreldine, and La Branche d&#39;Olivier) to fast food (Comptoir Libanais, Ya Bayté) and even catering, he has done it all.<br class=\"soft-break\"><br class=\"soft-break\">Through his books and his television shows, he shares his love of cooking. And to take things even further, he has created the Arab World Culinary Academy with chefs and personalities from the worlds of gastronomy and culture.<br class=\"soft-break\"><br class=\"soft-break\">His latest series of programs on Fatafeat TV has opened a window onto the cuisines and culture of the Arab world. Today, his cooking classes are available on Instagram at @artesane_artsculinaires.<br class=\"soft-break\"><br class=\"soft-break\">In Paris, where he lives, he splits his time between his two new establishments in the 15th arrondissement, where his « food shop » called « Les mots et le ciel » is located, and in the 11th, where he has just opened Sama, a contemporary Lebanese bistro. His passion: « To dust off and promote our culinary culture, our terroir, and our art of hospitality and sharing. »</p>",
+      "elements": [],
+      "seo": {
+        "search_title": "Karim Haïdar, chef tous azimuts",
+        "search_description": "Karim Haïdar, chef extraordinaire…",
+        "social_title": "Karim Haïdar, chef tous azimuts",
+        "social_description": "Karim Haïdar, chef extraordinaire…",
+        "social_image": ""
+      },
+      "time_to_read": 84,
+      "cached": true
+    }
+  ]
+}

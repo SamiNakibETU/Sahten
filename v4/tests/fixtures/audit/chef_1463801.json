@@ -1,0 +1,135 @@
+{
+  "data": [
+    {
+      "objectType": "Article",
+      "id": "1463801",
+      "signature": "Article:1463801",
+      "url": "https://www.lorientlejour.com/article/1463801/kamal-mouzawak-fondateur-de-souk-el-tayeb.html",
+      "shorturl": "https://olj.me/1463801",
+      "slug": "kamal-mouzawak-fondateur-de-souk-el-tayeb",
+      "contentType": {
+        "id": "5",
+        "name": "Chef",
+        "slug": "",
+        "editor": "default"
+      },
+      "views": 13,
+      "comments": 0,
+      "preview_limit": null,
+      "rating": 0,
+      "excludedFromGoogleSearchEngine": 0,
+      "status": "publish",
+      "title": "Kamal Mouzawak, fondateur de Souk el-Tayeb",
+      "firstPublished": "2025-06-09 17:23:02",
+      "lastUpdate": "2025-06-09 17:23:02",
+      "categories": [
+        {
+          "id": "1035",
+          "name": "Chefs 2",
+          "signature": "Category:1035",
+          "slug": "chefs",
+          "typeId": {
+            "typeId": "18",
+            "name": "Chef",
+            "slug": "",
+            "includeInIssue": "0",
+            "shortened_domain": "",
+            "stylesheetClass": "",
+            "domain": null,
+            "articleUrlPrefix": "",
+            "access_groups": "[]",
+            "locale": "fr-FR",
+            "preview_limit": null,
+            "sitemapUrlPrefix": null,
+            "authorUrlPrefix": null
+          },
+          "parentId": null,
+          "parent": [],
+          "image": "",
+          "cover": "",
+          "logo": "",
+          "paid": "0",
+          "objectType": "Category",
+          "url": "https://www.lorientlejour.com/category/1035-chefs",
+          "cssCode": "",
+          "template": "default",
+          "tagline": "",
+          "link_param": null,
+          "description": "",
+          "metaDescription": "",
+          "order": "0",
+          "pageId": null,
+          "articlesCount": null,
+          "allowComments": "1",
+          "accessType": "freecount",
+          "status": "1",
+          "children": [],
+          "cached": true
+        }
+      ],
+      "access_groups": [],
+      "access_control": false,
+      "counted_in_paywall": true,
+      "content_length": 337,
+      "contents": "<p>Kamal Mouzawak est le fondateur de Souk el-Tayeb, du restaurant Tawlet à Mar Mikhaël et de plusieurs maisons d’hôte, les Beit, dispersées aux quatre coins du Liban. Il est également l’auteur de plusieurs ouvrages parmi lesquels : « Délices des Mille et Une Nuits » (2012) ; « Lebanese Home Cooking » (2015) et « Manger libanais » (2017).</p>",
+      "subtitle": "",
+      "subtitle_en": "",
+      "attachments": [
+        {
+          "id": "502158",
+          "name": "",
+          "description": "",
+          "focal": "48.69% 22.08%",
+          "width": 1000,
+          "height": 1153,
+          "url": "https://s.lorientlejour.com/storage/attachments/1464/IMG_3827_372481.jpeg",
+          "transforms": [
+            {
+              "x": 245,
+              "y": 164,
+              "url": "https://s.lorientlejour.com/storage/attachments/1464/IMG_3827_372481.jpeg/r/245/IMG_3827_372481.jpeg"
+            },
+            {
+              "x": 400,
+              "y": 270,
+              "url": "https://s.lorientlejour.com/storage/attachments/1464/IMG_3827_372481.jpeg/r/400/IMG_3827_372481.jpeg"
+            },
+            {
+              "x": 800,
+              "y": 600,
+              "url": "https://s.lorientlejour.com/storage/attachments/1464/IMG_3827_372481.jpeg/r/800/IMG_3827_372481.jpeg"
+            },
+            {
+              "x": 1200,
+              "y": 800,
+              "url": "https://s.lorientlejour.com/storage/attachments/1464/IMG_3827_372481.jpeg/r/1200/IMG_3827_372481.jpeg"
+            },
+            {
+              "x": 2400,
+              "y": 1600,
+              "url": "https://s.lorientlejour.com/storage/attachments/1464/IMG_3827_372481.jpeg/r/2400/IMG_3827_372481.jpeg"
+            }
+          ],
+          "url_thumbnail": "https://s.lorientlejour.com/storage/attachments/1464/IMG_3827_372481.jpeg/r/245/IMG_3827_372481.jpeg",
+          "url_medium": "https://s.lorientlejour.com/storage/attachments/1464/IMG_3827_372481.jpeg/r/400/IMG_3827_372481.jpeg",
+          "url_large": "https://s.lorientlejour.com/storage/attachments/1464/IMG_3827_372481.jpeg/r/800/IMG_3827_372481.jpeg",
+          "url_home_slideshow": "https://s.lorientlejour.com/storage/attachments/1464/IMG_3827_372481.jpeg/r/1200/IMG_3827_372481.jpeg",
+          "url_highres": "https://s.lorientlejour.com/storage/attachments/1464/IMG_3827_372481.jpeg/r/2400/IMG_3827_372481.jpeg",
+          "type": "image"
+        }
+      ],
+      "summary": "<p>Kamal Mouzawak, founder of Souk el-Tayeb</p>",
+      "introduction": "<p>Kamal Mouzawak is the founder of Souk el-Tayeb, the Tawlet restaurant in Mar Mikhaël, and several guesthouses, known as Beit, scattered throughout Lebanon. He is also the author of several books, including: « Delights of the Thousand and One Nights » (2012) ; Lebanese Home Cooking (2015), and Manger libanais (2017).</p>",
+      "elements": [],
+      "seo": {
+        "search_title": "Kamal Mouzawak, fondateur de Souk el-Tayeb",
+        "search_description": "Kamal Mouzawak, founder of Souk el-Tayeb…",
+        "social_title": "Kamal Mouzawak, fondateur de Souk el-Tayeb",
+        "social_description": "Kamal Mouzawak, founder of Souk el-Tayeb…",
+        "social_image": ""
+      },
+      "time_to_read": 24,
+      "cached": true
+    }
+  ]
+}

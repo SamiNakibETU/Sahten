@@ -1,0 +1,433 @@
+{
+  "data": [
+    {
+      "objectType": "Article",
+      "id": "1495341",
+      "signature": "Article:1495341",
+      "url": "https://www.lorientlejour.com/cuisine-liban-a-table/1495341/la-kebbe-de-potiron-en-boulette-kebbit-laktine-de-liza-soughayar-asseily-.html",
+      "shorturl": "https://olj.me/1495341",
+      "slug": "la-kebbe-de-potiron-en-boulette-kebbit-laktine-de-liza-soughayar-asseily-",
+      "contentType": {
+        "id": "4",
+        "name": "Recipes",
+        "slug": "",
+        "editor": "default"
+      },
+      "views": 505,
+      "comments": 0,
+      "preview_limit": "850",
+      "rating": 4.67,
+      "rating_count": 12,
+      "excludedFromGoogleSearchEngine": 0,
+      "status": "publish",
+      "title": "La kebbé de potiron en boulette (Kebbit laktine) de Liza Soughayar Asseily ",
+      "firstPublished": "2026-03-12 11:01:50",
+      "lastUpdate": "2026-03-12 11:01:50",
+      "categories": [
+        {
+          "id": "1037",
+          "name": "Variations autour d’un thème",
+          "signature": "Category:1037",
+          "slug": "variations-autour-dun-theme",
+          "typeId": {
+            "typeId": "17",
+            "name": "A table - OLJ",
+            "slug": "cuisine-liban-a-table",
+            "includeInIssue": "0",
+            "shortened_domain": "",
+            "stylesheetClass": "",
+            "domain": null,
+            "articleUrlPrefix": "cuisine-liban-a-table",
+            "access_groups": "[\"olj\",\"premium\",\"integrale\",\"premium_open\",\"donation_access\",\"premium_ot\",\"olj_basic\"]",
+            "locale": "fr-FR",
+            "preview_limit": "850",
+            "sitemapUrlPrefix": null,
+            "authorUrlPrefix": null
+          },
+          "parentId": "1031",
+          "parent": {
+            "id": "1031",
+            "name": "Recettes",
+            "signature": "Category:1031",
+            "slug": "recettes",
+            "parentId": null,
+            "parent": [],
+            "image": "",
+            "cover": "",
+            "logo": "",
+            "paid": "0",
+            "objectType": "Category",
+            "url": "https://www.lorientlejour.com/cuisine-liban-a-table/1031-recettes",
+            "cssCode": "",
+            "template": "default",
+            "tagline": "",
+            "link_param": null,
+            "description": "Des recettes signées par de grands chefs libanais, des passionnés de cuisine ou encore des personnalités libanaises que nous avons invitées à passer derrière les fourneaux.",
+            "metaDescription": "Des recettes signées par de grands chefs libanais, des passionnés de cuisine ou encore des personnalités libanaises que nous avons invitées à passer derrière les fourneaux.",
+            "order": "0",
+            "pageId": null,
+            "articlesCount": null,
+            "allowComments": "1",
+            "accessType": "freecount",
+            "status": "1",
+            "children": [],
+            "cached": true
+          },
+          "image": "",
+          "cover": "",
+          "logo": "",
+          "paid": "0",
+          "objectType": "Category",
+          "url": "https://www.lorientlejour.com/cuisine-liban-a-table/1037-variations-autour-dun-theme",
+          "cssCode": "",
+          "template": "default",
+          "tagline": "",
+          "link_param": null,
+          "description": "",
+          "metaDescription": "",
+          "order": "0",
+          "pageId": null,
+          "articlesCount": null,
+          "allowComments": "1",
+          "accessType": "freecount",
+          "status": "1",
+          "children": [],
+          "cached": true
+        }
+      ],
+      "access_groups": [
+        "olj",
+        "premium",
+        "integrale",
+        "premium_open",
+        "donation_access",
+        "premium_ot",
+        "olj_basic"
+      ],
+      "access_control": false,
+      "counted_in_paywall": true,
+      "content_length": 849,
+      "contents": "<p><strong>Pour la pâte :</strong></p><ol><li>Cuire le potiron à la vapeur environ 20 min. Réserver 50 g pour la sauce.</li><li>Mélanger le reste avec le boulgour (non lavé) pour qu’il absorbe l’humidité.</li><li>Mixer jusqu’à obtention d’une pâte homogène.</li><li>Laisser reposer 1 h.</li></ol><p><strong>Pour la farce :</strong></p><ol><li>Faire revenir les oignons hachés dans l’huile à feu doux jusqu’à translucides.</li><li>Hors du feu, ajouter les noix concassées, la farine, la mélasse de grenade et les pommes de terre cuites écrasées.</li><li>Saler, poivrer, mélanger.</li></ol><p><strong>Pour la sauce :</strong></p><ol><li>Mixer le potiron réservé avec le yaourt et la menthe.</li><li>Réserver au frais.</li></ol><p><strong>Façonnage :</strong></p><ol><li>Humidifier les doigts.</li><li>Former une boulette, creuser avec le pouce.</li><li>Garnir de farce puis refermer soigneusement.</li></ol><p><strong>Cuisson &amp; Dressage :</strong></p><ol><li>Faire frire les boulettes dans l’huile à 180 °C environ 6 min jusqu’à ce qu&#39;elles soient dorées.</li><li>Égoutter sur du papier absorbant.</li><li>Servir chaud avec la sauce.</li></ol>",
+      "tag": "Recette de chef ",
+      "authors": [],
+      "byline": "",
+      "keywords": [
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "56638",
+            "name": "plat principal",
+            "url": "https://www.lorientlejour.com/keyword/56638-plat-principal",
+            "slug": "plat-principal",
+            "description": "Des recettes savoureuses de plats principaux libanais ou autre, pour régaler toute la famille. Viandes, poissons ou options végétariennes : vous trouverez, ici, une série de mets généreux mais aussi originaux.",
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": "Plat principal",
+            "translations": "{\"default\":{\"metatitle\":\"Plat principal : recettes libanaises, m\\u00e9diterran\\u00e9ennes et actus\",\"metadescription\":\"Des recettes savoureuses de plats principaux libanais ou autre, pour r\\u00e9galer toute la famille. Viandes, poissons ou options v\\u00e9g\\u00e9tariennes : vous trouverez, ici, une s\\u00e9rie de mets g\\u00e9n\\u00e9reux mais aussi originaux.\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"Plat principal\",\"description\":\"Des recettes savoureuses de plats principaux libanais ou autre, pour r\\u00e9galer toute la famille. Viandes, poissons ou options v\\u00e9g\\u00e9tariennes : vous trouverez, ici, une s\\u00e9rie de mets g\\u00e9n\\u00e9reux mais aussi originaux.\",\"metatitle\":\"\",\"metadescription\":\"\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "56910",
+            "name": "recettes liza soughayar asseily",
+            "url": "https://www.lorientlejour.com/keyword/56910-recettes-liza-soughayar-asseily",
+            "slug": "recettes-liza-soughayar-asseily",
+            "description": null,
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": null,
+            "translations": "{\"default\":{\"metatitle\":\"\",\"metadescription\":\"\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"Les recettes de Liza Soughayar Asseily\",\"description\":\"<h2>D\\u00e9couvrez une s\\u00e9lection de recettes que la cheffe Liza Soughayar Asseily a partag\\u00e9es avec nous.<\\/h2>\",\"metatitle\":\"\",\"metadescription\":\"\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "56536",
+            "name": "recette de carême",
+            "url": "https://www.lorientlejour.com/keyword/56536-recette-de-careme",
+            "slug": "recette-de-careme",
+            "description": "<p><br></p>",
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": null,
+            "translations": "{\"default\":{\"metatitle\":\"\",\"metadescription\":\"\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"Nos recettes pour le car\\u00eame\",\"description\":\"<p>D\\u00e9couvrez notre s\\u00e9lection de recettes, libanaises ou autres, sans viande, poulet, poisson ou produits laitiers. Des recettes id\\u00e9ales pour le car\\u00eame !<\\/p>\",\"metatitle\":\"Recettes libanaises ou autre pour le car\\u00eame\",\"metadescription\":\"D\\u00e9couvrez notre s\\u00e9lection de recettes, libanaises ou autres, sans viande, poulet, poisson ou produits laitiers. Des recettes id\\u00e9ales pour le car\\u00eame !\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "21954",
+            "name": "cuisine libanaise",
+            "url": "https://www.lorientlejour.com/keyword/21954-cuisine-libanaise",
+            "slug": "cuisine-libanaise",
+            "description": null,
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": null,
+            "translations": null,
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "56639",
+            "name": "recette végétarienne",
+            "url": "https://www.lorientlejour.com/keyword/56639-recette-vegetarienne",
+            "slug": "recette-vegetarienne",
+            "description": "Une sélection de recettes végétariennes tirées essentiellement de la cuisine libanaise et levantine.",
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": "Recette végétarienne",
+            "translations": "{\"default\":{\"metatitle\":\"Recettes v\\u00e9g\\u00e9tariennes : libanaises et m\\u00e9diterran\\u00e9ennes\",\"metadescription\":\"Une s\\u00e9lection de recettes v\\u00e9g\\u00e9tariennes tir\\u00e9es essentiellement de la cuisine libanaise et levantine.\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "56673",
+            "name": "cuisine méditerranéenne",
+            "url": "https://www.lorientlejour.com/keyword/56673-cuisine-mediterraneenne",
+            "slug": "cuisine-mediterraneenne",
+            "description": null,
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": null,
+            "translations": "{\"default\":{\"metatitle\":\"Cuisine m\\u00e9diterran\\u00e9enne : recettes et actus gastronomie\",\"metadescription\":\"Nos recettes et articles concernant la cuisine m\\u00e9diterran\\u00e9enne, un m\\u00e9lange sain et ensoleill\\u00e9 de saveurs d\\u2019Europe du Sud, du Moyen-Orient et d\\u2019Afrique du Nord.\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"Cuisine m\\u00e9diterran\\u00e9enne\",\"description\":\"Nos recettes et articles concernant la cuisine m\\u00e9diterran\\u00e9enne, un m\\u00e9lange sain et ensoleill\\u00e9 de saveurs d\\u2019Europe du Sud, du Moyen-Orient et d\\u2019Afrique du Nord.\",\"metatitle\":\"\",\"metadescription\":\"\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        }
+      ],
+      "description": "De délicieuses kebbés végétariennes à servir avec une sauce à base de yaourt grec.",
+      "attachments": [
+        {
+          "id": "557445",
+          "name": "",
+          "description": "Des boulettes à déguster chaudes, avec une sauce au yaourt. ",
+          "focal": "50% 50%",
+          "width": 0,
+          "height": 0,
+          "url": "https://s.lorientlejour.com/storage/attachments/1496/kebe_587copy_229901.jpg",
+          "transforms": [
+            {
+              "x": 245,
+              "y": 164,
+              "url": "https://s.lorientlejour.com/storage/attachments/1496/kebe_587copy_229901.jpg/r/245/kebe_587copy_229901.jpg"
+            },
+            {
+              "x": 400,
+              "y": 270,
+              "url": "https://s.lorientlejour.com/storage/attachments/1496/kebe_587copy_229901.jpg/r/400/kebe_587copy_229901.jpg"
+            },
+            {
+              "x": 800,
+              "y": 600,
+              "url": "https://s.lorientlejour.com/storage/attachments/1496/kebe_587copy_229901.jpg/r/800/kebe_587copy_229901.jpg"
+            },
+            {
+              "x": 1200,
+              "y": 800,
+              "url": "https://s.lorientlejour.com/storage/attachments/1496/kebe_587copy_229901.jpg/r/1200/kebe_587copy_229901.jpg"
+            },
+            {
+              "x": 2400,
+              "y": 1600,
+              "url": "https://s.lorientlejour.com/storage/attachments/1496/kebe_587copy_229901.jpg/r/2400/kebe_587copy_229901.jpg"
+            }
+          ],
+          "url_thumbnail": "https://s.lorientlejour.com/storage/attachments/1496/kebe_587copy_229901.jpg/r/245/kebe_587copy_229901.jpg",
+          "url_medium": "https://s.lorientlejour.com/storage/attachments/1496/kebe_587copy_229901.jpg/r/400/kebe_587copy_229901.jpg",
+          "url_large": "https://s.lorientlejour.com/storage/attachments/1496/kebe_587copy_229901.jpg/r/800/kebe_587copy_229901.jpg",
+          "url_home_slideshow": "https://s.lorientlejour.com/storage/attachments/1496/kebe_587copy_229901.jpg/r/1200/kebe_587copy_229901.jpg",
+          "url_highres": "https://s.lorientlejour.com/storage/attachments/1496/kebe_587copy_229901.jpg/r/2400/kebe_587copy_229901.jpg",
+          "type": "image"
+        }
+      ],
+      "recipe_name": "La kebbé de potiron en boulette (Kebbit laktine) de Liza Soughayar Asseily ",
+      "preparation_time": 60,
+      "cooking_time": 26,
+      "persons": 12,
+      "difficulty": "Moyenne",
+      "summary": "<ul><li><strong>Pour la pâte :</strong></li><li>1kg de potiron</li><li>100 g de boulgour brun fin</li><li>Une c. à café d’huile d’olive</li><li><strong>Pour la farce :</strong></li><li>2 oignons</li><li>4 c. à s. d’huile d’olive</li><li>50 g de noix concassées</li><li>5 g de farine</li><li>2 c. à s. de mélasse de grenade</li><li>4–5 pommes de terre cuites</li><li>Sel, poivre</li><li><strong>Pour la sauce :</strong></li><li>50 g de potiron cuit</li><li>50 g de yaourt grec</li><li>Menthe séchée</li><li>Huile de friture</li></ul>",
+      "astuce": "",
+      "recipe_history_title": "",
+      "introduction": "<p><br></p>",
+      "chef": {
+        "objectType": "Article",
+        "id": "1464901",
+        "signature": "Article:1464901",
+        "url": "https://www.lorientlejour.com/article/1464901/liza-soughayar-asseily-un-chef-et-un-prenom.html",
+        "shorturl": "https://olj.me/1464901",
+        "slug": "liza-soughayar-asseily-un-chef-et-un-prenom",
+        "contentType": {
+          "id": "5",
+          "name": "Chef",
+          "slug": "",
+          "editor": "default"
+        },
+        "views": 0,
+        "comments": 0,
+        "preview_limit": null,
+        "rating": 0,
+        "excludedFromGoogleSearchEngine": 0,
+        "status": "publish",
+        "title": "Liza Soughayar Asseily : un chef et un prénom",
+        "firstPublished": "2025-06-15 19:24:18",
+        "lastUpdate": "2025-06-15 19:24:18",
+        "categories": [
+          {
+            "id": "1035",
+            "name": "Chefs 2",
+            "signature": "Category:1035",
+            "slug": "chefs",
+            "typeId": {
+              "typeId": "18",
+              "name": "Chef",
+              "slug": "",
+              "includeInIssue": "0",
+              "shortened_domain": "",
+              "stylesheetClass": "",
+              "domain": null,
+              "articleUrlPrefix": "",
+              "access_groups": "[]",
+              "locale": "fr-FR",
+              "preview_limit": null,
+              "sitemapUrlPrefix": null,
+              "authorUrlPrefix": null
+            },
+            "parentId": null,
+            "parent": [],
+            "image": "",
+            "cover": "",
+            "logo": "",
+            "paid": "0",
+            "objectType": "Category",
+            "url": "https://www.lorientlejour.com/category/1035-chefs",
+            "cssCode": "",
+            "template": "default",
+            "tagline": "",
+            "link_param": null,
+            "description": "",
+            "metaDescription": "",
+            "order": "0",
+            "pageId": null,
+            "articlesCount": null,
+            "allowComments": "1",
+            "accessType": "freecount",
+            "status": "1",
+            "children": [],
+            "cached": false
+          }
+        ],
+        "access_groups": [],
+        "access_control": false,
+        "counted_in_paywall": true,
+        "content_length": 829,
+        "contents": "",
+        "subtitle": "",
+        "subtitle_en": "",
+        "attachments": [
+          {
+            "id": "503599",
+            "name": "",
+            "description": "",
+            "focal": "69.84% 17.23%",
+            "width": 1224,
+            "height": 1224,
+            "url": "https://s.lorientlejour.com/storage/attachments/1465/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg",
+            "transforms": [
+              {
+                "x": 245,
+                "y": 164,
+                "url": "https://s.lorientlejour.com/storage/attachments/1465/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg/r/245/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg"
+              },
+              {
+                "x": 400,
+                "y": 270,
+                "url": "https://s.lorientlejour.com/storage/attachments/1465/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg/r/400/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg"
+              },
+              {
+                "x": 800,
+                "y": 600,
+                "url": "https://s.lorientlejour.com/storage/attachments/1465/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg/r/800/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg"
+              },
+              {
+                "x": 1200,
+                "y": 800,
+                "url": "https://s.lorientlejour.com/storage/attachments/1465/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg/r/1200/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg"
+              },
+              {
+                "x": 2400,
+                "y": 1600,
+                "url": "https://s.lorientlejour.com/storage/attachments/1465/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg/r/2400/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg"
+              }
+            ],
+            "url_thumbnail": "https://s.lorientlejour.com/storage/attachments/1465/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg/r/245/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg",
+            "url_medium": "https://s.lorientlejour.com/storage/attachments/1465/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg/r/400/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg",
+            "url_large": "https://s.lorientlejour.com/storage/attachments/1465/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg/r/800/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg",
+            "url_home_slideshow": "https://s.lorientlejour.com/storage/attachments/1465/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg/r/1200/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg",
+            "url_highres": "https://s.lorientlejour.com/storage/attachments/1465/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg/r/2400/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg",
+            "type": "image"
+          }
+        ],
+        "summary": "",
+        "introduction": "",
+        "elements": [],
+        "seo": {
+          "search_title": "Liza Soughayar Asseily : un chef et un prénom",
+          "search_description": "Liza Soughayar Asseily: a chef and a name…",
+          "social_title": "Liza Soughayar Asseily : un chef et un prénom",
+          "social_description": "Liza Soughayar Asseily: a chef and a name…",
+          "social_image": ""
+        },
+        "time_to_read": 60,
+        "cached": true
+      },
+      "options": {
+        "recipe_name": "La kebbé de potiron en boulette (Kebbit laktine) de Liza Soughayar Asseily ",
+        "preparation_time": 60,
+        "cooking_time": 26,
+        "persons": 12,
+        "difficulty": "Moyenne",
+        "astuce": "",
+        "recipe_history_title": "",
+        "chef": 1464901,
+        "full_width_image": 1,
+        "sommaire_page": "",
+        "priority": 2,
+        "urgent": "0",
+        "articleFromCdl": "0",
+        "premium": "0",
+        "full_width_article": "0",
+        "arabic_article": "0",
+        "free": "0",
+        "hide_image": "0",
+        "elections": "0",
+        "video": "0",
+        "hide": "0"
+      },
+      "freemium": false,
+      "elements": [],
+      "seo": {
+        "search_title": "La kebbé de potiron en boulette (Kebbit laktine) de Liza Soughayar Asseily ",
+        "search_description": "De délicieuses kebbés végétariennes à servir avec une sauce à base de yaourt grec.",
+        "social_title": "La kebbé de potiron en boulette (Kebbit laktine) de Liza Soughayar Asseily ",
+        "social_description": "De délicieuses kebbés végétariennes à servir avec une sauce à base de yaourt grec.",
+        "social_image": ""
+      },
+      "time_to_read": 37,
+      "cached": true
+    }
+  ]
+}

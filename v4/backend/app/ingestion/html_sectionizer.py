@@ -63,18 +63,58 @@ def _classify_heading(heading_text: str | None) -> str | None:
     return None
 
 
+_KNOWN_KINDS = {
+    "recipe_meta",
+    "recipe_summary",
+    "recipe_history",
+    "intro",
+    "ingredients_list",
+    "recipe_steps",
+    "chef_astuce",
+    "chef_bio",
+}
+
+
 def sectionize(html: str) -> list[Section]:
-    """Convertit du HTML CMS en liste de sections normalisées."""
+    """Convertit du HTML CMS en liste de sections normalisées.
+
+    Si le HTML est balisé en ``<section data-kind="…">`` (cas du mapper
+    WhiteBeard moderne), on respecte directement ces marqueurs sémantiques
+    plutôt que de les ré-inférer. Sinon on retombe sur l'heuristique
+    historique (heading + classes ``sidebar``/``encadre``).
+    """
     if not html or not html.strip():
         return []
 
     soup = BeautifulSoup(html, "lxml")
-    # Supprimer les blocs purement décoratifs/scripts
     for sel in ("script", "style", "noscript"):
         for n in soup.select(sel):
             n.decompose()
 
-    sections: list[Section] = []
+    explicit = soup.find_all("section", attrs={"data-kind": True}, recursive=True)
+    if explicit:
+        sections: list[Section] = []
+        pos = 0
+        for sec_tag in explicit:
+            kind = (sec_tag.get("data-kind") or "").strip() or "paragraph"
+            heading_tag = sec_tag.find(["h2", "h3", "h4"])
+            heading = _clean_text(heading_tag) if heading_tag else None
+            inner_html = "".join(str(c) for c in sec_tag.children).strip()
+            inner_text = sec_tag.get_text(separator="\n", strip=True)
+            if not inner_text:
+                continue
+            sections.append(Section(
+                position=pos,
+                kind=kind if kind in _KNOWN_KINDS else "paragraph",
+                heading=heading,
+                html=inner_html,
+                text=inner_text,
+                metadata={"explicit": True, "raw_kind": kind},
+            ))
+            pos += 1
+        return sections
+
+    sections = []
     pos = 0
     current_heading: str | None = None
     current_kind_hint: str | None = None
@@ -94,7 +134,6 @@ def sectionize(html: str) -> list[Section]:
         if not isinstance(child, Tag):
             continue
         sections.extend(_walk(child, pos, current_heading, current_kind_hint))
-        # Mise à jour du contexte heading pour les nœuds suivants
         if child.name in {"h1", "h2", "h3", "h4"}:
             current_heading = _clean_text(child)
             current_kind_hint = _classify_heading(current_heading)

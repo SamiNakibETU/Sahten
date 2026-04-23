@@ -1,0 +1,402 @@
+{
+  "data": [
+    {
+      "objectType": "Article",
+      "id": "1501129",
+      "signature": "Article:1501129",
+      "url": "https://www.lorientlejour.com/cuisine-liban-a-table/1501129/le-cocktail-gin-cardamome-de-carla-rebeiz.html",
+      "shorturl": "https://olj.me/1501129",
+      "slug": "le-cocktail-gin-cardamome-de-carla-rebeiz",
+      "contentType": {
+        "id": "4",
+        "name": "Recipes",
+        "slug": "",
+        "editor": "default"
+      },
+      "views": 112,
+      "comments": 0,
+      "preview_limit": "850",
+      "rating": 4.91,
+      "rating_count": 11,
+      "excludedFromGoogleSearchEngine": 0,
+      "status": "publish",
+      "title": "Le cocktail gin cardamome de Carla Rebeiz",
+      "firstPublished": "2026-04-18 10:51:11",
+      "lastUpdate": "2026-04-18 10:51:11",
+      "categories": [
+        {
+          "id": "1037",
+          "name": "Variations autour d’un thème",
+          "seo_name": "",
+          "signature": "Category:1037",
+          "slug": "variations-autour-dun-theme",
+          "typeId": {
+            "typeId": "17",
+            "name": "A table - OLJ",
+            "slug": "cuisine-liban-a-table",
+            "includeInIssue": "0",
+            "shortened_domain": "",
+            "stylesheetClass": "",
+            "domain": null,
+            "articleUrlPrefix": "cuisine-liban-a-table",
+            "access_groups": "[\"olj\",\"premium\",\"integrale\",\"premium_open\",\"donation_access\",\"premium_ot\",\"olj_basic\"]",
+            "locale": "fr-FR",
+            "preview_limit": "850",
+            "sitemapUrlPrefix": null,
+            "authorUrlPrefix": null
+          },
+          "parentId": "1031",
+          "parent": {
+            "id": "1031",
+            "name": "Recettes",
+            "signature": "Category:1031",
+            "slug": "recettes",
+            "parentId": null,
+            "parent": [],
+            "image": "",
+            "cover": "",
+            "logo": "",
+            "paid": "0",
+            "objectType": "Category",
+            "url": "https://www.lorientlejour.com/cuisine-liban-a-table/1031-recettes",
+            "cssCode": "",
+            "template": "default",
+            "tagline": "",
+            "link_param": null,
+            "description": "Des recettes signées par de grands chefs libanais, des passionnés de cuisine ou encore des personnalités libanaises que nous avons invitées à passer derrière les fourneaux.",
+            "metaDescription": "Des recettes signées par de grands chefs libanais, des passionnés de cuisine ou encore des personnalités libanaises que nous avons invitées à passer derrière les fourneaux.",
+            "order": "0",
+            "pageId": null,
+            "articlesCount": null,
+            "allowComments": "1",
+            "accessType": "freecount",
+            "status": "1",
+            "children": [],
+            "cached": true
+          },
+          "image": "",
+          "cover": "",
+          "logo": "",
+          "paid": "0",
+          "objectType": "Category",
+          "url": "https://www.lorientlejour.com/cuisine-liban-a-table/1037-variations-autour-dun-theme",
+          "cssCode": "",
+          "template": "default",
+          "tagline": "",
+          "link_param": null,
+          "description": "",
+          "metaDescription": "",
+          "order": "0",
+          "pageId": null,
+          "articlesCount": "187",
+          "allowComments": "1",
+          "accessType": "freecount",
+          "status": "1",
+          "children": [],
+          "cached": true
+        }
+      ],
+      "access_groups": [
+        "olj",
+        "premium",
+        "integrale",
+        "premium_open",
+        "donation_access",
+        "premium_ot",
+        "olj_basic"
+      ],
+      "access_control": false,
+      "counted_in_paywall": true,
+      "content_length": 395,
+      "contents": "<ol><li>Préparer l’infusion de gin : mélanger les graines de cardamome avec le gin et laisser reposer au minimum 24 heures – jusqu’à 1 semaine – avant utilisation.</li><li>Remplir un verre « long drink » de glaçons. Verser 4 cl de gin infusé puis ajouter le tonic. Garnir, selon ses goûts, de graines de cardamome, d’une rondelle de citron, d’un brin de romarin…</li><li>Le gin infusé peut aussi se boire pur, sans tonic.</li></ol>",
+      "tag": "Recette de chef",
+      "authors": [],
+      "byline": "",
+      "keywords": [
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "21954",
+            "name": "cuisine libanaise",
+            "url": "https://www.lorientlejour.com/keyword/21954-cuisine-libanaise",
+            "slug": "cuisine-libanaise",
+            "description": null,
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": null,
+            "translations": null,
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "56909",
+            "name": "recettes carla rebeiz",
+            "url": "https://www.lorientlejour.com/keyword/56909-recettes-carla-rebeiz",
+            "slug": "recettes-carla-rebeiz",
+            "description": null,
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": null,
+            "translations": "{\"default\":{\"metatitle\":\"\",\"metadescription\":\"\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"Les recettes de Carla Rebeiz\",\"description\":\"<p>D\\u00e9couvrez une s\\u00e9lection de recettes que la cheffe libanaise Carla Rebeiz a partag\\u00e9e avec nous.<\\/p>\",\"metatitle\":\"\",\"metadescription\":\"\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "56901",
+            "name": "recette de cocktail",
+            "url": "https://www.lorientlejour.com/keyword/56901-recette-de-cocktail",
+            "slug": "recette-de-cocktail",
+            "description": null,
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": null,
+            "translations": "{\"default\":{\"metatitle\":\"\",\"metadescription\":\"\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"Recettes de cocktails\",\"description\":\"<p>Une s\\u00e9lection de recettes pour pr\\u00e9parer des cocktails, souvent revisit\\u00e9s avec des saveurs tr\\u00e8s libanaises.<\\/p>\",\"metatitle\":\"\",\"metadescription\":\"\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "55889",
+            "name": "recette libanaise",
+            "url": "https://www.lorientlejour.com/keyword/55889-recette-libanaise",
+            "slug": "recette-libanaise",
+            "description": "Retrouvez ici les meilleures recettes libanaises, de la cuisine de nos grands-mères aux créations modernes de chefs établis au Liban ou ailleurs.",
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": "Recette libanaise",
+            "translations": "{\"default\":{\"metatitle\":\"Recettes libanaises : plats traditionnels, revisit\\u00e9s et tendances\",\"metadescription\":\"Retrouvez ici les meilleures recettes libanaises, de la cuisine de nos grands-m\\u00e8res aux cr\\u00e9ations modernes de chefs \\u00e9tablis au Liban ou ailleurs.\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"Recette libanaise\",\"description\":\"Retrouvez ici les meilleures recettes libanaises, de la cuisine de nos grands-m\\u00e8res aux cr\\u00e9ations modernes de chefs \\u00e9tablis au Liban ou ailleurs.\",\"metatitle\":\"\",\"metadescription\":\"\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        }
+      ],
+      "description": "Un cocktail au goût subtil, idéal pour l'apéritif. A garnir selon les préférences. ",
+      "attachments": [
+        {
+          "id": "570322",
+          "name": "",
+          "description": "Un gin infusé à déguster pur ou avec du tonic. Crédit photo : Akiko Ida.",
+          "focal": "50% 50%",
+          "width": 960,
+          "height": 744,
+          "url": "https://s.lorientlejour.com/storage/attachments/1502/GIN_429200.jpeg",
+          "transforms": [
+            {
+              "x": 245,
+              "y": 164,
+              "url": "https://s.lorientlejour.com/storage/attachments/1502/GIN_429200.jpeg/r/245/GIN_429200.jpeg"
+            },
+            {
+              "x": 400,
+              "y": 270,
+              "url": "https://s.lorientlejour.com/storage/attachments/1502/GIN_429200.jpeg/r/400/GIN_429200.jpeg"
+            },
+            {
+              "x": 800,
+              "y": 600,
+              "url": "https://s.lorientlejour.com/storage/attachments/1502/GIN_429200.jpeg/r/800/GIN_429200.jpeg"
+            },
+            {
+              "x": 1200,
+              "y": 800,
+              "url": "https://s.lorientlejour.com/storage/attachments/1502/GIN_429200.jpeg/r/1200/GIN_429200.jpeg"
+            },
+            {
+              "x": 2400,
+              "y": 1600,
+              "url": "https://s.lorientlejour.com/storage/attachments/1502/GIN_429200.jpeg/r/2400/GIN_429200.jpeg"
+            }
+          ],
+          "url_thumbnail": "https://s.lorientlejour.com/storage/attachments/1502/GIN_429200.jpeg/r/245/GIN_429200.jpeg",
+          "url_medium": "https://s.lorientlejour.com/storage/attachments/1502/GIN_429200.jpeg/r/400/GIN_429200.jpeg",
+          "url_large": "https://s.lorientlejour.com/storage/attachments/1502/GIN_429200.jpeg/r/800/GIN_429200.jpeg",
+          "url_home_slideshow": "https://s.lorientlejour.com/storage/attachments/1502/GIN_429200.jpeg/r/1200/GIN_429200.jpeg",
+          "url_highres": "https://s.lorientlejour.com/storage/attachments/1502/GIN_429200.jpeg/r/2400/GIN_429200.jpeg",
+          "type": "image"
+        }
+      ],
+      "recipe_name": "Le gin à la cardamome de Carla Rebeiz",
+      "preparation_time": 5,
+      "cooking_time": "",
+      "persons": 4,
+      "difficulty": "Facile",
+      "summary": "<ul><li>200 ml de gin</li><li>20 graines de cardamome</li><li>80 ml de tonic</li><li>Glaçons</li><li>Graines de cardamome, brins de romarin, rondelles de citron (pour la garniture)</li></ul>",
+      "astuce": "",
+      "recipe_history_title": "",
+      "introduction": "<p><br></p>",
+      "chef": {
+        "objectType": "Article",
+        "id": "1464897",
+        "signature": "Article:1464897",
+        "url": "https://www.lorientlejour.com/article/1464897/carla-rebeiz-de-la-finance-a-la-cuisine.html",
+        "shorturl": "https://olj.me/1464897",
+        "slug": "carla-rebeiz-de-la-finance-a-la-cuisine",
+        "contentType": {
+          "id": "5",
+          "name": "Chef",
+          "slug": "",
+          "editor": "default"
+        },
+        "views": 0,
+        "comments": 0,
+        "preview_limit": null,
+        "rating": 0,
+        "excludedFromGoogleSearchEngine": 0,
+        "status": "publish",
+        "title": "Carla Rebeiz, de la finance à la cuisine",
+        "firstPublished": "2025-06-15 19:04:12",
+        "lastUpdate": "2025-06-15 19:04:12",
+        "categories": [
+          {
+            "id": "1035",
+            "name": "Chefs 2",
+            "signature": "Category:1035",
+            "slug": "chefs",
+            "typeId": {
+              "typeId": "18",
+              "name": "Chef",
+              "slug": "",
+              "includeInIssue": "0",
+              "shortened_domain": "",
+              "stylesheetClass": "",
+              "domain": null,
+              "articleUrlPrefix": "",
+              "access_groups": "[]",
+              "locale": "fr-FR",
+              "preview_limit": null,
+              "sitemapUrlPrefix": null,
+              "authorUrlPrefix": null
+            },
+            "parentId": null,
+            "parent": [],
+            "image": "",
+            "cover": "",
+            "logo": "",
+            "paid": "0",
+            "objectType": "Category",
+            "url": "https://www.lorientlejour.com/category/1035-chefs",
+            "cssCode": "",
+            "template": "default",
+            "tagline": "",
+            "link_param": null,
+            "description": "",
+            "metaDescription": "",
+            "order": "0",
+            "pageId": null,
+            "articlesCount": null,
+            "allowComments": "1",
+            "accessType": "freecount",
+            "status": "1",
+            "children": [],
+            "cached": false
+          }
+        ],
+        "access_groups": [],
+        "access_control": false,
+        "counted_in_paywall": true,
+        "content_length": 1148,
+        "contents": "",
+        "subtitle": "",
+        "subtitle_en": "",
+        "attachments": [
+          {
+            "id": "503595",
+            "name": "",
+            "description": "",
+            "focal": "46.34% 12.63%",
+            "width": 1361,
+            "height": 1365,
+            "url": "https://s.lorientlejour.com/storage/attachments/1465/Carlaouverture_644382_344214.jpeg",
+            "transforms": [
+              {
+                "x": 245,
+                "y": 164,
+                "url": "https://s.lorientlejour.com/storage/attachments/1465/Carlaouverture_644382_344214.jpeg/r/245/Carlaouverture_644382_344214.jpeg"
+              },
+              {
+                "x": 400,
+                "y": 270,
+                "url": "https://s.lorientlejour.com/storage/attachments/1465/Carlaouverture_644382_344214.jpeg/r/400/Carlaouverture_644382_344214.jpeg"
+              },
+              {
+                "x": 800,
+                "y": 600,
+                "url": "https://s.lorientlejour.com/storage/attachments/1465/Carlaouverture_644382_344214.jpeg/r/800/Carlaouverture_644382_344214.jpeg"
+              },
+              {
+                "x": 1200,
+                "y": 800,
+                "url": "https://s.lorientlejour.com/storage/attachments/1465/Carlaouverture_644382_344214.jpeg/r/1200/Carlaouverture_644382_344214.jpeg"
+              },
+              {
+                "x": 2400,
+                "y": 1600,
+                "url": "https://s.lorientlejour.com/storage/attachments/1465/Carlaouverture_644382_344214.jpeg/r/2400/Carlaouverture_644382_344214.jpeg"
+              }
+            ],
+            "url_thumbnail": "https://s.lorientlejour.com/storage/attachments/1465/Carlaouverture_644382_344214.jpeg/r/245/Carlaouverture_644382_344214.jpeg",
+            "url_medium": "https://s.lorientlejour.com/storage/attachments/1465/Carlaouverture_644382_344214.jpeg/r/400/Carlaouverture_644382_344214.jpeg",
+            "url_large": "https://s.lorientlejour.com/storage/attachments/1465/Carlaouverture_644382_344214.jpeg/r/800/Carlaouverture_644382_344214.jpeg",
+            "url_home_slideshow": "https://s.lorientlejour.com/storage/attachments/1465/Carlaouverture_644382_344214.jpeg/r/1200/Carlaouverture_644382_344214.jpeg",
+            "url_highres": "https://s.lorientlejour.com/storage/attachments/1465/Carlaouverture_644382_344214.jpeg/r/2400/Carlaouverture_644382_344214.jpeg",
+            "type": "image"
+          }
+        ],
+        "summary": "",
+        "introduction": "",
+        "elements": [],
+        "seo": {
+          "search_title": "Carla Rebeiz, de la finance à la cuisine",
+          "search_description": "Carla Rebeiz, from finance to cooking…",
+          "social_title": "Carla Rebeiz, de la finance à la cuisine",
+          "social_description": "Carla Rebeiz, from finance to cooking…",
+          "social_image": ""
+        },
+        "time_to_read": 77,
+        "cached": true
+      },
+      "options": {
+        "recipe_name": "Le gin à la cardamome de Carla Rebeiz",
+        "preparation_time": 5,
+        "cooking_time": "",
+        "persons": 4,
+        "difficulty": "Facile",
+        "astuce": "",
+        "recipe_history_title": "",
+        "chef": 1464897,
+        "full_width_image": 1,
+        "sommaire_page": "",
+        "priority": 2,
+        "urgent": "0",
+        "articleFromCdl": "0",
+        "premium": "0",
+        "full_width_article": "0",
+        "arabic_article": "0",
+        "free": "0",
+        "hide_image": "0",
+        "elections": "0",
+        "video": "0",
+        "hide": "0"
+      },
+      "freemium": false,
+      "elements": [],
+      "seo": {
+        "search_title": "Le cocktail gin cardamome de Carla Rebeiz",
+        "search_description": "Un cocktail au goût subtil, idéal pour l'apéritif. A garnir selon les préférences. ",
+        "social_title": "Le cocktail gin cardamome de Carla Rebeiz",
+        "social_description": "Un cocktail au goût subtil, idéal pour l'apéritif. A garnir selon les préférences. ",
+        "social_image": ""
+      },
+      "time_to_read": 19,
+      "cached": true
+    }
+  ]
+}

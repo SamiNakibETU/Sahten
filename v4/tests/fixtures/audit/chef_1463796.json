@@ -1,0 +1,135 @@
+{
+  "data": [
+    {
+      "objectType": "Article",
+      "id": "1463796",
+      "signature": "Article:1463796",
+      "url": "https://www.lorientlejour.com/article/1463796/charles-azar-la-patisserie-sous-toutes-ses-formes.html",
+      "shorturl": "https://olj.me/1463796",
+      "slug": "charles-azar-la-patisserie-sous-toutes-ses-formes",
+      "contentType": {
+        "id": "5",
+        "name": "Chef",
+        "slug": "",
+        "editor": "default"
+      },
+      "views": 0,
+      "comments": 0,
+      "preview_limit": null,
+      "rating": 0,
+      "excludedFromGoogleSearchEngine": 0,
+      "status": "publish",
+      "title": "Charles Azar, la pâtisserie sous toutes ses formes",
+      "firstPublished": "2025-06-09 16:53:34",
+      "lastUpdate": "2025-06-09 16:53:34",
+      "categories": [
+        {
+          "id": "1035",
+          "name": "Chefs 2",
+          "signature": "Category:1035",
+          "slug": "chefs",
+          "typeId": {
+            "typeId": "18",
+            "name": "Chef",
+            "slug": "",
+            "includeInIssue": "0",
+            "shortened_domain": "",
+            "stylesheetClass": "",
+            "domain": null,
+            "articleUrlPrefix": "",
+            "access_groups": "[]",
+            "locale": "fr-FR",
+            "preview_limit": null,
+            "sitemapUrlPrefix": null,
+            "authorUrlPrefix": null
+          },
+          "parentId": null,
+          "parent": [],
+          "image": "",
+          "cover": "",
+          "logo": "",
+          "paid": "0",
+          "objectType": "Category",
+          "url": "https://www.lorientlejour.com/category/1035-chefs",
+          "cssCode": "",
+          "template": "default",
+          "tagline": "",
+          "link_param": null,
+          "description": "",
+          "metaDescription": "",
+          "order": "0",
+          "pageId": null,
+          "articlesCount": null,
+          "allowComments": "1",
+          "accessType": "freecount",
+          "status": "1",
+          "children": [],
+          "cached": true
+        }
+      ],
+      "access_groups": [],
+      "access_control": false,
+      "counted_in_paywall": true,
+      "content_length": 454,
+      "contents": "<p>Charles Azar s’intéresse depuis longtemps à la pâtisserie sous toutes ses formes. Au-delà de la maîtrise des techniques essentielles, il a développé sa touche particulière et un style bien à lui. Depuis quelques années, il gère un bureau de conseil en pâtisserie, avec des projets locaux et internationaux, et a inauguré sa deuxième boutique de glace artisanale « Le Flocon » dans laquelle il ne travaille que des produits purement naturels et de saison.</p>",
+      "subtitle": "",
+      "subtitle_en": "",
+      "attachments": [
+        {
+          "id": "502154",
+          "name": "",
+          "description": "",
+          "focal": "50% 50%",
+          "width": 644,
+          "height": 623,
+          "url": "https://s.lorientlejour.com/storage/attachments/1464/IMG_8412_999210.jpg",
+          "transforms": [
+            {
+              "x": 245,
+              "y": 164,
+              "url": "https://s.lorientlejour.com/storage/attachments/1464/IMG_8412_999210.jpg/r/245/IMG_8412_999210.jpg"
+            },
+            {
+              "x": 400,
+              "y": 270,
+              "url": "https://s.lorientlejour.com/storage/attachments/1464/IMG_8412_999210.jpg/r/400/IMG_8412_999210.jpg"
+            },
+            {
+              "x": 800,
+              "y": 600,
+              "url": "https://s.lorientlejour.com/storage/attachments/1464/IMG_8412_999210.jpg/r/800/IMG_8412_999210.jpg"
+            },
+            {
+              "x": 1200,
+              "y": 800,
+              "url": "https://s.lorientlejour.com/storage/attachments/1464/IMG_8412_999210.jpg/r/1200/IMG_8412_999210.jpg"
+            },
+            {
+              "x": 2400,
+              "y": 1600,
+              "url": "https://s.lorientlejour.com/storage/attachments/1464/IMG_8412_999210.jpg/r/2400/IMG_8412_999210.jpg"
+            }
+          ],
+          "url_thumbnail": "https://s.lorientlejour.com/storage/attachments/1464/IMG_8412_999210.jpg/r/245/IMG_8412_999210.jpg",
+          "url_medium": "https://s.lorientlejour.com/storage/attachments/1464/IMG_8412_999210.jpg/r/400/IMG_8412_999210.jpg",
+          "url_large": "https://s.lorientlejour.com/storage/attachments/1464/IMG_8412_999210.jpg/r/800/IMG_8412_999210.jpg",
+          "url_home_slideshow": "https://s.lorientlejour.com/storage/attachments/1464/IMG_8412_999210.jpg/r/1200/IMG_8412_999210.jpg",
+          "url_highres": "https://s.lorientlejour.com/storage/attachments/1464/IMG_8412_999210.jpg/r/2400/IMG_8412_999210.jpg",
+          "type": "image"
+        }
+      ],
+      "summary": "<p>Charles Azar, pastry in its many forms</p>",
+      "introduction": "<p>Charles Azar has long been interested in pastry in all its many forms. Beyond mastering the essential techniques, he has developed his own unique touch and style. For several years now, he has been running a pastry consulting firm, working on local and international projects, and has opened his second artisanal ice cream shop, « Le Flocon, » where he works exclusively with pure, natural, seasonal ingredients. »</p>",
+      "elements": [],
+      "seo": {
+        "search_title": "Charles Azar, la pâtisserie sous toutes ses formes",
+        "search_description": "Charles Azar, pastry in its many forms…",
+        "social_title": "Charles Azar, la pâtisserie sous toutes ses formes",
+        "social_description": "Charles Azar, pastry in its many forms…",
+        "social_image": ""
+      },
+      "time_to_read": 30,
+      "cached": false
+    }
+  ]
+}

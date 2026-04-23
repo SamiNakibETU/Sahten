@@ -1,0 +1,434 @@
+{
+  "data": [
+    {
+      "objectType": "Article",
+      "id": "1503853",
+      "signature": "Article:1503853",
+      "url": "https://www.lorientlejour.com/cuisine-liban-a-table/1503853/la-maloubit-batenjen-moussaka-daubergine-de-karim-haidar.html",
+      "shorturl": "https://olj.me/1503853",
+      "slug": "la-maloubit-batenjen-moussaka-daubergine-de-karim-haidar",
+      "contentType": {
+        "id": "4",
+        "name": "Recipes",
+        "slug": "",
+        "editor": "default"
+      },
+      "views": 271,
+      "comments": 0,
+      "preview_limit": "850",
+      "rating": 4.75,
+      "rating_count": 12,
+      "excludedFromGoogleSearchEngine": 0,
+      "status": "publish",
+      "title": "La ma'loubit batenjen  (moussaka d’aubergine) de Karim Haïdar",
+      "firstPublished": "2026-04-17 12:08:39",
+      "lastUpdate": "2026-04-17 12:08:39",
+      "categories": [
+        {
+          "id": "1037",
+          "name": "Variations autour d’un thème",
+          "seo_name": "",
+          "signature": "Category:1037",
+          "slug": "variations-autour-dun-theme",
+          "typeId": {
+            "typeId": "17",
+            "name": "A table - OLJ",
+            "slug": "cuisine-liban-a-table",
+            "includeInIssue": "0",
+            "shortened_domain": "",
+            "stylesheetClass": "",
+            "domain": null,
+            "articleUrlPrefix": "cuisine-liban-a-table",
+            "access_groups": "[\"olj\",\"premium\",\"integrale\",\"premium_open\",\"donation_access\",\"premium_ot\",\"olj_basic\"]",
+            "locale": "fr-FR",
+            "preview_limit": "850",
+            "sitemapUrlPrefix": null,
+            "authorUrlPrefix": null
+          },
+          "parentId": "1031",
+          "parent": {
+            "id": "1031",
+            "name": "Recettes",
+            "signature": "Category:1031",
+            "slug": "recettes",
+            "parentId": null,
+            "parent": [],
+            "image": "",
+            "cover": "",
+            "logo": "",
+            "paid": "0",
+            "objectType": "Category",
+            "url": "https://www.lorientlejour.com/cuisine-liban-a-table/1031-recettes",
+            "cssCode": "",
+            "template": "default",
+            "tagline": "",
+            "link_param": null,
+            "description": "Des recettes signées par de grands chefs libanais, des passionnés de cuisine ou encore des personnalités libanaises que nous avons invitées à passer derrière les fourneaux.",
+            "metaDescription": "Des recettes signées par de grands chefs libanais, des passionnés de cuisine ou encore des personnalités libanaises que nous avons invitées à passer derrière les fourneaux.",
+            "order": "0",
+            "pageId": null,
+            "articlesCount": null,
+            "allowComments": "1",
+            "accessType": "freecount",
+            "status": "1",
+            "children": [],
+            "cached": true
+          },
+          "image": "",
+          "cover": "",
+          "logo": "",
+          "paid": "0",
+          "objectType": "Category",
+          "url": "https://www.lorientlejour.com/cuisine-liban-a-table/1037-variations-autour-dun-theme",
+          "cssCode": "",
+          "template": "default",
+          "tagline": "",
+          "link_param": null,
+          "description": "",
+          "metaDescription": "",
+          "order": "0",
+          "pageId": null,
+          "articlesCount": "187",
+          "allowComments": "1",
+          "accessType": "freecount",
+          "status": "1",
+          "children": [],
+          "cached": true
+        }
+      ],
+      "access_groups": [
+        "olj",
+        "premium",
+        "integrale",
+        "premium_open",
+        "donation_access",
+        "premium_ot",
+        "olj_basic"
+      ],
+      "access_control": false,
+      "counted_in_paywall": true,
+      "content_length": 1168,
+      "contents": "<ol><li>Faire revenir les souris d’agneau dans une grande casserole.</li><li>Une fois qu&#39;elle ont pris de la couleur, les recouvrir d’eau. Rajouter un oignon coupé en 4. Saler et poivrer.</li><li>Laisser cuire le tout pendant 1h45 minutes à frémissement. Écumer régulièrement au bout de 10 minutes.</li><li>Faire bouillir de l’eau. En recouvrir le riz. Égoutter au bout d’une heure.</li><li>Peler et couper les aubergines en gros quartiers. Les frire dans l’huile 5 à 6 minutes. Réserver sur du papier absorbant.</li><li>Peler le deuxième oignon et le couper en rondelles.</li><li>Couper la tomate en rondelles.</li><li>Égoutter les souris d’agneau en conservant un peu de jus de cuisson. Retirer peau et os.</li><li>Au fond d’une casserole, poser les rondelles d’oignon. Les recouvrir de rondelles de tomate, puis des morceaux de viande.</li><li>Puis ajouter les morceaux d’aubergines.</li><li>Mélanger les épices au riz égoutté. Saler généreusement.</li><li>Rajouter le riz sur les aubergines.</li><li>Rajouter 60cl d’eau. Recouvrir le tout d’un poids, par exemple une assiette.</li><li>Couvrir la casserole et laisser cuire 30 minutes à feu doux.</li><li>Enlever le couvercle de la casserole. Retirer l’assiette.</li><li>Retourner le tout sur un plat un peu profond comme pour un gâteau. Servir.</li></ol><p><br></p><p>Sahtein !</p>",
+      "tag": "Recette de chef ",
+      "authors": [],
+      "byline": "",
+      "keywords": [
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "56638",
+            "name": "plat principal",
+            "url": "https://www.lorientlejour.com/keyword/56638-plat-principal",
+            "slug": "plat-principal",
+            "description": "Des recettes savoureuses de plats principaux libanais ou autre, pour régaler toute la famille. Viandes, poissons ou options végétariennes : vous trouverez, ici, une série de mets généreux mais aussi originaux.",
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": "Plat principal",
+            "translations": "{\"default\":{\"metatitle\":\"Plat principal : recettes libanaises, m\\u00e9diterran\\u00e9ennes et actus\",\"metadescription\":\"Des recettes savoureuses de plats principaux libanais ou autre, pour r\\u00e9galer toute la famille. Viandes, poissons ou options v\\u00e9g\\u00e9tariennes : vous trouverez, ici, une s\\u00e9rie de mets g\\u00e9n\\u00e9reux mais aussi originaux.\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"Plat principal\",\"description\":\"Des recettes savoureuses de plats principaux libanais ou autre, pour r\\u00e9galer toute la famille. Viandes, poissons ou options v\\u00e9g\\u00e9tariennes : vous trouverez, ici, une s\\u00e9rie de mets g\\u00e9n\\u00e9reux mais aussi originaux.\",\"metatitle\":\"\",\"metadescription\":\"\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "56912",
+            "name": "recettes karim haidar",
+            "url": "https://www.lorientlejour.com/keyword/56912-recettes-karim-haidar",
+            "slug": "recettes-karim-haidar",
+            "description": null,
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": null,
+            "translations": "{\"default\":{\"metatitle\":\"\",\"metadescription\":\"\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"Les recettes de karim Ha\\u00efdar\",\"description\":\"<p>D\\u00e9couvrez une s\\u00e9lection de recettes du chef libanais Karim Ha\\u00efdar.<\\/p>\",\"metatitle\":\"\",\"metadescription\":\"\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "55861",
+            "name": "cuisine du moyen-orient",
+            "url": "https://www.lorientlejour.com/keyword/55861-cuisine-du-moyen-orient",
+            "slug": "cuisine-du-moyen-orient",
+            "description": "Recettes authentiques ou revisitées, la cuisine du Moyen-Orient vous invite à sa table.",
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": "Cuisine du Moyen-Orient",
+            "translations": "{\"default\":{\"metatitle\":\"Cuisine du Moyen-Orient : recettes, saveurs et actualit\\u00e9s\",\"metadescription\":\"Recettes authentiques ou revisit\\u00e9es, la cuisine du Moyen-Orient vous invite \\u00e0 sa table.\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "56782",
+            "name": "recette de chef",
+            "url": "https://www.lorientlejour.com/keyword/56782-recette-de-chef",
+            "slug": "recette-de-chef",
+            "description": null,
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": null,
+            "translations": null,
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "21954",
+            "name": "cuisine libanaise",
+            "url": "https://www.lorientlejour.com/keyword/21954-cuisine-libanaise",
+            "slug": "cuisine-libanaise",
+            "description": null,
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": null,
+            "translations": null,
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "56673",
+            "name": "cuisine méditerranéenne",
+            "url": "https://www.lorientlejour.com/keyword/56673-cuisine-mediterraneenne",
+            "slug": "cuisine-mediterraneenne",
+            "description": null,
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": null,
+            "translations": "{\"default\":{\"metatitle\":\"Cuisine m\\u00e9diterran\\u00e9enne : recettes et actus gastronomie\",\"metadescription\":\"Nos recettes et articles concernant la cuisine m\\u00e9diterran\\u00e9enne, un m\\u00e9lange sain et ensoleill\\u00e9 de saveurs d\\u2019Europe du Sud, du Moyen-Orient et d\\u2019Afrique du Nord.\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"Cuisine m\\u00e9diterran\\u00e9enne\",\"description\":\"Nos recettes et articles concernant la cuisine m\\u00e9diterran\\u00e9enne, un m\\u00e9lange sain et ensoleill\\u00e9 de saveurs d\\u2019Europe du Sud, du Moyen-Orient et d\\u2019Afrique du Nord.\",\"metatitle\":\"\",\"metadescription\":\"\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        }
+      ],
+      "description": "Plat emblématique des tables levantines, la ma’loubit batenjen - littéralement « renversé d'aubergines » - est un plat de patience et de partage, que l’on retourne comme un gâteau avant de servir.",
+      "attachments": [
+        {
+          "id": "576201",
+          "name": "",
+          "description": "Riz parfumé, agneau fondant et légumes dorés dans une préparation généreuse. Photo fournie par Karim Haïdar",
+          "focal": "50% 50%",
+          "width": 1600,
+          "height": 1600,
+          "url": "https://s.lorientlejour.com/storage/attachments/1504/WhatsAppImage2026-04-17at102537_351540.jpeg",
+          "transforms": [
+            {
+              "x": 245,
+              "y": 164,
+              "url": "https://s.lorientlejour.com/storage/attachments/1504/WhatsAppImage2026-04-17at102537_351540.jpeg/r/245/WhatsAppImage2026-04-17at102537_351540.jpeg"
+            },
+            {
+              "x": 400,
+              "y": 270,
+              "url": "https://s.lorientlejour.com/storage/attachments/1504/WhatsAppImage2026-04-17at102537_351540.jpeg/r/400/WhatsAppImage2026-04-17at102537_351540.jpeg"
+            },
+            {
+              "x": 800,
+              "y": 600,
+              "url": "https://s.lorientlejour.com/storage/attachments/1504/WhatsAppImage2026-04-17at102537_351540.jpeg/r/800/WhatsAppImage2026-04-17at102537_351540.jpeg"
+            },
+            {
+              "x": 1200,
+              "y": 800,
+              "url": "https://s.lorientlejour.com/storage/attachments/1504/WhatsAppImage2026-04-17at102537_351540.jpeg/r/1200/WhatsAppImage2026-04-17at102537_351540.jpeg"
+            },
+            {
+              "x": 2400,
+              "y": 1600,
+              "url": "https://s.lorientlejour.com/storage/attachments/1504/WhatsAppImage2026-04-17at102537_351540.jpeg/r/2400/WhatsAppImage2026-04-17at102537_351540.jpeg"
+            }
+          ],
+          "url_thumbnail": "https://s.lorientlejour.com/storage/attachments/1504/WhatsAppImage2026-04-17at102537_351540.jpeg/r/245/WhatsAppImage2026-04-17at102537_351540.jpeg",
+          "url_medium": "https://s.lorientlejour.com/storage/attachments/1504/WhatsAppImage2026-04-17at102537_351540.jpeg/r/400/WhatsAppImage2026-04-17at102537_351540.jpeg",
+          "url_large": "https://s.lorientlejour.com/storage/attachments/1504/WhatsAppImage2026-04-17at102537_351540.jpeg/r/800/WhatsAppImage2026-04-17at102537_351540.jpeg",
+          "url_home_slideshow": "https://s.lorientlejour.com/storage/attachments/1504/WhatsAppImage2026-04-17at102537_351540.jpeg/r/1200/WhatsAppImage2026-04-17at102537_351540.jpeg",
+          "url_highres": "https://s.lorientlejour.com/storage/attachments/1504/WhatsAppImage2026-04-17at102537_351540.jpeg/r/2400/WhatsAppImage2026-04-17at102537_351540.jpeg",
+          "type": "image"
+        }
+      ],
+      "recipe_name": "La ma'loubit batenjen  (moussaka d’aubergine) de Karim Haïdar",
+      "preparation_time": 50,
+      "cooking_time": 135,
+      "persons": 4,
+      "difficulty": "Moyenne",
+      "summary": "<ul><li>1,5 kg d’aubergines</li><li>2 souris d’agneau</li><li>250g de riz égyptien</li><li>2 oignons</li><li>1 tomate</li><li>1 c. à s. de curcuma</li><li>1 c. à s. de cannelle</li><li>Huile de friture (de préférence arachide ou tournesol pour les allergiques)</li><li>Sel et poivre.</li></ul>",
+      "astuce": "",
+      "recipe_history_title": "",
+      "introduction": "<p><br></p>",
+      "chef": {
+        "objectType": "Article",
+        "id": "1464898",
+        "signature": "Article:1464898",
+        "url": "https://www.lorientlejour.com/article/1464898/karim-haidar-chef-tous-azimuts.html",
+        "shorturl": "https://olj.me/1464898",
+        "slug": "karim-haidar-chef-tous-azimuts",
+        "contentType": {
+          "id": "5",
+          "name": "Chef",
+          "slug": "",
+          "editor": "default"
+        },
+        "views": 0,
+        "comments": 0,
+        "preview_limit": null,
+        "rating": 0,
+        "excludedFromGoogleSearchEngine": 0,
+        "status": "publish",
+        "title": "Karim Haïdar, chef tous azimuts",
+        "firstPublished": "2025-06-15 19:15:29",
+        "lastUpdate": "2025-06-15 19:15:29",
+        "categories": [
+          {
+            "id": "1035",
+            "name": "Chefs 2",
+            "signature": "Category:1035",
+            "slug": "chefs",
+            "typeId": {
+              "typeId": "18",
+              "name": "Chef",
+              "slug": "",
+              "includeInIssue": "0",
+              "shortened_domain": "",
+              "stylesheetClass": "",
+              "domain": null,
+              "articleUrlPrefix": "",
+              "access_groups": "[]",
+              "locale": "fr-FR",
+              "preview_limit": null,
+              "sitemapUrlPrefix": null,
+              "authorUrlPrefix": null
+            },
+            "parentId": null,
+            "parent": [],
+            "image": "",
+            "cover": "",
+            "logo": "",
+            "paid": "0",
+            "objectType": "Category",
+            "url": "https://www.lorientlejour.com/category/1035-chefs",
+            "cssCode": "",
+            "template": "default",
+            "tagline": "",
+            "link_param": null,
+            "description": "",
+            "metaDescription": "",
+            "order": "0",
+            "pageId": null,
+            "articlesCount": null,
+            "allowComments": "1",
+            "accessType": "freecount",
+            "status": "1",
+            "children": [],
+            "cached": true
+          }
+        ],
+        "access_groups": [],
+        "access_control": false,
+        "counted_in_paywall": true,
+        "content_length": 1274,
+        "contents": "",
+        "subtitle": "",
+        "subtitle_en": "",
+        "attachments": [
+          {
+            "id": "503597",
+            "name": "",
+            "description": "",
+            "focal": "50% 26.322751322751%",
+            "width": 642,
+            "height": 756,
+            "url": "https://s.lorientlejour.com/storage/attachments/1465/karimhaidarouverture_541161_951859.jpg",
+            "transforms": [
+              {
+                "x": 245,
+                "y": 164,
+                "url": "https://s.lorientlejour.com/storage/attachments/1465/karimhaidarouverture_541161_951859.jpg/r/245/karimhaidarouverture_541161_951859.jpg"
+              },
+              {
+                "x": 400,
+                "y": 270,
+                "url": "https://s.lorientlejour.com/storage/attachments/1465/karimhaidarouverture_541161_951859.jpg/r/400/karimhaidarouverture_541161_951859.jpg"
+              },
+              {
+                "x": 800,
+                "y": 600,
+                "url": "https://s.lorientlejour.com/storage/attachments/1465/karimhaidarouverture_541161_951859.jpg/r/800/karimhaidarouverture_541161_951859.jpg"
+              },
+              {
+                "x": 1200,
+                "y": 800,
+                "url": "https://s.lorientlejour.com/storage/attachments/1465/karimhaidarouverture_541161_951859.jpg/r/1200/karimhaidarouverture_541161_951859.jpg"
+              },
+              {
+                "x": 2400,
+                "y": 1600,
+                "url": "https://s.lorientlejour.com/storage/attachments/1465/karimhaidarouverture_541161_951859.jpg/r/2400/karimhaidarouverture_541161_951859.jpg"
+              }
+            ],
+            "url_thumbnail": "https://s.lorientlejour.com/storage/attachments/1465/karimhaidarouverture_541161_951859.jpg/r/245/karimhaidarouverture_541161_951859.jpg",
+            "url_medium": "https://s.lorientlejour.com/storage/attachments/1465/karimhaidarouverture_541161_951859.jpg/r/400/karimhaidarouverture_541161_951859.jpg",
+            "url_large": "https://s.lorientlejour.com/storage/attachments/1465/karimhaidarouverture_541161_951859.jpg/r/800/karimhaidarouverture_541161_951859.jpg",
+            "url_home_slideshow": "https://s.lorientlejour.com/storage/attachments/1465/karimhaidarouverture_541161_951859.jpg/r/1200/karimhaidarouverture_541161_951859.jpg",
+            "url_highres": "https://s.lorientlejour.com/storage/attachments/1465/karimhaidarouverture_541161_951859.jpg/r/2400/karimhaidarouverture_541161_951859.jpg",
+            "type": "image"
+          }
+        ],
+        "summary": "",
+        "introduction": "",
+        "elements": [],
+        "seo": {
+          "search_title": "Karim Haïdar, chef tous azimuts",
+          "search_description": "Karim Haïdar, chef extraordinaire…",
+          "social_title": "Karim Haïdar, chef tous azimuts",
+          "social_description": "Karim Haïdar, chef extraordinaire…",
+          "social_image": ""
+        },
+        "time_to_read": 84,
+        "cached": true
+      },
+      "options": {
+        "recipe_name": "La ma'loubit batenjen  (moussaka d’aubergine) de Karim Haïdar",
+        "preparation_time": 50,
+        "cooking_time": 135,
+        "persons": 4,
+        "difficulty": "Moyenne",
+        "astuce": "",
+        "recipe_history_title": "",
+        "chef": 1464898,
+        "full_width_image": 1,
+        "sommaire_page": "",
+        "priority": 2,
+        "urgent": "0",
+        "articleFromCdl": "0",
+        "premium": "0",
+        "full_width_article": "0",
+        "arabic_article": "0",
+        "free": "0",
+        "hide_image": "0",
+        "elections": "0",
+        "video": "0",
+        "hide": "0"
+      },
+      "freemium": false,
+      "elements": [],
+      "seo": {
+        "search_title": "La ma'loubit batenjen  (moussaka d’aubergine) de Karim Haïdar",
+        "search_description": "Plat emblématique des tables levantines, la ma’loubit batenjen - littéralement « renversé d'aubergines » - est un plat de patience et de partage, que l’on retourne comme un gâteau avant de servir.",
+        "social_title": "La ma'loubit batenjen  (moussaka d’aubergine) de Karim Haïdar",
+        "social_description": "Plat emblématique des tables levantines, la ma’loubit batenjen - littéralement « renversé d'aubergines » - est un plat de patience et de partage, que l’on retourne comme un gâteau avant de servir.",
+        "social_image": ""
+      },
+      "time_to_read": 42,
+      "cached": true
+    }
+  ]
+}

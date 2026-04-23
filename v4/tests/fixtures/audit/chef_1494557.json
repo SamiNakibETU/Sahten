@@ -1,0 +1,135 @@
+{
+  "data": [
+    {
+      "objectType": "Article",
+      "id": "1494557",
+      "signature": "Article:1494557",
+      "url": "https://www.lorientlejour.com/article/1494557/andree-maalouf-entre-tradition-libanaise-et-modernite-gastronomique.html",
+      "shorturl": "https://olj.me/1494557",
+      "slug": "andree-maalouf-entre-tradition-libanaise-et-modernite-gastronomique",
+      "contentType": {
+        "id": "5",
+        "name": "Chef",
+        "slug": "",
+        "editor": "default"
+      },
+      "views": 8,
+      "comments": 0,
+      "preview_limit": null,
+      "rating": 0,
+      "excludedFromGoogleSearchEngine": 0,
+      "status": "publish",
+      "title": "Andrée Maalouf, entre tradition et modernité",
+      "firstPublished": "2026-02-11 13:16:13",
+      "lastUpdate": "2026-02-11 13:16:13",
+      "categories": [
+        {
+          "id": "1035",
+          "name": "Chefs 2",
+          "signature": "Category:1035",
+          "slug": "chefs",
+          "typeId": {
+            "typeId": "18",
+            "name": "Chef",
+            "slug": "",
+            "includeInIssue": "0",
+            "shortened_domain": "",
+            "stylesheetClass": "",
+            "domain": null,
+            "articleUrlPrefix": "",
+            "access_groups": "[]",
+            "locale": "fr-FR",
+            "preview_limit": null,
+            "sitemapUrlPrefix": null,
+            "authorUrlPrefix": null
+          },
+          "parentId": null,
+          "parent": [],
+          "image": "",
+          "cover": "",
+          "logo": "",
+          "paid": "0",
+          "objectType": "Category",
+          "url": "https://www.lorientlejour.com/category/1035-chefs",
+          "cssCode": "",
+          "template": "default",
+          "tagline": "",
+          "link_param": null,
+          "description": "",
+          "metaDescription": "",
+          "order": "0",
+          "pageId": null,
+          "articlesCount": null,
+          "allowComments": "1",
+          "accessType": "freecount",
+          "status": "1",
+          "children": [],
+          "cached": false
+        }
+      ],
+      "access_groups": [],
+      "access_control": false,
+      "counted_in_paywall": true,
+      "content_length": 734,
+      "contents": "<p>Installée à Paris depuis 1976, Andrée Maalouf s’attache à transmettre la richesse de la cuisine libanaise, entre héritage et modernité. Elle rassemble les recettes traditionnelles et les adapte aux attentes gastronomiques et diététiques d’aujourd’hui, avec le désir de s’adresser à ceux qui vivent loin de leur pays et souhaitent retrouver, au quotidien, ses saveurs et ses bienfaits.<br class=\"soft-break\"><br class=\"soft-break\">Elle a publié, en collaboration avec le chef Karim Haidar, <em>Cuisine libanaise : d’hier et d’aujourd’hui</em> (Albin Michel, 2010), <em>Saveurs libanaises, miroir de la diversité</em> (Albin Michel, 2015) et <em>La Cuisine libanaise : de Beyrouth à Paris</em> (Albin Michel, 2023). Ces ouvrages ont été traduits en cinq langues : français, anglais, espagnol, turc et italien.</p>",
+      "subtitle": "",
+      "subtitle_en": "",
+      "attachments": [
+        {
+          "id": "555601",
+          "name": "",
+          "description": "",
+          "focal": "43.45% 48.62%",
+          "width": 2567,
+          "height": 3851,
+          "url": "https://s.lorientlejour.com/storage/attachments/1495/AndreMaalouf_578133.jpeg",
+          "transforms": [
+            {
+              "x": 245,
+              "y": 164,
+              "url": "https://s.lorientlejour.com/storage/attachments/1495/AndreMaalouf_578133.jpeg/r/245/AndreMaalouf_578133.jpeg"
+            },
+            {
+              "x": 400,
+              "y": 270,
+              "url": "https://s.lorientlejour.com/storage/attachments/1495/AndreMaalouf_578133.jpeg/r/400/AndreMaalouf_578133.jpeg"
+            },
+            {
+              "x": 800,
+              "y": 600,
+              "url": "https://s.lorientlejour.com/storage/attachments/1495/AndreMaalouf_578133.jpeg/r/800/AndreMaalouf_578133.jpeg"
+            },
+            {
+              "x": 1200,
+              "y": 800,
+              "url": "https://s.lorientlejour.com/storage/attachments/1495/AndreMaalouf_578133.jpeg/r/1200/AndreMaalouf_578133.jpeg"
+            },
+            {
+              "x": 2400,
+              "y": 1600,
+              "url": "https://s.lorientlejour.com/storage/attachments/1495/AndreMaalouf_578133.jpeg/r/2400/AndreMaalouf_578133.jpeg"
+            }
+          ],
+          "url_thumbnail": "https://s.lorientlejour.com/storage/attachments/1495/AndreMaalouf_578133.jpeg/r/245/AndreMaalouf_578133.jpeg",
+          "url_medium": "https://s.lorientlejour.com/storage/attachments/1495/AndreMaalouf_578133.jpeg/r/400/AndreMaalouf_578133.jpeg",
+          "url_large": "https://s.lorientlejour.com/storage/attachments/1495/AndreMaalouf_578133.jpeg/r/800/AndreMaalouf_578133.jpeg",
+          "url_home_slideshow": "https://s.lorientlejour.com/storage/attachments/1495/AndreMaalouf_578133.jpeg/r/1200/AndreMaalouf_578133.jpeg",
+          "url_highres": "https://s.lorientlejour.com/storage/attachments/1495/AndreMaalouf_578133.jpeg/r/2400/AndreMaalouf_578133.jpeg",
+          "type": "image"
+        }
+      ],
+      "summary": "<p>Andrée Maalouf: Between Lebanese Tradition and Gastronomic Modernity</p>",
+      "introduction": "<p>Based in Paris since 1976, Andrée Maalouf has devoted her work to celebrating and transmitting the richness of Lebanese cuisine, striking a delicate balance between tradition and modernity.</p><p>She revisits classic recipes with care, adapting them to contemporary gastronomic tastes and dietary concerns, while remaining faithful to their spirit. Through her work, she speaks especially to those living far from their homeland, offering them a way to reconnect — each day — with its flavors, memory, and nourishment.</p><p>In collaboration with chef Karim Haidar, she has published <em>Cuisine libanaise : d’hier et d’aujourd’hui</em> (Albin Michel, 2010), <em>Saveurs libanaises, miroir de la diversité</em> (Albin Michel, 2015), and <em>La Cuisine libanaise : de Beyrouth à Paris</em> (Albin Michel, 2023). These works have been translated into five languages: French, English, Spanish, Turkish, and Italian.</p>",
+      "elements": [],
+      "seo": {
+        "search_title": "Andrée Maalouf, entre tradition et modernité",
+        "search_description": "Andrée Maalouf: Between Lebanese Tradition and Gastronomic Modernity…",
+        "social_title": "Andrée Maalouf, entre tradition et modernité",
+        "social_description": "Andrée Maalouf: Between Lebanese Tradition and Gastronomic Modernity…",
+        "social_image": ""
+      },
+      "time_to_read": 50,
+      "cached": true
+    }
+  ]
+}

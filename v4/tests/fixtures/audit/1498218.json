@@ -1,0 +1,403 @@
+{
+  "data": [
+    {
+      "objectType": "Article",
+      "id": "1498218",
+      "signature": "Article:1498218",
+      "url": "https://www.lorientlejour.com/cuisine-liban-a-table/1498218/le-crumble-aux-pommes-de-caline-chaya-chaoul.html",
+      "shorturl": "https://olj.me/1498218",
+      "slug": "le-crumble-aux-pommes-de-caline-chaya-chaoul",
+      "contentType": {
+        "id": "4",
+        "name": "Recipes",
+        "slug": "",
+        "editor": "default"
+      },
+      "views": 512,
+      "comments": 2,
+      "preview_limit": "850",
+      "rating": 4.8,
+      "rating_count": 15,
+      "excludedFromGoogleSearchEngine": 0,
+      "status": "publish",
+      "title": "Le crumble aux pommes de Caline Chaya Chaoul",
+      "firstPublished": "2026-03-17 09:54:56",
+      "lastUpdate": "2026-03-17 09:54:56",
+      "categories": [
+        {
+          "id": "1037",
+          "name": "Variations autour d’un thème",
+          "seo_name": "",
+          "signature": "Category:1037",
+          "slug": "variations-autour-dun-theme",
+          "typeId": {
+            "typeId": "17",
+            "name": "A table - OLJ",
+            "slug": "cuisine-liban-a-table",
+            "includeInIssue": "0",
+            "shortened_domain": "",
+            "stylesheetClass": "",
+            "domain": null,
+            "articleUrlPrefix": "cuisine-liban-a-table",
+            "access_groups": "[\"olj\",\"premium\",\"integrale\",\"premium_open\",\"donation_access\",\"premium_ot\",\"olj_basic\"]",
+            "locale": "fr-FR",
+            "preview_limit": "850",
+            "sitemapUrlPrefix": null,
+            "authorUrlPrefix": null
+          },
+          "parentId": "1031",
+          "parent": {
+            "id": "1031",
+            "name": "Recettes",
+            "signature": "Category:1031",
+            "slug": "recettes",
+            "parentId": null,
+            "parent": [],
+            "image": "",
+            "cover": "",
+            "logo": "",
+            "paid": "0",
+            "objectType": "Category",
+            "url": "https://www.lorientlejour.com/cuisine-liban-a-table/1031-recettes",
+            "cssCode": "",
+            "template": "default",
+            "tagline": "",
+            "link_param": null,
+            "description": "Des recettes signées par de grands chefs libanais, des passionnés de cuisine ou encore des personnalités libanaises que nous avons invitées à passer derrière les fourneaux.",
+            "metaDescription": "Des recettes signées par de grands chefs libanais, des passionnés de cuisine ou encore des personnalités libanaises que nous avons invitées à passer derrière les fourneaux.",
+            "order": "0",
+            "pageId": null,
+            "articlesCount": null,
+            "allowComments": "1",
+            "accessType": "freecount",
+            "status": "1",
+            "children": [],
+            "cached": true
+          },
+          "image": "",
+          "cover": "",
+          "logo": "",
+          "paid": "0",
+          "objectType": "Category",
+          "url": "https://www.lorientlejour.com/cuisine-liban-a-table/1037-variations-autour-dun-theme",
+          "cssCode": "",
+          "template": "default",
+          "tagline": "",
+          "link_param": null,
+          "description": "",
+          "metaDescription": "",
+          "order": "0",
+          "pageId": null,
+          "articlesCount": "187",
+          "allowComments": "1",
+          "accessType": "freecount",
+          "status": "1",
+          "children": [],
+          "cached": true
+        }
+      ],
+      "access_groups": [
+        "olj",
+        "premium",
+        "integrale",
+        "premium_open",
+        "donation_access",
+        "premium_ot",
+        "olj_basic"
+      ],
+      "access_control": false,
+      "counted_in_paywall": true,
+      "content_length": 1042,
+      "contents": "<p><strong>Pour le gâteau : </strong></p><ol><li>Préchauffer le four à 180 °C.</li><li>Beurrer un moule à manqué de 20 à 24 cm de diamètre, puis tapisser le fond à l’aide d&#39;un disque de papier sulfurisé.</li><li>Mélanger la farine, le sucre, le sel, la levure chimique<em> </em>et la cardamome dans un grand saladier.</li><li>Former un puit au centre et ajouter l&#39;huile, l&#39;œuf, le lait et la vanille. La pâte sera assez épaisse.</li><li>Incorporer délicatement les pommes coupées en dés (ne pas trop travailler la pâte, sinon le gâteau sera plus dense), puis verser la préparation dans le moule préparé.<br class=\"soft-break\"><br></li></ol><p><strong>Pour le crumble : </strong></p><ol><li>Mélanger le beurre avec le sucre, la cannelle, la cardamome et le sel. Le mélange doit être léger, crémeux et parfumé.</li><li>Incorporer ensuite la farine jusqu’à obtenir une pâte friable, mais qui ne colle pas aux mains.</li><li>Répartir le crumble uniformément sur le gâteau, puis l’enfourner pendant 45 à 60 minutes en vérifiant la cuisson de temps en temps après les premières 45 minutes : la pointe d&#39;un couteau doit ressortir presque propre.</li><li>Juste avant de servir, le saupoudrer de sucre glace.</li></ol>",
+      "tag": "Recette de chef",
+      "authors": [],
+      "byline": "",
+      "keywords": [
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "56615",
+            "name": "dessert",
+            "url": "https://www.lorientlejour.com/keyword/56615-dessert",
+            "slug": "dessert",
+            "description": "<p><br></p>",
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": "Dessert",
+            "translations": "{\"default\":{\"metatitle\":\"\",\"metadescription\":\"\"},\"en\":{\"displayname\":\"Dessert\",\"description\":\"<p>Discover our dessert recipes to end your meals on a sweet note. From Lebanese tradition to reimagined classics, get inspired with our sweet creations.<\\/p>\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"Dessert\",\"description\":\"<p>D\\u00e9couvrez nos recettes de desserts pour finir vos repas sur une touche sucr\\u00e9e. De la tradition libanaise aux classiques revisit\\u00e9s, faites le plein d\\u2019inspirations gourmandes.<\\/p>\",\"metatitle\":\"Dessert : id\\u00e9es sucr\\u00e9es, recettes libanaises, tendances\",\"metadescription\":\"D\\u00e9couvrez nos recettes de desserts pour finir vos repas sur une touche sucr\\u00e9e. De la tradition libanaise aux classiques revisit\\u00e9s, faites le plein d\\u2019inspirations gourmandes.\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "56639",
+            "name": "recette végétarienne",
+            "url": "https://www.lorientlejour.com/keyword/56639-recette-vegetarienne",
+            "slug": "recette-vegetarienne",
+            "description": "Une sélection de recettes végétariennes tirées essentiellement de la cuisine libanaise et levantine.",
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": "Recette végétarienne",
+            "translations": "{\"default\":{\"metatitle\":\"Recettes v\\u00e9g\\u00e9tariennes : libanaises et m\\u00e9diterran\\u00e9ennes\",\"metadescription\":\"Une s\\u00e9lection de recettes v\\u00e9g\\u00e9tariennes tir\\u00e9es essentiellement de la cuisine libanaise et levantine.\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "56800",
+            "name": "recette hiver",
+            "url": "https://www.lorientlejour.com/keyword/56800-recette-hiver",
+            "slug": "recette-hiver",
+            "description": null,
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": null,
+            "translations": "{\"default\":{\"metatitle\":\"\",\"metadescription\":\"\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"Recette d'hiver\",\"description\":\"<p>Notre s\\u00e9lection de recettes r\\u00e9confortantes, pour l&#39;hiver.<\\/p>\",\"metatitle\":\"\",\"metadescription\":\"\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "56754",
+            "name": "recette automne",
+            "url": "https://www.lorientlejour.com/keyword/56754-recette-automne",
+            "slug": "recette-automne",
+            "description": null,
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": null,
+            "translations": "{\"default\":{\"metatitle\":\"\",\"metadescription\":\"\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"Recettes d'automne\",\"description\":\"Une s\\u00e9lection de nos recettes id\\u00e9ales pour l'automne.\",\"metatitle\":\"\",\"metadescription\":\"\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        }
+      ],
+      "description": "Un dessert parfumé à la cardamome et à la canelle, qui allie douceur des pommes fondantes et texture croustillante du crumble.",
+      "attachments": [
+        {
+          "id": "562715",
+          "name": "Un crumble doré au four, à déguster avec de la crème chantilly, de la glace vanille ou même nature. Photo fournie par Caline Chaoul Chaya.",
+          "description": "",
+          "focal": "50% 50%",
+          "width": 1536,
+          "height": 1024,
+          "url": "https://s.lorientlejour.com/storage/attachments/1499/crumblepommes_989523.png",
+          "transforms": [
+            {
+              "x": 245,
+              "y": 164,
+              "url": "https://s.lorientlejour.com/storage/attachments/1499/crumblepommes_989523.png/r/245/crumblepommes_989523.png"
+            },
+            {
+              "x": 400,
+              "y": 270,
+              "url": "https://s.lorientlejour.com/storage/attachments/1499/crumblepommes_989523.png/r/400/crumblepommes_989523.png"
+            },
+            {
+              "x": 800,
+              "y": 600,
+              "url": "https://s.lorientlejour.com/storage/attachments/1499/crumblepommes_989523.png/r/800/crumblepommes_989523.png"
+            },
+            {
+              "x": 1200,
+              "y": 800,
+              "url": "https://s.lorientlejour.com/storage/attachments/1499/crumblepommes_989523.png/r/1200/crumblepommes_989523.png"
+            },
+            {
+              "x": 2400,
+              "y": 1600,
+              "url": "https://s.lorientlejour.com/storage/attachments/1499/crumblepommes_989523.png/r/2400/crumblepommes_989523.png"
+            }
+          ],
+          "url_thumbnail": "https://s.lorientlejour.com/storage/attachments/1499/crumblepommes_989523.png/r/245/crumblepommes_989523.png",
+          "url_medium": "https://s.lorientlejour.com/storage/attachments/1499/crumblepommes_989523.png/r/400/crumblepommes_989523.png",
+          "url_large": "https://s.lorientlejour.com/storage/attachments/1499/crumblepommes_989523.png/r/800/crumblepommes_989523.png",
+          "url_home_slideshow": "https://s.lorientlejour.com/storage/attachments/1499/crumblepommes_989523.png/r/1200/crumblepommes_989523.png",
+          "url_highres": "https://s.lorientlejour.com/storage/attachments/1499/crumblepommes_989523.png/r/2400/crumblepommes_989523.png",
+          "type": "image"
+        }
+      ],
+      "recipe_name": "Le crumble aux pommes de Caline Chaya Chaoul",
+      "preparation_time": 30,
+      "cooking_time": 45,
+      "persons": 8,
+      "difficulty": "Facile",
+      "summary": "<ul><li><strong>Pour l&#39;appareil :</strong></li><li>1 œuf</li><li>225 g de farine</li><li>175 g de sucre</li><li>2 c. à c. de <em>baking powder </em>(ou levure chimique)</li><li>1/4 c. à c. de sel fin</li><li>1 c. à c. de cardamome en poudre</li><li>1 c. à c. de vanille liquide</li><li>75 ml d&#39;huile végétale</li><li>75 ml de lait entier</li><li>3 grosses pommes jaunes</li><li><strong>Pour le crumble :</strong></li><li>50 g de beurre</li><li>70 g de sucre</li><li>70 g de farine</li><li>1 c. à c. de cannelle en poudre</li><li>1 c. à c. de cardamome en poudre</li></ul>",
+      "astuce": "Ce crumble est délicieux nature, ou accompagné d'un peu de crème chantilly ou de glace vanille. « Moi je le préfère nature avec un bon thé ! » nous confie Caline Chaya Chaoul.",
+      "recipe_history_title": "",
+      "introduction": "<p><br></p>",
+      "chef": {
+        "objectType": "Article",
+        "id": "1498228",
+        "signature": "Article:1498228",
+        "url": "https://www.lorientlejour.com/article/1498228/caline-chaya-chaoul-engagee-dans-laventure-makan.html",
+        "shorturl": "https://olj.me/1498228",
+        "slug": "caline-chaya-chaoul-engagee-dans-laventure-makan",
+        "contentType": {
+          "id": "5",
+          "name": "Chef",
+          "slug": "",
+          "editor": "default"
+        },
+        "views": 1,
+        "comments": 0,
+        "preview_limit": null,
+        "rating": 0,
+        "excludedFromGoogleSearchEngine": 0,
+        "status": "publish",
+        "title": "Caline Chaya Chaoul, engagée dans l'aventure Makan",
+        "firstPublished": "2026-03-13 12:43:08",
+        "lastUpdate": "2026-03-13 12:43:08",
+        "categories": [
+          {
+            "id": "1035",
+            "name": "Chefs 2",
+            "signature": "Category:1035",
+            "slug": "chefs",
+            "typeId": {
+              "typeId": "18",
+              "name": "Chef",
+              "slug": "",
+              "includeInIssue": "0",
+              "shortened_domain": "",
+              "stylesheetClass": "",
+              "domain": null,
+              "articleUrlPrefix": "",
+              "access_groups": "[]",
+              "locale": "fr-FR",
+              "preview_limit": null,
+              "sitemapUrlPrefix": null,
+              "authorUrlPrefix": null
+            },
+            "parentId": null,
+            "parent": [],
+            "image": "",
+            "cover": "",
+            "logo": "",
+            "paid": "0",
+            "objectType": "Category",
+            "url": "https://www.lorientlejour.com/category/1035-chefs",
+            "cssCode": "",
+            "template": "default",
+            "tagline": "",
+            "link_param": null,
+            "description": "",
+            "metaDescription": "",
+            "order": "0",
+            "pageId": null,
+            "articlesCount": null,
+            "allowComments": "1",
+            "accessType": "freecount",
+            "status": "1",
+            "children": [],
+            "cached": false
+          }
+        ],
+        "access_groups": [],
+        "access_control": false,
+        "counted_in_paywall": true,
+        "content_length": 1059,
+        "contents": "",
+        "subtitle": "",
+        "subtitle_en": "",
+        "attachments": [
+          {
+            "id": "563130",
+            "name": "",
+            "description": "",
+            "focal": "50% 50%",
+            "width": 900,
+            "height": 1600,
+            "url": "https://s.lorientlejour.com/storage/attachments/1499/portrait_191226.jpeg",
+            "transforms": [
+              {
+                "x": 245,
+                "y": 164,
+                "url": "https://s.lorientlejour.com/storage/attachments/1499/portrait_191226.jpeg/r/245/portrait_191226.jpeg"
+              },
+              {
+                "x": 400,
+                "y": 270,
+                "url": "https://s.lorientlejour.com/storage/attachments/1499/portrait_191226.jpeg/r/400/portrait_191226.jpeg"
+              },
+              {
+                "x": 800,
+                "y": 600,
+                "url": "https://s.lorientlejour.com/storage/attachments/1499/portrait_191226.jpeg/r/800/portrait_191226.jpeg"
+              },
+              {
+                "x": 1200,
+                "y": 800,
+                "url": "https://s.lorientlejour.com/storage/attachments/1499/portrait_191226.jpeg/r/1200/portrait_191226.jpeg"
+              },
+              {
+                "x": 2400,
+                "y": 1600,
+                "url": "https://s.lorientlejour.com/storage/attachments/1499/portrait_191226.jpeg/r/2400/portrait_191226.jpeg"
+              }
+            ],
+            "url_thumbnail": "https://s.lorientlejour.com/storage/attachments/1499/portrait_191226.jpeg/r/245/portrait_191226.jpeg",
+            "url_medium": "https://s.lorientlejour.com/storage/attachments/1499/portrait_191226.jpeg/r/400/portrait_191226.jpeg",
+            "url_large": "https://s.lorientlejour.com/storage/attachments/1499/portrait_191226.jpeg/r/800/portrait_191226.jpeg",
+            "url_home_slideshow": "https://s.lorientlejour.com/storage/attachments/1499/portrait_191226.jpeg/r/1200/portrait_191226.jpeg",
+            "url_highres": "https://s.lorientlejour.com/storage/attachments/1499/portrait_191226.jpeg/r/2400/portrait_191226.jpeg",
+            "type": "image"
+          }
+        ],
+        "summary": "",
+        "introduction": "",
+        "elements": [],
+        "seo": {
+          "search_title": "Caline Chaya Chaoul, engagée dans l'aventure Makan",
+          "search_description": "Passionnée de cuisine, avec « un penchant pour l‘hôtellerie », Caline Chaya Chaoul, qui a fait ses études à l&#39;Alba, vient pourtant du monde la publicité. Son premier défi dans le monde de la cuisi…",
+          "social_title": "Caline Chaya Chaoul, engagée dans l'aventure Makan",
+          "social_description": "Passionnée de cuisine, avec « un penchant pour l‘hôtellerie », Caline Chaya Chaoul, qui a fait ses études à l&#39;Alba, vient pourtant du monde la publicité. Son premier défi dans le monde de la cuisi…",
+          "social_image": ""
+        },
+        "time_to_read": 35,
+        "cached": true
+      },
+      "options": {
+        "recipe_name": "Le crumble aux pommes de Caline Chaya Chaoul",
+        "preparation_time": 30,
+        "cooking_time": 45,
+        "persons": 8,
+        "difficulty": "Facile",
+        "astuce": "Ce crumble est délicieux nature, ou accompagné d'un peu de crème chantilly ou de glace vanille. « Moi je le préfère nature avec un bon thé ! » nous confie Caline Chaya Chaoul.",
+        "recipe_history_title": "",
+        "chef": 1498228,
+        "full_width_image": 1,
+        "sommaire_page": "",
+        "priority": 2,
+        "has_unread_notes": false,
+        "urgent": "0",
+        "articleFromCdl": "0",
+        "premium": "0",
+        "full_width_article": "0",
+        "arabic_article": "0",
+        "free": "0",
+        "hide_image": "0",
+        "elections": "0",
+        "video": "0",
+        "hide": "0"
+      },
+      "freemium": false,
+      "elements": [],
+      "seo": {
+        "search_title": "Le crumble aux pommes de Caline Chaya Chaoul",
+        "search_description": "Un dessert parfumé à la cardamome et à la canelle, qui allie douceur des pommes fondantes et texture croustillante du crumble.",
+        "social_title": "Le crumble aux pommes de Caline Chaya Chaoul",
+        "social_description": "Un dessert parfumé à la cardamome et à la canelle, qui allie douceur des pommes fondantes et texture croustillante du crumble.",
+        "social_image": ""
+      },
+      "time_to_read": 50,
+      "cached": true
+    }
+  ]
+}

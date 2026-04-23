@@ -1,0 +1,434 @@
+{
+  "data": [
+    {
+      "objectType": "Article",
+      "id": "1497097",
+      "signature": "Article:1497097",
+      "url": "https://www.lorientlejour.com/cuisine-liban-a-table/1497097/le-aich-el-saraya-au-caramel-de-charles-azar.html",
+      "shorturl": "https://olj.me/1497097",
+      "slug": "le-aich-el-saraya-au-caramel-de-charles-azar",
+      "contentType": {
+        "id": "4",
+        "name": "Recipes",
+        "slug": "",
+        "editor": "default"
+      },
+      "views": 680,
+      "comments": 0,
+      "preview_limit": "850",
+      "rating": 4.9,
+      "rating_count": 10,
+      "excludedFromGoogleSearchEngine": 0,
+      "status": "publish",
+      "title": "Le aïch el-saraya au caramel de Charles Azar",
+      "firstPublished": "2026-03-04 14:56:08",
+      "lastUpdate": "2026-03-04 14:56:08",
+      "categories": [
+        {
+          "id": "1037",
+          "name": "Variations autour d’un thème",
+          "signature": "Category:1037",
+          "slug": "variations-autour-dun-theme",
+          "typeId": {
+            "typeId": "17",
+            "name": "A table - OLJ",
+            "slug": "cuisine-liban-a-table",
+            "includeInIssue": "0",
+            "shortened_domain": "",
+            "stylesheetClass": "",
+            "domain": null,
+            "articleUrlPrefix": "cuisine-liban-a-table",
+            "access_groups": "[\"olj\",\"premium\",\"integrale\",\"premium_open\",\"donation_access\",\"premium_ot\",\"olj_basic\"]",
+            "locale": "fr-FR",
+            "preview_limit": "850",
+            "sitemapUrlPrefix": null,
+            "authorUrlPrefix": null
+          },
+          "parentId": "1031",
+          "parent": {
+            "id": "1031",
+            "name": "Recettes",
+            "signature": "Category:1031",
+            "slug": "recettes",
+            "parentId": null,
+            "parent": [],
+            "image": "",
+            "cover": "",
+            "logo": "",
+            "paid": "0",
+            "objectType": "Category",
+            "url": "https://www.lorientlejour.com/cuisine-liban-a-table/1031-recettes",
+            "cssCode": "",
+            "template": "default",
+            "tagline": "",
+            "link_param": null,
+            "description": "Des recettes signées par de grands chefs libanais, des passionnés de cuisine ou encore des personnalités libanaises que nous avons invitées à passer derrière les fourneaux.",
+            "metaDescription": "Des recettes signées par de grands chefs libanais, des passionnés de cuisine ou encore des personnalités libanaises que nous avons invitées à passer derrière les fourneaux.",
+            "order": "0",
+            "pageId": null,
+            "articlesCount": null,
+            "allowComments": "1",
+            "accessType": "freecount",
+            "status": "1",
+            "children": [],
+            "cached": true
+          },
+          "image": "",
+          "cover": "",
+          "logo": "",
+          "paid": "0",
+          "objectType": "Category",
+          "url": "https://www.lorientlejour.com/cuisine-liban-a-table/1037-variations-autour-dun-theme",
+          "cssCode": "",
+          "template": "default",
+          "tagline": "",
+          "link_param": null,
+          "description": "",
+          "metaDescription": "",
+          "order": "0",
+          "pageId": null,
+          "articlesCount": null,
+          "allowComments": "1",
+          "accessType": "freecount",
+          "status": "1",
+          "children": [],
+          "cached": true
+        }
+      ],
+      "access_groups": [
+        "olj",
+        "premium",
+        "integrale",
+        "premium_open",
+        "donation_access",
+        "premium_ot",
+        "olj_basic"
+      ],
+      "access_control": false,
+      "counted_in_paywall": true,
+      "content_length": 853,
+      "contents": "<p><strong>Pour la crème (achta maison) :</strong></p><ol><li>Mélanger le lait, la fécule et le sucre à froid.</li><li>Faire cuire à feu moyen en remuant jusqu’à épaississement.</li><li>Ajouter la crème et l’eau de fleur d’oranger, mélanger jusqu’à texture lisse.</li><li>Laisser tiédir.</li></ol><p><strong>Pour la base pain–caramel :</strong></p><ol><li>Faire griller le pain au four à 180°C jusqu’à ce qu’il soit bien doré et sec.</li><li>Mixer le grossièrement.</li><li>Faire fondre le sucre à sec jusqu’à obtenir un caramel ambré.</li><li>Ajouter l’eau chaude avec précaution puis le jus de citron, laissez bouillir 1 minute.</li><li>Verser immédiatement le caramel chaud sur le pain grillé et bien mélanger pour que le pain absorbe tout le caramel.</li></ol><p><br class=\"soft-break\"><strong>Montage en verrines :</strong></p><ol><li>Répartir le mélange pain–caramel dans 4 verrines et tasser légèrement.</li><li>Ajouter une couche généreuse de crème.</li><li>Réfrigérer 3 à 4 heures minimum.</li><li>Décorer de pistaches concassées et de cheveux d’ange juste avant de servir.</li></ol>",
+      "tag": "Recette de chef ",
+      "authors": [],
+      "byline": "",
+      "keywords": [
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "55889",
+            "name": "recette libanaise",
+            "url": "https://www.lorientlejour.com/keyword/55889-recette-libanaise",
+            "slug": "recette-libanaise",
+            "description": "Retrouvez ici les meilleures recettes libanaises, de la cuisine de nos grands-mères aux créations modernes de chefs établis au Liban ou ailleurs.",
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": "Recette libanaise",
+            "translations": "{\"default\":{\"metatitle\":\"Recettes libanaises : plats traditionnels, revisit\\u00e9s et tendances\",\"metadescription\":\"Retrouvez ici les meilleures recettes libanaises, de la cuisine de nos grands-m\\u00e8res aux cr\\u00e9ations modernes de chefs \\u00e9tablis au Liban ou ailleurs.\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"Recette libanaise\",\"description\":\"Retrouvez ici les meilleures recettes libanaises, de la cuisine de nos grands-m\\u00e8res aux cr\\u00e9ations modernes de chefs \\u00e9tablis au Liban ou ailleurs.\",\"metatitle\":\"\",\"metadescription\":\"\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "56868",
+            "name": "recette de ramadan",
+            "url": "https://www.lorientlejour.com/keyword/56868-recette-de-ramadan",
+            "slug": "recette-de-ramadan",
+            "description": null,
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": null,
+            "translations": "{\"default\":{\"metatitle\":\"\",\"metadescription\":\"\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"Recettes de Ramadan\",\"description\":\"<p>D\\u00e9couvrez notre s\\u00e9lection de recettes libanaises, traditionnelles ou revisit\\u00e9es, pour ramadan.<\\/p>\",\"metatitle\":\"Recettes, libanaises traditionnelles ou revisit\\u00e9es, pour ramadan\",\"metadescription\":\"Une s\\u00e9lection de recettes libanaises, traditionnelles ou revisit\\u00e9es pour ramadan.\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "56615",
+            "name": "dessert",
+            "url": "https://www.lorientlejour.com/keyword/56615-dessert",
+            "slug": "dessert",
+            "description": "<p><br></p>",
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": "Dessert",
+            "translations": "{\"default\":{\"metatitle\":\"\",\"metadescription\":\"\"},\"en\":{\"displayname\":\"Dessert\",\"description\":\"<p>Discover our dessert recipes to end your meals on a sweet note. From Lebanese tradition to reimagined classics, get inspired with our sweet creations.<\\/p>\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"Dessert\",\"description\":\"<p>D\\u00e9couvrez nos recettes de desserts pour finir vos repas sur une touche sucr\\u00e9e. De la tradition libanaise aux classiques revisit\\u00e9s, faites le plein d\\u2019inspirations gourmandes.<\\/p>\",\"metatitle\":\"Dessert : id\\u00e9es sucr\\u00e9es, recettes libanaises, tendances\",\"metadescription\":\"D\\u00e9couvrez nos recettes de desserts pour finir vos repas sur une touche sucr\\u00e9e. De la tradition libanaise aux classiques revisit\\u00e9s, faites le plein d\\u2019inspirations gourmandes.\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "56717",
+            "name": "recettes charles azar",
+            "url": "https://www.lorientlejour.com/keyword/56717-recettes-charles-azar",
+            "slug": "recettes-charles-azar",
+            "description": null,
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": null,
+            "translations": "{\"default\":{\"metatitle\":\"\",\"metadescription\":\"\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"Les recettes de Charles Azar\",\"description\":\"D\\u00e9couvrez les recettes que le chef-p\\u00e2tissier Charles Azar a partag\\u00e9es avec nous.\",\"metatitle\":\"Les recettes du chef-p\\u00e2tissier libanais Charles Azar\",\"metadescription\":\"D\\u00e9couvrez les recettes que le chef p\\u00e2tissier Charles Azar a partag\\u00e9es avec nous.\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "55861",
+            "name": "cuisine du moyen-orient",
+            "url": "https://www.lorientlejour.com/keyword/55861-cuisine-du-moyen-orient",
+            "slug": "cuisine-du-moyen-orient",
+            "description": "Recettes authentiques ou revisitées, la cuisine du Moyen-Orient vous invite à sa table.",
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": "Cuisine du Moyen-Orient",
+            "translations": "{\"default\":{\"metatitle\":\"Cuisine du Moyen-Orient : recettes, saveurs et actualit\\u00e9s\",\"metadescription\":\"Recettes authentiques ou revisit\\u00e9es, la cuisine du Moyen-Orient vous invite \\u00e0 sa table.\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "21954",
+            "name": "cuisine libanaise",
+            "url": "https://www.lorientlejour.com/keyword/21954-cuisine-libanaise",
+            "slug": "cuisine-libanaise",
+            "description": null,
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": null,
+            "translations": null,
+            "collection_id": null,
+            "image": ""
+          }
+        }
+      ],
+      "description": "L’aïch el-saraya est un dessert de choix pour le Ramadan. Le chef Charles Azar en propose une version ultra généreuse.",
+      "attachments": [
+        {
+          "id": "560756",
+          "name": "",
+          "description": "Une base caramélisée, une couche d’achta onctueuse et quelques éclats de pistaches : un dessert simple et raffiné.",
+          "focal": "50% 50%",
+          "width": 852,
+          "height": 1199,
+          "url": "https://s.lorientlejour.com/storage/attachments/1498/dessert_216712.jpg",
+          "transforms": [
+            {
+              "x": 245,
+              "y": 164,
+              "url": "https://s.lorientlejour.com/storage/attachments/1498/dessert_216712.jpg/r/245/dessert_216712.jpg"
+            },
+            {
+              "x": 400,
+              "y": 270,
+              "url": "https://s.lorientlejour.com/storage/attachments/1498/dessert_216712.jpg/r/400/dessert_216712.jpg"
+            },
+            {
+              "x": 800,
+              "y": 600,
+              "url": "https://s.lorientlejour.com/storage/attachments/1498/dessert_216712.jpg/r/800/dessert_216712.jpg"
+            },
+            {
+              "x": 1200,
+              "y": 800,
+              "url": "https://s.lorientlejour.com/storage/attachments/1498/dessert_216712.jpg/r/1200/dessert_216712.jpg"
+            },
+            {
+              "x": 2400,
+              "y": 1600,
+              "url": "https://s.lorientlejour.com/storage/attachments/1498/dessert_216712.jpg/r/2400/dessert_216712.jpg"
+            }
+          ],
+          "url_thumbnail": "https://s.lorientlejour.com/storage/attachments/1498/dessert_216712.jpg/r/245/dessert_216712.jpg",
+          "url_medium": "https://s.lorientlejour.com/storage/attachments/1498/dessert_216712.jpg/r/400/dessert_216712.jpg",
+          "url_large": "https://s.lorientlejour.com/storage/attachments/1498/dessert_216712.jpg/r/800/dessert_216712.jpg",
+          "url_home_slideshow": "https://s.lorientlejour.com/storage/attachments/1498/dessert_216712.jpg/r/1200/dessert_216712.jpg",
+          "url_highres": "https://s.lorientlejour.com/storage/attachments/1498/dessert_216712.jpg/r/2400/dessert_216712.jpg",
+          "type": "image"
+        }
+      ],
+      "recipe_name": "Le aïch el saraya au caramel de Charles Azar",
+      "preparation_time": "40 (et 240 minutes de repos)",
+      "cooking_time": "",
+      "persons": 4,
+      "difficulty": "Moyenne",
+      "summary": "<ul><li><strong>Pour la base pain–caramel :</strong></li><li>200 g de pain de mie blanc (soit 8 tranches)</li><li>200 g de sucre</li><li>120 g d’eau chaude</li><li>5 g de jus de citron</li><li><strong>Pour la crème (achta maison) :</strong></li><li>500 g de lait</li><li>30 g de fécule de maïs</li><li>15 g de sucre</li><li>170 g de crème</li><li>5 g d’eau de fleur d’oranger</li><li>Pistaches concassées pour décorer</li></ul>",
+      "astuce": "",
+      "recipe_history_title": "",
+      "introduction": "<p><br></p>",
+      "chef": {
+        "objectType": "Article",
+        "id": "1463796",
+        "signature": "Article:1463796",
+        "url": "https://www.lorientlejour.com/article/1463796/charles-azar-la-patisserie-sous-toutes-ses-formes.html",
+        "shorturl": "https://olj.me/1463796",
+        "slug": "charles-azar-la-patisserie-sous-toutes-ses-formes",
+        "contentType": {
+          "id": "5",
+          "name": "Chef",
+          "slug": "",
+          "editor": "default"
+        },
+        "views": 0,
+        "comments": 0,
+        "preview_limit": null,
+        "rating": 0,
+        "excludedFromGoogleSearchEngine": 0,
+        "status": "publish",
+        "title": "Charles Azar, la pâtisserie sous toutes ses formes",
+        "firstPublished": "2025-06-09 16:53:34",
+        "lastUpdate": "2025-06-09 16:53:34",
+        "categories": [
+          {
+            "id": "1035",
+            "name": "Chefs 2",
+            "signature": "Category:1035",
+            "slug": "chefs",
+            "typeId": {
+              "typeId": "18",
+              "name": "Chef",
+              "slug": "",
+              "includeInIssue": "0",
+              "shortened_domain": "",
+              "stylesheetClass": "",
+              "domain": null,
+              "articleUrlPrefix": "",
+              "access_groups": "[]",
+              "locale": "fr-FR",
+              "preview_limit": null,
+              "sitemapUrlPrefix": null,
+              "authorUrlPrefix": null
+            },
+            "parentId": null,
+            "parent": [],
+            "image": "",
+            "cover": "",
+            "logo": "",
+            "paid": "0",
+            "objectType": "Category",
+            "url": "https://www.lorientlejour.com/category/1035-chefs",
+            "cssCode": "",
+            "template": "default",
+            "tagline": "",
+            "link_param": null,
+            "description": "",
+            "metaDescription": "",
+            "order": "0",
+            "pageId": null,
+            "articlesCount": null,
+            "allowComments": "1",
+            "accessType": "freecount",
+            "status": "1",
+            "children": [],
+            "cached": false
+          }
+        ],
+        "access_groups": [],
+        "access_control": false,
+        "counted_in_paywall": true,
+        "content_length": 454,
+        "contents": "",
+        "subtitle": "",
+        "subtitle_en": "",
+        "attachments": [
+          {
+            "id": "502154",
+            "name": "",
+            "description": "",
+            "focal": "50% 50%",
+            "width": 644,
+            "height": 623,
+            "url": "https://s.lorientlejour.com/storage/attachments/1464/IMG_8412_999210.jpg",
+            "transforms": [
+              {
+                "x": 245,
+                "y": 164,
+                "url": "https://s.lorientlejour.com/storage/attachments/1464/IMG_8412_999210.jpg/r/245/IMG_8412_999210.jpg"
+              },
+              {
+                "x": 400,
+                "y": 270,
+                "url": "https://s.lorientlejour.com/storage/attachments/1464/IMG_8412_999210.jpg/r/400/IMG_8412_999210.jpg"
+              },
+              {
+                "x": 800,
+                "y": 600,
+                "url": "https://s.lorientlejour.com/storage/attachments/1464/IMG_8412_999210.jpg/r/800/IMG_8412_999210.jpg"
+              },
+              {
+                "x": 1200,
+                "y": 800,
+                "url": "https://s.lorientlejour.com/storage/attachments/1464/IMG_8412_999210.jpg/r/1200/IMG_8412_999210.jpg"
+              },
+              {
+                "x": 2400,
+                "y": 1600,
+                "url": "https://s.lorientlejour.com/storage/attachments/1464/IMG_8412_999210.jpg/r/2400/IMG_8412_999210.jpg"
+              }
+            ],
+            "url_thumbnail": "https://s.lorientlejour.com/storage/attachments/1464/IMG_8412_999210.jpg/r/245/IMG_8412_999210.jpg",
+            "url_medium": "https://s.lorientlejour.com/storage/attachments/1464/IMG_8412_999210.jpg/r/400/IMG_8412_999210.jpg",
+            "url_large": "https://s.lorientlejour.com/storage/attachments/1464/IMG_8412_999210.jpg/r/800/IMG_8412_999210.jpg",
+            "url_home_slideshow": "https://s.lorientlejour.com/storage/attachments/1464/IMG_8412_999210.jpg/r/1200/IMG_8412_999210.jpg",
+            "url_highres": "https://s.lorientlejour.com/storage/attachments/1464/IMG_8412_999210.jpg/r/2400/IMG_8412_999210.jpg",
+            "type": "image"
+          }
+        ],
+        "summary": "",
+        "introduction": "",
+        "elements": [],
+        "seo": {
+          "search_title": "Charles Azar, la pâtisserie sous toutes ses formes",
+          "search_description": "Charles Azar, pastry in its many forms…",
+          "social_title": "Charles Azar, la pâtisserie sous toutes ses formes",
+          "social_description": "Charles Azar, pastry in its many forms…",
+          "social_image": ""
+        },
+        "time_to_read": 30,
+        "cached": true
+      },
+      "options": {
+        "recipe_name": "Le aïch el saraya au caramel de Charles Azar",
+        "preparation_time": "40 (et 240 minutes de repos)",
+        "cooking_time": "",
+        "persons": 4,
+        "difficulty": "Moyenne",
+        "astuce": "",
+        "recipe_history_title": "",
+        "chef": 1463796,
+        "full_width_image": 1,
+        "sommaire_page": "",
+        "priority": 2,
+        "has_unread_notes": false,
+        "urgent": "0",
+        "articleFromCdl": "0",
+        "premium": "0",
+        "full_width_article": "0",
+        "arabic_article": "0",
+        "free": "0",
+        "hide_image": "0",
+        "elections": "0",
+        "video": "0",
+        "hide": "0"
+      },
+      "freemium": false,
+      "elements": [],
+      "seo": {
+        "search_title": "Le aïch el-saraya au caramel de Charles Azar",
+        "search_description": "L’aïch el-saraya est un dessert de choix pour le Ramadan. Le chef Charles Azar en propose une version ultra généreuse.",
+        "social_title": "Le aïch el-saraya au caramel de Charles Azar",
+        "social_description": "L’aïch el-saraya est un dessert de choix pour le Ramadan. Le chef Charles Azar en propose une version ultra généreuse.",
+        "social_image": ""
+      },
+      "time_to_read": 37,
+      "cached": true
+    }
+  ]
+}

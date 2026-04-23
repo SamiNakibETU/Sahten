@@ -1,0 +1,135 @@
+{
+  "data": [
+    {
+      "objectType": "Article",
+      "id": "1477493",
+      "signature": "Article:1477493",
+      "url": "https://www.lorientlejour.com/article/1477493/chef-amani-du-akkar-a-sydney-en-passant-par-instagram.html",
+      "shorturl": "https://olj.me/1477493",
+      "slug": "chef-amani-du-akkar-a-sydney-en-passant-par-instagram",
+      "contentType": {
+        "id": "5",
+        "name": "Chef",
+        "slug": "",
+        "editor": "default"
+      },
+      "views": 1,
+      "comments": 0,
+      "preview_limit": null,
+      "rating": 0,
+      "excludedFromGoogleSearchEngine": 0,
+      "status": "publish",
+      "title": "Chef Amani, du Akkar à Sydney, en passant par Insta",
+      "firstPublished": "2025-09-16 12:04:14",
+      "lastUpdate": "2025-09-16 12:04:14",
+      "categories": [
+        {
+          "id": "1035",
+          "name": "Chefs 2",
+          "signature": "Category:1035",
+          "slug": "chefs",
+          "typeId": {
+            "typeId": "18",
+            "name": "Chef",
+            "slug": "",
+            "includeInIssue": "0",
+            "shortened_domain": "",
+            "stylesheetClass": "",
+            "domain": null,
+            "articleUrlPrefix": "",
+            "access_groups": "[]",
+            "locale": "fr-FR",
+            "preview_limit": null,
+            "sitemapUrlPrefix": null,
+            "authorUrlPrefix": null
+          },
+          "parentId": null,
+          "parent": [],
+          "image": "",
+          "cover": "",
+          "logo": "",
+          "paid": "0",
+          "objectType": "Category",
+          "url": "https://www.lorientlejour.com/category/1035-chefs",
+          "cssCode": "",
+          "template": "default",
+          "tagline": "",
+          "link_param": null,
+          "description": "",
+          "metaDescription": "",
+          "order": "0",
+          "pageId": null,
+          "articlesCount": null,
+          "allowComments": "1",
+          "accessType": "freecount",
+          "status": "1",
+          "children": [],
+          "cached": false
+        }
+      ],
+      "access_groups": [],
+      "access_control": false,
+      "counted_in_paywall": true,
+      "content_length": 1809,
+      "contents": "<p>Chef Amani Khazaal Krayem, alias « It’s chef Amani » sur les réseaux sociaux, est née au Akkar avant de déménager avec sa famille, deux ans plus tard, à Tripoli. De la rue Azmi où elle a grandi, un univers intime et amical, elle garde en elle d’infimes souvenirs qui l’ont façonnée. « Cet environnement vit encore en moi », dit-elle.</p><p>Après des études sur les médias et la cuisine à Sydney, en Australie, où elle vit aujourd’hui, chef Amani cherche à mêler les deux. « Les réseaux sociaux m&#39;ont permis de combiner ces univers en associant mon amour pour la narration, les caméras, l&#39;édition et la créativité visuelle à mon lien profond avec la cuisine », explique-t-elle. Très intéressée par la pâtisserie, elle suit, en plus, des cours auprès de chefs renommés tels que Karim Bourgi, Alexis Bouillet et Yves Scherrer. « Ces expériences m&#39;ont permis d&#39;affiner ma technique, d’accroître mes compétences et de confirmer que la cuisine est une forme d&#39;art », poursuit la jeune femme.</p><p>Cet exil en Australie choisi depuis 2016 pour suivre l’homme qu’elle a épousé, cette séparation avec sa famille toujours au pays, elle les adoucit avec des saveurs, des recettes qui respirent le Liban.</p><p>Des recettes qu’elle partage sur Instagram avec ses 149 000 followers (en août 2025) « venus du monde entier ». « Tout a commencé lorsque j&#39;ai publié sur les réseaux sociaux des recettes simples, préparées avec amour dans ma cuisine. La réaction a été extraordinaire », explique-t-elle. Elle enchaîne alors en créant un site, sur lequel elle publie ses vidéos de recettes, des histoires culinaires et propose un contenu éducatif où la technique rencontre la tradition libanaise. Décidée à ne pas s’arrêter là, elle développe actuellement sa première marque de produits, qui allie design et fonctionnalité. </p>",
+      "subtitle": "",
+      "subtitle_en": "",
+      "attachments": [
+        {
+          "id": "521355",
+          "name": "",
+          "description": "",
+          "focal": "47% 23.76%",
+          "width": 2912,
+          "height": 4672,
+          "url": "https://s.lorientlejour.com/storage/attachments/1478/DSC05941-2_996429.jpeg",
+          "transforms": [
+            {
+              "x": 245,
+              "y": 164,
+              "url": "https://s.lorientlejour.com/storage/attachments/1478/DSC05941-2_996429.jpeg/r/245/DSC05941-2_996429.jpeg"
+            },
+            {
+              "x": 400,
+              "y": 270,
+              "url": "https://s.lorientlejour.com/storage/attachments/1478/DSC05941-2_996429.jpeg/r/400/DSC05941-2_996429.jpeg"
+            },
+            {
+              "x": 800,
+              "y": 600,
+              "url": "https://s.lorientlejour.com/storage/attachments/1478/DSC05941-2_996429.jpeg/r/800/DSC05941-2_996429.jpeg"
+            },
+            {
+              "x": 1200,
+              "y": 800,
+              "url": "https://s.lorientlejour.com/storage/attachments/1478/DSC05941-2_996429.jpeg/r/1200/DSC05941-2_996429.jpeg"
+            },
+            {
+              "x": 2400,
+              "y": 1600,
+              "url": "https://s.lorientlejour.com/storage/attachments/1478/DSC05941-2_996429.jpeg/r/2400/DSC05941-2_996429.jpeg"
+            }
+          ],
+          "url_thumbnail": "https://s.lorientlejour.com/storage/attachments/1478/DSC05941-2_996429.jpeg/r/245/DSC05941-2_996429.jpeg",
+          "url_medium": "https://s.lorientlejour.com/storage/attachments/1478/DSC05941-2_996429.jpeg/r/400/DSC05941-2_996429.jpeg",
+          "url_large": "https://s.lorientlejour.com/storage/attachments/1478/DSC05941-2_996429.jpeg/r/800/DSC05941-2_996429.jpeg",
+          "url_home_slideshow": "https://s.lorientlejour.com/storage/attachments/1478/DSC05941-2_996429.jpeg/r/1200/DSC05941-2_996429.jpeg",
+          "url_highres": "https://s.lorientlejour.com/storage/attachments/1478/DSC05941-2_996429.jpeg/r/2400/DSC05941-2_996429.jpeg",
+          "type": "image"
+        }
+      ],
+      "summary": "<p>Chef Amani, from Akkar to Sydney, through Instagram</p>",
+      "introduction": "<p>Chef Amani Khazaal Krayem, known as « It&#39;s Chef Amani » on social media, was born in Akkar before moving with her family to Tripoli two years later. She holds onto the intimate and friendly memories of Azmi Street, where she grew up, as they shaped who she is today. « That environment still lives within me, » she says.</p><p>After studying media and cooking in Sydney, Australia, where she now lives, Chef Amani seeks to combine the two. « Social media has allowed me to combine these worlds by blending my love of storytelling, cameras, editing, and visual creativity with my deep connection to cooking, » she explains. With a keen interest in pastry-making, she also takes classes with renowned chefs such as Karim Bourgi, Alexis Bouillet, and Yves Scherrer. « These experiences have helped me refine my technique, increase my skills, and confirm that cooking is an art form, » the young woman continues.</p><p>She has been living in exile in Australia since 2016, having chosen to follow the man she married, and she softens the pain of separation from her family, who are still in her homeland, with flavors and recipes that evoke Lebanon.</p><p>She shares her recipes on Instagram with her 149,000 followers (as of August 2025) « from all over the world. » « « It all started when I posted simple recipes on social media, made with love in my kitchen. The response was extraordinary,«  she explains. She then went on to create a website where she posts her recipe videos, culinary stories, and educational content where technique meets Lebanese tradition. Determined not to stop there, she is currently developing her first line of products, which combine design and functionality. </p>",
+      "elements": [],
+      "seo": {
+        "search_title": "Chef Amani, du Akkar à Sydney, en passant par Insta",
+        "search_description": "Chef Amani, from Akkar to Sydney, through Instagram…",
+        "social_title": "Chef Amani, du Akkar à Sydney, en passant par Insta",
+        "social_description": "Chef Amani, from Akkar to Sydney, through Instagram…",
+        "social_image": ""
+      },
+      "time_to_read": 117,
+      "cached": true
+    }
+  ]
+}

@@ -1,0 +1,135 @@
+{
+  "data": [
+    {
+      "objectType": "Article",
+      "id": "1464897",
+      "signature": "Article:1464897",
+      "url": "https://www.lorientlejour.com/article/1464897/carla-rebeiz-de-la-finance-a-la-cuisine.html",
+      "shorturl": "https://olj.me/1464897",
+      "slug": "carla-rebeiz-de-la-finance-a-la-cuisine",
+      "contentType": {
+        "id": "5",
+        "name": "Chef",
+        "slug": "",
+        "editor": "default"
+      },
+      "views": 0,
+      "comments": 0,
+      "preview_limit": null,
+      "rating": 0,
+      "excludedFromGoogleSearchEngine": 0,
+      "status": "publish",
+      "title": "Carla Rebeiz, de la finance à la cuisine",
+      "firstPublished": "2025-06-15 19:04:12",
+      "lastUpdate": "2025-06-15 19:04:12",
+      "categories": [
+        {
+          "id": "1035",
+          "name": "Chefs 2",
+          "signature": "Category:1035",
+          "slug": "chefs",
+          "typeId": {
+            "typeId": "18",
+            "name": "Chef",
+            "slug": "",
+            "includeInIssue": "0",
+            "shortened_domain": "",
+            "stylesheetClass": "",
+            "domain": null,
+            "articleUrlPrefix": "",
+            "access_groups": "[]",
+            "locale": "fr-FR",
+            "preview_limit": null,
+            "sitemapUrlPrefix": null,
+            "authorUrlPrefix": null
+          },
+          "parentId": null,
+          "parent": [],
+          "image": "",
+          "cover": "",
+          "logo": "",
+          "paid": "0",
+          "objectType": "Category",
+          "url": "https://www.lorientlejour.com/category/1035-chefs",
+          "cssCode": "",
+          "template": "default",
+          "tagline": "",
+          "link_param": null,
+          "description": "",
+          "metaDescription": "",
+          "order": "0",
+          "pageId": null,
+          "articlesCount": null,
+          "allowComments": "1",
+          "accessType": "freecount",
+          "status": "1",
+          "children": [],
+          "cached": false
+        }
+      ],
+      "access_groups": [],
+      "access_control": false,
+      "counted_in_paywall": true,
+      "content_length": 1148,
+      "contents": "<p>Née à Beyrouth où elle a vécu une partie de son adolescence, Carla Rebeiz s’envole à sa majorité pour les États-Unis, en vue d’y décrocher un MBA. Le diplôme en poche, cette grande impatiente rentre en France pour démarrer une carrière dans la finance. Après avoir bâti une solide et impressionnante carrière dans la finance, des banques aux salles de marché, de l’information financière au courtage, elle décide de lever le pied et de prendre un virage à 180 degrés, persuadée que « it’s time ». Temps de mettre son énergie au service d’un concept qui la passionne. Elle le baptisera « Eats Thyme », un jeu de mot mélangeant « mange du thym » et « il est temps », donc. Au bout d’un an passé à développer son projet, elle fonde la société Eats Thyme en février 2018. Deux ans plus tard, c’est en plein Covid-19 et en plein confinement, qu’ouvre ce lieu parisien aux arômes libanais, coquet et élégant.</p><p>Aujourd’hui, Eats Thyme se décline aussi en mode traiteur, avec toujours une approche personnalisée, créative, simple et élégante. Parmi ses clients, des écrivains – Orhan Pamuk, Amin Maalouf, Diane Mazloum –, des artistes, des acteurs de cinéma…</p>",
+      "subtitle": "",
+      "subtitle_en": "",
+      "attachments": [
+        {
+          "id": "503595",
+          "name": "",
+          "description": "",
+          "focal": "46.34% 12.63%",
+          "width": 1361,
+          "height": 1365,
+          "url": "https://s.lorientlejour.com/storage/attachments/1465/Carlaouverture_644382_344214.jpeg",
+          "transforms": [
+            {
+              "x": 245,
+              "y": 164,
+              "url": "https://s.lorientlejour.com/storage/attachments/1465/Carlaouverture_644382_344214.jpeg/r/245/Carlaouverture_644382_344214.jpeg"
+            },
+            {
+              "x": 400,
+              "y": 270,
+              "url": "https://s.lorientlejour.com/storage/attachments/1465/Carlaouverture_644382_344214.jpeg/r/400/Carlaouverture_644382_344214.jpeg"
+            },
+            {
+              "x": 800,
+              "y": 600,
+              "url": "https://s.lorientlejour.com/storage/attachments/1465/Carlaouverture_644382_344214.jpeg/r/800/Carlaouverture_644382_344214.jpeg"
+            },
+            {
+              "x": 1200,
+              "y": 800,
+              "url": "https://s.lorientlejour.com/storage/attachments/1465/Carlaouverture_644382_344214.jpeg/r/1200/Carlaouverture_644382_344214.jpeg"
+            },
+            {
+              "x": 2400,
+              "y": 1600,
+              "url": "https://s.lorientlejour.com/storage/attachments/1465/Carlaouverture_644382_344214.jpeg/r/2400/Carlaouverture_644382_344214.jpeg"
+            }
+          ],
+          "url_thumbnail": "https://s.lorientlejour.com/storage/attachments/1465/Carlaouverture_644382_344214.jpeg/r/245/Carlaouverture_644382_344214.jpeg",
+          "url_medium": "https://s.lorientlejour.com/storage/attachments/1465/Carlaouverture_644382_344214.jpeg/r/400/Carlaouverture_644382_344214.jpeg",
+          "url_large": "https://s.lorientlejour.com/storage/attachments/1465/Carlaouverture_644382_344214.jpeg/r/800/Carlaouverture_644382_344214.jpeg",
+          "url_home_slideshow": "https://s.lorientlejour.com/storage/attachments/1465/Carlaouverture_644382_344214.jpeg/r/1200/Carlaouverture_644382_344214.jpeg",
+          "url_highres": "https://s.lorientlejour.com/storage/attachments/1465/Carlaouverture_644382_344214.jpeg/r/2400/Carlaouverture_644382_344214.jpeg",
+          "type": "image"
+        }
+      ],
+      "summary": "<p>Carla Rebeiz, from finance to cooking</p>",
+      "introduction": "<p>Born in Beirut, where she spent most of her teenage years, Carla Rebeiz moved to the United States when she came of age to pursue an MBA. With her degree in hand, this eager young woman returned to France to start a career in finance. After building a solid and impressive career in finance, from banking to trading rooms, financial information to brokerage, she decided to slow down and make a 180-degree turn, convinced that « it&#39;s time. » It was time to put her energy into a concept she was passionate about. She named it « Eats Thyme, » a play on words combining « eat thyme » and « it&#39;s time. » After a year spent developing her project, she founded the company Eats Thyme in February 2018. Two years later, in the midst of Covid-19 and lockdown, this charming and elegant Parisian venue with Lebanese flavors opened its doors.</p><p>Today, Eats Thyme also offers catering services, always with a personalized, creative, simple, and elegant approach. Its clients include writers—Orhan Pamuk, Amin Maalouf, Diane Mazloum—artists, movie stars, and more.</p>",
+      "elements": [],
+      "seo": {
+        "search_title": "Carla Rebeiz, de la finance à la cuisine",
+        "search_description": "Carla Rebeiz, from finance to cooking…",
+        "social_title": "Carla Rebeiz, de la finance à la cuisine",
+        "social_description": "Carla Rebeiz, from finance to cooking…",
+        "social_image": ""
+      },
+      "time_to_read": 77,
+      "cached": true
+    }
+  ]
+}

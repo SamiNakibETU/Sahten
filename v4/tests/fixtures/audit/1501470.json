@@ -1,0 +1,482 @@
+{
+  "data": [
+    {
+      "objectType": "Article",
+      "id": "1501470",
+      "signature": "Article:1501470",
+      "url": "https://www.lorientlejour.com/cuisine-liban-a-table/1501470/les-falafels-maison-dandree-maalouf-avec-leur-sauce-tarator.html",
+      "shorturl": "https://olj.me/1501470",
+      "slug": "les-falafels-maison-dandree-maalouf-avec-leur-sauce-tarator",
+      "contentType": {
+        "id": "4",
+        "name": "Recipes",
+        "slug": "",
+        "editor": "default"
+      },
+      "views": 603,
+      "comments": 0,
+      "preview_limit": "850",
+      "rating": 4.64,
+      "rating_count": 11,
+      "excludedFromGoogleSearchEngine": 0,
+      "status": "publish",
+      "title": "Les falafels « maison » d’Andrée Maalouf, avec leur sauce tarator",
+      "firstPublished": "2026-04-04 11:33:33",
+      "lastUpdate": "2026-04-04 11:33:33",
+      "categories": [
+        {
+          "id": "1037",
+          "name": "Variations autour d’un thème",
+          "seo_name": "",
+          "signature": "Category:1037",
+          "slug": "variations-autour-dun-theme",
+          "typeId": {
+            "typeId": "17",
+            "name": "A table - OLJ",
+            "slug": "cuisine-liban-a-table",
+            "includeInIssue": "0",
+            "shortened_domain": "",
+            "stylesheetClass": "",
+            "domain": null,
+            "articleUrlPrefix": "cuisine-liban-a-table",
+            "access_groups": "[\"olj\",\"premium\",\"integrale\",\"premium_open\",\"donation_access\",\"premium_ot\",\"olj_basic\"]",
+            "locale": "fr-FR",
+            "preview_limit": "850",
+            "sitemapUrlPrefix": null,
+            "authorUrlPrefix": null
+          },
+          "parentId": "1031",
+          "parent": {
+            "id": "1031",
+            "name": "Recettes",
+            "signature": "Category:1031",
+            "slug": "recettes",
+            "parentId": null,
+            "parent": [],
+            "image": "",
+            "cover": "",
+            "logo": "",
+            "paid": "0",
+            "objectType": "Category",
+            "url": "https://www.lorientlejour.com/cuisine-liban-a-table/1031-recettes",
+            "cssCode": "",
+            "template": "default",
+            "tagline": "",
+            "link_param": null,
+            "description": "Des recettes signées par de grands chefs libanais, des passionnés de cuisine ou encore des personnalités libanaises que nous avons invitées à passer derrière les fourneaux.",
+            "metaDescription": "Des recettes signées par de grands chefs libanais, des passionnés de cuisine ou encore des personnalités libanaises que nous avons invitées à passer derrière les fourneaux.",
+            "order": "0",
+            "pageId": null,
+            "articlesCount": null,
+            "allowComments": "1",
+            "accessType": "freecount",
+            "status": "1",
+            "children": [],
+            "cached": true
+          },
+          "image": "",
+          "cover": "",
+          "logo": "",
+          "paid": "0",
+          "objectType": "Category",
+          "url": "https://www.lorientlejour.com/cuisine-liban-a-table/1037-variations-autour-dun-theme",
+          "cssCode": "",
+          "template": "default",
+          "tagline": "",
+          "link_param": null,
+          "description": "",
+          "metaDescription": "",
+          "order": "0",
+          "pageId": null,
+          "articlesCount": "187",
+          "allowComments": "1",
+          "accessType": "freecount",
+          "status": "1",
+          "children": [],
+          "cached": true
+        }
+      ],
+      "access_groups": [
+        "olj",
+        "premium",
+        "integrale",
+        "premium_open",
+        "donation_access",
+        "premium_ot",
+        "olj_basic"
+      ],
+      "access_control": false,
+      "counted_in_paywall": true,
+      "content_length": 1199,
+      "contents": "<p><strong>Pour les falafels :</strong></p><p><strong>La veille : </strong>Faire tremper pois chiches et févettes dans un grand volume d’eau froide (trois fois leur volume) toute la nuit.<strong><br class=\"soft-break\">Le jour même</strong></p><ol><li>Égoutter soigneusement les légumineuses, <strong>sans les cuire</strong>. Les mixer avec l’ail, le poireau, la coriandre et la courgette, jusqu’à obtenir une pâte homogène.</li><li>Ajouter les épices, le sel et le bicarbonate, puis mélanger : la préparation doit rester ferme pour ne pas s’effriter à la cuisson. Laisser reposer deux heures.</li><li>Former des boulettes d’environ 4 cm de diamètre.</li><li>Les plonger dans une huile chauffée à 150 °C et les faire frire 6 à 7 minutes, jusqu’à ce qu’elles soient bien dorées.</li><li>Égoutter sur du papier absorbant puis parsemer de graines de sésame.</li></ol><p><strong>Pour la salade</strong></p><ol><li>Couper les tomates en dés, les radis en fines rondelles.</li><li>Hacher les oignons, la menthe et le persil.</li><li>Mélanger le tout avec le sumac.</li></ol><p><strong>Pour la sauce tarator</strong></p><ol><li>Délayer la purée de sésame avec le jus de citron et une pincée de sel.</li><li>Ajouter un peu d’eau pour obtenir une sauce fluide et onctueuse.</li></ol><p><br></p><p><strong>DRESSAGE</strong></p><p>Dans un pain libanais, disposer des falafels coupés en deux, ajouter la salade, quelques bâtonnets de navet au vinaigre et napper généreusement de sauce tarator. Rouler et servir aussitôt.</p><p><br class=\"soft-break\"><br></p>",
+      "tag": "Recette de chef ",
+      "authors": [],
+      "byline": "",
+      "keywords": [
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "56638",
+            "name": "plat principal",
+            "url": "https://www.lorientlejour.com/keyword/56638-plat-principal",
+            "slug": "plat-principal",
+            "description": "Des recettes savoureuses de plats principaux libanais ou autre, pour régaler toute la famille. Viandes, poissons ou options végétariennes : vous trouverez, ici, une série de mets généreux mais aussi originaux.",
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": "Plat principal",
+            "translations": "{\"default\":{\"metatitle\":\"Plat principal : recettes libanaises, m\\u00e9diterran\\u00e9ennes et actus\",\"metadescription\":\"Des recettes savoureuses de plats principaux libanais ou autre, pour r\\u00e9galer toute la famille. Viandes, poissons ou options v\\u00e9g\\u00e9tariennes : vous trouverez, ici, une s\\u00e9rie de mets g\\u00e9n\\u00e9reux mais aussi originaux.\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"Plat principal\",\"description\":\"Des recettes savoureuses de plats principaux libanais ou autre, pour r\\u00e9galer toute la famille. Viandes, poissons ou options v\\u00e9g\\u00e9tariennes : vous trouverez, ici, une s\\u00e9rie de mets g\\u00e9n\\u00e9reux mais aussi originaux.\",\"metatitle\":\"\",\"metadescription\":\"\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "56911",
+            "name": "recettes andrée maalouf",
+            "url": "https://www.lorientlejour.com/keyword/56911-recettes-andree-maalouf",
+            "slug": "recettes-andree-maalouf",
+            "description": null,
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": null,
+            "translations": "{\"default\":{\"metatitle\":\"\",\"metadescription\":\"\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"Les recettes d'Andr\\u00e9e Maalouf\",\"description\":\"<p>D\\u00e9couvrez une s\\u00e9lection de recettes libanaises, traditionnelles ou revisit\\u00e9es, qu&#39;Andr\\u00e9e Maalouf a partag\\u00e9es avec nous.<\\/p>\",\"metatitle\":\"\",\"metadescription\":\"\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "56640",
+            "name": "recette vegan",
+            "url": "https://www.lorientlejour.com/keyword/56640-recette-vegan",
+            "slug": "recette-vegan",
+            "description": "Voici une sélection de recettes à la fois vegan et savoureuses.",
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": "Recette vegan",
+            "translations": "{\"default\":{\"metatitle\":\"Recette vegan : id\\u00e9es, actualit\\u00e9s et plats 100% vegans\",\"metadescription\":\"Voici une s\\u00e9lection de recettes \\u00e0 la fois vegan et savoureuses.\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "21954",
+            "name": "cuisine libanaise",
+            "url": "https://www.lorientlejour.com/keyword/21954-cuisine-libanaise",
+            "slug": "cuisine-libanaise",
+            "description": null,
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": null,
+            "translations": null,
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "55861",
+            "name": "cuisine du moyen-orient",
+            "url": "https://www.lorientlejour.com/keyword/55861-cuisine-du-moyen-orient",
+            "slug": "cuisine-du-moyen-orient",
+            "description": "Recettes authentiques ou revisitées, la cuisine du Moyen-Orient vous invite à sa table.",
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": "Cuisine du Moyen-Orient",
+            "translations": "{\"default\":{\"metatitle\":\"Cuisine du Moyen-Orient : recettes, saveurs et actualit\\u00e9s\",\"metadescription\":\"Recettes authentiques ou revisit\\u00e9es, la cuisine du Moyen-Orient vous invite \\u00e0 sa table.\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "56673",
+            "name": "cuisine méditerranéenne",
+            "url": "https://www.lorientlejour.com/keyword/56673-cuisine-mediterraneenne",
+            "slug": "cuisine-mediterraneenne",
+            "description": null,
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": null,
+            "translations": "{\"default\":{\"metatitle\":\"Cuisine m\\u00e9diterran\\u00e9enne : recettes et actus gastronomie\",\"metadescription\":\"Nos recettes et articles concernant la cuisine m\\u00e9diterran\\u00e9enne, un m\\u00e9lange sain et ensoleill\\u00e9 de saveurs d\\u2019Europe du Sud, du Moyen-Orient et d\\u2019Afrique du Nord.\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"Cuisine m\\u00e9diterran\\u00e9enne\",\"description\":\"Nos recettes et articles concernant la cuisine m\\u00e9diterran\\u00e9enne, un m\\u00e9lange sain et ensoleill\\u00e9 de saveurs d\\u2019Europe du Sud, du Moyen-Orient et d\\u2019Afrique du Nord.\",\"metatitle\":\"\",\"metadescription\":\"\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "20639",
+            "name": "recette",
+            "url": "https://www.lorientlejour.com/keyword/20639-recette",
+            "slug": "recette",
+            "description": "Toutes nos recettes, proposées par de grands chefs ou des cuisiniers amateurs, pour la plupart libanais. Des recettes libanaises, levantines ou autre, traditionnelles ou revisitées.",
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": "Recette",
+            "translations": "{\"default\":{\"metatitle\":\"Recettes : plats traditionnels ou revisit\\u00e9s, id\\u00e9es, actualit\\u00e9s\",\"metadescription\":\"Toutes nos recettes, propos\\u00e9es par de grands chefs ou des cuisiniers amateurs, pour la plupart libanais. Des recettes libanaises, levantines ou autre, traditionnelles ou revisit\\u00e9es.\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "55889",
+            "name": "recette libanaise",
+            "url": "https://www.lorientlejour.com/keyword/55889-recette-libanaise",
+            "slug": "recette-libanaise",
+            "description": "Retrouvez ici les meilleures recettes libanaises, de la cuisine de nos grands-mères aux créations modernes de chefs établis au Liban ou ailleurs.",
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": "Recette libanaise",
+            "translations": "{\"default\":{\"metatitle\":\"Recettes libanaises : plats traditionnels, revisit\\u00e9s et tendances\",\"metadescription\":\"Retrouvez ici les meilleures recettes libanaises, de la cuisine de nos grands-m\\u00e8res aux cr\\u00e9ations modernes de chefs \\u00e9tablis au Liban ou ailleurs.\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"Recette libanaise\",\"description\":\"Retrouvez ici les meilleures recettes libanaises, de la cuisine de nos grands-m\\u00e8res aux cr\\u00e9ations modernes de chefs \\u00e9tablis au Liban ou ailleurs.\",\"metatitle\":\"\",\"metadescription\":\"\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "56639",
+            "name": "recette végétarienne",
+            "url": "https://www.lorientlejour.com/keyword/56639-recette-vegetarienne",
+            "slug": "recette-vegetarienne",
+            "description": "Une sélection de recettes végétariennes tirées essentiellement de la cuisine libanaise et levantine.",
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": "Recette végétarienne",
+            "translations": "{\"default\":{\"metatitle\":\"Recettes v\\u00e9g\\u00e9tariennes : libanaises et m\\u00e9diterran\\u00e9ennes\",\"metadescription\":\"Une s\\u00e9lection de recettes v\\u00e9g\\u00e9tariennes tir\\u00e9es essentiellement de la cuisine libanaise et levantine.\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        }
+      ],
+      "description": "Ces falafels maison célèbrent tout le savoir-faire levantin. A déguster dans du pain libanais avec des pickles, une sauce tarator onctueuse et une salade fraîche.",
+      "attachments": [
+        {
+          "id": "570973",
+          "name": "",
+          "description": "Des falafels au goût authentique du Liban. Crédit photo : Aline Princet. ",
+          "focal": "31.84% 78.26%",
+          "width": 1235,
+          "height": 1600,
+          "url": "https://s.lorientlejour.com/storage/attachments/1502/WhatsAppImage2026-03-26at162125_899272.jpeg",
+          "transforms": [
+            {
+              "x": 245,
+              "y": 164,
+              "url": "https://s.lorientlejour.com/storage/attachments/1502/WhatsAppImage2026-03-26at162125_899272.jpeg/r/245/WhatsAppImage2026-03-26at162125_899272.jpeg"
+            },
+            {
+              "x": 400,
+              "y": 270,
+              "url": "https://s.lorientlejour.com/storage/attachments/1502/WhatsAppImage2026-03-26at162125_899272.jpeg/r/400/WhatsAppImage2026-03-26at162125_899272.jpeg"
+            },
+            {
+              "x": 800,
+              "y": 600,
+              "url": "https://s.lorientlejour.com/storage/attachments/1502/WhatsAppImage2026-03-26at162125_899272.jpeg/r/800/WhatsAppImage2026-03-26at162125_899272.jpeg"
+            },
+            {
+              "x": 1200,
+              "y": 800,
+              "url": "https://s.lorientlejour.com/storage/attachments/1502/WhatsAppImage2026-03-26at162125_899272.jpeg/r/1200/WhatsAppImage2026-03-26at162125_899272.jpeg"
+            },
+            {
+              "x": 2400,
+              "y": 1600,
+              "url": "https://s.lorientlejour.com/storage/attachments/1502/WhatsAppImage2026-03-26at162125_899272.jpeg/r/2400/WhatsAppImage2026-03-26at162125_899272.jpeg"
+            }
+          ],
+          "url_thumbnail": "https://s.lorientlejour.com/storage/attachments/1502/WhatsAppImage2026-03-26at162125_899272.jpeg/r/245/WhatsAppImage2026-03-26at162125_899272.jpeg",
+          "url_medium": "https://s.lorientlejour.com/storage/attachments/1502/WhatsAppImage2026-03-26at162125_899272.jpeg/r/400/WhatsAppImage2026-03-26at162125_899272.jpeg",
+          "url_large": "https://s.lorientlejour.com/storage/attachments/1502/WhatsAppImage2026-03-26at162125_899272.jpeg/r/800/WhatsAppImage2026-03-26at162125_899272.jpeg",
+          "url_home_slideshow": "https://s.lorientlejour.com/storage/attachments/1502/WhatsAppImage2026-03-26at162125_899272.jpeg/r/1200/WhatsAppImage2026-03-26at162125_899272.jpeg",
+          "url_highres": "https://s.lorientlejour.com/storage/attachments/1502/WhatsAppImage2026-03-26at162125_899272.jpeg/r/2400/WhatsAppImage2026-03-26at162125_899272.jpeg",
+          "type": "image"
+        }
+      ],
+      "recipe_name": "Les falafels « maison » et sauce tarator d’Andrée Maalouf",
+      "preparation_time": "15 (hors trempage et repos)",
+      "cooking_time": 6,
+      "persons": 5,
+      "difficulty": "Moyenne",
+      "summary": "<ul><li><strong>Pour les falafels :</strong></li><li>125 g de pois chiches secs</li><li>125 g de févettes décortiquées</li><li>2 gousses d’ail</li><li>1/4 de blanc de poireau</li><li>1/4 de courgette</li><li>1/2 bouquet de coriandre</li><li>1 c. à s. d’épices à falafels (coriandre, cumin, cannelle, poivre noir en parts égales)</li><li>1/2 c. à c. de bicarbonate de sodium</li><li>1 c. à s. de graines de sésame</li><li>Sel</li><li>Huile de friture.</li><li><strong>Pour accompagner :</strong></li><li>Pain libanais.</li><li><strong>Pour la salade</strong></li><li>3 tomates (ou 10 tomates cerises)</li><li>1 botte de radis</li><li>1 à 2 oignons verts, selon le goût</li><li>1 bouquet de menthe</li><li>1 bouquet de persil</li><li>1 c. à café de sumac.</li><li><strong>Navets</strong></li><li>Quelques navets au vinaigre.</li><li><strong>Pour la sauce tarator</strong></li><li>4 c. à s. de purée de sésame</li><li>10 cl de jus de citron</li><li>Sel.</li></ul>",
+      "astuce": "",
+      "recipe_history_title": "Falafels maison & tarator : le sandwich levantin par excellence",
+      "introduction": "<p>Croustillants à l’extérieur, moelleux à cœur, ces falafels mêlent pois chiches et févettes pour une texture légère et un goût authentique. À déguster dans un pain libanais avec des feuilles de salade, des navets vinaigrés et une sauce tarator bien citronnée.</p>",
+      "chef": {
+        "objectType": "Article",
+        "id": "1494557",
+        "signature": "Article:1494557",
+        "url": "https://www.lorientlejour.com/article/1494557/andree-maalouf-entre-tradition-libanaise-et-modernite-gastronomique.html",
+        "shorturl": "https://olj.me/1494557",
+        "slug": "andree-maalouf-entre-tradition-libanaise-et-modernite-gastronomique",
+        "contentType": {
+          "id": "5",
+          "name": "Chef",
+          "slug": "",
+          "editor": "default"
+        },
+        "views": 8,
+        "comments": 0,
+        "preview_limit": null,
+        "rating": 0,
+        "excludedFromGoogleSearchEngine": 0,
+        "status": "publish",
+        "title": "Andrée Maalouf, entre tradition et modernité",
+        "firstPublished": "2026-02-11 13:16:13",
+        "lastUpdate": "2026-02-11 13:16:13",
+        "categories": [
+          {
+            "id": "1035",
+            "name": "Chefs 2",
+            "signature": "Category:1035",
+            "slug": "chefs",
+            "typeId": {
+              "typeId": "18",
+              "name": "Chef",
+              "slug": "",
+              "includeInIssue": "0",
+              "shortened_domain": "",
+              "stylesheetClass": "",
+              "domain": null,
+              "articleUrlPrefix": "",
+              "access_groups": "[]",
+              "locale": "fr-FR",
+              "preview_limit": null,
+              "sitemapUrlPrefix": null,
+              "authorUrlPrefix": null
+            },
+            "parentId": null,
+            "parent": [],
+            "image": "",
+            "cover": "",
+            "logo": "",
+            "paid": "0",
+            "objectType": "Category",
+            "url": "https://www.lorientlejour.com/category/1035-chefs",
+            "cssCode": "",
+            "template": "default",
+            "tagline": "",
+            "link_param": null,
+            "description": "",
+            "metaDescription": "",
+            "order": "0",
+            "pageId": null,
+            "articlesCount": null,
+            "allowComments": "1",
+            "accessType": "freecount",
+            "status": "1",
+            "children": [],
+            "cached": false
+          }
+        ],
+        "access_groups": [],
+        "access_control": false,
+        "counted_in_paywall": true,
+        "content_length": 734,
+        "contents": "",
+        "subtitle": "",
+        "subtitle_en": "",
+        "attachments": [
+          {
+            "id": "555601",
+            "name": "",
+            "description": "",
+            "focal": "43.45% 48.62%",
+            "width": 2567,
+            "height": 3851,
+            "url": "https://s.lorientlejour.com/storage/attachments/1495/AndreMaalouf_578133.jpeg",
+            "transforms": [
+              {
+                "x": 245,
+                "y": 164,
+                "url": "https://s.lorientlejour.com/storage/attachments/1495/AndreMaalouf_578133.jpeg/r/245/AndreMaalouf_578133.jpeg"
+              },
+              {
+                "x": 400,
+                "y": 270,
+                "url": "https://s.lorientlejour.com/storage/attachments/1495/AndreMaalouf_578133.jpeg/r/400/AndreMaalouf_578133.jpeg"
+              },
+              {
+                "x": 800,
+                "y": 600,
+                "url": "https://s.lorientlejour.com/storage/attachments/1495/AndreMaalouf_578133.jpeg/r/800/AndreMaalouf_578133.jpeg"
+              },
+              {
+                "x": 1200,
+                "y": 800,
+                "url": "https://s.lorientlejour.com/storage/attachments/1495/AndreMaalouf_578133.jpeg/r/1200/AndreMaalouf_578133.jpeg"
+              },
+              {
+                "x": 2400,
+                "y": 1600,
+                "url": "https://s.lorientlejour.com/storage/attachments/1495/AndreMaalouf_578133.jpeg/r/2400/AndreMaalouf_578133.jpeg"
+              }
+            ],
+            "url_thumbnail": "https://s.lorientlejour.com/storage/attachments/1495/AndreMaalouf_578133.jpeg/r/245/AndreMaalouf_578133.jpeg",
+            "url_medium": "https://s.lorientlejour.com/storage/attachments/1495/AndreMaalouf_578133.jpeg/r/400/AndreMaalouf_578133.jpeg",
+            "url_large": "https://s.lorientlejour.com/storage/attachments/1495/AndreMaalouf_578133.jpeg/r/800/AndreMaalouf_578133.jpeg",
+            "url_home_slideshow": "https://s.lorientlejour.com/storage/attachments/1495/AndreMaalouf_578133.jpeg/r/1200/AndreMaalouf_578133.jpeg",
+            "url_highres": "https://s.lorientlejour.com/storage/attachments/1495/AndreMaalouf_578133.jpeg/r/2400/AndreMaalouf_578133.jpeg",
+            "type": "image"
+          }
+        ],
+        "summary": "",
+        "introduction": "",
+        "elements": [],
+        "seo": {
+          "search_title": "Andrée Maalouf, entre tradition et modernité",
+          "search_description": "Andrée Maalouf: Between Lebanese Tradition and Gastronomic Modernity…",
+          "social_title": "Andrée Maalouf, entre tradition et modernité",
+          "social_description": "Andrée Maalouf: Between Lebanese Tradition and Gastronomic Modernity…",
+          "social_image": ""
+        },
+        "time_to_read": 50,
+        "cached": true
+      },
+      "options": {
+        "recipe_name": "Les falafels « maison » et sauce tarator d’Andrée Maalouf",
+        "preparation_time": "15 (hors trempage et repos)",
+        "cooking_time": 6,
+        "persons": 5,
+        "difficulty": "Moyenne",
+        "astuce": "",
+        "recipe_history_title": "Falafels maison & tarator : le sandwich levantin par excellence",
+        "chef": 1494557,
+        "full_width_image": 1,
+        "sommaire_page": "",
+        "priority": 2,
+        "urgent": "0",
+        "articleFromCdl": "0",
+        "premium": "0",
+        "full_width_article": "0",
+        "arabic_article": "0",
+        "free": "0",
+        "hide_image": "0",
+        "elections": "0",
+        "video": "0",
+        "hide": "0"
+      },
+      "freemium": false,
+      "elements": [],
+      "seo": {
+        "search_title": "Les falafels « maison » d’Andrée Maalouf, avec leur sauce tarator",
+        "search_description": "Ces falafels maison célèbrent tout le savoir-faire levantin. A déguster dans du pain libanais avec des pickles, une sauce tarator onctueuse et une salade fraîche.",
+        "social_title": "Les falafels « maison » d’Andrée Maalouf, avec leur sauce tarator",
+        "social_description": "Ces falafels maison célèbrent tout le savoir-faire levantin. A déguster dans du pain libanais avec des pickles, une sauce tarator onctueuse et une salade fraîche.",
+        "social_image": ""
+      },
+      "time_to_read": 68,
+      "cached": true
+    }
+  ]
+}

@@ -1,0 +1,135 @@
+{
+  "data": [
+    {
+      "objectType": "Article",
+      "id": "1464901",
+      "signature": "Article:1464901",
+      "url": "https://www.lorientlejour.com/article/1464901/liza-soughayar-asseily-un-chef-et-un-prenom.html",
+      "shorturl": "https://olj.me/1464901",
+      "slug": "liza-soughayar-asseily-un-chef-et-un-prenom",
+      "contentType": {
+        "id": "5",
+        "name": "Chef",
+        "slug": "",
+        "editor": "default"
+      },
+      "views": 0,
+      "comments": 0,
+      "preview_limit": null,
+      "rating": 0,
+      "excludedFromGoogleSearchEngine": 0,
+      "status": "publish",
+      "title": "Liza Soughayar Asseily : un chef et un prénom",
+      "firstPublished": "2025-06-15 19:24:18",
+      "lastUpdate": "2025-06-15 19:24:18",
+      "categories": [
+        {
+          "id": "1035",
+          "name": "Chefs 2",
+          "signature": "Category:1035",
+          "slug": "chefs",
+          "typeId": {
+            "typeId": "18",
+            "name": "Chef",
+            "slug": "",
+            "includeInIssue": "0",
+            "shortened_domain": "",
+            "stylesheetClass": "",
+            "domain": null,
+            "articleUrlPrefix": "",
+            "access_groups": "[]",
+            "locale": "fr-FR",
+            "preview_limit": null,
+            "sitemapUrlPrefix": null,
+            "authorUrlPrefix": null
+          },
+          "parentId": null,
+          "parent": [],
+          "image": "",
+          "cover": "",
+          "logo": "",
+          "paid": "0",
+          "objectType": "Category",
+          "url": "https://www.lorientlejour.com/category/1035-chefs",
+          "cssCode": "",
+          "template": "default",
+          "tagline": "",
+          "link_param": null,
+          "description": "",
+          "metaDescription": "",
+          "order": "0",
+          "pageId": null,
+          "articlesCount": null,
+          "allowComments": "1",
+          "accessType": "freecount",
+          "status": "1",
+          "children": [],
+          "cached": false
+        }
+      ],
+      "access_groups": [],
+      "access_control": false,
+      "counted_in_paywall": true,
+      "content_length": 829,
+      "contents": "<p>De Paris à Beyrouth, Liza Soughayar Asseily et son mari Ziad déploient leur énergie et leur créativité pour proposer une carte et des ambiances nouvelles. En 2005, ils ont été parmi les premiers à ouvrir ce genre de « jeunes » restaurants libanais à Paris. Puis à Beyrouth, en 2013, les deux « Liza » apportent la touche du couple avec, depuis le début, ce désir de « rajeunir notre cuisine ». Le succès a vite suivi, Liza Paris a été le premier restaurant libanais en 2009 à être référencé dans le <em>Guide Michelin</em> et le seul à avoir obtenu la note de 24 dans le guide <em>Zagat </em>parmi tous les restaurants de cuisine étrangère de Paris.</p><p>De la création de menus en collaboration avec des chefs aux soirées entre amis avec ou sans DJ, les restaurants Liza proposent des ambiances festives, avec un « Beyrouth je t’aime » affiché partout…</p>",
+      "subtitle": "",
+      "subtitle_en": "",
+      "attachments": [
+        {
+          "id": "503599",
+          "name": "",
+          "description": "",
+          "focal": "69.84% 17.23%",
+          "width": 1224,
+          "height": 1224,
+          "url": "https://s.lorientlejour.com/storage/attachments/1465/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg",
+          "transforms": [
+            {
+              "x": 245,
+              "y": 164,
+              "url": "https://s.lorientlejour.com/storage/attachments/1465/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg/r/245/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg"
+            },
+            {
+              "x": 400,
+              "y": 270,
+              "url": "https://s.lorientlejour.com/storage/attachments/1465/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg/r/400/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg"
+            },
+            {
+              "x": 800,
+              "y": 600,
+              "url": "https://s.lorientlejour.com/storage/attachments/1465/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg/r/800/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg"
+            },
+            {
+              "x": 1200,
+              "y": 800,
+              "url": "https://s.lorientlejour.com/storage/attachments/1465/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg/r/1200/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg"
+            },
+            {
+              "x": 2400,
+              "y": 1600,
+              "url": "https://s.lorientlejour.com/storage/attachments/1465/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg/r/2400/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg"
+            }
+          ],
+          "url_thumbnail": "https://s.lorientlejour.com/storage/attachments/1465/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg/r/245/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg",
+          "url_medium": "https://s.lorientlejour.com/storage/attachments/1465/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg/r/400/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg",
+          "url_large": "https://s.lorientlejour.com/storage/attachments/1465/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg/r/800/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg",
+          "url_home_slideshow": "https://s.lorientlejour.com/storage/attachments/1465/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg/r/1200/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg",
+          "url_highres": "https://s.lorientlejour.com/storage/attachments/1465/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg/r/2400/Screenshot2023-11-16at13-32-16LizaRestaurantTraiteurlizaparisInstagramphotosandvideos_209742_441569.jpeg",
+          "type": "image"
+        }
+      ],
+      "summary": "<p>Liza Soughayar Asseily: a chef and a name</p>",
+      "introduction": "<p>From Paris to Beirut, Liza Soughayar Asseily and her husband Ziad are putting their energy and creativity into offering a new menu and atmosphere. In 2005, they were among the first to open this type of « young » Lebanese restaurant in Paris. Then in Beirut in 2013, the two ‘Lizas’ brought their own touch to the couple&#39;s venture, with a desire from the outset to « rejuvenate our cuisine. » Success quickly followed, with Liza Paris becoming the first Lebanese restaurant to be listed in the Michelin Guide in 2009 and the only one to receive a score of 24 in the Zagat Guide among all foreign cuisine restaurants in Paris.<br class=\"soft-break\"><br class=\"soft-break\">From creating menus in collaboration with chefs to evenings with friends with or without a DJ, Liza restaurants offer a festive atmosphere, with « Beirut, I love you » displayed everywhere...</p>",
+      "elements": [],
+      "seo": {
+        "search_title": "Liza Soughayar Asseily : un chef et un prénom",
+        "search_description": "Liza Soughayar Asseily: a chef and a name…",
+        "social_title": "Liza Soughayar Asseily : un chef et un prénom",
+        "social_description": "Liza Soughayar Asseily: a chef and a name…",
+        "social_image": ""
+      },
+      "time_to_read": 60,
+      "cached": true
+    }
+  ]
+}

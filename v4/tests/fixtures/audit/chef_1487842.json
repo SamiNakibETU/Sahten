@@ -1,0 +1,135 @@
+{
+  "data": [
+    {
+      "objectType": "Article",
+      "id": "1487842",
+      "signature": "Article:1487842",
+      "url": "https://www.lorientlejour.com/article/1487842/tarek-alameddine-chef-prime-et-creatif.html",
+      "shorturl": "https://olj.me/1487842",
+      "slug": "tarek-alameddine-chef-prime-et-creatif",
+      "contentType": {
+        "id": "5",
+        "name": "Chef",
+        "slug": "",
+        "editor": "default"
+      },
+      "views": 5,
+      "comments": 0,
+      "preview_limit": null,
+      "rating": 0,
+      "excludedFromGoogleSearchEngine": 0,
+      "status": "publish",
+      "title": "Tarek Alameddine, chef primé et créatif",
+      "firstPublished": "2025-12-09 17:16:00",
+      "lastUpdate": "2025-12-09 17:16:00",
+      "categories": [
+        {
+          "id": "1035",
+          "name": "Chefs 2",
+          "signature": "Category:1035",
+          "slug": "chefs",
+          "typeId": {
+            "typeId": "18",
+            "name": "Chef",
+            "slug": "",
+            "includeInIssue": "0",
+            "shortened_domain": "",
+            "stylesheetClass": "",
+            "domain": null,
+            "articleUrlPrefix": "",
+            "access_groups": "[]",
+            "locale": "fr-FR",
+            "preview_limit": null,
+            "sitemapUrlPrefix": null,
+            "authorUrlPrefix": null
+          },
+          "parentId": null,
+          "parent": [],
+          "image": "",
+          "cover": "",
+          "logo": "",
+          "paid": "0",
+          "objectType": "Category",
+          "url": "https://www.lorientlejour.com/category/1035-chefs",
+          "cssCode": "",
+          "template": "default",
+          "tagline": "",
+          "link_param": null,
+          "description": "",
+          "metaDescription": "",
+          "order": "0",
+          "pageId": null,
+          "articlesCount": null,
+          "allowComments": "1",
+          "accessType": "freecount",
+          "status": "1",
+          "children": [],
+          "cached": false
+        }
+      ],
+      "access_groups": [],
+      "access_control": false,
+      "counted_in_paywall": true,
+      "content_length": 499,
+      "contents": "<p>Tarek Alameddine, premier Libanais primé aux Best Chef Awards, incarne une cuisine créative et émotive. Ancien « mauvais élève », il trouve sa voie derrière les fourneaux après un long parcours entre Copenhague, Sao Paulo, Sydney ou Mexico. De retour au Liban après sept ans, il revisite avec audace les traditions locales au sein de Buco et Beihouse. Inspiré, exigeant, porté par son équipe, il voit chaque plat comme une expérience et rêve déjà de hisser encore plus haut la gastronomie libanaise.</p>",
+      "subtitle": "",
+      "subtitle_en": "",
+      "attachments": [
+        {
+          "id": "540803",
+          "name": "",
+          "description": "",
+          "focal": "51.7% 29.74%",
+          "width": 1600,
+          "height": 899,
+          "url": "https://s.lorientlejour.com/storage/attachments/1488/c5fea4bf-5260-481a-ba20-9807df8896c0_878290_770936.jpg",
+          "transforms": [
+            {
+              "x": 245,
+              "y": 164,
+              "url": "https://s.lorientlejour.com/storage/attachments/1488/c5fea4bf-5260-481a-ba20-9807df8896c0_878290_770936.jpg/r/245/c5fea4bf-5260-481a-ba20-9807df8896c0_878290_770936.jpg"
+            },
+            {
+              "x": 400,
+              "y": 270,
+              "url": "https://s.lorientlejour.com/storage/attachments/1488/c5fea4bf-5260-481a-ba20-9807df8896c0_878290_770936.jpg/r/400/c5fea4bf-5260-481a-ba20-9807df8896c0_878290_770936.jpg"
+            },
+            {
+              "x": 800,
+              "y": 600,
+              "url": "https://s.lorientlejour.com/storage/attachments/1488/c5fea4bf-5260-481a-ba20-9807df8896c0_878290_770936.jpg/r/800/c5fea4bf-5260-481a-ba20-9807df8896c0_878290_770936.jpg"
+            },
+            {
+              "x": 1200,
+              "y": 800,
+              "url": "https://s.lorientlejour.com/storage/attachments/1488/c5fea4bf-5260-481a-ba20-9807df8896c0_878290_770936.jpg/r/1200/c5fea4bf-5260-481a-ba20-9807df8896c0_878290_770936.jpg"
+            },
+            {
+              "x": 2400,
+              "y": 1600,
+              "url": "https://s.lorientlejour.com/storage/attachments/1488/c5fea4bf-5260-481a-ba20-9807df8896c0_878290_770936.jpg/r/2400/c5fea4bf-5260-481a-ba20-9807df8896c0_878290_770936.jpg"
+            }
+          ],
+          "url_thumbnail": "https://s.lorientlejour.com/storage/attachments/1488/c5fea4bf-5260-481a-ba20-9807df8896c0_878290_770936.jpg/r/245/c5fea4bf-5260-481a-ba20-9807df8896c0_878290_770936.jpg",
+          "url_medium": "https://s.lorientlejour.com/storage/attachments/1488/c5fea4bf-5260-481a-ba20-9807df8896c0_878290_770936.jpg/r/400/c5fea4bf-5260-481a-ba20-9807df8896c0_878290_770936.jpg",
+          "url_large": "https://s.lorientlejour.com/storage/attachments/1488/c5fea4bf-5260-481a-ba20-9807df8896c0_878290_770936.jpg/r/800/c5fea4bf-5260-481a-ba20-9807df8896c0_878290_770936.jpg",
+          "url_home_slideshow": "https://s.lorientlejour.com/storage/attachments/1488/c5fea4bf-5260-481a-ba20-9807df8896c0_878290_770936.jpg/r/1200/c5fea4bf-5260-481a-ba20-9807df8896c0_878290_770936.jpg",
+          "url_highres": "https://s.lorientlejour.com/storage/attachments/1488/c5fea4bf-5260-481a-ba20-9807df8896c0_878290_770936.jpg/r/2400/c5fea4bf-5260-481a-ba20-9807df8896c0_878290_770936.jpg",
+          "type": "image"
+        }
+      ],
+      "summary": "<p>Tarek Alameddine, award-winning chef</p>",
+      "introduction": "<p>Tarek Alameddine, the first Lebanese chef honored at the Best Chef Awards, embodies a creative and emotional approach to cuisine. He found his path in the kitchen after a long journey through Copenhagen, São Paulo, Sydney and Mexico. </p><p>Back in Lebanon after seven years, he boldly reinvents local traditions at Buco and Beihouse. He sees every dish as an experience, and dreams of elevating Lebanese gastronomy even further.</p>",
+      "elements": [],
+      "seo": {
+        "search_title": "Tarek Alameddine, chef primé et créatif",
+        "search_description": "Tarek Alameddine, award-winning chef…",
+        "social_title": "Tarek Alameddine, chef primé et créatif",
+        "social_description": "Tarek Alameddine, award-winning chef…",
+        "social_image": ""
+      },
+      "time_to_read": 31,
+      "cached": true
+    }
+  ]
+}

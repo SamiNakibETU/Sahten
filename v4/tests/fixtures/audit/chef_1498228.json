@@ -1,0 +1,136 @@
+{
+  "data": [
+    {
+      "objectType": "Article",
+      "id": "1498228",
+      "signature": "Article:1498228",
+      "url": "https://www.lorientlejour.com/article/1498228/caline-chaya-chaoul-engagee-dans-laventure-makan.html",
+      "shorturl": "https://olj.me/1498228",
+      "slug": "caline-chaya-chaoul-engagee-dans-laventure-makan",
+      "contentType": {
+        "id": "5",
+        "name": "Chef",
+        "slug": "",
+        "editor": "default"
+      },
+      "views": 1,
+      "comments": 0,
+      "preview_limit": null,
+      "rating": 0,
+      "excludedFromGoogleSearchEngine": 0,
+      "status": "publish",
+      "title": "Caline Chaya Chaoul, engagée dans l'aventure Makan",
+      "firstPublished": "2026-03-13 12:43:08",
+      "lastUpdate": "2026-03-13 12:43:08",
+      "categories": [
+        {
+          "id": "1035",
+          "name": "Chefs 2",
+          "seo_name": "",
+          "signature": "Category:1035",
+          "slug": "chefs",
+          "typeId": {
+            "typeId": "18",
+            "name": "Chef",
+            "slug": "",
+            "includeInIssue": "0",
+            "shortened_domain": "",
+            "stylesheetClass": "",
+            "domain": null,
+            "articleUrlPrefix": "",
+            "access_groups": "[]",
+            "locale": "fr-FR",
+            "preview_limit": null,
+            "sitemapUrlPrefix": null,
+            "authorUrlPrefix": null
+          },
+          "parentId": null,
+          "parent": [],
+          "image": "",
+          "cover": "",
+          "logo": "",
+          "paid": "0",
+          "objectType": "Category",
+          "url": "https://www.lorientlejour.com//1035-chefs",
+          "cssCode": "",
+          "template": "default",
+          "tagline": "",
+          "link_param": null,
+          "description": "",
+          "metaDescription": "",
+          "order": "0",
+          "pageId": null,
+          "articlesCount": "56",
+          "allowComments": "1",
+          "accessType": "freecount",
+          "status": "1",
+          "children": [],
+          "cached": true
+        }
+      ],
+      "access_groups": [],
+      "access_control": false,
+      "counted_in_paywall": true,
+      "content_length": 1059,
+      "contents": "<p>Passionnée de cuisine, avec « un penchant pour l‘hôtellerie », Caline Chaya Chaoul, qui a fait ses études à l&#39;Alba, vient pourtant du monde la publicité. Son premier défi dans le monde de la cuisine : diriger pendant quatre ans le restaurant La Centrale, avant de prendre en charge le restaurant People et le Urban Retreat Spa et Café à Aïshti, pendant presque dix ans.<br class=\"soft-break\">« Jusqu’au jour où mon fils Alex m’a entraînée avec lui dans l’aventure de Makan », dit-elle. Makan, c&#39;est le nom du restaurant ouvert par son fils à Madrid en 2017. Une aventure dans laquelle elle s&#39;investit pleinement, avec des allers-retours réguliers. Les recettes, les idées, la carte renouvelée tous les trois mois, c’est elle. « Il ne rajoute pas une épice sans me demander. C’est mon fils, après tout ! », lance-t-elle. Depuis, deux autres restaurants Makan ont ouvert à Madrid. Aujourd&#39;hui, Makan est présent dans le quartier de l&#39;université IE, dans le quartier financier et dans le centre-ville de Madrid. Une quatrième adresse devrait encore ouvrir sous peu.</p>",
+      "subtitle": "",
+      "subtitle_en": "",
+      "attachments": [
+        {
+          "id": "563130",
+          "name": "",
+          "description": "",
+          "focal": "50% 50%",
+          "width": 900,
+          "height": 1600,
+          "url": "https://s.lorientlejour.com/storage/attachments/1499/portrait_191226.jpeg",
+          "transforms": [
+            {
+              "x": 245,
+              "y": 164,
+              "url": "https://s.lorientlejour.com/storage/attachments/1499/portrait_191226.jpeg/r/245/portrait_191226.jpeg"
+            },
+            {
+              "x": 400,
+              "y": 270,
+              "url": "https://s.lorientlejour.com/storage/attachments/1499/portrait_191226.jpeg/r/400/portrait_191226.jpeg"
+            },
+            {
+              "x": 800,
+              "y": 600,
+              "url": "https://s.lorientlejour.com/storage/attachments/1499/portrait_191226.jpeg/r/800/portrait_191226.jpeg"
+            },
+            {
+              "x": 1200,
+              "y": 800,
+              "url": "https://s.lorientlejour.com/storage/attachments/1499/portrait_191226.jpeg/r/1200/portrait_191226.jpeg"
+            },
+            {
+              "x": 2400,
+              "y": 1600,
+              "url": "https://s.lorientlejour.com/storage/attachments/1499/portrait_191226.jpeg/r/2400/portrait_191226.jpeg"
+            }
+          ],
+          "url_thumbnail": "https://s.lorientlejour.com/storage/attachments/1499/portrait_191226.jpeg/r/245/portrait_191226.jpeg",
+          "url_medium": "https://s.lorientlejour.com/storage/attachments/1499/portrait_191226.jpeg/r/400/portrait_191226.jpeg",
+          "url_large": "https://s.lorientlejour.com/storage/attachments/1499/portrait_191226.jpeg/r/800/portrait_191226.jpeg",
+          "url_home_slideshow": "https://s.lorientlejour.com/storage/attachments/1499/portrait_191226.jpeg/r/1200/portrait_191226.jpeg",
+          "url_highres": "https://s.lorientlejour.com/storage/attachments/1499/portrait_191226.jpeg/r/2400/portrait_191226.jpeg",
+          "type": "image"
+        }
+      ],
+      "summary": "<p><br></p>",
+      "introduction": "<p><br></p>",
+      "elements": [],
+      "seo": {
+        "search_title": "Caline Chaya Chaoul, engagée dans l'aventure Makan",
+        "search_description": "Passionnée de cuisine, avec « un penchant pour l‘hôtellerie », Caline Chaya Chaoul, qui a fait ses études à l&#39;Alba, vient pourtant du monde la publicité. Son premier défi dans le monde de la cuisi…",
+        "social_title": "Caline Chaya Chaoul, engagée dans l'aventure Makan",
+        "social_description": "Passionnée de cuisine, avec « un penchant pour l‘hôtellerie », Caline Chaya Chaoul, qui a fait ses études à l&#39;Alba, vient pourtant du monde la publicité. Son premier défi dans le monde de la cuisi…",
+        "social_image": ""
+      },
+      "time_to_read": 35,
+      "cached": true
+    }
+  ]
+}

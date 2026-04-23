@@ -1,0 +1,374 @@
+{
+  "data": [
+    {
+      "objectType": "Article",
+      "id": "1496196",
+      "signature": "Article:1496196",
+      "url": "https://www.lorientlejour.com/cuisine-liban-a-table/1496196/nuggets-et-burger-de-poulet-panes-du-chef-tarek-alameddine.html",
+      "shorturl": "https://olj.me/1496196",
+      "slug": "nuggets-et-burger-de-poulet-panes-du-chef-tarek-alameddine",
+      "contentType": {
+        "id": "4",
+        "name": "Recipes",
+        "slug": "",
+        "editor": "default"
+      },
+      "views": 286,
+      "comments": 0,
+      "preview_limit": "850",
+      "rating": 4.2,
+      "rating_count": 15,
+      "excludedFromGoogleSearchEngine": 0,
+      "status": "publish",
+      "title": "Nuggets et burger de poulet panés du chef Tarek Alameddine",
+      "firstPublished": "2026-02-27 12:51:52",
+      "lastUpdate": "2026-02-27 12:51:52",
+      "categories": [
+        {
+          "id": "1037",
+          "name": "Variations autour d’un thème",
+          "signature": "Category:1037",
+          "slug": "variations-autour-dun-theme",
+          "typeId": {
+            "typeId": "17",
+            "name": "A table - OLJ",
+            "slug": "cuisine-liban-a-table",
+            "includeInIssue": "0",
+            "shortened_domain": "",
+            "stylesheetClass": "",
+            "domain": null,
+            "articleUrlPrefix": "cuisine-liban-a-table",
+            "access_groups": "[\"olj\",\"premium\",\"integrale\",\"premium_open\",\"donation_access\",\"premium_ot\",\"olj_basic\"]",
+            "locale": "fr-FR",
+            "preview_limit": "850",
+            "sitemapUrlPrefix": null,
+            "authorUrlPrefix": null
+          },
+          "parentId": "1031",
+          "parent": {
+            "id": "1031",
+            "name": "Recettes",
+            "signature": "Category:1031",
+            "slug": "recettes",
+            "parentId": null,
+            "parent": [],
+            "image": "",
+            "cover": "",
+            "logo": "",
+            "paid": "0",
+            "objectType": "Category",
+            "url": "https://www.lorientlejour.com/cuisine-liban-a-table/1031-recettes",
+            "cssCode": "",
+            "template": "default",
+            "tagline": "",
+            "link_param": null,
+            "description": "Des recettes signées par de grands chefs libanais, des passionnés de cuisine ou encore des personnalités libanaises que nous avons invitées à passer derrière les fourneaux.",
+            "metaDescription": "Des recettes signées par de grands chefs libanais, des passionnés de cuisine ou encore des personnalités libanaises que nous avons invitées à passer derrière les fourneaux.",
+            "order": "0",
+            "pageId": null,
+            "articlesCount": null,
+            "allowComments": "1",
+            "accessType": "freecount",
+            "status": "1",
+            "children": [],
+            "cached": true
+          },
+          "image": "",
+          "cover": "",
+          "logo": "",
+          "paid": "0",
+          "objectType": "Category",
+          "url": "https://www.lorientlejour.com/cuisine-liban-a-table/1037-variations-autour-dun-theme",
+          "cssCode": "",
+          "template": "default",
+          "tagline": "",
+          "link_param": null,
+          "description": "",
+          "metaDescription": "",
+          "order": "0",
+          "pageId": null,
+          "articlesCount": null,
+          "allowComments": "1",
+          "accessType": "freecount",
+          "status": "1",
+          "children": [],
+          "cached": false
+        }
+      ],
+      "access_groups": [
+        "olj",
+        "premium",
+        "integrale",
+        "premium_open",
+        "donation_access",
+        "premium_ot",
+        "olj_basic"
+      ],
+      "access_control": false,
+      "counted_in_paywall": true,
+      "content_length": 796,
+      "contents": "<p><strong>Pour le poulet :</strong></p><ol><li>Mélanger tous les ingrédients et faire mariner le poulet pendant au moins 2 heures.</li><li>Pour chaque blanc de poulet, garder une partie épaisse pour le poulet. Les bordures plus fines seront coupées en tranches fines pour faire les nuggets.</li></ol><p><br class=\"soft-break\"><strong>Pour la panure : </strong></p><ol><li>Mélanger tous les ingrédients de la panure.</li><li>Sortir les tranches de poulet et les burgers de la marinade.</li><li>Les placer dans le mélange de farine et presser fermement, puis les tremper à nouveau dans la marinade, puis de nouveau dans le mélange de farine. Presser fermement une dernière fois.</li><li>Puis mettre les pièces à frire à 180 °C jusqu&#39;à ce qu&#39;elles soient cuites et dorées.</li></ol><p><strong>Pour le dressage :</strong></p><ol><li>Composer le burger : pain, blancs de poulets panés, mayonnaise, tranches de cornichons.</li><li>Mettre les nuggets dans un bol à part.</li><li>Servir !</li></ol><div><div class=\"noReload embed inlineVideo\"><iframe width=\"560\" height=\"315\" src=\"https://www.youtube.com/embed/Y8KZ3UclQWI?rel=0&enablejsapi=1&origin=https://www.lorientlejour.com\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share\" frameborder=\"0\" allowfullscreen></iframe></div></div>",
+      "tag": "Recette de chef",
+      "authors": [],
+      "byline": "",
+      "keywords": [
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "56638",
+            "name": "plat principal",
+            "url": "https://www.lorientlejour.com/keyword/56638-plat-principal",
+            "slug": "plat-principal",
+            "description": "Des recettes savoureuses de plats principaux libanais ou autre, pour régaler toute la famille. Viandes, poissons ou options végétariennes : vous trouverez, ici, une série de mets généreux mais aussi originaux.",
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": "Plat principal",
+            "translations": "{\"default\":{\"metatitle\":\"Plat principal : recettes libanaises, m\\u00e9diterran\\u00e9ennes et actus\",\"metadescription\":\"Des recettes savoureuses de plats principaux libanais ou autre, pour r\\u00e9galer toute la famille. Viandes, poissons ou options v\\u00e9g\\u00e9tariennes : vous trouverez, ici, une s\\u00e9rie de mets g\\u00e9n\\u00e9reux mais aussi originaux.\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"Plat principal\",\"description\":\"Des recettes savoureuses de plats principaux libanais ou autre, pour r\\u00e9galer toute la famille. Viandes, poissons ou options v\\u00e9g\\u00e9tariennes : vous trouverez, ici, une s\\u00e9rie de mets g\\u00e9n\\u00e9reux mais aussi originaux.\",\"metatitle\":\"\",\"metadescription\":\"\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "56782",
+            "name": "recette de chef",
+            "url": "https://www.lorientlejour.com/keyword/56782-recette-de-chef",
+            "slug": "recette-de-chef",
+            "description": null,
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": null,
+            "translations": null,
+            "collection_id": null,
+            "image": ""
+          }
+        }
+      ],
+      "description": "Longuement mariné dans un mélange de lait et d'épices, le poulet est attendri et parfumé, avant d'être enrobé d'une panure croustillante...",
+      "attachments": [
+        {
+          "id": "559456",
+          "name": "Dressez le burger avec le poulet bien doré et servez sans attendre, tant qu’il est encore chaud et croustillant. Photo Aly Baalbaky",
+          "description": "",
+          "focal": "50% 50%",
+          "width": 1429,
+          "height": 840,
+          "url": "https://s.lorientlejour.com/storage/attachments/1497/burgercopy_597739.jpeg",
+          "transforms": [
+            {
+              "x": 245,
+              "y": 164,
+              "url": "https://s.lorientlejour.com/storage/attachments/1497/burgercopy_597739.jpeg/r/245/burgercopy_597739.jpeg"
+            },
+            {
+              "x": 400,
+              "y": 270,
+              "url": "https://s.lorientlejour.com/storage/attachments/1497/burgercopy_597739.jpeg/r/400/burgercopy_597739.jpeg"
+            },
+            {
+              "x": 800,
+              "y": 600,
+              "url": "https://s.lorientlejour.com/storage/attachments/1497/burgercopy_597739.jpeg/r/800/burgercopy_597739.jpeg"
+            },
+            {
+              "x": 1200,
+              "y": 800,
+              "url": "https://s.lorientlejour.com/storage/attachments/1497/burgercopy_597739.jpeg/r/1200/burgercopy_597739.jpeg"
+            },
+            {
+              "x": 2400,
+              "y": 1600,
+              "url": "https://s.lorientlejour.com/storage/attachments/1497/burgercopy_597739.jpeg/r/2400/burgercopy_597739.jpeg"
+            }
+          ],
+          "url_thumbnail": "https://s.lorientlejour.com/storage/attachments/1497/burgercopy_597739.jpeg/r/245/burgercopy_597739.jpeg",
+          "url_medium": "https://s.lorientlejour.com/storage/attachments/1497/burgercopy_597739.jpeg/r/400/burgercopy_597739.jpeg",
+          "url_large": "https://s.lorientlejour.com/storage/attachments/1497/burgercopy_597739.jpeg/r/800/burgercopy_597739.jpeg",
+          "url_home_slideshow": "https://s.lorientlejour.com/storage/attachments/1497/burgercopy_597739.jpeg/r/1200/burgercopy_597739.jpeg",
+          "url_highres": "https://s.lorientlejour.com/storage/attachments/1497/burgercopy_597739.jpeg/r/2400/burgercopy_597739.jpeg",
+          "type": "image"
+        }
+      ],
+      "recipe_name": "Nuggets et burger de poulet panés du chef Tarek Alameddine",
+      "preparation_time": 30,
+      "cooking_time": 120,
+      "persons": 6,
+      "difficulty": "Moyenne",
+      "summary": "<ul><li>2 kg de blanc de poulet</li><li>1,5 l de lait</li><li>20 g de paprika</li><li>10 g d’ail en poudre</li><li>10 g d’oignon en poudre</li><li>4 g de piment en poudre</li><li>22 g de sel</li><li><strong>Pour la panure :</strong></li><li>200 g de farine</li><li>100 g de farine de riz</li><li>100 g de panko</li><li>5 g de sel</li><li><strong>Pour chaque burger : </strong></li><li>2 pièces de pain à hamburger brioché toasté</li><li>20 g de mayonnaise</li><li>4 tranches de cornichons à l&#39;aneth</li><li>1 feuille de laitue iceberg</li><li>Une pincée de sauce sriracha si vous aimez les plats épicés</li></ul>",
+      "astuce": "",
+      "recipe_history_title": "",
+      "introduction": "<p><br></p>",
+      "chef": {
+        "objectType": "Article",
+        "id": "1487842",
+        "signature": "Article:1487842",
+        "url": "https://www.lorientlejour.com/article/1487842/tarek-alameddine-chef-prime-et-creatif.html",
+        "shorturl": "https://olj.me/1487842",
+        "slug": "tarek-alameddine-chef-prime-et-creatif",
+        "contentType": {
+          "id": "5",
+          "name": "Chef",
+          "slug": "",
+          "editor": "default"
+        },
+        "views": 5,
+        "comments": 0,
+        "preview_limit": null,
+        "rating": 0,
+        "excludedFromGoogleSearchEngine": 0,
+        "status": "publish",
+        "title": "Tarek Alameddine, chef primé et créatif",
+        "firstPublished": "2025-12-09 17:16:00",
+        "lastUpdate": "2025-12-09 17:16:00",
+        "categories": [
+          {
+            "id": "1035",
+            "name": "Chefs 2",
+            "signature": "Category:1035",
+            "slug": "chefs",
+            "typeId": {
+              "typeId": "18",
+              "name": "Chef",
+              "slug": "",
+              "includeInIssue": "0",
+              "shortened_domain": "",
+              "stylesheetClass": "",
+              "domain": null,
+              "articleUrlPrefix": "",
+              "access_groups": "[]",
+              "locale": "fr-FR",
+              "preview_limit": null,
+              "sitemapUrlPrefix": null,
+              "authorUrlPrefix": null
+            },
+            "parentId": null,
+            "parent": [],
+            "image": "",
+            "cover": "",
+            "logo": "",
+            "paid": "0",
+            "objectType": "Category",
+            "url": "https://www.lorientlejour.com/category/1035-chefs",
+            "cssCode": "",
+            "template": "default",
+            "tagline": "",
+            "link_param": null,
+            "description": "",
+            "metaDescription": "",
+            "order": "0",
+            "pageId": null,
+            "articlesCount": null,
+            "allowComments": "1",
+            "accessType": "freecount",
+            "status": "1",
+            "children": [],
+            "cached": false
+          }
+        ],
+        "access_groups": [],
+        "access_control": false,
+        "counted_in_paywall": true,
+        "content_length": 499,
+        "contents": "",
+        "subtitle": "",
+        "subtitle_en": "",
+        "attachments": [
+          {
+            "id": "540803",
+            "name": "",
+            "description": "",
+            "focal": "51.7% 29.74%",
+            "width": 1600,
+            "height": 899,
+            "url": "https://s.lorientlejour.com/storage/attachments/1488/c5fea4bf-5260-481a-ba20-9807df8896c0_878290_770936.jpg",
+            "transforms": [
+              {
+                "x": 245,
+                "y": 164,
+                "url": "https://s.lorientlejour.com/storage/attachments/1488/c5fea4bf-5260-481a-ba20-9807df8896c0_878290_770936.jpg/r/245/c5fea4bf-5260-481a-ba20-9807df8896c0_878290_770936.jpg"
+              },
+              {
+                "x": 400,
+                "y": 270,
+                "url": "https://s.lorientlejour.com/storage/attachments/1488/c5fea4bf-5260-481a-ba20-9807df8896c0_878290_770936.jpg/r/400/c5fea4bf-5260-481a-ba20-9807df8896c0_878290_770936.jpg"
+              },
+              {
+                "x": 800,
+                "y": 600,
+                "url": "https://s.lorientlejour.com/storage/attachments/1488/c5fea4bf-5260-481a-ba20-9807df8896c0_878290_770936.jpg/r/800/c5fea4bf-5260-481a-ba20-9807df8896c0_878290_770936.jpg"
+              },
+              {
+                "x": 1200,
+                "y": 800,
+                "url": "https://s.lorientlejour.com/storage/attachments/1488/c5fea4bf-5260-481a-ba20-9807df8896c0_878290_770936.jpg/r/1200/c5fea4bf-5260-481a-ba20-9807df8896c0_878290_770936.jpg"
+              },
+              {
+                "x": 2400,
+                "y": 1600,
+                "url": "https://s.lorientlejour.com/storage/attachments/1488/c5fea4bf-5260-481a-ba20-9807df8896c0_878290_770936.jpg/r/2400/c5fea4bf-5260-481a-ba20-9807df8896c0_878290_770936.jpg"
+              }
+            ],
+            "url_thumbnail": "https://s.lorientlejour.com/storage/attachments/1488/c5fea4bf-5260-481a-ba20-9807df8896c0_878290_770936.jpg/r/245/c5fea4bf-5260-481a-ba20-9807df8896c0_878290_770936.jpg",
+            "url_medium": "https://s.lorientlejour.com/storage/attachments/1488/c5fea4bf-5260-481a-ba20-9807df8896c0_878290_770936.jpg/r/400/c5fea4bf-5260-481a-ba20-9807df8896c0_878290_770936.jpg",
+            "url_large": "https://s.lorientlejour.com/storage/attachments/1488/c5fea4bf-5260-481a-ba20-9807df8896c0_878290_770936.jpg/r/800/c5fea4bf-5260-481a-ba20-9807df8896c0_878290_770936.jpg",
+            "url_home_slideshow": "https://s.lorientlejour.com/storage/attachments/1488/c5fea4bf-5260-481a-ba20-9807df8896c0_878290_770936.jpg/r/1200/c5fea4bf-5260-481a-ba20-9807df8896c0_878290_770936.jpg",
+            "url_highres": "https://s.lorientlejour.com/storage/attachments/1488/c5fea4bf-5260-481a-ba20-9807df8896c0_878290_770936.jpg/r/2400/c5fea4bf-5260-481a-ba20-9807df8896c0_878290_770936.jpg",
+            "type": "image"
+          }
+        ],
+        "summary": "",
+        "introduction": "",
+        "elements": [],
+        "seo": {
+          "search_title": "Tarek Alameddine, chef primé et créatif",
+          "search_description": "Tarek Alameddine, award-winning chef…",
+          "social_title": "Tarek Alameddine, chef primé et créatif",
+          "social_description": "Tarek Alameddine, award-winning chef…",
+          "social_image": ""
+        },
+        "time_to_read": 31,
+        "cached": true
+      },
+      "options": {
+        "recipe_name": "Nuggets et burger de poulet panés du chef Tarek Alameddine",
+        "preparation_time": 30,
+        "cooking_time": 120,
+        "persons": 6,
+        "difficulty": "Moyenne",
+        "astuce": "",
+        "recipe_history_title": "",
+        "chef": 1487842,
+        "full_width_image": 1,
+        "sommaire_page": "",
+        "priority": 2,
+        "has_unread_notes": false,
+        "urgent": "0",
+        "articleFromCdl": "0",
+        "premium": "0",
+        "full_width_article": "0",
+        "arabic_article": "0",
+        "free": "0",
+        "hide_image": "0",
+        "elections": "0",
+        "video": "0",
+        "hide": "0"
+      },
+      "freemium": false,
+      "elements": {
+        "youtube": [
+          "Y8KZ3UclQWI"
+        ]
+      },
+      "seo": {
+        "search_title": "Nuggets et burger de poulet panés du chef Tarek Alameddine",
+        "search_description": "Longuement mariné dans un mélange de lait et d'épices, le poulet est attendri et parfumé, avant d'être enrobé d'une panure croustillante...",
+        "social_title": "Nuggets et burger de poulet panés du chef Tarek Alameddine",
+        "social_description": "Longuement mariné dans un mélange de lait et d'épices, le poulet est attendri et parfumé, avant d'être enrobé d'une panure croustillante...",
+        "social_image": ""
+      },
+      "time_to_read": 42,
+      "cached": true
+    }
+  ]
+}

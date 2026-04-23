@@ -1,0 +1,703 @@
+{
+  "data": [
+    {
+      "objectType": "Article",
+      "id": "1227694",
+      "signature": "Article:1227694",
+      "url": "https://www.lorientlejour.com/cuisine-liban-a-table/1227694/le-vrai-taboule-de-kamal-mouzawak.html",
+      "shorturl": "https://olj.me/1227694",
+      "slug": "le-vrai-taboule-de-kamal-mouzawak",
+      "contentType": {
+        "id": "4",
+        "name": "Recipes",
+        "slug": "",
+        "editor": "default"
+      },
+      "views": 29860,
+      "comments": 11,
+      "preview_limit": "850",
+      "rating": 4.69,
+      "rating_count": 13,
+      "excludedFromGoogleSearchEngine": 0,
+      "status": "publish",
+      "title": "Le « vrai » taboulé de Kamal Mouzawak",
+      "firstPublished": "2020-07-30 00:00:00",
+      "lastUpdate": "2020-07-30 00:00:00",
+      "categories": [
+        {
+          "id": "1037",
+          "name": "Variations autour d’un thème",
+          "seo_name": "",
+          "signature": "Category:1037",
+          "slug": "variations-autour-dun-theme",
+          "typeId": {
+            "typeId": "17",
+            "name": "A table - OLJ",
+            "slug": "cuisine-liban-a-table",
+            "includeInIssue": "0",
+            "shortened_domain": "",
+            "stylesheetClass": "",
+            "domain": null,
+            "articleUrlPrefix": "cuisine-liban-a-table",
+            "access_groups": "[\"olj\",\"premium\",\"integrale\",\"premium_open\",\"donation_access\",\"premium_ot\",\"olj_basic\"]",
+            "locale": "fr-FR",
+            "preview_limit": "850",
+            "sitemapUrlPrefix": null,
+            "authorUrlPrefix": null
+          },
+          "parentId": "1031",
+          "parent": {
+            "id": "1031",
+            "name": "Recettes",
+            "signature": "Category:1031",
+            "slug": "recettes",
+            "parentId": null,
+            "parent": [],
+            "image": "",
+            "cover": "",
+            "logo": "",
+            "paid": "0",
+            "objectType": "Category",
+            "url": "https://www.lorientlejour.com/cuisine-liban-a-table/1031-recettes",
+            "cssCode": "",
+            "template": "default",
+            "tagline": "",
+            "link_param": null,
+            "description": "Des recettes signées par de grands chefs libanais, des passionnés de cuisine ou encore des personnalités libanaises que nous avons invitées à passer derrière les fourneaux.",
+            "metaDescription": "Des recettes signées par de grands chefs libanais, des passionnés de cuisine ou encore des personnalités libanaises que nous avons invitées à passer derrière les fourneaux.",
+            "order": "0",
+            "pageId": null,
+            "articlesCount": null,
+            "allowComments": "1",
+            "accessType": "freecount",
+            "status": "1",
+            "children": [],
+            "cached": true
+          },
+          "image": "",
+          "cover": "",
+          "logo": "",
+          "paid": "0",
+          "objectType": "Category",
+          "url": "https://www.lorientlejour.com/cuisine-liban-a-table/1037-variations-autour-dun-theme",
+          "cssCode": "",
+          "template": "default",
+          "tagline": "",
+          "link_param": null,
+          "description": "",
+          "metaDescription": "",
+          "order": "0",
+          "pageId": null,
+          "articlesCount": "187",
+          "allowComments": "1",
+          "accessType": "freecount",
+          "status": "1",
+          "children": [],
+          "cached": true
+        },
+        {
+          "id": "799",
+          "name": "Un produit, une recette 100% libanaise ",
+          "signature": "Category:799",
+          "slug": "un-produit-une-recette-100-libanaise-",
+          "parentId": "1031",
+          "parent": {
+            "id": "1031",
+            "name": "Recettes",
+            "signature": "Category:1031",
+            "slug": "recettes",
+            "parentId": null,
+            "parent": [],
+            "image": "",
+            "cover": "",
+            "logo": "",
+            "paid": "0",
+            "objectType": "Category",
+            "url": "https://www.lorientlejour.com/cuisine-liban-a-table/1031-recettes",
+            "cssCode": "",
+            "template": "default",
+            "tagline": "",
+            "link_param": null,
+            "description": "Des recettes signées par de grands chefs libanais, des passionnés de cuisine ou encore des personnalités libanaises que nous avons invitées à passer derrière les fourneaux.",
+            "metaDescription": "Des recettes signées par de grands chefs libanais, des passionnés de cuisine ou encore des personnalités libanaises que nous avons invitées à passer derrière les fourneaux.",
+            "order": "0",
+            "pageId": null,
+            "articlesCount": null,
+            "allowComments": "1",
+            "accessType": "freecount",
+            "status": "1",
+            "children": [],
+            "cached": true
+          },
+          "image": "https://s.lorientlejour.com/storage/covers/13005553581905336730.jpg",
+          "cover": "https://s.lorientlejour.com/storage/covers/518504650972095909.jpg",
+          "logo": "",
+          "paid": "0",
+          "objectType": "Category",
+          "url": "https://www.lorientlejour.com/dossier/799-un-produit-une-recette-100-libanaise-",
+          "cssCode": "",
+          "template": "default",
+          "tagline": "",
+          "link_param": null,
+          "description": "",
+          "metaDescription": "",
+          "order": "0",
+          "pageId": null,
+          "articlesCount": null,
+          "allowComments": "1",
+          "accessType": "freecount",
+          "status": "1",
+          "children": [],
+          "cached": true
+        }
+      ],
+      "access_groups": [
+        "olj",
+        "premium",
+        "integrale",
+        "premium_open",
+        "donation_access",
+        "premium_ot",
+        "olj_basic"
+      ],
+      "access_control": false,
+      "counted_in_paywall": true,
+      "content_length": 1261,
+      "contents": "<ol><li>Triez le persil et rassemblez les tiges en bottes. Effeuillez la menthe. Lavez persil, menthe, tomates et oignons verts, et laissez sécher.</li><li>Lavez le bourghol puis essorez-le bien. Mettez-le dans un bol. Coupez la tomate en dés et ajoutez-la au bourghol. Ajoutez une pincée de sel et mélangez bien le tout pour que le bourghol s’imbibe du jus de la tomate. Hachez finement la menthe et cachez-la sous le persil haché finement lui aussi.</li><li>Placez-les sur le mélange bourghol/tomate.</li><li>Hachez finement l’oignon vert. Ajoutez une petite pincée de poivre doux et frottez bien l’oignon avec le poivre. Ajoutez au reste.</li><li>Couvrez l’ensemble avec un film alimentaire et mettez au frigo pour une heure au moins. Vous pouvez également le faire la veille. Le taboulé n’est bon que bien frais, voire bien froid.</li><li>Au moment de servir, mélangez tous les ingrédients. Lorsque vous avez fini, versez le jus de citron et l’huile d’olive. Touillez rapidement une dernière fois, goûtez et servez tout de suite.</li><li>Le taboulé peut s’accompagner de feuilles de laitue romaine ou de feuilles de chou blanc, fraîches, tendres et craquantes. L’ultime plaisir est, à mes yeux, de le déguster avec des feuilles de vigne fraîches, ou de tendres feuilles de poivron vert comme aimait le faire ma mère ! »</li></ol>",
+      "tag": "Un produit, une recette",
+      "authors": [
+        {
+          "id": "21",
+          "name": "Carla HENOUD",
+          "image": "",
+          "image_transforms": [
+            {
+              "x": 245,
+              "y": 164,
+              "url": ""
+            },
+            {
+              "x": 400,
+              "y": 270,
+              "url": ""
+            },
+            {
+              "x": 800,
+              "y": 600,
+              "url": ""
+            },
+            {
+              "x": 1200,
+              "y": 800,
+              "url": ""
+            },
+            {
+              "x": 2400,
+              "y": 1600,
+              "url": ""
+            }
+          ],
+          "url": "https://www.lorientlejour.com/author/21-carla-henoud",
+          "editorialName": "",
+          "department": "",
+          "name_latin": "",
+          "biography": "Responsable de la section Lifestyle | Head of lifestyle desk"
+        }
+      ],
+      "byline": "Propos recueillis par Carla HENOUD",
+      "keywords": [
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "55860",
+            "name": "mezzé",
+            "url": "https://www.lorientlejour.com/keyword/55860-mezze",
+            "slug": "mezze",
+            "description": "Découvrez l’univers des mezzés qu'ils soient libanais, arméniens ou autre. Nous vous proposons des recettes traditionnelles, des astuces et quelques histoires relatives à ces incontournables de la cuisine levantine et méditerranéenne.",
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": "Mezzé",
+            "translations": "{\"default\":{\"metatitle\":\"Mezz\\u00e9 : recettes libanaises traditionnelles et cuisine m\\u00e9diterran\\u00e9enne\",\"metadescription\":\"D\\u00e9couvrez l\\u2019univers des mezz\\u00e9s qu'ils soient libanais, arm\\u00e9niens ou autre. Nous vous proposons des recettes traditionnelles, des astuces et quelques histoires relatives \\u00e0 ces incontournables de la cuisine levantine et m\\u00e9diterran\\u00e9enne.\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"Mezz\\u00e9\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "56868",
+            "name": "recette de ramadan",
+            "url": "https://www.lorientlejour.com/keyword/56868-recette-de-ramadan",
+            "slug": "recette-de-ramadan",
+            "description": null,
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": null,
+            "translations": "{\"default\":{\"metatitle\":\"\",\"metadescription\":\"\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"Recettes de Ramadan\",\"description\":\"<p>D\\u00e9couvrez notre s\\u00e9lection de recettes libanaises, traditionnelles ou revisit\\u00e9es, pour ramadan.<\\/p>\",\"metatitle\":\"Recettes, libanaises traditionnelles ou revisit\\u00e9es, pour ramadan\",\"metadescription\":\"Une s\\u00e9lection de recettes libanaises, traditionnelles ou revisit\\u00e9es pour ramadan.\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "56668",
+            "name": "kamal mouzawak",
+            "url": "https://www.lorientlejour.com/keyword/56668-kamal-mouzawak",
+            "slug": "kamal-mouzawak",
+            "description": null,
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": null,
+            "translations": "{\"default\":{\"metatitle\":\"\",\"metadescription\":\"\"},\"en\":{\"displayname\":\"Kamal Mouzawak\",\"description\":\"Kamal Mouzawak, founder of Souk al-Tayeb and the restaurant Tawlet, is dedicated to promoting Lebanese cuisine.\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"Kamal Mouzawak\",\"description\":\"Kamal Mouzawak, fondateur de Souk el-Tayeb et du restaurant Tawlet, est engag\\u00e9 dans la promotion de la cuisine du terroir libanais. \",\"metatitle\":\"Kamal Mouzawak: derni\\u00e8res actualit\\u00e9s, infos et recettes\",\"metadescription\":\"Kamal Mouzawak, fondateur de Souk el-Tayeb et du restaurant Tawlet, est engag\\u00e9 dans la promotion de la cuisine du terroir libanais. \"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "55889",
+            "name": "recette libanaise",
+            "url": "https://www.lorientlejour.com/keyword/55889-recette-libanaise",
+            "slug": "recette-libanaise",
+            "description": "Retrouvez ici les meilleures recettes libanaises, de la cuisine de nos grands-mères aux créations modernes de chefs établis au Liban ou ailleurs.",
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": "Recette libanaise",
+            "translations": "{\"default\":{\"metatitle\":\"Recettes libanaises : plats traditionnels, revisit\\u00e9s et tendances\",\"metadescription\":\"Retrouvez ici les meilleures recettes libanaises, de la cuisine de nos grands-m\\u00e8res aux cr\\u00e9ations modernes de chefs \\u00e9tablis au Liban ou ailleurs.\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"Recette libanaise\",\"description\":\"Retrouvez ici les meilleures recettes libanaises, de la cuisine de nos grands-m\\u00e8res aux cr\\u00e9ations modernes de chefs \\u00e9tablis au Liban ou ailleurs.\",\"metatitle\":\"\",\"metadescription\":\"\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "56637",
+            "name": "entrée",
+            "url": "https://www.lorientlejour.com/keyword/56637-entree",
+            "slug": "entree",
+            "description": "Toutes nos recettes d’entrées, issues de la cuisine libanaise traditionnelle et d’ailleurs, pour réveiller les papilles et débuter vos repas en beauté.",
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": "Entrée",
+            "translations": "{\"default\":{\"metatitle\":\"Entr\\u00e9e : id\\u00e9es, recettes et derni\\u00e8res actualit\\u00e9s culinaires\",\"metadescription\":\"Toutes nos recettes d\\u2019entr\\u00e9es, issues de la cuisine libanaise traditionnelle et d\\u2019ailleurs, pour r\\u00e9veiller les papilles et d\\u00e9buter vos repas en beaut\\u00e9.\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "56639",
+            "name": "recette végétarienne",
+            "url": "https://www.lorientlejour.com/keyword/56639-recette-vegetarienne",
+            "slug": "recette-vegetarienne",
+            "description": "Une sélection de recettes végétariennes tirées essentiellement de la cuisine libanaise et levantine.",
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": "Recette végétarienne",
+            "translations": "{\"default\":{\"metatitle\":\"Recettes v\\u00e9g\\u00e9tariennes : libanaises et m\\u00e9diterran\\u00e9ennes\",\"metadescription\":\"Une s\\u00e9lection de recettes v\\u00e9g\\u00e9tariennes tir\\u00e9es essentiellement de la cuisine libanaise et levantine.\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "56536",
+            "name": "recette de carême",
+            "url": "https://www.lorientlejour.com/keyword/56536-recette-de-careme",
+            "slug": "recette-de-careme",
+            "description": "<p><br></p>",
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": null,
+            "translations": "{\"default\":{\"metatitle\":\"\",\"metadescription\":\"\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"Nos recettes pour le car\\u00eame\",\"description\":\"<p>D\\u00e9couvrez notre s\\u00e9lection de recettes, libanaises ou autres, sans viande, poulet, poisson ou produits laitiers. Des recettes id\\u00e9ales pour le car\\u00eame !<\\/p>\",\"metatitle\":\"Recettes libanaises ou autre pour le car\\u00eame\",\"metadescription\":\"D\\u00e9couvrez notre s\\u00e9lection de recettes, libanaises ou autres, sans viande, poulet, poisson ou produits laitiers. Des recettes id\\u00e9ales pour le car\\u00eame !\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "56640",
+            "name": "recette vegan",
+            "url": "https://www.lorientlejour.com/keyword/56640-recette-vegan",
+            "slug": "recette-vegan",
+            "description": "Voici une sélection de recettes à la fois vegan et savoureuses.",
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": "Recette vegan",
+            "translations": "{\"default\":{\"metatitle\":\"Recette vegan : id\\u00e9es, actualit\\u00e9s et plats 100% vegans\",\"metadescription\":\"Voici une s\\u00e9lection de recettes \\u00e0 la fois vegan et savoureuses.\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "56641",
+            "name": "cuisine libanaise",
+            "url": "https://www.lorientlejour.com/keyword/56641-cuisine-libanaise",
+            "slug": "cuisine-libanaise",
+            "description": "Découvrez la cuisine libanaise dans toute sa diversité : recettes, histoires et secrets de famille.",
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": "Cuisine libanaise",
+            "translations": "{\"default\":{\"metatitle\":\"Cuisine libanaise : recettes, actus et traditions revisit\\u00e9es\",\"metadescription\":\"D\\u00e9couvrez la cuisine libanaise dans toute sa diversit\\u00e9 : recettes, histoires et secrets de famille.\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        }
+      ],
+      "description": "On ne plaisante avec avec le taboulé !",
+      "attachments": [
+        {
+          "id": "502159",
+          "name": "",
+          "description": "Vert, rouge et blanc… les couleurs de du drapeau national. Rien ne raconte le Liban aussi bien que le taboulé.",
+          "focal": "50% 50%",
+          "width": 1024,
+          "height": 768,
+          "url": "https://s.lorientlejour.com/storage/attachments/1228/IMG_3825_336024.jpg",
+          "transforms": [
+            {
+              "x": 245,
+              "y": 164,
+              "url": "https://s.lorientlejour.com/storage/attachments/1228/IMG_3825_336024.jpg/r/245/IMG_3825_336024.jpg"
+            },
+            {
+              "x": 400,
+              "y": 270,
+              "url": "https://s.lorientlejour.com/storage/attachments/1228/IMG_3825_336024.jpg/r/400/IMG_3825_336024.jpg"
+            },
+            {
+              "x": 800,
+              "y": 600,
+              "url": "https://s.lorientlejour.com/storage/attachments/1228/IMG_3825_336024.jpg/r/800/IMG_3825_336024.jpg"
+            },
+            {
+              "x": 1200,
+              "y": 800,
+              "url": "https://s.lorientlejour.com/storage/attachments/1228/IMG_3825_336024.jpg/r/1200/IMG_3825_336024.jpg"
+            },
+            {
+              "x": 2400,
+              "y": 1600,
+              "url": "https://s.lorientlejour.com/storage/attachments/1228/IMG_3825_336024.jpg/r/2400/IMG_3825_336024.jpg"
+            }
+          ],
+          "url_thumbnail": "https://s.lorientlejour.com/storage/attachments/1228/IMG_3825_336024.jpg/r/245/IMG_3825_336024.jpg",
+          "url_medium": "https://s.lorientlejour.com/storage/attachments/1228/IMG_3825_336024.jpg/r/400/IMG_3825_336024.jpg",
+          "url_large": "https://s.lorientlejour.com/storage/attachments/1228/IMG_3825_336024.jpg/r/800/IMG_3825_336024.jpg",
+          "url_home_slideshow": "https://s.lorientlejour.com/storage/attachments/1228/IMG_3825_336024.jpg/r/1200/IMG_3825_336024.jpg",
+          "url_highres": "https://s.lorientlejour.com/storage/attachments/1228/IMG_3825_336024.jpg/r/2400/IMG_3825_336024.jpg",
+          "type": "image"
+        }
+      ],
+      "inline_attachments": [
+        {
+          "id": "281338",
+          "name": "",
+          "description": "Le « vrai » taboulé de Kamal Mouzawak. Photo DR",
+          "focal": "50% 50%",
+          "width": 0,
+          "height": 0,
+          "url": "https://s.lorientlejour.com/storage/attachments/1228/194326_302385.jpg",
+          "transforms": [
+            {
+              "x": 245,
+              "y": 164,
+              "url": "https://s.lorientlejour.com/storage/attachments/1228/194326_302385.jpg/r/245/194326_302385.jpg"
+            },
+            {
+              "x": 400,
+              "y": 270,
+              "url": "https://s.lorientlejour.com/storage/attachments/1228/194326_302385.jpg/r/400/194326_302385.jpg"
+            },
+            {
+              "x": 800,
+              "y": 600,
+              "url": "https://s.lorientlejour.com/storage/attachments/1228/194326_302385.jpg/r/800/194326_302385.jpg"
+            },
+            {
+              "x": 1200,
+              "y": 800,
+              "url": "https://s.lorientlejour.com/storage/attachments/1228/194326_302385.jpg/r/1200/194326_302385.jpg"
+            },
+            {
+              "x": 2400,
+              "y": 1600,
+              "url": "https://s.lorientlejour.com/storage/attachments/1228/194326_302385.jpg/r/2400/194326_302385.jpg"
+            }
+          ],
+          "url_thumbnail": "https://s.lorientlejour.com/storage/attachments/1228/194326_302385.jpg/r/245/194326_302385.jpg",
+          "url_medium": "https://s.lorientlejour.com/storage/attachments/1228/194326_302385.jpg/r/400/194326_302385.jpg",
+          "url_large": "https://s.lorientlejour.com/storage/attachments/1228/194326_302385.jpg/r/800/194326_302385.jpg",
+          "url_home_slideshow": "https://s.lorientlejour.com/storage/attachments/1228/194326_302385.jpg/r/1200/194326_302385.jpg",
+          "url_highres": "https://s.lorientlejour.com/storage/attachments/1228/194326_302385.jpg/r/2400/194326_302385.jpg",
+          "type": "inline_image"
+        },
+        {
+          "id": "281339",
+          "name": "",
+          "description": "Le persil, ingrédient essentiel du taboulé. Photo Bigstock",
+          "focal": "50% 50%",
+          "width": 0,
+          "height": 0,
+          "url": "https://s.lorientlejour.com/storage/attachments/1228/194324_860907.jpg",
+          "transforms": [
+            {
+              "x": 245,
+              "y": 164,
+              "url": "https://s.lorientlejour.com/storage/attachments/1228/194324_860907.jpg/r/245/194324_860907.jpg"
+            },
+            {
+              "x": 400,
+              "y": 270,
+              "url": "https://s.lorientlejour.com/storage/attachments/1228/194324_860907.jpg/r/400/194324_860907.jpg"
+            },
+            {
+              "x": 800,
+              "y": 600,
+              "url": "https://s.lorientlejour.com/storage/attachments/1228/194324_860907.jpg/r/800/194324_860907.jpg"
+            },
+            {
+              "x": 1200,
+              "y": 800,
+              "url": "https://s.lorientlejour.com/storage/attachments/1228/194324_860907.jpg/r/1200/194324_860907.jpg"
+            },
+            {
+              "x": 2400,
+              "y": 1600,
+              "url": "https://s.lorientlejour.com/storage/attachments/1228/194324_860907.jpg/r/2400/194324_860907.jpg"
+            }
+          ],
+          "url_thumbnail": "https://s.lorientlejour.com/storage/attachments/1228/194324_860907.jpg/r/245/194324_860907.jpg",
+          "url_medium": "https://s.lorientlejour.com/storage/attachments/1228/194324_860907.jpg/r/400/194324_860907.jpg",
+          "url_large": "https://s.lorientlejour.com/storage/attachments/1228/194324_860907.jpg/r/800/194324_860907.jpg",
+          "url_home_slideshow": "https://s.lorientlejour.com/storage/attachments/1228/194324_860907.jpg/r/1200/194324_860907.jpg",
+          "url_highres": "https://s.lorientlejour.com/storage/attachments/1228/194324_860907.jpg/r/2400/194324_860907.jpg",
+          "type": "inline_image"
+        },
+        {
+          "id": "281396",
+          "name": "",
+          "description": "",
+          "focal": "50% 50%",
+          "width": 0,
+          "height": 0,
+          "url": "https://s.lorientlejour.com/storage/attachments/1228/NewKsaraLogoRGB_984111.jpg",
+          "transforms": [
+            {
+              "x": 245,
+              "y": 164,
+              "url": "https://s.lorientlejour.com/storage/attachments/1228/NewKsaraLogoRGB_984111.jpg/r/245/NewKsaraLogoRGB_984111.jpg"
+            },
+            {
+              "x": 400,
+              "y": 270,
+              "url": "https://s.lorientlejour.com/storage/attachments/1228/NewKsaraLogoRGB_984111.jpg/r/400/NewKsaraLogoRGB_984111.jpg"
+            },
+            {
+              "x": 800,
+              "y": 600,
+              "url": "https://s.lorientlejour.com/storage/attachments/1228/NewKsaraLogoRGB_984111.jpg/r/800/NewKsaraLogoRGB_984111.jpg"
+            },
+            {
+              "x": 1200,
+              "y": 800,
+              "url": "https://s.lorientlejour.com/storage/attachments/1228/NewKsaraLogoRGB_984111.jpg/r/1200/NewKsaraLogoRGB_984111.jpg"
+            },
+            {
+              "x": 2400,
+              "y": 1600,
+              "url": "https://s.lorientlejour.com/storage/attachments/1228/NewKsaraLogoRGB_984111.jpg/r/2400/NewKsaraLogoRGB_984111.jpg"
+            }
+          ],
+          "url_thumbnail": "https://s.lorientlejour.com/storage/attachments/1228/NewKsaraLogoRGB_984111.jpg/r/245/NewKsaraLogoRGB_984111.jpg",
+          "url_medium": "https://s.lorientlejour.com/storage/attachments/1228/NewKsaraLogoRGB_984111.jpg/r/400/NewKsaraLogoRGB_984111.jpg",
+          "url_large": "https://s.lorientlejour.com/storage/attachments/1228/NewKsaraLogoRGB_984111.jpg/r/800/NewKsaraLogoRGB_984111.jpg",
+          "url_home_slideshow": "https://s.lorientlejour.com/storage/attachments/1228/NewKsaraLogoRGB_984111.jpg/r/1200/NewKsaraLogoRGB_984111.jpg",
+          "url_highres": "https://s.lorientlejour.com/storage/attachments/1228/NewKsaraLogoRGB_984111.jpg/r/2400/NewKsaraLogoRGB_984111.jpg",
+          "type": "inline_image"
+        }
+      ],
+      "recipe_name": "LE « VRAI » TABOULÉ DE KAMAL MOUZAWAK",
+      "preparation_time": 20,
+      "cooking_time": "",
+      "persons": 4,
+      "difficulty": "Facile",
+      "summary": "<ul><li>2 bottes de persil plat (compter presque 150 g par botte)</li><li>1 petite botte de menthe (75 g)</li><li>2 petits oignons verts</li><li>2 grosses tomates bien rouges, mais fermes</li><li>1 c. à soupe de bourghol fin</li><li>Le jus de 2 citrons</li><li>6 c. à soupe d’huile d’olive</li><li>Sel et poivre doux</li><li>Laitue romaine ou feuille de chou blanc pour manger le taboulé.</li></ul>",
+      "astuce": "« Lorsque vous hachez le persil, je devrais plutôt dire lorsque vous le tranchez, surtout ne le faites pas à l’occidentale. Ne revenez pas sur les légumes découpés car ceci abîme le persil, le rend noir et juteux. Il faut hacher le persil avec finesse, une seule fois, sans jamais revenir là où le couteau est déjà passé. Tenez fermement la botte avec les doigts, et non pas toute la paume de la main, ce qui réchaufferait le persil et le « cuirait ». Le couteau doit être non pas incliné vers l’intérieur, ni droit, mais incliné vers l’extérieur. Guidez le couteau avec l’index qui tient la botte. Ainsi, il n’y a aucun danger de se couper les doigts ! L’index va conduire le couteau, et le tranchage va se faire en entamant à peine la botte pour que ce soit le plus fin possible. »",
+      "recipe_history_title": "Les 9 commandements du taboulé, selon Kamal Mouzawak",
+      "introduction": "<p>1-Le taboulé est essentiellement du persil ! Avec quelques autres ingrédients mineurs.</p><p>2-Le persil est plat, on ne lui (re)connaît aucune autre forme.</p><p>3-Seul le bourghol se conjugue avec le taboulé… Exit le couscous, le quinoa ou d’autres céréales …</p><p>4-Persil et menthe sont « tranchés » et pas hachés ! Le couteau passe une fois, jamais deux !</p><p>5-La menthe aime se cacher sous le persil pour qu’elle ne s’oxyde pas une fois tranchée.</p><p>6-L’oignon aime se frotter au sel et au poivre doux (bhar helou) pour le « cuire » et l’adoucir.</p><p>7-Le taboulé aime les extrêmes : du citron et une bonne dose de piment vert ! Chaque bouchée doit rafraîchir la bouche.</p><p>8-Il se mélange, s’assaisonne et se sert à dernière la minute ! Il se consomme frais.</p><p>9-Le taboulé à l’occidentale servi avec des crevettes – ou cuit dans son jus depuis des heures – ou encore conservé 24 heures dans la vitrine d’un traiteur, ou, pire encore, en conserve n’est pas un taboulé ! Toute autre variation ou création est un autre plat qui n’a plus rien à voir avec le taboulé.</p><p><br></p><p>« S’il existe un point commun entre tous les Libanais, peut-être même plus que notre fameux cèdre, c’est bien le taboulé… Qu’on vienne du nord, du sud, de l’est ou de l’ouest du Liban, on ne jure que par le taboulé, on pense que maman fait le meilleur taboulé ! Vert, rouge et blanc… les couleurs de notre drapeau national, rien ne raconte le Liban aussi bien que ce plat. Mon ami le Dr Antoine Daher a dressé le parallèle avec le Liban en soulignant que le taboulé est composé de différents ingrédients faciles à distinguer, coupés si petits qu’on ne peut jamais les séparer l’un de l’autre… tout comme ce peuple si différent et mélangé qu’il est difficile de diviser.</p><p>Il n’y a pas de dimanche sans taboulé. Il commence par le maskabeh (le carré de persil) et une jammeh (coupe). Plus le persil est tendre, mieux c’est. Et puis, il y a les graines baladi et les amerkenne (américaines) à la saveur plus douce qui se partagent la vedette. Ensuite, c’est l’art du tebwi’e (de be’a, qui signifie bouquet).</p><p>L’art de composer des bouquets de persil en prenant soin que toutes les premières feuilles en bas de la tige soient à la même hauteur. Ainsi, il devient plus facile, en hachant le persil, de jeter les tiges et n’en garder que les feuilles (et éventuellement quelques tiges…) »</p>",
+      "chef": {
+        "objectType": "Article",
+        "id": "1463801",
+        "signature": "Article:1463801",
+        "url": "https://www.lorientlejour.com/article/1463801/kamal-mouzawak-fondateur-de-souk-el-tayeb.html",
+        "shorturl": "https://olj.me/1463801",
+        "slug": "kamal-mouzawak-fondateur-de-souk-el-tayeb",
+        "contentType": {
+          "id": "5",
+          "name": "Chef",
+          "slug": "",
+          "editor": "default"
+        },
+        "views": 13,
+        "comments": 0,
+        "preview_limit": null,
+        "rating": 0,
+        "excludedFromGoogleSearchEngine": 0,
+        "status": "publish",
+        "title": "Kamal Mouzawak, fondateur de Souk el-Tayeb",
+        "firstPublished": "2025-06-09 17:23:02",
+        "lastUpdate": "2025-06-09 17:23:02",
+        "categories": [
+          {
+            "id": "1035",
+            "name": "Chefs 2",
+            "signature": "Category:1035",
+            "slug": "chefs",
+            "typeId": {
+              "typeId": "18",
+              "name": "Chef",
+              "slug": "",
+              "includeInIssue": "0",
+              "shortened_domain": "",
+              "stylesheetClass": "",
+              "domain": null,
+              "articleUrlPrefix": "",
+              "access_groups": "[]",
+              "locale": "fr-FR",
+              "preview_limit": null,
+              "sitemapUrlPrefix": null,
+              "authorUrlPrefix": null
+            },
+            "parentId": null,
+            "parent": [],
+            "image": "",
+            "cover": "",
+            "logo": "",
+            "paid": "0",
+            "objectType": "Category",
+            "url": "https://www.lorientlejour.com/category/1035-chefs",
+            "cssCode": "",
+            "template": "default",
+            "tagline": "",
+            "link_param": null,
+            "description": "",
+            "metaDescription": "",
+            "order": "0",
+            "pageId": null,
+            "articlesCount": null,
+            "allowComments": "1",
+            "accessType": "freecount",
+            "status": "1",
+            "children": [],
+            "cached": true
+          }
+        ],
+        "access_groups": [],
+        "access_control": false,
+        "counted_in_paywall": true,
+        "content_length": 337,
+        "contents": "",
+        "subtitle": "",
+        "subtitle_en": "",
+        "attachments": [
+          {
+            "id": "502158",
+            "name": "",
+            "description": "",
+            "focal": "48.69% 22.08%",
+            "width": 1000,
+            "height": 1153,
+            "url": "https://s.lorientlejour.com/storage/attachments/1464/IMG_3827_372481.jpeg",
+            "transforms": [
+              {
+                "x": 245,
+                "y": 164,
+                "url": "https://s.lorientlejour.com/storage/attachments/1464/IMG_3827_372481.jpeg/r/245/IMG_3827_372481.jpeg"
+              },
+              {
+                "x": 400,
+                "y": 270,
+                "url": "https://s.lorientlejour.com/storage/attachments/1464/IMG_3827_372481.jpeg/r/400/IMG_3827_372481.jpeg"
+              },
+              {
+                "x": 800,
+                "y": 600,
+                "url": "https://s.lorientlejour.com/storage/attachments/1464/IMG_3827_372481.jpeg/r/800/IMG_3827_372481.jpeg"
+              },
+              {
+                "x": 1200,
+                "y": 800,
+                "url": "https://s.lorientlejour.com/storage/attachments/1464/IMG_3827_372481.jpeg/r/1200/IMG_3827_372481.jpeg"
+              },
+              {
+                "x": 2400,
+                "y": 1600,
+                "url": "https://s.lorientlejour.com/storage/attachments/1464/IMG_3827_372481.jpeg/r/2400/IMG_3827_372481.jpeg"
+              }
+            ],
+            "url_thumbnail": "https://s.lorientlejour.com/storage/attachments/1464/IMG_3827_372481.jpeg/r/245/IMG_3827_372481.jpeg",
+            "url_medium": "https://s.lorientlejour.com/storage/attachments/1464/IMG_3827_372481.jpeg/r/400/IMG_3827_372481.jpeg",
+            "url_large": "https://s.lorientlejour.com/storage/attachments/1464/IMG_3827_372481.jpeg/r/800/IMG_3827_372481.jpeg",
+            "url_home_slideshow": "https://s.lorientlejour.com/storage/attachments/1464/IMG_3827_372481.jpeg/r/1200/IMG_3827_372481.jpeg",
+            "url_highres": "https://s.lorientlejour.com/storage/attachments/1464/IMG_3827_372481.jpeg/r/2400/IMG_3827_372481.jpeg",
+            "type": "image"
+          }
+        ],
+        "summary": "",
+        "introduction": "",
+        "elements": [],
+        "seo": {
+          "search_title": "Kamal Mouzawak, fondateur de Souk el-Tayeb",
+          "search_description": "Kamal Mouzawak, founder of Souk el-Tayeb…",
+          "social_title": "Kamal Mouzawak, fondateur de Souk el-Tayeb",
+          "social_description": "Kamal Mouzawak, founder of Souk el-Tayeb…",
+          "social_image": ""
+        },
+        "time_to_read": 24,
+        "cached": false
+      },
+      "options": {
+        "recipe_name": "LE « VRAI » TABOULÉ DE KAMAL MOUZAWAK",
+        "preparation_time": 20,
+        "cooking_time": "",
+        "persons": 4,
+        "difficulty": "Facile",
+        "astuce": "« Lorsque vous hachez le persil, je devrais plutôt dire lorsque vous le tranchez, surtout ne le faites pas à l’occidentale. Ne revenez pas sur les légumes découpés car ceci abîme le persil, le rend noir et juteux. Il faut hacher le persil avec finesse, une seule fois, sans jamais revenir là où le couteau est déjà passé. Tenez fermement la botte avec les doigts, et non pas toute la paume de la main, ce qui réchaufferait le persil et le « cuirait ». Le couteau doit être non pas incliné vers l’intérieur, ni droit, mais incliné vers l’extérieur. Guidez le couteau avec l’index qui tient la botte. Ainsi, il n’y a aucun danger de se couper les doigts ! L’index va conduire le couteau, et le tranchage va se faire en entamant à peine la botte pour que ce soit le plus fin possible. »",
+        "recipe_history_title": "Les 9 commandements du taboulé, selon Kamal Mouzawak",
+        "chef": 1463801,
+        "sommaire_page": "",
+        "priority": 2,
+        "urgent": "0",
+        "articleFromCdl": "0",
+        "premium": "0",
+        "full_width_image": "0",
+        "full_width_article": "0",
+        "arabic_article": "0",
+        "free": "0",
+        "hide_image": "0",
+        "elections": "0",
+        "video": "0",
+        "hide": "0"
+      },
+      "freemium": false,
+      "elements": [],
+      "seo": {
+        "search_title": "Le « vrai » taboulé de Kamal Mouzawak",
+        "search_description": "On ne plaisante avec avec le taboulé !",
+        "social_title": "Le « vrai » taboulé de Kamal Mouzawak",
+        "social_description": "On ne plaisante avec avec le taboulé !",
+        "social_image": ""
+      },
+      "time_to_read": 134,
+      "cached": true
+    }
+  ]
+}

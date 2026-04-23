@@ -1,0 +1,450 @@
+{
+  "data": [
+    {
+      "objectType": "Article",
+      "id": "1498245",
+      "signature": "Article:1498245",
+      "url": "https://www.lorientlejour.com/cuisine-liban-a-table/1498245/le-sfouf-libanais-de-cheffe-amani.html",
+      "shorturl": "https://olj.me/1498245",
+      "slug": "le-sfouf-libanais-de-cheffe-amani",
+      "contentType": {
+        "id": "4",
+        "name": "Recipes",
+        "slug": "",
+        "editor": "default"
+      },
+      "views": 864,
+      "comments": 1,
+      "preview_limit": "850",
+      "rating": 3.88,
+      "rating_count": 17,
+      "excludedFromGoogleSearchEngine": 0,
+      "status": "publish",
+      "title": "Le sfouf libanais de cheffe Amani",
+      "firstPublished": "2026-03-24 10:08:06",
+      "lastUpdate": "2026-03-24 10:08:06",
+      "categories": [
+        {
+          "id": "1037",
+          "name": "Variations autour d’un thème",
+          "seo_name": "",
+          "signature": "Category:1037",
+          "slug": "variations-autour-dun-theme",
+          "typeId": {
+            "typeId": "17",
+            "name": "A table - OLJ",
+            "slug": "cuisine-liban-a-table",
+            "includeInIssue": "0",
+            "shortened_domain": "",
+            "stylesheetClass": "",
+            "domain": null,
+            "articleUrlPrefix": "cuisine-liban-a-table",
+            "access_groups": "[\"olj\",\"premium\",\"integrale\",\"premium_open\",\"donation_access\",\"premium_ot\",\"olj_basic\"]",
+            "locale": "fr-FR",
+            "preview_limit": "850",
+            "sitemapUrlPrefix": null,
+            "authorUrlPrefix": null
+          },
+          "parentId": "1031",
+          "parent": {
+            "id": "1031",
+            "name": "Recettes",
+            "signature": "Category:1031",
+            "slug": "recettes",
+            "parentId": null,
+            "parent": [],
+            "image": "",
+            "cover": "",
+            "logo": "",
+            "paid": "0",
+            "objectType": "Category",
+            "url": "https://www.lorientlejour.com/cuisine-liban-a-table/1031-recettes",
+            "cssCode": "",
+            "template": "default",
+            "tagline": "",
+            "link_param": null,
+            "description": "Des recettes signées par de grands chefs libanais, des passionnés de cuisine ou encore des personnalités libanaises que nous avons invitées à passer derrière les fourneaux.",
+            "metaDescription": "Des recettes signées par de grands chefs libanais, des passionnés de cuisine ou encore des personnalités libanaises que nous avons invitées à passer derrière les fourneaux.",
+            "order": "0",
+            "pageId": null,
+            "articlesCount": null,
+            "allowComments": "1",
+            "accessType": "freecount",
+            "status": "1",
+            "children": [],
+            "cached": true
+          },
+          "image": "",
+          "cover": "",
+          "logo": "",
+          "paid": "0",
+          "objectType": "Category",
+          "url": "https://www.lorientlejour.com/cuisine-liban-a-table/1037-variations-autour-dun-theme",
+          "cssCode": "",
+          "template": "default",
+          "tagline": "",
+          "link_param": null,
+          "description": "",
+          "metaDescription": "",
+          "order": "0",
+          "pageId": null,
+          "articlesCount": "187",
+          "allowComments": "1",
+          "accessType": "freecount",
+          "status": "1",
+          "children": [],
+          "cached": true
+        }
+      ],
+      "access_groups": [
+        "olj",
+        "premium",
+        "integrale",
+        "premium_open",
+        "donation_access",
+        "premium_ot",
+        "olj_basic"
+      ],
+      "access_control": false,
+      "counted_in_paywall": true,
+      "content_length": 935,
+      "contents": "<ol><li>Préchauffer le four à 180 °C.</li><li>Graisser une plaque à pâtisserie et la réserver.</li><li>Dans un grand saladier, mélanger la semoule, la farine, le sucre, la levure chimique et le curcuma. Bien mélanger pour répartir les ingrédients de manière homogène.</li><li>Ajouter progressivement le lait et l’huile, en mélangeant jusqu’à obtenir une pâte lisse.</li><li>Verser la pâte dans la plaque préparée et la tapoter doucement sur le plan de travail pour éliminer les bulles d’air.</li><li>Saupoudrer uniformément les pignons de pin sur la surface.</li><li>Faire cuire au four pendant environ 45 minutes, ou jusqu’à ce que le gâteau soit doré et qu’un cure-dent inséré au centre en ressorte propre.</li><li>Si vous le souhaitez, badigeonner le gâteau de sirop de sucre froid immédiatement après la cuisson pour rehausser son éclat et sa saveur.</li><li>Laisser refroidir légèrement avant de couper en rangées ou en carrés et servez avec du thé ou du café.</li></ol><p><br></p><p>Retrouvez <a href=\"https://itschefamani.com/\" rel=\"noopener noreferrer\" target=\"_blank\">toutes les recettes de cheffe Amani ici</a>.</p>",
+      "tag": "Recette de chef ",
+      "authors": [],
+      "byline": "",
+      "keywords": [
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "56615",
+            "name": "dessert",
+            "url": "https://www.lorientlejour.com/keyword/56615-dessert",
+            "slug": "dessert",
+            "description": "<p><br></p>",
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": "Dessert",
+            "translations": "{\"default\":{\"metatitle\":\"\",\"metadescription\":\"\"},\"en\":{\"displayname\":\"Dessert\",\"description\":\"<p>Discover our dessert recipes to end your meals on a sweet note. From Lebanese tradition to reimagined classics, get inspired with our sweet creations.<\\/p>\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"Dessert\",\"description\":\"<p>D\\u00e9couvrez nos recettes de desserts pour finir vos repas sur une touche sucr\\u00e9e. De la tradition libanaise aux classiques revisit\\u00e9s, faites le plein d\\u2019inspirations gourmandes.<\\/p>\",\"metatitle\":\"Dessert : id\\u00e9es sucr\\u00e9es, recettes libanaises, tendances\",\"metadescription\":\"D\\u00e9couvrez nos recettes de desserts pour finir vos repas sur une touche sucr\\u00e9e. De la tradition libanaise aux classiques revisit\\u00e9s, faites le plein d\\u2019inspirations gourmandes.\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "56913",
+            "name": "recettes cheffe amani",
+            "url": "https://www.lorientlejour.com/keyword/56913-recettes-cheffe-amani",
+            "slug": "recettes-cheffe-amani",
+            "description": null,
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": null,
+            "translations": "{\"default\":{\"metatitle\":\"\",\"metadescription\":\"\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"Les recettes de cheffe Amani\",\"description\":\"<p>D\\u00e9couvrez une s\\u00e9lection de recettes libanaises propos\\u00e9es par cheffe Amani. N\\u00e9e au Akkar (Liban-Nord), cheffe Amani Khazaal Krayem, alias \\u00ab It\\u2019s chef Amani \\u00bb sur les r\\u00e9seaux sociaux, vit d\\u00e9sormais \\u00e0 Sydney, en Australie.<\\/p><p><br><\\/p>\",\"metatitle\":\"\",\"metadescription\":\"\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "55889",
+            "name": "recette libanaise",
+            "url": "https://www.lorientlejour.com/keyword/55889-recette-libanaise",
+            "slug": "recette-libanaise",
+            "description": "Retrouvez ici les meilleures recettes libanaises, de la cuisine de nos grands-mères aux créations modernes de chefs établis au Liban ou ailleurs.",
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": "Recette libanaise",
+            "translations": "{\"default\":{\"metatitle\":\"Recettes libanaises : plats traditionnels, revisit\\u00e9s et tendances\",\"metadescription\":\"Retrouvez ici les meilleures recettes libanaises, de la cuisine de nos grands-m\\u00e8res aux cr\\u00e9ations modernes de chefs \\u00e9tablis au Liban ou ailleurs.\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"Recette libanaise\",\"description\":\"Retrouvez ici les meilleures recettes libanaises, de la cuisine de nos grands-m\\u00e8res aux cr\\u00e9ations modernes de chefs \\u00e9tablis au Liban ou ailleurs.\",\"metatitle\":\"\",\"metadescription\":\"\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "56641",
+            "name": "cuisine libanaise",
+            "url": "https://www.lorientlejour.com/keyword/56641-cuisine-libanaise",
+            "slug": "cuisine-libanaise",
+            "description": "Découvrez la cuisine libanaise dans toute sa diversité : recettes, histoires et secrets de famille.",
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": "Cuisine libanaise",
+            "translations": "{\"default\":{\"metatitle\":\"Cuisine libanaise : recettes, actus et traditions revisit\\u00e9es\",\"metadescription\":\"D\\u00e9couvrez la cuisine libanaise dans toute sa diversit\\u00e9 : recettes, histoires et secrets de famille.\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "55861",
+            "name": "cuisine du moyen-orient",
+            "url": "https://www.lorientlejour.com/keyword/55861-cuisine-du-moyen-orient",
+            "slug": "cuisine-du-moyen-orient",
+            "description": "Recettes authentiques ou revisitées, la cuisine du Moyen-Orient vous invite à sa table.",
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": "Cuisine du Moyen-Orient",
+            "translations": "{\"default\":{\"metatitle\":\"Cuisine du Moyen-Orient : recettes, saveurs et actualit\\u00e9s\",\"metadescription\":\"Recettes authentiques ou revisit\\u00e9es, la cuisine du Moyen-Orient vous invite \\u00e0 sa table.\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "56782",
+            "name": "recette de chef",
+            "url": "https://www.lorientlejour.com/keyword/56782-recette-de-chef",
+            "slug": "recette-de-chef",
+            "description": null,
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": null,
+            "translations": null,
+            "collection_id": null,
+            "image": ""
+          }
+        },
+        {
+          "type": "Keyword",
+          "data": {
+            "keywordId": "56639",
+            "name": "recette végétarienne",
+            "url": "https://www.lorientlejour.com/keyword/56639-recette-vegetarienne",
+            "slug": "recette-vegetarienne",
+            "description": "Une sélection de recettes végétariennes tirées essentiellement de la cuisine libanaise et levantine.",
+            "articlesCount": 0,
+            "replacedWith": null,
+            "display_name": "Recette végétarienne",
+            "translations": "{\"default\":{\"metatitle\":\"Recettes v\\u00e9g\\u00e9tariennes : libanaises et m\\u00e9diterran\\u00e9ennes\",\"metadescription\":\"Une s\\u00e9lection de recettes v\\u00e9g\\u00e9tariennes tir\\u00e9es essentiellement de la cuisine libanaise et levantine.\"},\"en\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"},\"fr\":{\"displayname\":\"\",\"description\":\"\",\"metatitle\":\"\",\"metadescription\":\"\"}}",
+            "collection_id": null,
+            "image": ""
+          }
+        }
+      ],
+      "description": "Une note sucrée à partager, autour d'un thé ou d'un café. ",
+      "attachments": [
+        {
+          "id": "562736",
+          "name": "Une recette simple, à découper en carrés dès la sortie du four. Photo fournie par chef Amani Khazaal",
+          "description": "",
+          "focal": "50% 50%",
+          "width": 0,
+          "height": 0,
+          "url": "https://s.lorientlejour.com/storage/attachments/1499/sfoufcopy2_138151.jpg",
+          "transforms": [
+            {
+              "x": 245,
+              "y": 164,
+              "url": "https://s.lorientlejour.com/storage/attachments/1499/sfoufcopy2_138151.jpg/r/245/sfoufcopy2_138151.jpg"
+            },
+            {
+              "x": 400,
+              "y": 270,
+              "url": "https://s.lorientlejour.com/storage/attachments/1499/sfoufcopy2_138151.jpg/r/400/sfoufcopy2_138151.jpg"
+            },
+            {
+              "x": 800,
+              "y": 600,
+              "url": "https://s.lorientlejour.com/storage/attachments/1499/sfoufcopy2_138151.jpg/r/800/sfoufcopy2_138151.jpg"
+            },
+            {
+              "x": 1200,
+              "y": 800,
+              "url": "https://s.lorientlejour.com/storage/attachments/1499/sfoufcopy2_138151.jpg/r/1200/sfoufcopy2_138151.jpg"
+            },
+            {
+              "x": 2400,
+              "y": 1600,
+              "url": "https://s.lorientlejour.com/storage/attachments/1499/sfoufcopy2_138151.jpg/r/2400/sfoufcopy2_138151.jpg"
+            }
+          ],
+          "url_thumbnail": "https://s.lorientlejour.com/storage/attachments/1499/sfoufcopy2_138151.jpg/r/245/sfoufcopy2_138151.jpg",
+          "url_medium": "https://s.lorientlejour.com/storage/attachments/1499/sfoufcopy2_138151.jpg/r/400/sfoufcopy2_138151.jpg",
+          "url_large": "https://s.lorientlejour.com/storage/attachments/1499/sfoufcopy2_138151.jpg/r/800/sfoufcopy2_138151.jpg",
+          "url_home_slideshow": "https://s.lorientlejour.com/storage/attachments/1499/sfoufcopy2_138151.jpg/r/1200/sfoufcopy2_138151.jpg",
+          "url_highres": "https://s.lorientlejour.com/storage/attachments/1499/sfoufcopy2_138151.jpg/r/2400/sfoufcopy2_138151.jpg",
+          "type": "image"
+        }
+      ],
+      "recipe_name": "Les sfouf libanais de chef Amani Khazaal",
+      "preparation_time": 10,
+      "cooking_time": 45,
+      "persons": 6,
+      "difficulty": "Facile",
+      "summary": "<ul><li><strong>Pour le gâteau :</strong></li><li>360 g de farine ordinaire</li><li>480 g de semoule</li><li>720 ml de lait</li><li>360 ml d&#39;huile</li><li>4 c. à s. de levure chimique</li><li>800 g de sucre</li><li>1,5 c. à soupe de curcuma</li><li><strong>Pour la garniture :</strong></li><li>Pignons de pin ou amandes ou pistaches</li><li>Sirop de sucre froid pour badigeonner (facultatif)</li></ul>",
+      "astuce": "",
+      "recipe_history_title": "Sfouf, le gâteau traditionnel au curcuma et semoule",
+      "introduction": "<p>Le sfouf est une pâtisserie traditionnelle libanaise connue pour sa couleur jaune vif et sa saveur caractéristique. Le nom « sfouf » vient du mot arabe signifiant « rangées », en référence à la façon dont le gâteau est traditionnellement découpé en carrés réguliers après la cuisson.</p><p>À base de semoule et de curcuma, ce gâteau simple sans œufs a une texture rustique et un arôme subtilement terreux. Il est souvent servi avec du thé ou du café et est fréquemment présent lors des réunions de famille et des célébrations à travers le Liban.</p>",
+      "chef": {
+        "objectType": "Article",
+        "id": "1477493",
+        "signature": "Article:1477493",
+        "url": "https://www.lorientlejour.com/article/1477493/chef-amani-du-akkar-a-sydney-en-passant-par-instagram.html",
+        "shorturl": "https://olj.me/1477493",
+        "slug": "chef-amani-du-akkar-a-sydney-en-passant-par-instagram",
+        "contentType": {
+          "id": "5",
+          "name": "Chef",
+          "slug": "",
+          "editor": "default"
+        },
+        "views": 1,
+        "comments": 0,
+        "preview_limit": null,
+        "rating": 0,
+        "excludedFromGoogleSearchEngine": 0,
+        "status": "publish",
+        "title": "Chef Amani, du Akkar à Sydney, en passant par Insta",
+        "firstPublished": "2025-09-16 12:04:14",
+        "lastUpdate": "2025-09-16 12:04:14",
+        "categories": [
+          {
+            "id": "1035",
+            "name": "Chefs 2",
+            "signature": "Category:1035",
+            "slug": "chefs",
+            "typeId": {
+              "typeId": "18",
+              "name": "Chef",
+              "slug": "",
+              "includeInIssue": "0",
+              "shortened_domain": "",
+              "stylesheetClass": "",
+              "domain": null,
+              "articleUrlPrefix": "",
+              "access_groups": "[]",
+              "locale": "fr-FR",
+              "preview_limit": null,
+              "sitemapUrlPrefix": null,
+              "authorUrlPrefix": null
+            },
+            "parentId": null,
+            "parent": [],
+            "image": "",
+            "cover": "",
+            "logo": "",
+            "paid": "0",
+            "objectType": "Category",
+            "url": "https://www.lorientlejour.com/category/1035-chefs",
+            "cssCode": "",
+            "template": "default",
+            "tagline": "",
+            "link_param": null,
+            "description": "",
+            "metaDescription": "",
+            "order": "0",
+            "pageId": null,
+            "articlesCount": null,
+            "allowComments": "1",
+            "accessType": "freecount",
+            "status": "1",
+            "children": [],
+            "cached": false
+          }
+        ],
+        "access_groups": [],
+        "access_control": false,
+        "counted_in_paywall": true,
+        "content_length": 1809,
+        "contents": "",
+        "subtitle": "",
+        "subtitle_en": "",
+        "attachments": [
+          {
+            "id": "521355",
+            "name": "",
+            "description": "",
+            "focal": "47% 23.76%",
+            "width": 2912,
+            "height": 4672,
+            "url": "https://s.lorientlejour.com/storage/attachments/1478/DSC05941-2_996429.jpeg",
+            "transforms": [
+              {
+                "x": 245,
+                "y": 164,
+                "url": "https://s.lorientlejour.com/storage/attachments/1478/DSC05941-2_996429.jpeg/r/245/DSC05941-2_996429.jpeg"
+              },
+              {
+                "x": 400,
+                "y": 270,
+                "url": "https://s.lorientlejour.com/storage/attachments/1478/DSC05941-2_996429.jpeg/r/400/DSC05941-2_996429.jpeg"
+              },
+              {
+                "x": 800,
+                "y": 600,
+                "url": "https://s.lorientlejour.com/storage/attachments/1478/DSC05941-2_996429.jpeg/r/800/DSC05941-2_996429.jpeg"
+              },
+              {
+                "x": 1200,
+                "y": 800,
+                "url": "https://s.lorientlejour.com/storage/attachments/1478/DSC05941-2_996429.jpeg/r/1200/DSC05941-2_996429.jpeg"
+              },
+              {
+                "x": 2400,
+                "y": 1600,
+                "url": "https://s.lorientlejour.com/storage/attachments/1478/DSC05941-2_996429.jpeg/r/2400/DSC05941-2_996429.jpeg"
+              }
+            ],
+            "url_thumbnail": "https://s.lorientlejour.com/storage/attachments/1478/DSC05941-2_996429.jpeg/r/245/DSC05941-2_996429.jpeg",
+            "url_medium": "https://s.lorientlejour.com/storage/attachments/1478/DSC05941-2_996429.jpeg/r/400/DSC05941-2_996429.jpeg",
+            "url_large": "https://s.lorientlejour.com/storage/attachments/1478/DSC05941-2_996429.jpeg/r/800/DSC05941-2_996429.jpeg",
+            "url_home_slideshow": "https://s.lorientlejour.com/storage/attachments/1478/DSC05941-2_996429.jpeg/r/1200/DSC05941-2_996429.jpeg",
+            "url_highres": "https://s.lorientlejour.com/storage/attachments/1478/DSC05941-2_996429.jpeg/r/2400/DSC05941-2_996429.jpeg",
+            "type": "image"
+          }
+        ],
+        "summary": "",
+        "introduction": "",
+        "elements": [],
+        "seo": {
+          "search_title": "Chef Amani, du Akkar à Sydney, en passant par Insta",
+          "search_description": "Chef Amani, from Akkar to Sydney, through Instagram…",
+          "social_title": "Chef Amani, du Akkar à Sydney, en passant par Insta",
+          "social_description": "Chef Amani, from Akkar to Sydney, through Instagram…",
+          "social_image": ""
+        },
+        "time_to_read": 117,
+        "cached": true
+      },
+      "options": {
+        "recipe_name": "Les sfouf libanais de chef Amani Khazaal",
+        "preparation_time": 10,
+        "cooking_time": 45,
+        "persons": 6,
+        "difficulty": "Facile",
+        "astuce": "",
+        "recipe_history_title": "Sfouf, le gâteau traditionnel au curcuma et semoule",
+        "chef": 1477493,
+        "full_width_image": 1,
+        "sommaire_page": "",
+        "priority": 2,
+        "urgent": "0",
+        "articleFromCdl": "0",
+        "premium": "0",
+        "full_width_article": "0",
+        "arabic_article": "0",
+        "free": "0",
+        "hide_image": "0",
+        "elections": "0",
+        "video": "0",
+        "hide": "0"
+      },
+      "freemium": false,
+      "elements": [],
+      "seo": {
+        "search_title": "Le sfouf libanais de cheffe Amani",
+        "search_description": "Une note sucrée à partager, autour d'un thé ou d'un café. ",
+        "social_title": "Le sfouf libanais de cheffe Amani",
+        "social_description": "Une note sucrée à partager, autour d'un thé ou d'un café. ",
+        "social_image": ""
+      },
+      "time_to_read": 58,
+      "cached": true
+    }
+  ]
+}
