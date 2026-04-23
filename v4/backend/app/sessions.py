@@ -28,20 +28,26 @@ log = structlog.get_logger(__name__)
 _HTML_TAG_RE = re.compile(r"<[^>]+>", re.DOTALL)
 
 
-def _html_to_plain(html: str, max_len: int = 700) -> str:
-    """Texte lisible pour le prompt LLM (réponses assistant déjà rendues en HTML)."""
+def _html_to_plain(html: str, *, max_len: int = 4500) -> str:
+    """Texte lisible pour le prompt LLM (réponses assistant déjà rendues en HTML).
+
+    Assez long pour inclure cartes recette + relance (follow_up) en fin de tour :
+    une coupure trop agressive cassait la « mémoire » conversationnelle.
+    """
     if not html:
         return ""
     t = _HTML_TAG_RE.sub(" ", html)
     t = re.sub(r"\s+", " ", t).strip()
-    return t[:max_len]
+    if len(t) > max_len:
+        return t[: max_len - 1] + "…"
+    return t
 
 
 async def conversation_block_for_llm(
     session_id: str,
     *,
-    max_messages: int = 12,
-    max_chars: int = 3800,
+    max_messages: int = 24,
+    max_chars: int = 14000,
 ) -> str:
     """Derniers tours user/assistant (hors le message en cours), pour le grounding."""
     msgs = await get_session_messages(session_id)
@@ -53,6 +59,8 @@ async def conversation_block_for_llm(
         if role == "user":
             tx = (m.get("text") or "").strip()
             if tx:
+                if len(tx) > 4000:
+                    tx = tx[:3999] + "…"
                 lines.append(f"Utilisateur : {tx}")
         elif role == "assistant":
             tx = _html_to_plain(m.get("html") or "")

@@ -28,6 +28,50 @@ from .reranker import RerankedHit
 
 log = structlog.get_logger(__name__)
 
+def _query_for_query_analyzer(
+    user_query: str, conversation_history: str | None,
+) -> str:
+    """Attache l'historique pour les suites de conversation (encore, oui, relances…)
+    afin que la reformulation de recherche garde le fil (ingrédient, thème, réponse
+    à une question de relance comme le fattouche)."""
+    t = (user_query or "").strip()
+    h = (conversation_history or "").strip()
+    if not t or not h:
+        return t
+    if len(t) > 220:
+        return t
+    tl = t.lower()
+    words = t.split()
+    continuation = any(
+        m in tl
+        for m in (
+            "encore",
+            "une autre",
+            "un autre",
+            "autre recette",
+            "autre idée",
+            "autre suggestion",
+            "autre variante",
+            "la suite",
+            "autrement",
+            "et sinon",
+        )
+    ) or tl in (
+        "autre",
+        "encore",
+        "suggestion suivante",
+    )
+    # Réponses courtes : interprétation par rapport au dernier échange / relance
+    if not continuation and len(words) <= 10 and len(t) <= 160:
+        continuation = True
+    if not continuation:
+        return t
+    return (
+        f"{t}\n\n[Contexte de la conversation en cours — à utiliser pour reformuler "
+        f"la recherche, en particulier l'ingrédient, le thème ou le type de plat]:\n{h}"
+    )
+
+
 _STOPWORDS_FR = {
     "avec",
     "pour",
@@ -201,7 +245,9 @@ class RagPipeline:
 
         t0 = time.perf_counter()
         try:
-            plan = await self.analyzer.analyze(user_query)
+            plan = await self.analyzer.analyze(
+                _query_for_query_analyzer(user_query, conversation_history)
+            )
         except Exception as exc:  # noqa: BLE001
             log.warning("rag.pipeline.query_analyze_failed_fallback", error=str(exc))
             plan = QueryPlan(

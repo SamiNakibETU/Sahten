@@ -88,6 +88,13 @@ arabe, produis un PLAN DE RECHERCHE structuré au format JSON.
 Règles :
 - `rewritten_query` : reformulation canonique en français, sans jargon, en
   conservant TOUS les noms propres, ingrédients et plats mentionnés.
+- Si le message comporte un bloc « Contexte de la conversation en cours »,
+  c’est une **suite de fil** : mets OBLIGATOIREMENT dans `rewritten_query` le
+  même ingrédient, thème ou type de demande qu’on voit chez l’utilisateur
+  (ex. « autre recette mettant le concombre en avant » après « concombre » plus
+  haut) ; ne lâche pas l’ingrédient. Si l’utilisateur semble répondre à une **relance**
+  (fattouche, salade, variante évoquée par l’assistant), intègre-la dans la
+  reformulation. Complète `ingredient_slugs` en conséquence.
 - `intent` :
   • recipe       -> on cherche une recette précise (steps + ingrédients)
   • chef_bio     -> on s'intéresse à la personne / son parcours

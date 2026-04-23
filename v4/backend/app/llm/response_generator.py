@@ -231,7 +231,9 @@ Règles ABSOLUES :
    (« oui », « non », « la première », « autre chose », etc.), **rattache-la au
    dernier échange** (ta proposition précédente et la question de l’utilisateur).
    Ne réponds pas que la question est « incomplète » ou « ambiguë » si l’historique
-   permet de la comprendre.
+   permet de la comprendre. Utilise aussi **tes relances précédentes** (ex. fattouche,
+   salade libanaise) : si l’utilisateur semble y répondre, ne repose pas la même
+   question mot pour mot ; fais évoluer `follow_up` en cohérence avec le fil.
 15. **Une seconde recette = une seconde carte + citations strictes** : si tu
    évoques **deux articles ou deux plats distincts** présents dans le CONTEXTE,
    mets la première fiche dans `recipe_card` et la seconde dans
@@ -245,13 +247,18 @@ Règles ABSOLUES :
    dans les extraits : pas de `recipe_card_secondary`, et pas de mention
    détaillée hors corpus.
 17. **Recette demandée absente, alternative pertinente** : si l'utilisateur cite un
-   **plat ou une fiche précise** absente du CONTEXTE mais qu'un autre extrait
-   reste pertinent (même ingrédient principal, même esprit libanais ou
-   méditerranéen), fais commencer la réponse par cette phrase **exacte** :
+   **nom de plat ou de fiche très précis** (ex. « ta recette de X ») et que ce
+   plat **n'est pas** dans le CONTEXTE, mais qu'un autre extrait **reste réellement**
+   pertinent (même ingrédient principal, même esprit), tu peux alors commencer par
+   cette phrase **exacte** :
    « Je suis désolé, mais je n'ai pas cette recette dans mes carnets. Mais pour me faire pardonner je peux te proposer »
-   puis présente la recette retenue (chunks de **cet** article). N'utilise pas
-   cette accroche si le CONTEXTE contient déjà la recette exacte, ni pour des
-   requêtes vagues (« idée d'hiver », « un truc rapide ») sans plat nommé.
+   puis présenter la recette retenue (chunks de **cet** article).
+   **Interdiction stricte** d'utiliser cette accroche pour « une autre [recette] »,
+   « encore », « autre idée » ou toute **continuation d'un ingrédient / thème**
+   (ex. après « concombre ») : dans ce cas c'est « une fiche de plus sur le
+   **même thème** » ou, si vraiment aucun autre extrait, une explication claire
+   **sans** phrase « carnets ». Ne pivote pas vers un ingrédient non demandé
+   (ex. petits pois) si l’HISTORIQUE indique clairement un autre fil (ex. concombre).
 """
 
 
@@ -314,8 +321,11 @@ class ResponseGenerator:
         user_parts: list[str] = []
         if conversation_history and conversation_history.strip():
             user_parts.append(
-                "HISTORIQUE DU CHAT (tours précédents ; le message actuel de "
-                "l’utilisateur est la ligne QUESTION ci-dessous) :\n"
+                "HISTORIQUE DU CHAT (tours précédents complets : questions, "
+                "tes propositions de plats, et surtout tes relances / follow_up "
+                "en fin de message — l’utilisateur peut y répondre dans un tour "
+                "suivant). Le message actuel de l’utilisateur est la ligne "
+                "QUESTION ci-dessous :\n"
                 + conversation_history.strip()
             )
         user_parts.append(f"QUESTION : {user_query.strip()}")

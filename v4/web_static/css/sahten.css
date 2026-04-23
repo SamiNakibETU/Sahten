@@ -109,6 +109,11 @@
   transform: translateY(8px);
   transition: opacity 0.25s, transform 0.25s;
   pointer-events: none;
+  box-sizing: border-box;
+  /* Intégration site : évite débordements hors viewport (scrollbars, barres OS) */
+  max-width: min(100vw, 100%);
+  max-height: min(100vh, 100dvh);
+  overscroll-behavior: contain;
 }
 .sahten-widget-container[data-state="open"] {
   opacity: 1;
@@ -300,18 +305,26 @@
   .sahten-widget-container[data-size="mid"] {
     inset: 0;
     margin: auto;
-    width: min(50vw, 640px);
-    max-width: calc(100vw - 32px);
+    width: min(90vw, 640px);
+    max-width: calc(100vw - 24px);
     height: min(65vh, 580px);
-    max-height: calc(100vh - 32px);
+    max-height: calc(100dvh - 24px);
     border-radius: var(--radius-lg);
   }
   .sahten-widget-container[data-size="full"] {
-    inset: 0;
-    width: 100vw;
-    height: 100vh;
+    top: max(0px, env(safe-area-inset-top, 0px));
+    left: max(0px, env(safe-area-inset-left, 0px));
+    right: max(0px, env(safe-area-inset-right, 0px));
+    bottom: max(0px, env(safe-area-inset-bottom, 0px));
+    width: auto;
+    height: auto;
+    max-width: none;
+    max-height: none;
     border-radius: 0;
     border: none;
+  }
+  .sahten-widget-container[data-size="full"][data-state="open"] {
+    transform: none;
   }
   .welcome-examples--reference .welcome-examples-list {
     gap: 8px;
@@ -537,6 +550,9 @@
 }
 /* Corps bot : texte continu, léger relief typographique (pas d’encadré) */
 .sahten-narrative {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
   font-family: "Playfair Display", Georgia, "Times New Roman", serif;
   font-size: var(--welcome-body-size);
   font-weight: 400;
@@ -546,11 +562,22 @@
   letter-spacing: 0.012em;
   -webkit-font-smoothing: antialiased;
 }
-.sahten-narrative p {
-  margin-bottom: 10px;
+.sahten-narrative > p {
+  margin: 0;
 }
-.sahten-narrative p:last-child {
+.sahten-narrative p {
   margin-bottom: 0;
+}
+.sahten-narrative p.sahten-followup {
+  margin: 0;
+  padding: 0;
+  font-style: normal;
+  color: #555;
+  line-height: 1.45;
+}
+.sahten-narrative p.sahten-followup em {
+  font-style: italic;
+  color: #666;
 }
 .sahten-narrative strong {
   font-weight: 600;
@@ -561,14 +588,14 @@
 
 /* Carte recette aperçu type OLJ : vignette + bandeau marque + titre (lien unique sur toute la carte) */
 .sahten-narrative .sahten-recipe-card--preview {
-  margin-top: 0.75rem;
+  margin: 0;
   border: 1px solid rgba(0, 0, 0, 0.1);
   border-radius: 10px;
   background: #fff;
   overflow: hidden;
 }
 .sahten-narrative .sahten-recipe-card--preview + .sahten-recipe-card--preview {
-  margin-top: 0.65rem;
+  margin-top: 0;
 }
 .sahten-narrative .sahten-recipe-card__link,
 .sahten-narrative .sahten-recipe-card__nolink {
@@ -604,15 +631,9 @@
   justify-content: center;
   gap: 4px;
 }
+/* Anciennes fiches (ou HTML cache) : bandeau marque inutile dans le widget */
 .sahten-narrative .sahten-recipe-card__kicker {
-  font-family: "DM Sans", -apple-system, sans-serif;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: #8a8a8a;
-  margin: 0;
-  line-height: 1.25;
+  display: none;
 }
 .sahten-narrative .sahten-recipe-card__category {
   font-family: "DM Sans", -apple-system, sans-serif;
@@ -686,8 +707,8 @@
   text-decoration-color: rgba(28, 74, 58, 0.55);
 }
 .sahten-narrative .sahten-sources {
-  margin-top: 0.75rem;
-  padding-top: 0.5rem;
+  margin: 0;
+  padding-top: 0.35rem;
   border-top: 1px solid rgba(0, 0, 0, 0.08);
 }
 .sahten-narrative .sahten-sources h3 {

@@ -190,11 +190,6 @@ def _render_recipe(
         )
 
     parts.append('<div class="sahten-recipe-card__body">')
-    parts.append(
-        '<p class="sahten-recipe-card__kicker">'
-        "L’ORIENT-LE JOUR · SAHTEÏN"
-        "</p>"
-    )
     parts.append(f'<p class="sahten-recipe-card__category">{_escape(cat)}</p>')
     parts.append(f'<h2 class="sahten-recipe-card__title">{_escape(card.title)}</h2>')
     if card.chef:
