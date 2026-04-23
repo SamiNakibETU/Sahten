@@ -474,8 +474,10 @@ class HybridRetriever:
             if category_allowlist and d.category_canonical not in category_allowlist:
                 continue
             if must_contain_any:
-                text = (d.search_text or "").lower()
-                if not any(term in text for term in must_contain_any):
+                blob = (
+                    f"{(d.search_text or '').lower()} {(d.title or '').lower()}"
+                )
+                if not any(term in blob for term in must_contain_any):
                     continue
             candidates.append(
                 RerankCandidate(
@@ -664,6 +666,16 @@ class HybridRetriever:
             if p.course == "plat":
                 return {"plat_principal"}
             if p.course == "entree":
+                # Ingredient + « entrée » : les fiches (concombre, laban, etc.) sont souvent
+                # classées mezze_froid / salade / sauces — pas uniquement "entree".
+                if analysis.intent == "recipe_by_ingredient":
+                    return {
+                        "entree",
+                        "mezze_froid",
+                        "mezze_chaud",
+                        "salade",
+                        "sauces",
+                    }
                 return {"entree"}
             if p.course == "mezze":
                 return {"mezze_froid", "mezze_chaud"}
@@ -918,6 +930,12 @@ class HybridRetriever:
             parts_rw.append(analysis.dish_name)
         parts_rw.extend(analysis.dish_name_variants or [])
         parts_rw.extend(analysis.ingredients or [])
+        # Renforce le signal TF-IDF sur l'ingrédient (évite noyade par « entrée », contexte yaourt, etc.)
+        if analysis.intent == "recipe_by_ingredient" and analysis.ingredients:
+            ing_bits = " ".join(x.strip() for x in analysis.ingredients if x and x.strip())
+            if ing_bits:
+                parts_rw.append(ing_bits)
+                parts_rw.append(ing_bits)
         parts_rw.extend(analysis.mood_tags or [])
         # For mood-based queries: expand mood tags to culinary keywords
         if analysis.intent == "recipe_by_mood" and analysis.mood_tags:
@@ -944,7 +962,14 @@ class HybridRetriever:
         allowlist = self._allowlist_for_intent(analysis, raw_query)
         must_any = None
         if analysis.intent == "recipe_by_ingredient" and analysis.ingredients:
-            must_any = {i.lower() for i in analysis.ingredients if i}
+            must_any = set()
+            for i in analysis.ingredients:
+                if not i:
+                    continue
+                must_any.add(i.lower())
+                for eq in ingredient_normalizer.get_equivalents(i):
+                    if len(eq) >= 2:
+                        must_any.add(eq.lower())
 
         rerank_shortcircuit = False
         RERANK_SHORTCIRCUIT_LEX = 0.35
@@ -1261,6 +1286,39 @@ class HybridRetriever:
                     align_with_title=align_with_title,
                 )
                 candidates.append((doc, matched_ingredient, sc))
+
+        # 2b) Repli : titre + search_text (main_ingredients parfois incomplets dans le canonical)
+        if not candidates:
+            for doc in self.olj_docs:
+                if str(doc.url) in exclude:
+                    continue
+                if self._norm_title(doc.title) in exclude_titles_norm:
+                    continue
+                if not doc.is_recipe:
+                    continue
+                blob = f"{(doc.title or '')} {(doc.search_text or '')}".lower()
+                for q_ing in query_ingredients:
+                    if not q_ing:
+                        continue
+                    hit = False
+                    for term in ingredient_normalizer.get_equivalents(q_ing):
+                        tl = term.lower()
+                        if len(tl) >= 3 and tl in blob:
+                            hit = True
+                            break
+                    if not hit:
+                        tq = q_ing.lower()
+                        if len(tq) >= 3 and tq in blob:
+                            hit = True
+                    if hit:
+                        sc = self._score_olj_doc_for_ingredient_match(
+                            doc,
+                            q_ing,
+                            align_with_title=align_with_title,
+                        )
+                        sc -= 8.0
+                        candidates.append((doc, q_ing, sc))
+                        break
 
         if candidates:
             candidates.sort(key=lambda x: -x[2])

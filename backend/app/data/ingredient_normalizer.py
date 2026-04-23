@@ -110,8 +110,8 @@ INGREDIENT_EQUIVALENCES = [
     # Mint
     ["menthe", "mint"],
 
-    # Cucumber
-    ["concombre", "cucumber"],
+    # Cucumber (libanais : laban w khiyar, etc.)
+    ["concombre", "cucumber", "concombres", "khyar", "khiar", "khiyar", "cucumbers"],
 
     # Zucchini/Courgette
     ["courgette", "zucchini"],

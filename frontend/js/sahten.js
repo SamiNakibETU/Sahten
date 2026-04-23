@@ -620,6 +620,9 @@ export class SahtenChat {
         const div = document.createElement('div');
         div.className = 'msg msg-bot';
         div.innerHTML = sanitizeHTML(data.html);
+        // Évite le double bloc « Cette réponse vous a-t-elle aidé ? » si le HTML
+        // contenait déjà un vestige, avant d'en ajouter un côté client.
+        div.querySelectorAll('.feedback-container').forEach((el) => el.remove());
 
         if (data.request_id) {
             this.trackImpressions(div, data);

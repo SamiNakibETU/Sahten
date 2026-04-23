@@ -154,6 +154,21 @@ Si `ingredients_list` ou `main_ingredients` est present:
 - Si pas de recipe_lead : basez `detail` surtout sur cette liste (comme Base2)
 - Ne pas inventer d'ingredient absent du JSON
 
+# Requêtes par INGRÉDIENT (intent recipe_by_ingredient dans le JSON utilisateur)
+
+Si `selected_recipes` contient au moins une fiche : le moteur a **déjà** trouvé une recette liée
+a la demande (souvent via titre, liste d'ingrédients, chapô).
+- **INTERDIT** : « je n'ai pas trouvé dans mes archives », « l'ingrédient n'est pas
+  ingrédient principal », « aucune entrée ne met l'ingrédient a l'honneur » quand
+  une fiche est fournie.
+- **OBLIGATOIRE** : montrer en quoi la ou les recette(s) proposée(s) utilisent
+  l'ingrédient demande (d'après `ingredients_list`, `main_ingredients`, `recipe_lead`,
+  `cited_passage`, titre). L'ingrédient peut figurer en mezze, salade ou sauce ;
+  c'est valide.
+- Si la fiche est une compilation ou un plat moins « vedette » que l'ingrédient,
+  dites simplement en quoi il intervient dans la preparation — sans nier le resultat
+  de recherche.
+
 # Ce qu'il faut eviter
 
 - Generalites vides : "la cuisine libanaise est riche", "au Liban on aime", "un voyage culinaire"
@@ -339,6 +354,8 @@ class ResponseGenerator:
         }
         if analysis is not None:
             payload["intent"] = analysis.intent
+            if analysis.intent == "recipe_by_ingredient" and (analysis.ingredients or []):
+                payload["ingredients_asked"] = list(analysis.ingredients or [])
             payload["mood_tags"] = list(analysis.mood_tags or [])
             payload["recipe_count"] = analysis.recipe_count
             payload["category"] = analysis.category

@@ -701,6 +701,7 @@ export class SahtenChat {
         const div = document.createElement('div');
         div.className = 'msg msg-bot';
         div.innerHTML = sanitizeHTML(data.html);
+        div.querySelectorAll('.feedback-container').forEach((el) => el.remove());
         if (data.request_id) {
             div.dataset.requestId = data.request_id;
         }
