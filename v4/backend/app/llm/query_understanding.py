@@ -18,11 +18,13 @@ Sortie typée :
 
 Le LLM appelé en mode structured outputs (response_format=json_schema)
 garantit que la sortie est un JSON valide qui parse en `QueryPlan`.
+
+Avec un historique de conversation, l’analyseur reçoit HISTORIQUE + QUESTION ACTUELLE
+et infère anaphores, fil d’ingrédient et relances (pas d’heuristique regex côté pipeline).
 """
 
 from __future__ import annotations
 
-import json
 from typing import Any, Literal
 
 from openai import AsyncOpenAI
@@ -82,19 +84,24 @@ JSON_SCHEMA: dict[str, Any] = {
 SYSTEM_PROMPT = """Tu es un analyseur de requêtes pour Sahteïn, un assistant
 culinaire libanais alimenté par les articles de L'Orient-Le Jour.
 
-À partir d'une requête utilisateur en français, libanais translittéré ou
-arabe, produis un PLAN DE RECHERCHE structuré au format JSON.
+On te fournit soit un message isolé, soit le couple **HISTORIQUE** + **QUESTION ACTUELLE**.
+Lis tout l’historique (tours « Utilisateur » et « Assistant ») comme un humain
+le ferait : mêmes fils, anaphores (« une autre recette » = le même thème/ingrédient
+qu’avant), réponses courtes (oui, non, celle d’en haut) à des **relances** de
+l’assistant (ex. fattouche, tarator), ou rejet d’une suggestion pour en demander
+une autre. Ne te fie à aucun mot-clé : déduis l’intention du sens global.
 
-Règles :
-- `rewritten_query` : reformulation canonique en français, sans jargon, en
-  conservant TOUS les noms propres, ingrédients et plats mentionnés.
-- Si le message comporte un bloc « Contexte de la conversation en cours »,
-  c’est une **suite de fil** : mets OBLIGATOIREMENT dans `rewritten_query` le
-  même ingrédient, thème ou type de demande qu’on voit chez l’utilisateur
-  (ex. « autre recette mettant le concombre en avant » après « concombre » plus
-  haut) ; ne lâche pas l’ingrédient. Si l’utilisateur semble répondre à une **relance**
-  (fattouche, salade, variante évoquée par l’assistant), intègre-la dans la
-  reformulation. Complète `ingredient_slugs` en conséquence.
+Règles de sortie JSON :
+- `rewritten_query` : reformulation **autonome** en français, exploitable telle
+  quelle pour la recherche (BM25 + sémantique) : y injecte le ou les **ingrédients,
+  plats, thèmes** implicites issus de l’historique quand la question actuelle est
+  elliptique ou de continuation (ex. « autre recette au concombre » si c’était
+  le fil de la conversation, même si le mot concombre n’apparaît que plus haut).
+- `ingredient_slugs` : mêmes ingrédients, en slugs kebab-case ASCII, que tu as
+  intégrés dans la logique (pas seulement mots de la dernière phrase). Si le fil
+  est « concombre » d’après l’historique, inclut `concombre`. Ne laisse pas la
+  liste vide quand l’histoire de conversation porte clairement sur un ou des
+  ingrédients identifiables.
 - `intent` :
   • recipe       -> on cherche une recette précise (steps + ingrédients)
   • chef_bio     -> on s'intéresse à la personne / son parcours
@@ -104,20 +111,22 @@ Règles :
   • mixed        -> plusieurs intentions
 - `chef_slugs` : slugs (kebab-case, ASCII) des chefs cités. Ex.: "Kamal Mouzawak"
   -> "kamal-mouzawak". Vide si rien.
-- `ingredient_slugs` : ingrédients en slug FR canonique (kebab-case ASCII). Ex.:
-  "boulgour" -> "bourghol", "tomate" -> "tomate".
-  **Obligatoire** dès qu'un ingrédient alimentaire est nommé : « recette avec du
-  concombre », « plat avec tomates », « je cherche du yaourt » → inclure au moins
-  `concombre`, `tomate`, `yaourt` dans `ingredient_slugs` (même si la phrase est
-  floue). Ne pas laisser cette liste vide dans ce cas.
 - `category_slugs` / `keyword_slugs` : slugs si la requête évoque une rubrique
   identifiable (ex.: "cuisine", "souk-el-tayeb").
-- `focus_section_kinds` : suggère les types de sections pertinents.
-- `needs_context_after` : true si la réponse devrait inclure le contexte
-  culturel ou anecdotique en complément (ex.: "raconte-moi le taboulé").
+- `focus_section_kinds` : types de sections pertinents.
+- `needs_context_after` : true si un complément anecdotique / culturel est attendu.
 
-N'invente pas de chefs ni de plats inexistants ; pour les **ingrédients
-explicitement cités** dans la requête, remplis `ingredient_slugs` comme ci-dessus.
+N'invente pas de noms de chefs, plats ou ingrédients jamais évoqués ; mais tu peux
+**résoudre** ce qui est implicite dans l’échange (fil suivi) sans qu’on le répète
+à chaque message.
+- Dernière relance de l’assistant : si l’Assistant vient de proposer
+  explicitement un plat ou une piste (ex. « le fattouche », « une salade
+  traditionnelle ») et que la QUESTION ACTUELLE est une suite brève
+  (« une autre », « oui », etc.), mets le nom de ce plat (ou la formulation
+  la plus proche) dans `rewritten_query`, en plus de l’ingrédient / thème
+  (ex. « fattouche salade concombre » ou « recette fattouche concombre ») pour
+  que l’index trouve l’article — ne renvoie pas seulement « autre recette
+  concombre » en oubliant ce que toi l’assistant as suggéré.
 """
 
 
@@ -129,15 +138,36 @@ class QueryAnalyzer:
         self._client = AsyncOpenAI(api_key=s.openai_api_key)
         self._model = s.llm_model
 
-    async def analyze(self, user_query: str) -> QueryPlan:
+    async def analyze(
+        self,
+        user_query: str,
+        *,
+        conversation_history: str | None = None,
+        max_history_chars: int = 14_000,
+    ) -> QueryPlan:
         if not user_query or not user_query.strip():
             return QueryPlan(rewritten_query="", intent="mixed")
+        uq = user_query.strip()
+        h = (conversation_history or "").strip()
+        if h and len(h) > max_history_chars:
+            h = "…\n" + h[-max_history_chars:]
+        if h:
+            user_content = (
+                "HISTORIQUE DE CONVERSATION (tours précédents, ordre chronologique ; "
+                "l’utilisateur a déjà parlé avec l’assistant — résous les anaphores, "
+                "suis le fil, note les relances proposées par l’assistant) :\n"
+                f"{h}\n\n"
+                "QUESTION ACTUELLE (à interpréter **à la lumière** de l’historique) :\n"
+                f"{uq}"
+            )
+        else:
+            user_content = uq
         completion = await self._client.chat.completions.create(
             model=self._model,
             temperature=0.0,
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": user_query.strip()},
+                {"role": "user", "content": user_content},
             ],
             response_format={"type": "json_schema", "json_schema": JSON_SCHEMA},
         )

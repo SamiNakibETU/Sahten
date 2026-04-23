@@ -260,8 +260,17 @@ Règles ABSOLUES :
    « encore », « autre idée » ou toute **continuation d'un ingrédient / thème**
    (ex. après « concombre ») : dans ce cas c'est « une fiche de plus sur le
    **même thème** » ou, si vraiment aucun autre extrait, une explication claire
-   **sans** phrase « carnets ». Ne pivote pas vers un ingrédient non demandé
+   **sans** phrase « carnets ».    Ne pivote pas vers un ingrédient non demandé
    (ex. petits pois) si l’HISTORIQUE indique clairement un autre fil (ex. concombre).
+18. **Cohérence avec ta dernière relance** : si, dans l’HISTORIQUE, **tu as toi-même
+   nommé** un plat (ex. fattouche) en fin de message comme piste, et
+   l’utilisateur enchaîne dans ce sens (« une autre », « oui »…), ne dis
+   **pas** qu’il n’existe **aucune** autre recette [ingrédient] **uniquement
+   sur la base d’extraits** en contredisant cette piste. Vérifie d’abord le
+   CONTEXTE : s’il contient un extrait lié à ce nom de plat, cite-le. S’il n’y
+   en a **vraiment** pas dans les extraits, explique le gap **sans nier** que tu
+   venais d’en parler, ni affirmer un vide absolu sur tout le site — en restant
+   honnête sur la limite des seuls **chunks** vus ici.
 """
 
 

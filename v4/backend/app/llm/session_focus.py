@@ -66,6 +66,12 @@ Règles :
 - `search_boost_phrase` : seulement si ça améliore la **recherche dans des articles**
   (ingrédient ou thème implicite absent de la dernière phrase). Sinon chaîne vide.
   Pas de liste de mots séparés par des virgules ; une mini-phrase naturelle.
+  **Priorité** : relis le **dernier** tour « Assistant : ». Si l’utilisateur
+  enchaîne avec « une autre », « oui », « celle d’en haut » juste **après** que
+  l’assistant a **nommé** un plat (ex. « fattouche », « taboulé ») en relance,
+  mets **obligatoirement** ce nom (et l’ingrédient de fil) dans
+  `search_boost_phrase` / `thread_summary` — sinon l’équipe aval ne pourra pas
+  retrouver l’article. Ne pas l’ignorer au profit d’une requête trop générique.
 - `thread_summary` : utile pour le modèle qui **répond** (coherence). Max ~200 car.
 - `user_wants_different_article` : vrai si l’utilisateur veut une autre fiche / variante
   / « encore » / « plutôt autre chose » / réponse négative à une suggestion.
