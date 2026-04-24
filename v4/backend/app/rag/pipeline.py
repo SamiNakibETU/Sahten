@@ -60,6 +60,59 @@ def _interleave_hits_by_article(hits: list[Hit]) -> list[Hit]:
     return out
 
 
+_OBJECTION_USER = re.compile(
+    r"(?i)(n'y a|n'y en a|pas de|pas d'|ne contient|dedans|ingrédient|\?\?)",
+)
+_KNOWN_ING_RE = re.compile(
+    r"(?i)\b(concombre|tomate|tomates|yaourt|poulet|citron|menthe|persil|aubergine|courgette|halloumi|boulgour|concombres)\b",
+)
+
+
+def _merge_objection_boost(
+    user_query: str,
+    conversation_history: str | None,
+    focus: SessionFocus | None,
+) -> SessionFocus | None:
+    """Renfort déterministe si l'LLM session a raté l'objection (recherche trop large)."""
+    if not (conversation_history or "").strip():
+        return focus
+    uq = (user_query or "").strip()
+    if not _OBJECTION_USER.search(uq):
+        return focus
+    hist = conversation_history or ""
+    m = _KNOWN_ING_RE.search(hist) or _KNOWN_ING_RE.search(uq)
+    extra = (m.group(0).lower() if m else "").strip()
+    lowh = hist.lower()
+    if "fattouche" in lowh or "fattouch" in lowh:
+        extra = f"{extra} fattouche salade".strip()
+    if "taboul" in lowh:
+        extra = f"{extra} taboulé".strip()
+    if not extra:
+        return focus
+    if focus is None:
+        return SessionFocus(
+            search_boost_phrase=extra,
+            thread_summary=(
+                "[Objection] Fil ingrédient repris depuis l'historique ; "
+                "prioriser une fiche où l'ingrédient apparaît au texte."
+            ),
+            user_wants_different_article=True,
+            suggest_broaden_corpus_search=True,
+        )
+    boost = f"{(focus.search_boost_phrase or '').strip()} {extra}".strip()
+    return focus.model_copy(
+        update={
+            "search_boost_phrase": boost,
+            "suggest_broaden_corpus_search": True,
+            "user_wants_different_article": True,
+            "thread_summary": (
+                (focus.thread_summary or "").strip()
+                + " [Objection] Maintenir l'ingrédient du fil ; prioriser une fiche où il apparaît au texte."
+            )[:400],
+        }
+    )
+
+
 def _dedupe_merge_hits(primary: list[Hit], secondary: list[Hit], *, cap: int = 100) -> list[Hit]:
     """Préserve l’ordre (fusionner sans doublon de chunk) pour alimenter le reranker."""
     seen: set[int] = {h.chunk_id for h in primary}
@@ -335,6 +388,7 @@ class RagPipeline:
                     needs_context_after=False,
                 )
             focus = None
+        focus = _merge_objection_boost(user_query, conversation_history, focus)
         timings["query_understanding_ms"] = int((time.perf_counter() - t0) * 1000)
 
         t1 = time.perf_counter()

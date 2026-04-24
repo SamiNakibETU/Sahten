@@ -420,8 +420,20 @@ def render_answer_html(
             skip_sources_title_norms.add(tn)
 
     parts: list[str] = ['<div class="sahten-narrative">']
+    follow_pre = (follow_up_override if follow_up_override is not None else (answer.follow_up or "")).strip()
+    has_cards = (
+        answer.recipe_card is not None
+        or answer.recipe_card_secondary is not None
+        or answer.chef_card is not None
+    )
     if sentences_html:
         parts.append("<p>" + " ".join(sentences_html) + "</p>")
+    elif has_cards or follow_pre:
+        # Le modèle a pu filtrer les phrases (citations invalides) mais proposer
+        # encore une carte ou une relance — éviter le message d'échec générique.
+        parts.append(
+            "<p><em>Voici une piste issue des archives ; le détail est dans la fiche ci-dessous.</em></p>"
+        )
     else:
         parts.append(
             "<p><em>Je n'ai rien trouvé d'assez solide dans les archives pour vous "
@@ -477,10 +489,9 @@ def render_answer_html(
             )
         )
 
-    follow = follow_up_override if follow_up_override is not None else (answer.follow_up or "")
-    if follow.strip():
+    if follow_pre:
         parts.append(
-            f'<p class="sahten-followup"><em>{_escape(follow.strip())}</em></p>'
+            f'<p class="sahten-followup"><em>{_escape(follow_pre)}</em></p>'
         )
 
     parts.append("</div>")

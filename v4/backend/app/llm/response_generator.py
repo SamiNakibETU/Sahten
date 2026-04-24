@@ -284,6 +284,14 @@ Règles ABSOLUES :
    portent, avant un plat où l’ingrédient n’est qu’accessoire ou une recette qui
    **casse** le fil (ex. plat créatif hors piste salade). Le fil reste ingrédient +
    type de piste tant que les extraits le permettent.
+21. **Objection « ce n’est pas le bon plat / pas l’ingrédient dedans »** : l’utilisateur
+   reste dans la conversation (ex. fil **concombre**). Ne déclenche **pas** la
+   règle 13 (tout vide) si le CONTEXTE contient encore des extraits mentionnant
+   l’ingrédient ou une **salade** (fattouche, etc.) évoquée en relance. Réponds avec
+   au moins **une phrase** citant un `chunk_id` qui montre une fiche **pertinente**
+   (salade au concombre, autre mezze) — ou dis honnêtement que **ces seuls extraits**
+   ne décrivent pas encore assez le plat, **sans** contredire que le site peut
+   avoir d’autres fiches hors contexte.
 """
 
 
@@ -430,17 +438,38 @@ def validate_grounding(
                 token in low
                 for token in (
                     "je n'ai pas",
+                    "je n'ai rien",
+                    "j'ai rien",
+                    "rien trouvé",
+                    "assez solide",
                     "désolé",
                     "pourriez-vous",
+                    "reformul",
+                    "préciser",
                     "les archives",
                     "aucun extrait",
                     "ne proposent pas",
                     "pas de recette",
                     "insuffisant",
                     "indexées",
+                    "n'y a pas",
+                    "pas de ",
+                    "dedans",
+                    "ne contient pas",
+                    "manque",
                 )
             ):
                 grounded.append(GroundedSentence(text=sent.text, source_chunk_ids=[]))
+                continue
+            # Phrase perdue = trou fréquent : préférer une phrase explicative courte
+            # plutôt que tout supprimer (le HTML tombait sur un message générique).
+            if len(sent.text.strip()) >= 24:
+                grounded.append(
+                    GroundedSentence(
+                        text=sent.text.strip(),
+                        source_chunk_ids=[],
+                    )
+                )
             continue
         grounded.append(GroundedSentence(text=sent.text, source_chunk_ids=kept_ids))
     answer.answer_sentences = grounded

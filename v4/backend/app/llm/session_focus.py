@@ -85,6 +85,15 @@ Règles :
   plutôt que réinitialiser : indique dans `thread_summary` qu’il s’agit d’un
   **tour N** et qu’il faut éviter de reproposer le **même type** dominant (ex.
   enchaîner encore une sauce) ou un plat **hors piste** par rapport aux relances.
+- **Objection / correction** (« il n’y a pas de concombre dedans », « ce n’est pas
+  ce que je cherchais », « la recette précédente n’a pas X ») : l’utilisateur
+  conteste la pertinence de la **dernière fiche** mais **reste dans le fil**
+  (même ingrédient ou même relance). Mets `user_wants_different_article` à **true**,
+  remets **obligatoirement** dans `search_boost_phrase` l’ingrédient du fil (ex.
+  concombre) **et** si l’assistant a nommé un plat en relance (fattouche, taboulé),
+  inclus ce nom pour la recherche documentaire. Mets `suggest_broaden_corpus_search`
+  à **true**. Résume dans `thread_summary` que l’utilisateur exige une fiche où
+  l’ingrédient est **explicite** dans le texte (pas seulement accessoire).
 """
 
 
