@@ -129,35 +129,51 @@ nav.top {
   color: var(--nav-ink-2, #444);
 }
 
+/* Actualiser (dashboard) — même famille visuelle que .nav-aux, pas de cadre */
 .nav-act {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 5px;
   box-sizing: border-box;
-  min-height: 32px;
-  padding: 6px 14px;
-  font-family: var(--nav-ui, "DM Sans", system-ui, sans-serif);
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--nav-ink-2, #444);
-  border: 1px solid var(--nav-line, rgba(0, 0, 0, 0.08));
-  border-radius: 8px;
+  margin-left: 2px;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
   cursor: pointer;
-  background: var(--nav-white, #fff);
-  margin-left: 4px;
+  font-family: var(--nav-ui, "DM Sans", system-ui, sans-serif);
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--nav-ink-3, #999);
   flex-shrink: 0;
-  transition: border-color 0.1s, background 0.1s;
+  transition: color 0.12s, background 0.12s;
+  -webkit-tap-highlight-color: transparent;
 }
 .nav-act:hover {
-  border-color: var(--nav-ink-3, #999);
-  background: #fafafa;
+  color: var(--nav-ink-2, #444);
+  background: rgba(0, 0, 0, 0.04);
+}
+.nav-act:active {
+  background: rgba(0, 0, 0, 0.07);
+}
+.nav-act:focus-visible {
+  outline: 2px solid var(--nav-green-d, #2a6452);
+  outline-offset: 2px;
 }
 .nav-act svg {
   flex-shrink: 0;
+  opacity: 0.85;
+}
+.nav-act:hover svg {
+  opacity: 1;
+}
+.nav-act.spinning {
+  color: var(--nav-ink-2, #444);
 }
 .nav-act.spinning svg {
-  animation: nav-shell-spin 0.7s linear infinite;
+  animation: nav-shell-spin 0.65s linear infinite;
+  opacity: 1;
 }
 
 @keyframes nav-shell-spin {
