@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from .. import __version__
 from ..db.base import get_session
+from ..settings import get_settings
 
 router = APIRouter(tags=["health"])
 
@@ -23,5 +24,8 @@ async def readyz(session: AsyncSession = Depends(get_session)) -> dict:
         await session.execute(text("SELECT 1"))
         db = "ok"
     except Exception as e:  # noqa: BLE001
-        db = f"error: {e}"
+        if get_settings().app_env == "production":
+            db = "error"
+        else:
+            db = f"error: {e}"
     return {"status": "ok" if db == "ok" else "degraded", "db": db, "version": __version__}

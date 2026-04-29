@@ -25,6 +25,7 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         extra="ignore",
         case_sensitive=False,
+        populate_by_name=True,
     )
 
     app_env: Literal["local", "staging", "production"] = "local"
@@ -74,6 +75,24 @@ class Settings(BaseSettings):
     # Avant rerank : entrelace les chunks par article (évite qu’un seul article sature le haut)
     rag_prererank_interleave: bool = True
 
+    # ── Durcissement (Railway / prod : obligatoire via validate_security_at_startup)
+    admin_api_token: str = Field(
+        default="",
+        alias="SAHTEN_ADMIN_API_TOKEN",
+        description="Jeton consoles internes (header X-Sahten-Admin-Token ou Bearer).",
+    )
+    cors_origins: str = Field(
+        default="*",
+        alias="SAHTEN_CORS_ORIGINS",
+        description="Origines CORS séparées par des virgules, ou * en local uniquement.",
+    )
+    expose_openapi: bool = Field(
+        default=False,
+        alias="SAHTEN_EXPOSE_OPENAPI",
+        description="Si True, expose /docs même hors environnement local.",
+    )
+    events_max_body_bytes: int = Field(default=32768, ge=2048, le=524_288)
+
     @field_validator("log_level")
     @classmethod
     def _normalize_log_level(cls, v: str) -> str:
@@ -95,6 +114,31 @@ class Settings(BaseSettings):
             missing.append("WEBHOOK_SECRET")
         if missing:
             raise RuntimeError(f"Production: secrets manquants: {', '.join(missing)}")
+
+    def cors_allowed_origins(self) -> list[str]:
+        raw = (self.cors_origins or "").strip()
+        if raw == "*":
+            return ["*"]
+        return [o.rstrip("/") for o in raw.split(",") if o.strip()]
+
+    def validate_security_at_startup(self) -> None:
+        """Bloque le démarrage si la surface exposée est trop permissive."""
+        if self.app_env not in ("staging", "production"):
+            return
+        token = (self.admin_api_token or "").strip()
+        if len(token) < 16:
+            raise RuntimeError(
+                "SAHTEN_ADMIN_API_TOKEN doit faire au moins 16 caractères "
+                "quand APP_ENV est staging ou production."
+            )
+        if self.cors_allowed_origins() == ["*"]:
+            raise RuntimeError(
+                "SAHTEN_CORS_ORIGINS ne doit pas être * en staging/production : "
+                "lister les origines (ex. https://www.lorientlejour.com,https://sahten.up.railway.app)."
+            )
+
+    def should_expose_openapi(self) -> bool:
+        return self.app_env == "local" or self.expose_openapi
 
 
 @lru_cache(maxsize=1)

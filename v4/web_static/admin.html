@@ -137,7 +137,7 @@
       <a class="nav-link" href="/dashboard">Analytics</a>
     </div>
     <div class="nav-sep nav-sep--compact" aria-hidden="true"></div>
-    <a class="nav-aux" href="/api/health/deep" target="_blank" rel="noopener">Santé</a>
+    <a class="nav-aux" href="/readyz" target="_blank" rel="noopener">Santé</a>
     <a class="nav-aux" href="/docs" target="_blank" rel="noopener">API</a>
     <button type="button" class="nav-act" onclick="location.reload()" title="Recharger la page" aria-label="Recharger la page">
       <svg class="nav-act-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -196,6 +196,7 @@
     </div>
   </div>
 
+  <script src="/js/admin-api.js"></script>
   <script>
     const state = { limit: 25, offset: 0, search: '' };
 
@@ -209,7 +210,7 @@
 
     async function loadStats() {
       try {
-        const r = await fetch('/api/admin/stats');
+        const r = await sahtenAdmin.fetch('/api/admin/stats');
         const data = await r.json();
         const c = data.counts || {};
         document.getElementById('s-articles').textContent = (c.articles ?? 0).toLocaleString('fr-FR');
@@ -236,7 +237,7 @@
       url.searchParams.set('offset', state.offset);
       if (state.search) url.searchParams.set('search', state.search);
       try {
-        const r = await fetch(url);
+        const r = await sahtenAdmin.fetch(url);
         const data = await r.json();
         document.getElementById('totals').textContent = `${data.total.toLocaleString('fr-FR')} article(s)`;
         const items = data.items || [];
@@ -283,7 +284,7 @@
       title.textContent = 'Chargement…'; meta.textContent = ''; summary.innerHTML = ''; chunks.innerHTML = '';
       modal.classList.add('open');
       try {
-        const r = await fetch(`/api/admin/articles/${id}`);
+        const r = await sahtenAdmin.fetch(`/api/admin/articles/${id}`);
         const a = await r.json();
         title.textContent = a.title;
         meta.innerHTML = `

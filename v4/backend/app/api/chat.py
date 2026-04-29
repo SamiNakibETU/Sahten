@@ -12,7 +12,7 @@ import time
 import uuid
 
 import structlog
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field
 
 # Aligné sur les usages réels (recettes collées, contexte long) — au-delà, 422 côté validation.
@@ -21,6 +21,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from .. import analytics_store, sessions
 from ..db.base import get_session
+from ..limiter_support import limiter
 from ..rag.html_renderer import render_answer_html
 from ..rag.pipeline import RagPipeline
 from ..settings import get_settings
@@ -98,7 +99,9 @@ def _new_request_id() -> str:
     response_model=ChatResponse,
     dependencies=[Depends(_require_production_secrets)],
 )
+@limiter.limit("45/minute")
 async def chat(
+    request: Request,
     payload: ChatRequest,
     session: AsyncSession = Depends(get_session),
     pipeline: RagPipeline = Depends(get_pipeline),

@@ -6,14 +6,16 @@ import json
 from typing import Any
 
 import structlog
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .. import __version__, analytics_store
 from .. import sessions as sessions_store
+from ..auth_deps import require_admin_token
 from ..db.base import get_session
+from ..limiter_support import limiter
 from ..settings import get_settings
 
 log = structlog.get_logger(__name__)
@@ -33,9 +35,13 @@ def models() -> dict[str, Any]:
 
 
 @router.post("/events")
+@limiter.limit("120/minute")
 async def events_post(request: Request) -> dict[str, str]:
+    max_b = get_settings().events_max_body_bytes
     try:
         raw = await request.body()
+        if len(raw) > max_b:
+            raise HTTPException(status_code=413, detail="Corps de requête trop volumineux.")
         data = json.loads(raw.decode("utf-8")) if raw else {}
     except (json.JSONDecodeError, UnicodeDecodeError):
         data = {}
@@ -92,7 +98,8 @@ class FeedbackPayload(BaseModel):
 
 
 @router.post("/feedback")
-async def feedback(p: FeedbackPayload) -> dict[str, str]:
+@limiter.limit("60/minute")
+async def feedback(request: Request, p: FeedbackPayload) -> dict[str, str]:
     note = (p.reason or p.comment or "").strip()
     await analytics_store.record_feedback_rating(
         request_id=p.request_id,
@@ -109,22 +116,22 @@ async def feedback(p: FeedbackPayload) -> dict[str, str]:
     return {"status": "ok"}
 
 
-@router.get("/traces")
+@router.get("/traces", dependencies=[Depends(require_admin_token)])
 async def traces(limit: int = Query(default=100, ge=1, le=500)) -> dict[str, Any]:
     return await analytics_store.get_traces(limit)
 
 
-@router.get("/feedback/stats")
+@router.get("/feedback/stats", dependencies=[Depends(require_admin_token)])
 async def feedback_stats() -> dict[str, Any]:
     return await analytics_store.get_feedback_stats()
 
 
-@router.get("/analytics")
+@router.get("/analytics", dependencies=[Depends(require_admin_token)])
 async def analytics() -> dict[str, Any]:
     return await analytics_store.get_analytics()
 
 
-@router.get("/health/deep")
+@router.get("/health/deep", dependencies=[Depends(require_admin_token)])
 async def health_deep(session: AsyncSession = Depends(get_session)) -> dict[str, Any]:
     s = get_settings()
     out: dict[str, Any] = {"version": __version__, "env": s.app_env}

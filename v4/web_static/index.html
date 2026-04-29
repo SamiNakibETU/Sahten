@@ -306,7 +306,7 @@
         <a class="nav-link" href="/dashboard">Analytics</a>
       </div>
       <div class="nav-sep nav-sep--compact" aria-hidden="true"></div>
-      <a class="nav-aux" href="/api/health/deep" target="_blank" rel="noopener">Santé</a>
+      <a class="nav-aux" href="/readyz" target="_blank" rel="noopener">Santé</a>
       <a class="nav-aux" href="/docs" target="_blank" rel="noopener">API</a>
       <button type="button" class="nav-act" onclick="location.reload()" title="Recharger la page" aria-label="Recharger la page">
         <svg class="nav-act-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -350,7 +350,7 @@
             <span class="fl-desc">Version intégration site, sans sélecteur</span>
             <span class="fl-arrow">→</span>
           </a>
-          <a class="feature-link" href="/api/health/deep" target="_blank">
+          <a class="feature-link" href="/readyz" target="_blank">
             <span class="fl-name">Santé système</span>
             <span class="fl-desc">Redis, OpenAI, retriever et corpus</span>
             <span class="fl-arrow">→</span>
@@ -454,9 +454,8 @@
           <option value="llama-3.3-70b-versatile">Llama 3.3 70B versatile</option>
         </optgroup>
       </select>
-      <a href="/api/traces"      target="_blank" style="color:var(--green);font-size:12px">Traces →</a>
-      <a href="/api/health/deep" target="_blank" style="color:var(--green);font-size:12px">Health →</a>
-      <a href="/dashboard"       target="_blank" style="color:var(--green);font-size:12px">Dashboard →</a>
+      <a href="/dashboard" target="_blank" style="color:var(--green);font-size:12px">Analytics →</a>
+      <a href="/readyz" target="_blank" style="color:var(--green);font-size:12px">Health →</a>
       <a href="/" style="color:#555;font-size:12px;margin-left:auto">Quitter dev ×</a>
     </div>
 

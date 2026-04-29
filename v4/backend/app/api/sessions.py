@@ -2,11 +2,16 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 
+from ..auth_deps import require_admin_token
 from .. import sessions as sessions_store
 
-router = APIRouter(prefix="/api/sessions", tags=["sessions"])
+router = APIRouter(
+    prefix="/api/sessions",
+    tags=["sessions"],
+    dependencies=[Depends(require_admin_token)],
+)
 
 
 @router.get("")

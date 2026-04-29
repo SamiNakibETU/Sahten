@@ -209,7 +209,7 @@
     <a class="nav-link on" href="/dashboard">Analytics</a>
   </div>
   <div class="nav-sep nav-sep--compact" aria-hidden="true"></div>
-  <a class="nav-aux" href="/api/health/deep" target="_blank" rel="noopener">Santé</a>
+  <a class="nav-aux" href="/readyz" target="_blank" rel="noopener">Santé</a>
   <a class="nav-aux" href="/docs" target="_blank" rel="noopener">API</a>
   <button type="button" class="nav-act" id="refresh-btn" onclick="refreshAll()" title="Actualiser les données" aria-label="Actualiser les données du tableau de bord">
     <svg class="nav-act-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -326,6 +326,7 @@
   <p class="foot" id="last-update"></p>
 </div>
 
+<script src="/js/admin-api.js"></script>
 <script>
 const API = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
   ? 'http://127.0.0.1:8000/api' : '/api';
@@ -417,7 +418,7 @@ function buildCharts(traces, pos, neg) {
 async function loadTraces() {
   const el = document.getElementById('traces-container');
   try {
-    const r = await fetch(`${API}/traces?limit=100`);
+    const r = await sahtenAdmin.fetch(`${API}/traces?limit=100`);
     const d = await r.json().catch(()=>({}));
     const traces = Array.isArray(d.traces) ? d.traces : [];
     const count  = d.count ?? traces.length;
@@ -458,7 +459,7 @@ async function loadTraces() {
 async function loadFeedback() {
   const el = document.getElementById('feedback-container');
   try {
-    const r = await fetch(`${API}/feedback/stats`);
+    const r = await sahtenAdmin.fetch(`${API}/feedback/stats`);
     const d = await r.json().catch(()=>({}));
     if (['no_redis','redis_unreachable','error'].includes(d.status)) {
       el.innerHTML = '<div class="empty">Feedback indisponible — Redis requis.</div>';
@@ -484,7 +485,7 @@ async function loadAnalytics() {
   const el = document.getElementById('top-recipes-container');
   const redisB = document.getElementById('redis-banner');
   try {
-    const r = await fetch(`${API}/analytics`);
+    const r = await sahtenAdmin.fetch(`${API}/analytics`);
     const d = await r.json().catch(()=>({}));
     if (!r.ok || (d.status && d.status !== 'ok')) {
       redisB.style.display='block';

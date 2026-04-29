@@ -1,13 +1,6 @@
 """GET /api/admin/* — navigation read-only de la base RAG.
 
-But : permettre aux relecteurs OLJ et aux ops de voir d'un coup d'œil
-- combien d'articles sont ingérés,
-- quels chefs / catégories / mots-clés sont indexés,
-- le détail d'un article (sections + chunks + couverture embedding).
-
-Aucune mutation ici. Pas d'auth pour l'instant : à protéger via reverse-proxy
-ou ajout d'un middleware basé sur `WEBHOOK_SECRET` côté Railway si on
-expose publiquement.
+Protégé par `SAHTEN_ADMIN_API_TOKEN` (header X-Sahten-Admin-Token) hors local.
 """
 
 from __future__ import annotations
@@ -18,6 +11,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from ..auth_deps import require_admin_token
 from ..db.base import get_session
 from ..llm.query_understanding import QueryAnalyzer, QueryPlan
 from ..rag.embeddings import OpenAIEmbeddings
@@ -34,7 +28,11 @@ from ..db.models import (
 )
 from ..ingestion.mapper import _html_to_text
 
-router = APIRouter(prefix="/api/admin", tags=["admin"])
+router = APIRouter(
+    prefix="/api/admin",
+    tags=["admin"],
+    dependencies=[Depends(require_admin_token)],
+)
 
 
 @router.get("/stats")
