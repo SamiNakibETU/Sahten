@@ -107,6 +107,11 @@ async def _get_redis() -> Any | None:
         return None
 
 
+async def redis_client() -> Any | None:
+    """Accès Redis partagé (sessions + analytics)."""
+    return await _get_redis()
+
+
 async def record_turn(
     session_id: str,
     *,
@@ -246,6 +251,7 @@ async def healthcheck() -> dict[str, Any]:
 
 
 __all__ = [
+    "redis_client",
     "record_turn",
     "list_sessions",
     "get_session_messages",

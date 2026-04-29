@@ -1,25 +1,18 @@
-"""Endpoints utilitaires consommés par le widget v3 :
-- GET  /api/models       — liste statique des modèles disponibles
-- POST /api/events       — tracking impressions/clics (no-op log)
-- POST /api/feedback     — feedback 👍/👎 (no-op log)
-- GET  /api/traces       — compat dashboard (stub v4, pas d’agrégation Redis type MVP)
-- GET  /api/analytics    — idem
-- GET  /api/feedback/stats — idem
-- GET  /api/health/deep  — santé approfondie (DB, Redis, secrets)
-"""
+"""Endpoints utilitaires : modèles, events, feedback, analytics, santé."""
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+import json
 from typing import Any
 
 import structlog
-from fastapi import APIRouter, Depends, Query
-from pydantic import BaseModel
+from fastapi import APIRouter, Depends, Query, Request
+from pydantic import BaseModel, ConfigDict
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .. import __version__, sessions as sessions_store
+from .. import __version__, analytics_store
+from .. import sessions as sessions_store
 from ..db.base import get_session
 from ..settings import get_settings
 
@@ -39,86 +32,96 @@ def models() -> dict[str, Any]:
     }
 
 
-class EventPayload(BaseModel):
-    session_id: str | None = None
-    request_id: str | None = None
-    event: str | None = None
-    payload: dict[str, Any] | None = None
-
-
 @router.post("/events")
-async def events(p: EventPayload) -> dict[str, str]:
-    log.info(
-        "ui.event",
-        session_id=p.session_id,
-        request_id=p.request_id,
-        event=p.event,
-        payload=p.payload,
-    )
+async def events_post(request: Request) -> dict[str, str]:
+    try:
+        raw = await request.body()
+        data = json.loads(raw.decode("utf-8")) if raw else {}
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        data = {}
+
+    et = (data.get("event_type") or data.get("event") or "").strip().lower()
+    session_id = data.get("session_id")
+    request_id = data.get("request_id")
+    recipe_url = data.get("recipe_url")
+    recipe_title = data.get("recipe_title")
+    intent = data.get("intent")
+    model_used = data.get("model_used")
+
+    if et in ("impression", "click"):
+        await analytics_store.record_widget_event(
+            event_type=et,
+            session_id=session_id,
+            request_id=request_id,
+            recipe_url=recipe_url,
+            recipe_title=recipe_title,
+            intent=intent,
+            model_used=model_used,
+        )
+    elif et == "feedback":
+        rating = (data.get("rating") or "").lower() or "negative"
+        reason = data.get("reason") or data.get("comment")
+        await analytics_store.record_feedback_rating(
+            request_id=request_id,
+            session_id=session_id,
+            rating=rating,
+            reason=str(reason)[:500] if reason else None,
+        )
+    else:
+        log.info(
+            "ui.event.ignored",
+            event=et,
+            session_id=session_id,
+            request_id=request_id,
+            extra_keys=list(data.keys()),
+        )
+        return {"status": "ignored"}
+
+    log.info("ui.event", event_type=et, session_id=session_id, request_id=request_id)
     return {"status": "ok"}
 
 
 class FeedbackPayload(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
     session_id: str | None = None
     request_id: str | None = None
     rating: str | None = None
+    reason: str | None = None
     comment: str | None = None
 
 
 @router.post("/feedback")
 async def feedback(p: FeedbackPayload) -> dict[str, str]:
+    note = (p.reason or p.comment or "").strip()
+    await analytics_store.record_feedback_rating(
+        request_id=p.request_id,
+        session_id=p.session_id,
+        rating=(p.rating or "").lower() or "negative",
+        reason=note[:500] if note else None,
+    )
     log.info(
         "ui.feedback",
         session_id=p.session_id,
         request_id=p.request_id,
         rating=p.rating,
-        comment=(p.comment or "")[:280],
     )
     return {"status": "ok"}
 
 
 @router.get("/traces")
 async def traces(limit: int = Query(default=100, ge=1, le=500)) -> dict[str, Any]:
-    """Compat `/dashboard` : le MVP agrège les traces dans Redis (Upstash REST)."""
-    return {"traces": [], "count": 0, "dashboard_mode": "stub"}
+    return await analytics_store.get_traces(limit)
 
 
 @router.get("/feedback/stats")
 async def feedback_stats() -> dict[str, Any]:
-    return {
-        "positive": 0,
-        "negative": 0,
-        "positive_rate": 0,
-        "recent_negative_reasons": [],
-        "dashboard_mode": "stub",
-    }
+    return await analytics_store.get_feedback_stats()
 
 
 @router.get("/analytics")
 async def analytics() -> dict[str, Any]:
-    """Même forme que l’ancien `/api/analytics` pour le dashboard statique ; compteurs à 0."""
-    now = datetime.now(timezone.utc).isoformat()
-    return {
-        "status": "ok",
-        "dashboard_mode": "stub",
-        "timestamp": now,
-        "conversations": {"total": 0, "recent_traces": 0},
-        "events": {"impressions": 0, "clicks": 0, "feedback": 0},
-        "rates": {"ctr": 0, "satisfaction": 0, "fallback_rate": 0},
-        "fallback": {"total_requests": 0, "base2_count": 0},
-        "feedback": {"positive": 0, "negative": 0, "total": 0},
-        "models": {},
-        "intents": {},
-        "top_recipes": [],
-        "quality": {
-            "exact_match_count": 0,
-            "proven_alternative_count": 0,
-            "recipe_not_found_count": 0,
-            "safety_block_count": 0,
-        },
-        "response_types": {},
-        "routing": {},
-    }
+    return await analytics_store.get_analytics()
 
 
 @router.get("/health/deep")

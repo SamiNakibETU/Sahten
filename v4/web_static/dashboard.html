@@ -71,11 +71,6 @@
       font-size: 12px; color: #6a4a10;
     }
     .banner code { font-family: var(--mono); font-size: 11px; }
-    .banner--stub {
-      background: #f4f6f9;
-      border-color: #d4dbe3;
-      color: #3d4f5f;
-    }
 
     /* ── KPI row ──────────────────────────────────────────────────── */
     .kpi-row {
@@ -225,6 +220,7 @@
     </svg>
     <span>Actualiser</span>
   </button>
+  <a class="nav-atable" href="/?dev=1">Mode Dev</a>
 </nav>
 
 <div class="page">
@@ -238,10 +234,7 @@
   </div>
 
   <div class="banner" id="redis-banner" style="display:none">
-    Redis / agrégation non disponible pour ce déploiement (ancienne stack MVP : Upstash REST).
-  </div>
-  <div class="banner banner--stub" id="v4-stub-banner" style="display:none">
-    <strong>Aperçu.</strong> Les graphiques et totaux de cette page ne sont pas encore alimentés en v4 — ce n’est pas un bug du navigateur. Le chat Sahteïn et les retours utilisateurs restent opérationnels.
+    Analytics : configurez <code>REDIS_URL</code> sur Railway (même instance que les sessions) pour agréger traces, clics et impressions. Sans Redis, seules les métriques en base admin restent disponibles.
   </div>
 
   <!-- KPIs -->
@@ -430,10 +423,6 @@ async function loadTraces() {
     const count  = d.count ?? traces.length;
     document.getElementById('kpi-conv').textContent = count;
     document.getElementById('count-conv').textContent = count;
-    if (d.dashboard_mode === 'stub' && traces.length === 0) {
-      el.innerHTML = '<div class="empty">Pas encore de traces agrégées en v4 pour ce tableau de bord.</div>';
-      return traces;
-    }
     if (!r.ok || traces.length===0) {
       el.innerHTML = `<div class="empty">${traces.length===0 ? 'Aucune conversation enregistrée.' : 'Traces indisponibles.'}</div>`;
       return traces;
@@ -493,23 +482,16 @@ async function loadFeedback() {
 
 async function loadAnalytics() {
   const el = document.getElementById('top-recipes-container');
-  const stubB = document.getElementById('v4-stub-banner');
   const redisB = document.getElementById('redis-banner');
   try {
     const r = await fetch(`${API}/analytics`);
     const d = await r.json().catch(()=>({}));
-    if (d.dashboard_mode === 'stub') {
-      stubB.style.display = 'block';
-      redisB.style.display = 'none';
-    } else {
-      stubB.style.display = 'none';
-    }
-    if (d.status && d.status!=='ok') {
-      stubB.style.display = 'none';
+    if (!r.ok || (d.status && d.status !== 'ok')) {
       redisB.style.display='block';
       el.innerHTML='<div class="empty">Analytics non disponibles (agrégation non configurée).</div>';
       return;
     }
+    redisB.style.display = 'none';
     document.getElementById('kpi-imp').textContent      = d.events?.impressions??'—';
     document.getElementById('kpi-clicks').textContent   = d.events?.clicks??'—';
     document.getElementById('kpi-fallback').textContent = d.rates?.fallback_rate?d.rates.fallback_rate+'%':'—';
@@ -521,6 +503,7 @@ async function loadAnalytics() {
           <td style="font-family:var(--mono);font-weight:500">${r.clicks}</td></tr>`).join('')}</tbody></table>`
       : '<div class="empty">Aucun click enregistré.</div>';
   } catch(e) {
+    redisB.style.display = 'none';
     el.innerHTML = `<div class="err">${esc(e.message)}</div>`;
   }
 }

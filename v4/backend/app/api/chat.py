@@ -19,7 +19,7 @@ from pydantic import BaseModel, ConfigDict, Field
 CHAT_INPUT_MAX_LEN = 12_000
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .. import sessions
+from .. import analytics_store, sessions
 from ..db.base import get_session
 from ..rag.html_renderer import render_answer_html
 from ..rag.pipeline import RagPipeline
@@ -173,6 +173,22 @@ async def chat(
         )
     except Exception as exc:  # noqa: BLE001
         log.warning("chat.record_turn_failed", error=str(exc))
+
+    try:
+        await analytics_store.record_chat_trace(
+            request_id=request_id,
+            session_id=sid,
+            user_message=text,
+            response_html=html_str,
+            intent=result.plan.intent,
+            confidence=result.answer.confidence,
+            recipe_count=len(sources),
+            model_used=model_used,
+            timings_ms=result.timings_ms,
+            is_base2_fallback=False,
+        )
+    except Exception as exc:  # noqa: BLE001
+        log.warning("chat.analytics_trace_failed", error=str(exc))
 
     return ChatResponse(
         html=html_str,

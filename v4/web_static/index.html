@@ -48,18 +48,7 @@
         flex-direction: column;
       }
 
-      /* ─── Nav (styles barre dans /css/nav-shell.css) ─────────────── */
-      .nav-atable {
-        display: flex; align-items: center;
-        font-size: 12px; font-weight: 500;
-        color: var(--ink-muted);
-        border: 1px solid var(--border);
-        padding: 3px 9px; border-radius: 5px;
-        text-decoration: none; margin-left: 10px;
-        white-space: nowrap; transition: border-color 0.1s, color 0.1s;
-      }
-      .nav-atable:hover { border-color: rgba(0,0,0,0.18); color: var(--ink); }
-
+      /* ─── Nav (voir /css/nav-shell.css) ────────────────────────── */
       /* ─── Layout ────────────────────────────────────────────────── */
       .main {
         flex: 1;
@@ -288,7 +277,6 @@
         .panel-right { min-height: 560px; border-left: none; }
         .panel-right .sahten-widget-container { height: 560px !important; }
         .feature-grid { grid-template-columns: 1fr 1fr; }
-        .nav-atable { display: none; }
       }
       @media (max-width: 480px) {
         .feature-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
@@ -320,6 +308,15 @@
       <div class="nav-sep nav-sep--compact" aria-hidden="true"></div>
       <a class="nav-aux" href="/api/health/deep" target="_blank" rel="noopener">Santé</a>
       <a class="nav-aux" href="/docs" target="_blank" rel="noopener">API</a>
+      <button type="button" class="nav-act" onclick="location.reload()" title="Recharger la page" aria-label="Recharger la page">
+        <svg class="nav-act-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+          <path d="M21 3v5h-5"/>
+          <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+          <path d="M8 16H3v5"/>
+        </svg>
+        <span>Actualiser</span>
+      </button>
       <a class="nav-atable" href="/?dev=1">Mode Dev</a>
     </nav>
 
