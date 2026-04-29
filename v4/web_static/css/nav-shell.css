@@ -161,11 +161,18 @@ nav.top {
   outline: 2px solid var(--nav-green-d, #2a6452);
   outline-offset: 2px;
 }
-.nav-act svg {
+.nav-act svg,
+.nav-act-icon {
+  display: block;
+  width: 15px;
+  height: 15px;
   flex-shrink: 0;
-  opacity: 0.85;
+  overflow: visible;
+  shape-rendering: geometricPrecision;
+  opacity: 0.88;
 }
-.nav-act:hover svg {
+.nav-act:hover svg,
+.nav-act:hover .nav-act-icon {
   opacity: 1;
 }
 .nav-act.spinning {

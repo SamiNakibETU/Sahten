@@ -71,6 +71,11 @@
       font-size: 12px; color: #6a4a10;
     }
     .banner code { font-family: var(--mono); font-size: 11px; }
+    .banner--stub {
+      background: #f4f6f9;
+      border-color: #d4dbe3;
+      color: #3d4f5f;
+    }
 
     /* ── KPI row ──────────────────────────────────────────────────── */
     .kpi-row {
@@ -212,9 +217,11 @@
   <a class="nav-aux" href="/api/health/deep" target="_blank" rel="noopener">Santé</a>
   <a class="nav-aux" href="/docs" target="_blank" rel="noopener">API</a>
   <button type="button" class="nav-act" id="refresh-btn" onclick="refreshAll()" title="Actualiser les données" aria-label="Actualiser les données du tableau de bord">
-    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true">
-      <polyline points="1 4 1 10 7 10"/><polyline points="15 12 15 6 9 6"/>
-      <path d="M15 6A7 7 0 1 0 13.7 13.3"/>
+    <svg class="nav-act-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+      <path d="M21 3v5h-5"/>
+      <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+      <path d="M8 16H3v5"/>
     </svg>
     <span>Actualiser</span>
   </button>
@@ -233,9 +240,8 @@
   <div class="banner" id="redis-banner" style="display:none">
     Redis / agrégation non disponible pour ce déploiement (ancienne stack MVP : Upstash REST).
   </div>
-  <div class="banner" id="v4-stub-banner" style="display:none">
-    <strong>Dashboard v4 :</strong> les graphiques et KPI agrégés ne sont pas encore branchés (pas de magasin type Redis du MVP sur ces routes).
-    Les événements <code>POST /api/events</code> et <code>POST /api/feedback</code> sont pour l’instant surtout dans les logs structurés.
+  <div class="banner banner--stub" id="v4-stub-banner" style="display:none">
+    <strong>Aperçu.</strong> Les graphiques et totaux de cette page ne sont pas encore alimentés en v4 — ce n’est pas un bug du navigateur. Le chat Sahteïn et les retours utilisateurs restent opérationnels.
   </div>
 
   <!-- KPIs -->
