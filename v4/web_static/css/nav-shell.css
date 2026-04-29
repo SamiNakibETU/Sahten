@@ -1,0 +1,180 @@
+/**
+ * Barre principale Sahteïn — partagée (Démo, Widget, Admin, Historique, Analytics).
+ */
+:root {
+  --nav-line: rgba(0, 0, 0, 0.08);
+  --nav-ink: #111111;
+  --nav-ink-2: #444444;
+  --nav-ink-3: #999999;
+  --nav-white: #ffffff;
+  --nav-green-d: #2a6452;
+  --nav-ui: "DM Sans", system-ui, sans-serif;
+  --nav-serif: "Playfair Display", Georgia, serif;
+}
+
+nav.top {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  min-height: 44px;
+  height: 44px;
+  box-sizing: border-box;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--nav-line, rgba(0, 0, 0, 0.08));
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  flex-shrink: 0;
+  color: var(--nav-ink, #111);
+}
+.nav-brand img {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+.nav-brand span {
+  font-family: var(--nav-serif, "Playfair Display", Georgia, serif);
+  font-size: 13px;
+  font-weight: 600;
+  font-style: italic;
+  color: var(--nav-ink, #111);
+  letter-spacing: -0.02em;
+}
+
+.nav-sep {
+  width: 1px;
+  height: 14px;
+  background: var(--nav-line, rgba(0, 0, 0, 0.08));
+  flex-shrink: 0;
+}
+.nav-sep--compact {
+  height: 12px;
+  margin: 0 2px;
+  opacity: 0.85;
+}
+
+.nav-olj img {
+  height: 20px;
+  width: auto;
+  opacity: 0.45;
+  display: block;
+  transition: opacity 0.15s;
+}
+.nav-olj:hover img {
+  opacity: 0.7;
+}
+.nav-olj {
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.nav-space {
+  flex: 1;
+  min-width: 8px;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  flex-shrink: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.nav-links::-webkit-scrollbar {
+  display: none;
+}
+
+.nav-link {
+  font-family: var(--nav-ui, "DM Sans", system-ui, sans-serif);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--nav-ink-3, #999);
+  text-decoration: none;
+  padding: 6px 8px;
+  white-space: nowrap;
+  transition: color 0.1s;
+}
+.nav-link:hover {
+  color: var(--nav-ink, #111);
+}
+.nav-link.on {
+  color: var(--nav-ink, #111);
+  font-weight: 600;
+}
+
+.nav-aux {
+  font-family: var(--nav-ui, "DM Sans", system-ui, sans-serif);
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--nav-ink-3, #999);
+  text-decoration: none;
+  padding: 6px 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.nav-aux:hover {
+  color: var(--nav-ink-2, #444);
+}
+
+.nav-act {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-sizing: border-box;
+  min-height: 32px;
+  padding: 6px 14px;
+  font-family: var(--nav-ui, "DM Sans", system-ui, sans-serif);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--nav-ink-2, #444);
+  border: 1px solid var(--nav-line, rgba(0, 0, 0, 0.08));
+  border-radius: 8px;
+  cursor: pointer;
+  background: var(--nav-white, #fff);
+  margin-left: 4px;
+  flex-shrink: 0;
+  transition: border-color 0.1s, background 0.1s;
+}
+.nav-act:hover {
+  border-color: var(--nav-ink-3, #999);
+  background: #fafafa;
+}
+.nav-act svg {
+  flex-shrink: 0;
+}
+.nav-act.spinning svg {
+  animation: nav-shell-spin 0.7s linear infinite;
+}
+
+@keyframes nav-shell-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Alias pour pages qui utilisaient .active (index) */
+.nav-link.active {
+  color: var(--nav-ink, #111);
+  font-weight: 600;
+}
+
+@media (max-width: 600px) {
+  nav.top {
+    padding: 0 12px;
+    gap: 6px;
+  }
+}

@@ -9,6 +9,7 @@
     href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,400&family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap"
     rel="stylesheet"
   />
+  <link rel="stylesheet" href="/css/nav-shell.css" />
   <style>
     :root {
       --green: #94c2ae;
@@ -25,20 +26,6 @@
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: var(--ui); font-size: 14px; background: var(--bg); color: var(--ink); }
-    nav.top {
-      position: sticky; top: 0; z-index: 20; height: 48px;
-      background: rgba(255,255,255,0.94); backdrop-filter: blur(20px);
-      border-bottom: 1px solid var(--line);
-      display: flex; align-items: center; padding: 0 24px; gap: 16px;
-    }
-    nav.top .brand {
-      font-family: var(--serif); font-style: italic;
-      font-size: 15px; font-weight: 600; color: var(--ink); text-decoration: none;
-    }
-    nav.top a { color: var(--ink-2); text-decoration: none; font-size: 13px; }
-    nav.top a:hover { color: var(--ink); }
-    nav.top a.active { color: var(--green-d); font-weight: 600; }
-    nav.top .spacer { flex: 1; }
 
     .page { max-width: 1280px; margin: 0 auto; padding: 24px 32px 80px; }
     h1 { font-family: var(--serif); font-style: italic; font-size: 26px; margin-bottom: 16px; }
@@ -132,14 +119,26 @@
   </style>
 </head>
 <body>
-  <nav class="top">
-    <a href="/" class="brand">Sahteïn</a>
-    <a href="/">Chatbot</a>
-    <a href="/admin" class="active">Admin DB</a>
-    <a href="/history">Historique</a>
-    <span class="spacer"></span>
-    <a href="/api/health/deep" target="_blank">Health</a>
-    <a href="/docs" target="_blank">API Docs</a>
+  <nav class="top" aria-label="Navigation">
+    <a class="nav-brand" href="/">
+      <img src="assets/v7_logo_sahten.svg" alt="" width="18" height="18" decoding="async" />
+      <span>Sahteïn</span>
+    </a>
+    <div class="nav-sep" aria-hidden="true"></div>
+    <a class="nav-olj" href="https://www.lorientlejour.com/cuisine-liban-a-table" target="_blank" rel="noopener" title="L'Orient-Le Jour">
+      <img src="assets/logo_olj.svg?v=3" alt="L'Orient-Le Jour" />
+    </a>
+    <div class="nav-space"></div>
+    <div class="nav-links">
+      <a class="nav-link" href="/">Démo</a>
+      <a class="nav-link" href="/widget">Sahteïn</a>
+      <a class="nav-link on" href="/admin">Admin</a>
+      <a class="nav-link" href="/history">Historique</a>
+      <a class="nav-link" href="/dashboard">Analytics</a>
+    </div>
+    <div class="nav-sep nav-sep--compact" aria-hidden="true"></div>
+    <a class="nav-aux" href="/api/health/deep" target="_blank" rel="noopener">Santé</a>
+    <a class="nav-aux" href="/docs" target="_blank" rel="noopener">API</a>
   </nav>
 
   <div class="page">

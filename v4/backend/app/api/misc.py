@@ -2,15 +2,19 @@
 - GET  /api/models       — liste statique des modèles disponibles
 - POST /api/events       — tracking impressions/clics (no-op log)
 - POST /api/feedback     — feedback 👍/👎 (no-op log)
+- GET  /api/traces       — compat dashboard (stub v4, pas d’agrégation Redis type MVP)
+- GET  /api/analytics    — idem
+- GET  /api/feedback/stats — idem
 - GET  /api/health/deep  — santé approfondie (DB, Redis, secrets)
 """
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from typing import Any
 
 import structlog
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -71,6 +75,50 @@ async def feedback(p: FeedbackPayload) -> dict[str, str]:
         comment=(p.comment or "")[:280],
     )
     return {"status": "ok"}
+
+
+@router.get("/traces")
+async def traces(limit: int = Query(default=100, ge=1, le=500)) -> dict[str, Any]:
+    """Compat `/dashboard` : le MVP agrège les traces dans Redis (Upstash REST)."""
+    return {"traces": [], "count": 0, "dashboard_mode": "stub"}
+
+
+@router.get("/feedback/stats")
+async def feedback_stats() -> dict[str, Any]:
+    return {
+        "positive": 0,
+        "negative": 0,
+        "positive_rate": 0,
+        "recent_negative_reasons": [],
+        "dashboard_mode": "stub",
+    }
+
+
+@router.get("/analytics")
+async def analytics() -> dict[str, Any]:
+    """Même forme que l’ancien `/api/analytics` pour le dashboard statique ; compteurs à 0."""
+    now = datetime.now(timezone.utc).isoformat()
+    return {
+        "status": "ok",
+        "dashboard_mode": "stub",
+        "timestamp": now,
+        "conversations": {"total": 0, "recent_traces": 0},
+        "events": {"impressions": 0, "clicks": 0, "feedback": 0},
+        "rates": {"ctr": 0, "satisfaction": 0, "fallback_rate": 0},
+        "fallback": {"total_requests": 0, "base2_count": 0},
+        "feedback": {"positive": 0, "negative": 0, "total": 0},
+        "models": {},
+        "intents": {},
+        "top_recipes": [],
+        "quality": {
+            "exact_match_count": 0,
+            "proven_alternative_count": 0,
+            "recipe_not_found_count": 0,
+            "safety_block_count": 0,
+        },
+        "response_types": {},
+        "routing": {},
+    }
 
 
 @router.get("/health/deep")
