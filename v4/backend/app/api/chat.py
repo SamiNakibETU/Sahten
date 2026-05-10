@@ -13,7 +13,7 @@ import time
 import uuid
 
 import structlog
-from fastapi import APIRouter, Body, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -124,6 +124,19 @@ def _new_session_id() -> str:
 
 def _new_request_id() -> str:
     return "req_" + uuid.uuid4().hex[:16]
+
+
+async def _payload_from_request(request: Request) -> ChatRequest:
+    try:
+        raw = await request.json()
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail="JSON invalide.") from exc
+    if not isinstance(raw, dict):
+        raise HTTPException(status_code=400, detail="Corps JSON invalide.")
+    try:
+        return ChatRequest.model_validate(raw)
+    except Exception as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 def _fallback_chat_response(
@@ -294,9 +307,9 @@ async def _run_chat_pipeline(
 @limiter.limit("45/minute")
 async def chat(
     request: Request,
-    payload: ChatRequest = Body(...),  # noqa: B008
     session: AsyncSession = Depends(get_session),  # noqa: B008
 ) -> ChatResponse:
+    payload = await _payload_from_request(request)
     try:
         pipeline = get_pipeline()
     except Exception as exc:
@@ -320,7 +333,6 @@ async def chat(
 @limiter.limit("45/minute")
 async def chat_stream(
     request: Request,
-    payload: ChatRequest = Body(...),  # noqa: B008
     session: AsyncSession = Depends(get_session),  # noqa: B008
 ) -> StreamingResponse:
     """SSE minimal : un unique événement `done` (même charge utile que POST /chat).
@@ -330,6 +342,7 @@ async def chat_stream(
     """
 
     async def events():
+        payload = await _payload_from_request(request)
         try:
             pipeline = get_pipeline()
             out = await _run_chat_pipeline(session=session, pipeline=pipeline, payload=payload)
