@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "description": "Golden set cible coherence recettes (relevance, fallback, cartes, chef).",
+  "items": [
+    {
+      "id": "couscous-relevance-no-dessert",
+      "query": "recette de couscous",
+      "expected_article_external_ids": [],
+      "answer_any_contains": ["moghrab", "couscous", "Désolé, je n'ai pas cette recette dans mes carnets"],
+      "answer_must_not_contain": ["cookies", "cookie", "sfouf", "brownie"],
+      "require_recipe_card": true,
+      "max_recipe_cards": 1,
+      "follow_up_must_contain": ["moghrab"]
+    },
+    {
+      "id": "couscous-salty-constraint",
+      "query": "non un plat salé je veux du couscous",
+      "expected_article_external_ids": [],
+      "answer_any_contains": ["moghrab", "couscous", "plat sal"],
+      "answer_must_not_contain": ["cookies", "cookie", "dessert", "gâteau"],
+      "max_recipe_cards": 1
+    },
+    {
+      "id": "chef-carla-rebeiz",
+      "query": "qui est Carla Rebeiz ?",
+      "expected_article_external_ids": [],
+      "answer_must_contain": ["Carla Rebeiz"],
+      "answer_must_not_contain": ["je n'ai pas cette recette dans mes carnets"],
+      "max_recipe_cards": 1
+    },
+    {
+      "id": "single-clickable-card",
+      "query": "propose moi une recette de poulet",
+      "expected_article_external_ids": [],
+      "answer_must_not_contain": [],
+      "max_recipe_cards": 1
+    }
+  ]
+}

@@ -102,6 +102,10 @@ Règles de sortie JSON :
   est « concombre » d’après l’historique, inclut `concombre`. Ne laisse pas la
   liste vide quand l’histoire de conversation porte clairement sur un ou des
   ingrédients identifiables.
+- Si la demande porte sur un plat régional avec équivalent levantin connu (ex.
+  couscous -> moghrabieh) ou une base culinaire explicite (ex. semoule), ajoute
+  ces variantes pertinentes dans `rewritten_query` et `ingredient_slugs` pour
+  renforcer la recherche documentaire, sans dériver vers un autre registre.
 - `intent` :
   • recipe       -> on cherche une recette précise (steps + ingrédients)
   • chef_bio     -> on s'intéresse à la personne / son parcours
@@ -133,6 +137,10 @@ N'invente pas de noms de chefs, plats ou ingrédients jamais évoqués ; mais tu
   libanaise) si ta dernière relance l’évoquait encore, plutôt qu’une requête
   générique « autre recette » qui ramène les mêmes hits. Ajoute des termes
   **discriminants** (salade, fattouche, entrée) quand c’est dans l’échange.
+- Contrainte salé/sucré : si l’utilisateur précise « plat salé », « pas sucré »
+  ou « pas dessert », conserve explicitement cette contrainte dans
+  `rewritten_query` (ex. "plat salé, pas dessert"), pour éviter des résultats
+  hors registre.
 """
 
 

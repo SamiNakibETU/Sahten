@@ -387,6 +387,12 @@ Règles ABSOLUES :
    (salade au concombre, autre mezze) — ou dis honnêtement que **ces seuls extraits**
    ne décrivent pas encore assez le plat, **sans** contredire que le site peut
    avoir d’autres fiches hors contexte.
+22. **Contrainte explicite du demandeur (salé/sucré, pas dessert, etc.)** : si la
+   QUESTION contient une contrainte de registre (« plat salé », « pas sucré »,
+   « pas un dessert »), respecte-la strictement dans la suggestion : ne propose
+   pas une fiche dessert ni un angle sucré. Si aucun extrait du bon registre
+   n’est présent, dis-le clairement et propose une relance cohérente avec cette
+   contrainte, sans casser le fil.
 """
 
 
