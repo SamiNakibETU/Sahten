@@ -8,15 +8,18 @@ préfèrent les champs structurés (`answer_sentences`, `recipe_card`,
 
 from __future__ import annotations
 
+import json
 import time
 import uuid
 
 import structlog
 from fastapi import APIRouter, Depends, HTTPException, Request
-from pydantic import BaseModel, ConfigDict, Field
+from fastapi.responses import StreamingResponse
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 # Aligné sur les usages réels (recettes collées, contexte long) — au-delà, 422 côté validation.
 CHAT_INPUT_MAX_LEN = 12_000
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .. import analytics_store, sessions
@@ -56,6 +59,36 @@ class ChatRequest(BaseModel):
     debug: bool = False
     model: str | None = None
 
+    @field_validator("query", "message", mode="before")
+    @classmethod
+    def _coerce_text_fields(cls, v: object) -> str | None:
+        """Évite les 422 si un client envoie un nombre ou un bool à la place du texte."""
+        if v is None:
+            return None
+        if isinstance(v, bool):
+            return "oui" if v else "non"
+        if isinstance(v, (int, float)):
+            return str(v)
+        if isinstance(v, str):
+            return v
+        return str(v)
+
+    @field_validator("session_id", "model", mode="before")
+    @classmethod
+    def _coerce_optional_str(cls, v: object) -> str | None:
+        if v is None:
+            return None
+        return str(v).strip() or None
+
+    @field_validator("debug", mode="before")
+    @classmethod
+    def _coerce_debug(cls, v: object) -> bool:
+        if isinstance(v, bool):
+            return v
+        if isinstance(v, str):
+            return v.strip().lower() in ("1", "true", "yes", "oui", "on")
+        return bool(v)
+
     def get_text(self) -> str:
         text = (self.query or self.message or "").strip()
         return text
@@ -94,18 +127,13 @@ def _new_request_id() -> str:
     return "req_" + uuid.uuid4().hex[:16]
 
 
-@router.post(
-    "/chat",
-    response_model=ChatResponse,
-    dependencies=[Depends(_require_production_secrets)],
-)
-@limiter.limit("45/minute")
-async def chat(
-    request: Request,
+async def _run_chat_pipeline(
+    *,
+    session: AsyncSession,
+    pipeline: RagPipeline,
     payload: ChatRequest,
-    session: AsyncSession = Depends(get_session),
-    pipeline: RagPipeline = Depends(get_pipeline),
 ) -> ChatResponse:
+    """Exécute le RAG + persistance ; utilisé par POST /chat et POST /chat/stream."""
     text = payload.get_text()
     if not text:
         raise HTTPException(status_code=400, detail="Champ `query` ou `message` requis.")
@@ -152,10 +180,10 @@ async def chat(
         ChatHit(
             chunk_id=r.hit.chunk_id,
             article_external_id=r.hit.article_external_id,
-            article_title=r.hit.article_title,
-            article_url=r.hit.article_url,
-            section_kind=r.hit.section_kind,
-            rerank_score=r.rerank_score,
+            article_title=r.hit.article_title or "",
+            article_url=r.hit.article_url or "",
+            section_kind=r.hit.section_kind or "",
+            rerank_score=float(r.rerank_score),
         )
         for r in result.reranked
     ]
@@ -211,3 +239,44 @@ async def chat(
         timings_ms=result.timings_ms,
         intent=result.plan.intent,
     )
+
+
+@router.post(
+    "/chat",
+    response_model=ChatResponse,
+    dependencies=[Depends(_require_production_secrets)],
+)
+@limiter.limit("45/minute")
+async def chat(
+    request: Request,
+    payload: ChatRequest,
+    session: AsyncSession = Depends(get_session),
+    pipeline: RagPipeline = Depends(get_pipeline),
+) -> ChatResponse:
+    return await _run_chat_pipeline(session=session, pipeline=pipeline, payload=payload)
+
+
+@router.post(
+    "/chat/stream",
+    dependencies=[Depends(_require_production_secrets)],
+)
+@limiter.limit("45/minute")
+async def chat_stream(
+    request: Request,
+    payload: ChatRequest,
+    session: AsyncSession = Depends(get_session),
+    pipeline: RagPipeline = Depends(get_pipeline),
+) -> StreamingResponse:
+    """SSE minimal : un unique événement `done` (même charge utile que POST /chat).
+
+    Le widget v4 appelle d'abord cette route ; sans elle, il retombait sur POST /chat
+    et pouvait cumuler erreurs réseau / validation.
+    """
+
+    async def events():
+        out = await _run_chat_pipeline(session=session, pipeline=pipeline, payload=payload)
+        body = out.model_dump(mode="json")
+        body["type"] = "done"
+        yield "data: " + json.dumps(body, ensure_ascii=False) + "\n\n"
+
+    return StreamingResponse(events(), media_type="text/event-stream")
