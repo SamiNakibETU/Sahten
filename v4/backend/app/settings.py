@@ -74,6 +74,11 @@ class Settings(BaseSettings):
     rag_retrieval_extra_limit_per_excluded: int = 12
     # Avant rerank : entrelace les chunks par article (évite qu’un seul article sature le haut)
     rag_prererank_interleave: bool = True
+    # Deuxième passe modèle au niveau article (plus stable que chunk-only).
+    rag_article_rerank_enabled: bool = True
+    rag_article_rerank_max_articles: int = 20
+    rag_article_rerank_max_chunks_per_article: int = 3
+    rag_article_rerank_keep_top_articles: int = 8
 
     # ── Durcissement (Railway / prod : obligatoire via validate_security_at_startup)
     admin_api_token: str = Field(

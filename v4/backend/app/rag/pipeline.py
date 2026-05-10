@@ -127,6 +127,78 @@ def _dedupe_merge_hits(primary: list[Hit], secondary: list[Hit], *, cap: int = 1
     return out
 
 
+def _article_rerank_documents(
+    reranked: list[RerankedHit],
+    *,
+    max_articles: int,
+    max_chunks_per_article: int,
+) -> list[Hit]:
+    """Construit des documents article-level pour une 2e passe reranker."""
+    if not reranked:
+        return []
+    by_article: dict[int, list[RerankedHit]] = defaultdict(list)
+    article_order: list[int] = []
+    for r in reranked:
+        aid = int(r.hit.article_external_id)
+        if aid not in by_article:
+            article_order.append(aid)
+        by_article[aid].append(r)
+    docs: list[Hit] = []
+    for aid in article_order[: max(1, max_articles)]:
+        items = sorted(by_article[aid], key=lambda x: x.rerank_score, reverse=True)[
+            : max(1, max_chunks_per_article)
+        ]
+        top = items[0].hit
+        text_parts: list[str] = []
+        for rr in items:
+            sk = (rr.hit.section_kind or "").strip()
+            chunk = (rr.hit.chunk_text or "").strip()
+            if not chunk:
+                continue
+            text_parts.append(f"[{sk}] {chunk}" if sk else chunk)
+        doc_text = "\n".join(text_parts)[:6000]
+        docs.append(
+            Hit(
+                chunk_id=top.chunk_id,
+                article_id=top.article_id,
+                article_external_id=top.article_external_id,
+                article_title=top.article_title,
+                article_url=top.article_url,
+                cover_image_url=top.cover_image_url,
+                section_kind="article_doc",
+                chunk_text=doc_text,
+                score_lex=top.score_lex,
+                score_vec=top.score_vec,
+                score_rrf=top.score_rrf,
+                metadata=top.metadata or {},
+            )
+        )
+    return docs
+
+
+def _apply_article_rerank(
+    reranked: list[RerankedHit],
+    article_ranked: list[RerankedHit],
+    *,
+    keep_top_articles: int,
+) -> list[RerankedHit]:
+    if not reranked or not article_ranked:
+        return reranked
+    article_order = [int(r.hit.article_external_id) for r in article_ranked]
+    article_pos = {aid: i for i, aid in enumerate(article_order)}
+    keep = set(article_order[: max(1, keep_top_articles)])
+    filtered = [r for r in reranked if int(r.hit.article_external_id) in keep]
+    if not filtered:
+        filtered = reranked
+    return sorted(
+        filtered,
+        key=lambda r: (
+            article_pos.get(int(r.hit.article_external_id), 10**9),
+            -float(r.rerank_score),
+        ),
+    )
+
+
 def _expand_search_q_with_ingredients(base_q: str, plan: QueryPlan) -> str:
     """Aligne requête BM25/embedding sur les mots d’ingrédient s’ils ne sont pas déjà dans q."""
     qn = (base_q or "").strip()
@@ -398,7 +470,7 @@ class RagPipeline:
             q = f"{q} {(focus.search_boost_phrase or '').strip()}".strip()
         force_broaden = bool(focus and focus.suggest_broaden_corpus_search)
         excluded: list[int] = []
-        if session_id:
+        if session_id and bool(focus and focus.user_wants_different_article):
             try:
                 excluded = await sessions_store.recent_article_external_ids(session_id)
             except Exception as exc:  # noqa: BLE001
@@ -458,6 +530,25 @@ class RagPipeline:
         reranked = [
             r for r in reranked if r.rerank_score >= self.settings.rag_min_rerank_score
         ] or reranked[: max(1, rerank_top_n // 2)]
+        if self.settings.rag_article_rerank_enabled and len(reranked) > 1:
+            try:
+                article_docs = _article_rerank_documents(
+                    reranked,
+                    max_articles=self.settings.rag_article_rerank_max_articles,
+                    max_chunks_per_article=self.settings.rag_article_rerank_max_chunks_per_article,
+                )
+                article_ranked = await self.reranker.rerank(
+                    rq,
+                    article_docs,
+                    top_n=min(len(article_docs), self.settings.rag_article_rerank_max_articles),
+                )
+                reranked = _apply_article_rerank(
+                    reranked,
+                    article_ranked,
+                    keep_top_articles=self.settings.rag_article_rerank_keep_top_articles,
+                )
+            except Exception as exc:  # noqa: BLE001
+                log.warning("rag.pipeline.article_rerank_failed_fallback", error=str(exc))
         timings["rerank_ms"] = int((time.perf_counter() - t2) * 1000)
 
         t3 = time.perf_counter()
