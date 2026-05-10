@@ -43,7 +43,7 @@ class Settings(BaseSettings):
 
     openai_api_key: str = ""
     llm_model: str = "gpt-4.1"
-    llm_temperature: float = 0.2
+    llm_temperature: float = 0.0
 
     # text-embedding-3-small (1536 dim) : compatible HNSW pgvector
     # (limite 2000 dim) sans recourir à `halfvec`. Largement suffisant

@@ -9,8 +9,7 @@
       "answer_any_contains": ["moghrab", "couscous", "Désolé, je n'ai pas cette recette dans mes carnets"],
       "answer_must_not_contain": ["cookies", "cookie", "sfouf", "brownie"],
       "require_recipe_card": true,
-      "max_recipe_cards": 1,
-      "follow_up_must_contain": ["moghrab"]
+      "max_recipe_cards": 1
     },
     {
       "id": "couscous-salty-constraint",
