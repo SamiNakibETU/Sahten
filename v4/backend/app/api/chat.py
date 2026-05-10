@@ -16,10 +16,6 @@ import structlog
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field, field_validator
-
-# Aligné sur les usages réels (recettes collées, contexte long) — au-delà, 422 côté validation.
-CHAT_INPUT_MAX_LEN = 12_000
-
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .. import analytics_store, sessions
@@ -28,6 +24,9 @@ from ..limiter_support import limiter
 from ..rag.html_renderer import render_answer_html
 from ..rag.pipeline import RagPipeline
 from ..settings import get_settings
+
+# Aligné sur les usages réels (recettes collées, contexte long) — au-delà, 422 côté validation.
+CHAT_INPUT_MAX_LEN = 12_000
 
 router = APIRouter(prefix="/api", tags=["chat"])
 log = structlog.get_logger(__name__)
@@ -145,7 +144,7 @@ async def _run_chat_pipeline(
     history_block = ""
     try:
         history_block = await sessions.conversation_block_for_llm(sid)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         log.warning("chat.history_block_failed", error=str(exc))
 
     try:
@@ -155,7 +154,7 @@ async def _run_chat_pipeline(
             session_id=sid,
             conversation_history=history_block or None,
         )
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         log.exception("chat.rag_failed", query_preview=text[:200])
         # On persiste quand même l'échec dans l'historique pour debug UI.
         fallback_html = (
@@ -202,7 +201,7 @@ async def _run_chat_pipeline(
             timings_ms=result.timings_ms,
             model_used=model_used,
         )
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         log.warning("chat.record_turn_failed", error=str(exc))
 
     try:
@@ -218,7 +217,7 @@ async def _run_chat_pipeline(
             timings_ms=result.timings_ms,
             is_base2_fallback=False,
         )
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         log.warning("chat.analytics_trace_failed", error=str(exc))
 
     return ChatResponse(
@@ -250,8 +249,8 @@ async def _run_chat_pipeline(
 async def chat(
     request: Request,
     payload: ChatRequest,
-    session: AsyncSession = Depends(get_session),
-    pipeline: RagPipeline = Depends(get_pipeline),
+    session: AsyncSession = Depends(get_session),  # noqa: B008
+    pipeline: RagPipeline = Depends(get_pipeline),  # noqa: B008
 ) -> ChatResponse:
     return await _run_chat_pipeline(session=session, pipeline=pipeline, payload=payload)
 
@@ -264,8 +263,8 @@ async def chat(
 async def chat_stream(
     request: Request,
     payload: ChatRequest,
-    session: AsyncSession = Depends(get_session),
-    pipeline: RagPipeline = Depends(get_pipeline),
+    session: AsyncSession = Depends(get_session),  # noqa: B008
+    pipeline: RagPipeline = Depends(get_pipeline),  # noqa: B008
 ) -> StreamingResponse:
     """SSE minimal : un unique événement `done` (même charge utile que POST /chat).
 
