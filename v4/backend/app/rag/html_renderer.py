@@ -16,6 +16,8 @@ from ..llm.response_generator import ChefCard, GroundedAnswer, RecipeCard
 from .reranker import RerankedHit
 from .retriever import Hit
 
+MAX_SOURCE_CARDS = 1
+
 
 def _int_id(raw: int | float) -> int:
     """Évite les mismatches d’appartenance (ex. numpy / types SQL)."""
@@ -310,6 +312,8 @@ def _render_sources(
         if key in seen:
             continue
         seen[key] = h
+        if len(seen) >= MAX_SOURCE_CARDS:
+            break
     if not seen and used_chunk_ids:
         for h in hits:
             key = _int_id(h.hit.article_external_id)
@@ -324,7 +328,7 @@ def _render_sources(
             if key in seen:
                 continue
             seen[key] = h
-            if len(seen) >= 5:
+            if len(seen) >= MAX_SOURCE_CARDS:
                 break
     if not seen:
         return ""

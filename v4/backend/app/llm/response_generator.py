@@ -746,6 +746,48 @@ def _looks_like_refusal_without_card(answer: GroundedAnswer) -> bool:
     )
 
 
+def _is_couscous_query(q: str) -> bool:
+    return bool(re.search(r"(?i)\b(couscous|moghrabieh)\b", q or ""))
+
+
+def _is_dessertish_text(text: str) -> bool:
+    low = (text or "").lower()
+    return any(
+        t in low
+        for t in (
+            "sfouf",
+            "dessert",
+            "gâteau",
+            "gateau",
+            "sucré",
+            "sucre",
+            "cake",
+            "pâtisserie",
+            "patisserie",
+        )
+    )
+
+
+def _is_savoryish_text(text: str) -> bool:
+    low = (text or "").lower()
+    return any(
+        t in low
+        for t in (
+            "moghrabieh",
+            "salé",
+            "sale",
+            "plat principal",
+            "ragoût",
+            "ragout",
+            "poulet",
+            "boeuf",
+            "bœuf",
+            "agneau",
+            "bouillon",
+        )
+    )
+
+
 def _maybe_inject_closest_recipe_fallback(
     answer: GroundedAnswer,
     hits: list[RerankedHit],
@@ -753,68 +795,103 @@ def _maybe_inject_closest_recipe_fallback(
 ) -> GroundedAnswer:
     """Si le LLM refuse alors que le rerank a des articles, force l'accroche produit
     (règle 17) + une carte sur le meilleur article."""
-    if not hits or answer.recipe_card is not None:
+    if not hits:
         return answer
     q = user_query.strip()
+    is_couscous = _is_couscous_query(q)
     if not _wants_recipe_suggestion(q):
         return answer
-    if not _looks_like_refusal_without_card(answer):
+
+    should_force = False
+    if is_couscous:
+        if answer.recipe_card is None:
+            should_force = _looks_like_refusal_without_card(answer)
+        else:
+            card_blob = " ".join(
+                [
+                    answer.recipe_card.title,
+                    answer.recipe_card.chef or "",
+                    " ".join(s.text for s in answer.answer_sentences),
+                ]
+            )
+            should_force = _is_dessertish_text(card_blob)
+    else:
+        should_force = answer.recipe_card is None and _looks_like_refusal_without_card(answer)
+
+    if not should_force:
         return answer
+
     top = hits[0]
     if top.rerank_score < 0.05:
         return answer
 
-    aid = int(top.hit.article_external_id)
-    picked = top
-    for h in hits:
-        if int(h.hit.article_external_id) != aid:
-            continue
+    def _hit_score(h: RerankedHit) -> float:
+        s = float(h.rerank_score)
+        blob = f"{h.hit.article_title or ''} {h.hit.chunk_text or ''}"
         sk = (h.hit.section_kind or "").lower()
         if sk == "recipe_meta":
-            picked = h
-            break
-        psk = (picked.hit.section_kind or "").lower()
-        if sk == "recipe_summary" and psk != "recipe_meta":
-            picked = h
+            s += 0.2
+        elif sk == "recipe_summary":
+            s += 0.1
+        if is_couscous:
+            if "moghrabieh" in blob.lower() or "couscous" in blob.lower():
+                s += 1.8
+            if _is_savoryish_text(blob):
+                s += 0.5
+            if _is_dessertish_text(blob) or "dessert" in sk:
+                s -= 1.8
+        return s
 
-    cid = picked.hit.chunk_id
+    picked = max(hits, key=_hit_score)
+    picked_blob = f"{picked.hit.article_title or ''} {picked.hit.chunk_text or ''}"
+    if is_couscous and _is_dessertish_text(picked_blob) and not _is_savoryish_text(picked_blob):
+        picked = None
+
+    cid = picked.hit.chunk_id if picked is not None else None
     title = (
-        picked.hit.article_title
+        (picked.hit.article_title if picked is not None else None)
         or top.hit.article_title
         or "Recette"
     )
-    chef = _chef_name_from_metadata(picked.hit.metadata)
+    chef = _chef_name_from_metadata(picked.hit.metadata) if picked is not None else None
 
-    rc = RecipeCard(
-        title=title,
-        chef=chef,
-        duration_min=None,
-        serves=None,
-        ingredients=[],
-        steps=[],
-        source_chunk_ids=[cid],
-    )
-
-    rc = _align_recipe_card_with_hits(rc, hits)
-    answer.recipe_card = rc
-    answer.answer_sentences = [
-        GroundedSentence(
-            text="Désolé, je n'ai pas cette recette dans mes carnets.",
-            source_chunk_ids=[],
-        ),
-        GroundedSentence(
-            text=(
-                f'La fiche « {title} » est celle qui se rapproche le plus de votre '
-                f"demande parmi les extraits disponibles."
-            ),
+    answer.recipe_card = None
+    if cid is not None:
+        rc = RecipeCard(
+            title=title,
+            chef=chef,
+            duration_min=None,
+            serves=None,
+            ingredients=[],
+            steps=[],
             source_chunk_ids=[cid],
-        ),
-    ]
-    answer.confidence = min(answer.confidence, 0.48)
+        )
+        answer.recipe_card = _align_recipe_card_with_hits(rc, hits)
 
-    if len(hits) > 1:
+    answer.answer_sentences = [GroundedSentence(
+        text="Désolé, je n'ai pas cette recette dans mes carnets",
+        source_chunk_ids=[],
+    )]
+    if cid is not None:
+        answer.answer_sentences.append(
+            GroundedSentence(
+                text=(
+                    f'La fiche « {title} » est la plus proche dans les extraits disponibles.'
+                ),
+                source_chunk_ids=[cid],
+            )
+        )
+    answer.confidence = min(answer.confidence, 0.48)
+    answer.recipe_card_secondary = None
+
+    if is_couscous:
+        answer.follow_up = (
+            "Souhaitez-vous une suggestion pour un autre plat traditionnel libanais, "
+            "ou recherchez-vous une variante spécifique du couscous, comme le moghrabieh ?"
+        )
+    elif len(hits) > 1:
         for h in hits[1:]:
-            if int(h.hit.article_external_id) == aid:
+            if cid is not None and int(h.hit.article_external_id) == int(top.hit.article_external_id):
                 continue
             t2 = h.hit.article_title or ""
             if not t2:
@@ -828,7 +905,9 @@ def _maybe_inject_closest_recipe_fallback(
     log.info(
         "response_generator.closest_recipe_fallback",
         query=q[:80],
-        article_id=aid,
+        article_id=(
+            int(picked.hit.article_external_id) if picked is not None else None
+        ),
         chunk_id=cid,
         title=title[:80],
     )
