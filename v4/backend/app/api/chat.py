@@ -126,6 +126,42 @@ def _new_request_id() -> str:
     return "req_" + uuid.uuid4().hex[:16]
 
 
+def _fallback_chat_response(
+    *,
+    payload: ChatRequest,
+    session_id: str,
+    request_id: str,
+    detail: str,
+    total_ms: int = 0,
+) -> ChatResponse:
+    model_used = payload.model or get_settings().llm_model
+    safe_detail = (detail or "").strip()
+    html = (
+        '<div class="sahten-narrative"><p><em>Mille excuses, un petit incident '
+        "en cuisine est survenu.</em></p>"
+        "<p>Le service est temporairement indisponible. Réessayez dans un instant.</p>"
+        "</div>"
+    )
+    follow_up = "Souhaitez-vous réessayer dans quelques instants ?"
+    if safe_detail:
+        follow_up = f"{follow_up} ({safe_detail[:180]})"
+    return ChatResponse(
+        html=html,
+        request_id=request_id,
+        session_id=session_id,
+        model_used=model_used,
+        answer_sentences=[],
+        recipe_card=None,
+        recipe_card_secondary=None,
+        chef_card=None,
+        follow_up=follow_up,
+        confidence=0.0,
+        sources=[],
+        timings_ms={"total_ms": max(0, int(total_ms))},
+        intent="error",
+    )
+
+
 async def _run_chat_pipeline(
     *,
     session: AsyncSession,
@@ -162,18 +198,28 @@ async def _run_chat_pipeline(
             "en cuisine est survenu. Réessayez dans un instant ou reformulez.</em>"
             "</p></div>"
         )
-        await sessions.record_turn(
-            sid,
-            user_message=text,
-            assistant_html=fallback_html,
+        total_ms = int((time.perf_counter() - started) * 1000)
+        try:
+            await sessions.record_turn(
+                sid,
+                user_message=text,
+                assistant_html=fallback_html,
+                request_id=request_id,
+                intent="error",
+                confidence=0.0,
+                sources=[],
+                timings_ms={"total_ms": total_ms},
+                model_used=payload.model or get_settings().llm_model,
+            )
+        except Exception as rec_exc:
+            log.warning("chat.record_turn_failed_on_error", error=str(rec_exc))
+        return _fallback_chat_response(
+            payload=payload,
+            session_id=sid,
             request_id=request_id,
-            intent="error",
-            confidence=0.0,
-            sources=[],
-            timings_ms={"total_ms": int((time.perf_counter() - started) * 1000)},
-            model_used=payload.model or get_settings().llm_model,
+            detail=str(exc),
+            total_ms=total_ms,
         )
-        raise HTTPException(status_code=500, detail=str(exc)) from exc
 
     sources = [
         ChatHit(
@@ -250,8 +296,20 @@ async def chat(
     request: Request,
     payload: ChatRequest = Body(...),  # noqa: B008
     session: AsyncSession = Depends(get_session),  # noqa: B008
-    pipeline: RagPipeline = Depends(get_pipeline),  # noqa: B008
 ) -> ChatResponse:
+    try:
+        pipeline = get_pipeline()
+    except Exception as exc:
+        log.exception("chat.pipeline_init_failed", error=str(exc))
+        sid = payload.session_id or _new_session_id()
+        rid = _new_request_id()
+        return _fallback_chat_response(
+            payload=payload,
+            session_id=sid,
+            request_id=rid,
+            detail=str(exc),
+            total_ms=0,
+        )
     return await _run_chat_pipeline(session=session, pipeline=pipeline, payload=payload)
 
 
@@ -264,7 +322,6 @@ async def chat_stream(
     request: Request,
     payload: ChatRequest = Body(...),  # noqa: B008
     session: AsyncSession = Depends(get_session),  # noqa: B008
-    pipeline: RagPipeline = Depends(get_pipeline),  # noqa: B008
 ) -> StreamingResponse:
     """SSE minimal : un unique événement `done` (même charge utile que POST /chat).
 
@@ -273,7 +330,18 @@ async def chat_stream(
     """
 
     async def events():
-        out = await _run_chat_pipeline(session=session, pipeline=pipeline, payload=payload)
+        try:
+            pipeline = get_pipeline()
+            out = await _run_chat_pipeline(session=session, pipeline=pipeline, payload=payload)
+        except Exception as exc:
+            log.exception("chat.stream_failed", error=str(exc))
+            out = _fallback_chat_response(
+                payload=payload,
+                session_id=payload.session_id or _new_session_id(),
+                request_id=_new_request_id(),
+                detail=str(exc),
+                total_ms=0,
+            )
         body = out.model_dump(mode="json")
         body["type"] = "done"
         yield "data: " + json.dumps(body, ensure_ascii=False) + "\n\n"
