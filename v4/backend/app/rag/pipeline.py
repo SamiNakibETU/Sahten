@@ -173,6 +173,82 @@ _STOPWORDS_FR = {
 }
 
 
+_DESSERT_TERMS = {
+    "cookie",
+    "cookies",
+    "biscuit",
+    "biscuits",
+    "dessert",
+    "gâteau",
+    "gateau",
+    "sucré",
+    "sucre",
+    "sfouf",
+    "cake",
+    "brownie",
+    "chocolat",
+}
+
+_SAVORY_TERMS = {
+    "couscous",
+    "moghrabieh",
+    "semoule",
+    "plat",
+    "salé",
+    "sale",
+    "ragoût",
+    "ragout",
+    "bouillon",
+    "poulet",
+    "agneau",
+    "boeuf",
+    "bœuf",
+}
+
+
+def _post_rank_recipe_proximity(
+    user_query: str,
+    reranked: list[RerankedHit],
+) -> list[RerankedHit]:
+    """Réordonne légèrement le top rerank pour éviter les pivots absurdes.
+
+    Objectif produit : sur des requêtes "recette de X", préférer les fiches dont
+    le lexique culinaire est proche de X et éviter desserts/sucré quand X est salé.
+    """
+    if len(reranked) < 2:
+        return reranked
+    q = (user_query or "").lower()
+    if "recette" not in q and "plat" not in q and "cuisin" not in q:
+        return reranked
+    # Correction ciblée demandée : couscous/moghrabieh.
+    if "couscous" not in q and "moghrabieh" not in q:
+        return reranked
+
+    def _score(r: RerankedHit) -> float:
+        txt = f"{r.hit.article_title or ''} {r.hit.chunk_text or ''}".lower()
+        s = float(r.rerank_score)
+        # Proximité explicite de thème.
+        if "couscous" in txt:
+            s += 2.2
+        if "moghrabieh" in txt:
+            s += 2.0
+        if "semoule" in txt:
+            s += 0.8
+        if any(t in txt for t in _SAVORY_TERMS):
+            s += 0.5
+        if any(t in txt for t in _DESSERT_TERMS):
+            s -= 2.0
+        sk = (r.hit.section_kind or "").lower()
+        if "dessert" in sk:
+            s -= 1.5
+        if sk in ("recipe_meta", "recipe_summary"):
+            s += 0.2
+        return s
+
+    ordered = sorted(reranked, key=_score, reverse=True)
+    return ordered
+
+
 def _retrieval_fallback_queries(user_query: str, plan: QueryPlan) -> list[str]:
     """Requêtes plus courtes / centrées ingrédient si la recherche hybride ne renvoie rien."""
     seen: set[str] = set()
@@ -458,6 +534,7 @@ class RagPipeline:
         reranked = [
             r for r in reranked if r.rerank_score >= self.settings.rag_min_rerank_score
         ] or reranked[: max(1, rerank_top_n // 2)]
+        reranked = _post_rank_recipe_proximity(user_query, reranked)
         timings["rerank_ms"] = int((time.perf_counter() - t2) * 1000)
 
         t3 = time.perf_counter()
