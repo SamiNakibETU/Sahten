@@ -13,7 +13,7 @@ import time
 import uuid
 
 import structlog
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Body, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -248,7 +248,7 @@ async def _run_chat_pipeline(
 @limiter.limit("45/minute")
 async def chat(
     request: Request,
-    payload: ChatRequest,
+    payload: ChatRequest = Body(...),  # noqa: B008
     session: AsyncSession = Depends(get_session),  # noqa: B008
     pipeline: RagPipeline = Depends(get_pipeline),  # noqa: B008
 ) -> ChatResponse:
@@ -262,7 +262,7 @@ async def chat(
 @limiter.limit("45/minute")
 async def chat_stream(
     request: Request,
-    payload: ChatRequest,
+    payload: ChatRequest = Body(...),  # noqa: B008
     session: AsyncSession = Depends(get_session),  # noqa: B008
     pipeline: RagPipeline = Depends(get_pipeline),  # noqa: B008
 ) -> StreamingResponse:
