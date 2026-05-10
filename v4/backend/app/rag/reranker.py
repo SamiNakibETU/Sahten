@@ -29,6 +29,26 @@ class Reranker(Protocol):
     ) -> list[RerankedHit]: ...
 
 
+def _document_for_rerank(hit: Hit) -> str:
+    """Document enrichi pour un reranking sémantique plus stable.
+
+    On injecte le titre et le type de section avec le chunk pour éviter que le
+    cross-encoder surpondère un extrait isolé hors sujet (ex. dessert) quand le
+    titre global de l'article indique un autre contexte culinaire.
+    """
+    title = (hit.article_title or "").strip()
+    kind = (hit.section_kind or "").strip()
+    text = (hit.chunk_text or "").strip()
+    parts: list[str] = []
+    if title:
+        parts.append(f"Titre: {title}")
+    if kind:
+        parts.append(f"Section: {kind}")
+    if text:
+        parts.append(text)
+    return "\n".join(parts).strip() or text
+
+
 class CohereReranker:
     name = "cohere"
 
@@ -44,7 +64,7 @@ class CohereReranker:
     ) -> list[RerankedHit]:
         if not hits:
             return []
-        docs = [h.chunk_text for h in hits]
+        docs = [_document_for_rerank(h) for h in hits]
         response = await self._client.rerank(
             model=self.model,
             query=query,
@@ -72,7 +92,7 @@ class LocalBgeReranker:
     ) -> list[RerankedHit]:
         if not hits:
             return []
-        pairs = [[query, h.chunk_text] for h in hits]
+        pairs = [[query, _document_for_rerank(h)] for h in hits]
         scores: list[float] = await asyncio.to_thread(
             lambda: list(map(float, self._model.predict(pairs)))
         )

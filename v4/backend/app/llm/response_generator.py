@@ -746,48 +746,6 @@ def _looks_like_refusal_without_card(answer: GroundedAnswer) -> bool:
     )
 
 
-def _is_couscous_query(q: str) -> bool:
-    return bool(re.search(r"(?i)\b(couscous|moghrabieh)\b", q or ""))
-
-
-def _is_dessertish_text(text: str) -> bool:
-    low = (text or "").lower()
-    return any(
-        t in low
-        for t in (
-            "sfouf",
-            "dessert",
-            "gâteau",
-            "gateau",
-            "sucré",
-            "sucre",
-            "cake",
-            "pâtisserie",
-            "patisserie",
-        )
-    )
-
-
-def _is_savoryish_text(text: str) -> bool:
-    low = (text or "").lower()
-    return any(
-        t in low
-        for t in (
-            "moghrabieh",
-            "salé",
-            "sale",
-            "plat principal",
-            "ragoût",
-            "ragout",
-            "poulet",
-            "boeuf",
-            "bœuf",
-            "agneau",
-            "bouillon",
-        )
-    )
-
-
 def _maybe_inject_closest_recipe_fallback(
     answer: GroundedAnswer,
     hits: list[RerankedHit],
@@ -798,100 +756,63 @@ def _maybe_inject_closest_recipe_fallback(
     if not hits:
         return answer
     q = user_query.strip()
-    is_couscous = _is_couscous_query(q)
     if not _wants_recipe_suggestion(q):
         return answer
-
-    should_force = False
-    if is_couscous:
-        if answer.recipe_card is None:
-            should_force = _looks_like_refusal_without_card(answer)
-        else:
-            card_blob = " ".join(
-                [
-                    answer.recipe_card.title,
-                    answer.recipe_card.chef or "",
-                    " ".join(s.text for s in answer.answer_sentences),
-                ]
-            )
-            should_force = _is_dessertish_text(card_blob)
-    else:
-        should_force = answer.recipe_card is None and _looks_like_refusal_without_card(answer)
-
-    if not should_force:
+    if answer.recipe_card is not None:
+        return answer
+    if not _looks_like_refusal_without_card(answer):
         return answer
 
     top = hits[0]
     if top.rerank_score < 0.05:
         return answer
 
-    def _hit_score(h: RerankedHit) -> float:
-        s = float(h.rerank_score)
-        blob = f"{h.hit.article_title or ''} {h.hit.chunk_text or ''}"
+    aid = int(top.hit.article_external_id)
+    picked = top
+    for h in hits:
+        if int(h.hit.article_external_id) != aid:
+            continue
         sk = (h.hit.section_kind or "").lower()
         if sk == "recipe_meta":
-            s += 0.2
-        elif sk == "recipe_summary":
-            s += 0.1
-        if is_couscous:
-            if "moghrabieh" in blob.lower() or "couscous" in blob.lower():
-                s += 1.8
-            if _is_savoryish_text(blob):
-                s += 0.5
-            if _is_dessertish_text(blob) or "dessert" in sk:
-                s -= 1.8
-        return s
+            picked = h
+            break
+        psk = (picked.hit.section_kind or "").lower()
+        if sk == "recipe_summary" and psk != "recipe_meta":
+            picked = h
 
-    picked = max(hits, key=_hit_score)
-    picked_blob = f"{picked.hit.article_title or ''} {picked.hit.chunk_text or ''}"
-    if is_couscous and _is_dessertish_text(picked_blob) and not _is_savoryish_text(picked_blob):
-        picked = None
+    cid = picked.hit.chunk_id
+    title = picked.hit.article_title or top.hit.article_title or "Recette"
+    chef = _chef_name_from_metadata(picked.hit.metadata)
 
-    cid = picked.hit.chunk_id if picked is not None else None
-    title = (
-        (picked.hit.article_title if picked is not None else None)
-        or top.hit.article_title
-        or "Recette"
+    rc = RecipeCard(
+        title=title,
+        chef=chef,
+        duration_min=None,
+        serves=None,
+        ingredients=[],
+        steps=[],
+        source_chunk_ids=[cid],
     )
-    chef = _chef_name_from_metadata(picked.hit.metadata) if picked is not None else None
-
-    answer.recipe_card = None
-    if cid is not None:
-        rc = RecipeCard(
-            title=title,
-            chef=chef,
-            duration_min=None,
-            serves=None,
-            ingredients=[],
-            steps=[],
-            source_chunk_ids=[cid],
-        )
-        answer.recipe_card = _align_recipe_card_with_hits(rc, hits)
+    answer.recipe_card = _align_recipe_card_with_hits(rc, hits)
 
     answer.answer_sentences = [GroundedSentence(
         text="Désolé, je n'ai pas cette recette dans mes carnets",
         source_chunk_ids=[],
-    )]
-    if cid is not None:
-        answer.answer_sentences.append(
-            GroundedSentence(
-                text=(
-                    f'La fiche « {title} » est la plus proche dans les extraits disponibles.'
-                ),
-                source_chunk_ids=[cid],
-            )
+    ),
+        GroundedSentence(
+            text=(
+                f'La fiche « {title} » est celle qui se rapproche le plus de votre '
+                f"demande parmi les extraits disponibles."
+            ),
+            source_chunk_ids=[cid],
         )
+    ]
     answer.confidence = min(answer.confidence, 0.48)
     answer.recipe_card_secondary = None
 
-    if is_couscous:
-        answer.follow_up = (
-            "Souhaitez-vous une suggestion pour un autre plat traditionnel libanais, "
-            "ou recherchez-vous une variante spécifique du couscous, comme le moghrabieh ?"
-        )
-    elif len(hits) > 1:
+    if len(hits) > 1:
         for h in hits[1:]:
-            if cid is not None and int(h.hit.article_external_id) == int(top.hit.article_external_id):
+            if int(h.hit.article_external_id) == aid:
                 continue
             t2 = h.hit.article_title or ""
             if not t2:

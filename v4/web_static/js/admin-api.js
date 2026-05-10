@@ -7,6 +7,19 @@
   var STORAGE_KEY = "sahten_admin_token";
   var prompting = false;
 
+  function bootstrapTokenFromUrl() {
+    try {
+      var url = new URL(window.location.href);
+      var qpToken = (url.searchParams.get("token") || "").trim();
+      if (!qpToken) return;
+      setToken(qpToken);
+      url.searchParams.delete("token");
+      window.history.replaceState(null, "", url.toString());
+    } catch (_) {
+      // no-op
+    }
+  }
+
   function getToken() {
     return localStorage.getItem(STORAGE_KEY) || "";
   }
@@ -56,8 +69,20 @@
       }
     }
 
+    if (!r.ok) {
+      var detail = "";
+      try {
+        var body = await r.clone().json();
+        detail = (body && (body.detail || body.error)) || "";
+      } catch (_) {
+        // no-op
+      }
+      throw new Error(detail || ("HTTP " + r.status));
+    }
     return r;
   }
+
+  bootstrapTokenFromUrl();
 
   window.sahtenAdmin = {
     getToken: getToken,
