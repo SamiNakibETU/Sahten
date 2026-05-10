@@ -465,9 +465,19 @@ def render_answer_html(
         )
     if answer.chef_card is not None:
         parts.append(
+            # Si la carte recette affiche déjà le lien article, ne pas dupliquer
+            # le même lien dans la carte chef.
+            # Objectif UX : une seule URL cliquable "canonique" par article.
             _render_chef(
                 answer.chef_card,
-                article_url=chef_url,
+                article_url=(
+                    None
+                    if _norm_article_url(chef_url) in {
+                        _norm_article_url(recipe_url),
+                        _norm_article_url(recipe_url_secondary),
+                    }
+                    else chef_url
+                ),
                 article_title=chef_link_title,
             )
         )
