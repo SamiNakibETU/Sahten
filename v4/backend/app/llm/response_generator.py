@@ -33,6 +33,93 @@ from ..rag.reranker import RerankedHit
 
 log = structlog.get_logger(__name__)
 
+_CHEF_META_KEYS = ("featured_chef", "chef_name", "chef", "author_name", "author")
+
+
+def _chef_name_from_metadata(meta: Any) -> str | None:
+    if not isinstance(meta, dict):
+        return None
+    for key in _CHEF_META_KEYS:
+        v = meta.get(key)
+        if isinstance(v, str) and v.strip():
+            return v.strip()
+    return None
+
+
+def _article_id_from_chunk_ids(
+    chunk_ids: list[int], hits: list[RerankedHit]
+) -> int | None:
+    valid_ids = {h.hit.chunk_id for h in hits}
+    want = {cid for cid in chunk_ids if cid in valid_ids}
+    for h in hits:
+        if h.hit.chunk_id in want:
+            return int(h.hit.article_external_id)
+    return None
+
+
+def _recipe_meta_text_for_article(
+    hits: list[RerankedHit], article_id: int | None
+) -> str:
+    if article_id is None:
+        return ""
+    parts: list[str] = []
+    for h in hits:
+        if (
+            int(h.hit.article_external_id) == article_id
+            and (h.hit.section_kind or "").lower() == "recipe_meta"
+        ):
+            parts.append(h.hit.chunk_text or "")
+    return "\n".join(parts)
+
+
+def _duration_min_from_meta_text(meta_text: str) -> int | None:
+    if not meta_text:
+        return None
+    minutes = [
+        int(m.group(1))
+        for m in re.finditer(
+            r"(?i)(?:préparation|preparation|cuisson|cooking)\s*:?\s*(\d{1,3})\s*(?:min|mn)?",
+            meta_text,
+        )
+    ]
+    if minutes:
+        return sum(minutes)
+    m = re.search(r"(?i)(\d{1,3})\s*(?:min|mn)\b", meta_text)
+    return int(m.group(1)) if m else None
+
+
+def _serves_from_meta_text(meta_text: str) -> str | None:
+    if not meta_text:
+        return None
+    flat = " ".join(meta_text.split())
+    m = re.search(
+        r"(?i)(?:pour|portions?)\s*:?\s*(.+?)(?=\s+(?:difficulté|difficulte|préparation|preparation|cuisson|cooking)\s*:|$)",
+        flat,
+    )
+    if not m:
+        return None
+    value = " ".join(m.group(1).strip().split())
+    return value or None
+
+
+def _align_recipe_card_with_hits(
+    card: RecipeCard | None, hits: list[RerankedHit]
+) -> RecipeCard | None:
+    if card is None:
+        return None
+    article_id = _article_id_from_chunk_ids(card.source_chunk_ids, hits)
+    meta_text = _recipe_meta_text_for_article(hits, article_id)
+    if not meta_text:
+        return card
+    update: dict[str, Any] = {}
+    duration_min = _duration_min_from_meta_text(meta_text)
+    serves = _serves_from_meta_text(meta_text)
+    if duration_min is not None:
+        update["duration_min"] = duration_min
+    if serves is not None:
+        update["serves"] = serves
+    return card.model_copy(update=update) if update else card
+
 
 class GroundedSentence(BaseModel):
     text: str
@@ -422,13 +509,20 @@ class ResponseGenerator:
                 follow_up="Réessayez dans un petit moment.",
                 confidence=0.0,
             )
-        return validate_grounding(answer, hits)
+        return validate_grounding(answer, hits, user_query=user_query)
 
 
 def validate_grounding(
-    answer: GroundedAnswer, hits: list[RerankedHit]
+    answer: GroundedAnswer,
+    hits: list[RerankedHit],
+    *,
+    user_query: str | None = None,
 ) -> GroundedAnswer:
-    """Filtre les phrases sans citation valide. Recalcule la confidence si besoin."""
+    """Filtre les phrases sans citation valide. Recalcule la confidence si besoin.
+
+    Si ``user_query`` est fourni et que le modèle « refuse » sans carte alors que
+    des extraits existent, on peut injecter la fiche rerank #1 comme pivot proche.
+    """
     valid_ids = {h.hit.chunk_id for h in hits}
     grounded = []
     for sent in answer.answer_sentences:
@@ -549,34 +643,6 @@ def validate_grounding(
                 parts.append(h.hit.chunk_text or "")
         return "\n".join(parts)
 
-    def _duration_min_from_meta(meta_text: str) -> int | None:
-        if not meta_text:
-            return None
-        minutes = [
-            int(m.group(1))
-            for m in re.finditer(
-                r"(?i)(?:préparation|preparation|cuisson|cooking)\s*:?\s*(\d{1,3})\s*(?:min|mn)?",
-                meta_text,
-            )
-        ]
-        if minutes:
-            return sum(minutes)
-        m = re.search(r"(?i)(\d{1,3})\s*(?:min|mn)\b", meta_text)
-        return int(m.group(1)) if m else None
-
-    def _serves_from_meta(meta_text: str) -> str | None:
-        if not meta_text:
-            return None
-        flat = " ".join(meta_text.split())
-        m = re.search(
-            r"(?i)(?:pour|portions?)\s*:?\s*(.+?)(?=\s+(?:difficulté|difficulte|préparation|preparation|cuisson|cooking)\s*:|$)",
-            flat,
-        )
-        if not m:
-            return None
-        value = " ".join(m.group(1).strip().split())
-        return value or None
-
     def _align_recipe_card_meta(card: RecipeCard | None) -> RecipeCard | None:
         if card is None:
             return None
@@ -585,8 +651,8 @@ def validate_grounding(
         if not meta_text:
             return card
         update: dict[str, Any] = {}
-        duration_min = _duration_min_from_meta(meta_text)
-        serves = _serves_from_meta(meta_text)
+        duration_min = _duration_min_from_meta_text(meta_text)
+        serves = _serves_from_meta_text(meta_text)
         if duration_min is not None:
             update["duration_min"] = duration_min
         if serves is not None:
@@ -620,6 +686,9 @@ def validate_grounding(
             answer.follow_up = f"{follow} {prompt}".strip() if follow else prompt
         answer.recipe_card_secondary = None
 
+    if user_query:
+        answer = _maybe_inject_closest_recipe_fallback(answer, hits, user_query)
+
     # Chef et recette doivent rester sur la même fiche : mieux vaut retirer la bio
     # que laisser le modèle mélanger Carla Rebeiz avec un autre article.
     if answer.recipe_card is not None and answer.chef_card is not None:
@@ -632,4 +701,135 @@ def validate_grounding(
         ):
             answer.chef_card = None
 
+    return answer
+
+
+def _wants_recipe_suggestion(q: str) -> bool:
+    t = (q or "").strip()
+    if not t:
+        return False
+    if re.search(
+        r"(?i)\b(recette|plat|cuisiner|cuisine|préparer|preparer|ingrédients?"
+        r"|ingredients?|comment\s+faire)\b",
+        t,
+    ):
+        return True
+    return len(t.split()) <= 3 and len(t) >= 3
+
+
+def _looks_like_refusal_without_card(answer: GroundedAnswer) -> bool:
+    if answer.recipe_card is not None:
+        return False
+    blob = " ".join(s.text for s in answer.answer_sentences).lower()
+    return any(
+        m in blob
+        for m in (
+            "ne trouve pas",
+            "pas trouvé",
+            "pas trouve",
+            "pas de recette",
+            "pas dans les extraits",
+            "extraits dont je dispose",
+            "extraits dont vous dispose",
+            "dont je dispose",
+            "archives consultées",
+            "ne présentent pas",
+            "ne presentent pas",
+            "aucune fiche",
+            "pas une fiche détaillée",
+            "pas de fiche",
+            "je suis désolé",
+            "je suis desole",
+            "dans les extraits dont je dispose",
+            "dans les extraits dont vous disposez",
+        )
+    )
+
+
+def _maybe_inject_closest_recipe_fallback(
+    answer: GroundedAnswer,
+    hits: list[RerankedHit],
+    user_query: str,
+) -> GroundedAnswer:
+    """Si le LLM refuse alors que le rerank a des articles, force l'accroche produit
+    (règle 17) + une carte sur le meilleur article."""
+    if not hits or answer.recipe_card is not None:
+        return answer
+    q = user_query.strip()
+    if not _wants_recipe_suggestion(q):
+        return answer
+    if not _looks_like_refusal_without_card(answer):
+        return answer
+    top = hits[0]
+    if top.rerank_score < 0.05:
+        return answer
+
+    aid = int(top.hit.article_external_id)
+    picked = top
+    for h in hits:
+        if int(h.hit.article_external_id) != aid:
+            continue
+        sk = (h.hit.section_kind or "").lower()
+        if sk == "recipe_meta":
+            picked = h
+            break
+        psk = (picked.hit.section_kind or "").lower()
+        if sk == "recipe_summary" and psk != "recipe_meta":
+            picked = h
+
+    cid = picked.hit.chunk_id
+    title = (
+        picked.hit.article_title
+        or top.hit.article_title
+        or "Recette"
+    )
+    chef = _chef_name_from_metadata(picked.hit.metadata)
+
+    rc = RecipeCard(
+        title=title,
+        chef=chef,
+        duration_min=None,
+        serves=None,
+        ingredients=[],
+        steps=[],
+        source_chunk_ids=[cid],
+    )
+
+    rc = _align_recipe_card_with_hits(rc, hits)
+    answer.recipe_card = rc
+    answer.answer_sentences = [
+        GroundedSentence(
+            text="Désolé, je n'ai pas cette recette dans mes carnets.",
+            source_chunk_ids=[],
+        ),
+        GroundedSentence(
+            text=(
+                f'La fiche « {title} » est celle qui se rapproche le plus de votre '
+                f"demande parmi les extraits disponibles."
+            ),
+            source_chunk_ids=[cid],
+        ),
+    ]
+    answer.confidence = min(answer.confidence, 0.48)
+
+    if len(hits) > 1:
+        for h in hits[1:]:
+            if int(h.hit.article_external_id) == aid:
+                continue
+            t2 = h.hit.article_title or ""
+            if not t2:
+                continue
+            tail = f"Souhaitez-vous aussi ouvrir la fiche « {t2} » ?"
+            fu = (answer.follow_up or "").strip()
+            if tail.lower() not in fu.lower():
+                answer.follow_up = f"{fu} {tail}".strip() if fu else tail
+            break
+
+    log.info(
+        "response_generator.closest_recipe_fallback",
+        query=q[:80],
+        article_id=aid,
+        chunk_id=cid,
+        title=title[:80],
+    )
     return answer
