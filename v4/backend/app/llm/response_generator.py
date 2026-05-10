@@ -20,6 +20,7 @@ post-LLM. Cela rend l'hallucination structurellement plus difficile.
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 from openai import AsyncOpenAI
@@ -190,7 +191,9 @@ Règles ABSOLUES :
 4. Ne cite pas les `chunk_id` dans le texte ; mets-les uniquement dans le
    tableau `source_chunk_ids` de chaque phrase.
 5. Si la requête concerne un chef, remplis `chef_card` avec ses informations
-   confirmées (et seulement celles-là). Idem pour `recipe_card`.
+   confirmées (et seulement celles-là). Si `recipe_card` est rempli, le
+   `chef_card` doit venir du même `article=` et ne jamais mélanger la bio
+   d'une autre fiche. Idem pour `recipe_card`.
 6. `confidence` ∈ [0,1] reflète à quel point le contexte couvre la question.
    < 0.4 si tu manques d'info ; > 0.8 si tu as plusieurs sources concordantes.
 7. Chaque phrase ET chaque carte (`recipe_card`, `recipe_card_secondary`,
@@ -216,7 +219,10 @@ Règles ABSOLUES :
    (ambiance, occasion, idée du plat), sans recopier les quantités ni la marche
    à suivre. Dans chaque carte recette, mets **`ingredients` et `steps` à des
    tableaux vides `[]`** — le titre, chef, durée, portions peuvent rester si utiles ;
-   le lien article est affiché par l'interface.
+   le lien article est affiché par l'interface. Les champs `duration_min`,
+   `serves`, et toute mention de difficulté/temps doivent reprendre les valeurs
+   du chunk `recipe_meta` du **même article** quand il existe ; sinon, ne les
+   invente pas.
 11. N'utilise JAMAIS les formulations « mon répertoire », « plus d'autres recettes
    pour l'instant », « explorez nos recettes sur L'Orient-Le Jour » : tu n'es
    pas un site web, tu cites des extraits d'archives. Si le CONTEXTE est vide ou
@@ -237,14 +243,14 @@ Règles ABSOLUES :
    permet de la comprendre. Utilise aussi **tes relances précédentes** (ex. fattouche,
    salade libanaise) : si l’utilisateur semble y répondre, ne repose pas la même
    question mot pour mot ; fais évoluer `follow_up` en cohérence avec le fil.
-15. **Une seconde recette = une seconde carte + citations strictes** : si tu
-   évoques **deux articles ou deux plats distincts** présents dans le CONTEXTE,
-   mets la première fiche dans `recipe_card` et la seconde dans
-   `recipe_card_secondary` (titres et `source_chunk_ids` alignés sur **leur**
-   extrait chacun). Chaque phrase du texte qui parle du plat A doit avoir des
-   `source_chunk_ids` issus de l’article A ; idem pour le plat B. **Interdit** de
-   mélanger dans une même phrase deux chefs ou deux plats sans citer les **bons**
-   chunks pour chacun.
+15. **Une seule fiche cliquable dans le widget** : pour une demande de recette,
+   mets au maximum **une** fiche dans `recipe_card` et laisse
+   `recipe_card_secondary` à **null**. Si une deuxième idée pertinente existe,
+   nomme-la seulement dans `follow_up` sous forme de relance courte
+   (« Je peux aussi vous proposer … si vous voulez. »), sans deuxième carte.
+   Chaque phrase qui parle de la fiche principale doit citer les chunks de cet
+   article uniquement. **Interdit** de mélanger dans une même phrase deux chefs
+   ou deux plats sans citer les bons chunks pour chacun.
 16. Si le CONTEXTE ne contient **qu’un seul** article pertinent, ne décris **pas**
    une autre recette, un autre chef ou une « variante » nommée qui ne figure pas
    dans les extraits : pas de `recipe_card_secondary`, et pas de mention
@@ -252,10 +258,12 @@ Règles ABSOLUES :
 17. **Recette demandée absente, alternative pertinente** : si l'utilisateur cite un
    **nom de plat ou de fiche très précis** (ex. « ta recette de X ») et que ce
    plat **n'est pas** dans le CONTEXTE, mais qu'un autre extrait **reste réellement**
-   pertinent (même ingrédient principal, même esprit), tu peux alors commencer par
-   cette phrase **exacte** :
-   « Je suis désolé, mais je n'ai pas cette recette dans mes carnets. Mais pour me faire pardonner je peux te proposer »
-   puis présenter la recette retenue (chunks de **cet** article).
+   pertinent (même ingrédient principal, même esprit, même chef ou même type de
+   plat), la toute première phrase doit commencer exactement par :
+   « Désolé, je n'ai pas cette recette dans mes carnets »
+   puis expliquer brièvement pourquoi la fiche proposée est la plus proche
+   (ingrédient, esprit, chef, occasion), avec les chunks de **cet** article.
+   Reste au vouvoiement. Ne dis pas « pour me faire pardonner ».
    **Interdiction stricte** d'utiliser cette accroche pour « une autre [recette] »,
    « encore », « autre idée » ou toute **continuation d'un ingrédient / thème**
    (ex. après « concombre ») : dans ce cas c'est « une fiche de plus sur le
@@ -512,21 +520,86 @@ def validate_grounding(
         else:
             answer.chef_card = cc.model_copy(update={"source_chunk_ids": cc_ids})
 
+    def _article_id_for_chunk_ids(chunk_ids: list[int]) -> int | None:
+        want = {cid for cid in chunk_ids if cid in valid_ids}
+        for h in hits:
+            if h.hit.chunk_id in want:
+                return int(h.hit.article_external_id)
+        return None
+
+    def _title_for_chunk_ids(chunk_ids: list[int], fallback: str) -> str:
+        want = {cid for cid in chunk_ids if cid in valid_ids}
+        for h in hits:
+            if h.hit.chunk_id in want and h.hit.article_title:
+                return h.hit.article_title
+        return fallback
+
+    def _norm_recipe_title(t: str) -> str:
+        return " ".join(t.strip().lower().replace("’", "'").split())
+
+    def _recipe_meta_for_article(article_id: int | None) -> str:
+        if article_id is None:
+            return ""
+        parts: list[str] = []
+        for h in hits:
+            if (
+                int(h.hit.article_external_id) == article_id
+                and (h.hit.section_kind or "").lower() == "recipe_meta"
+            ):
+                parts.append(h.hit.chunk_text or "")
+        return "\n".join(parts)
+
+    def _duration_min_from_meta(meta_text: str) -> int | None:
+        if not meta_text:
+            return None
+        minutes = [
+            int(m.group(1))
+            for m in re.finditer(
+                r"(?i)(?:préparation|preparation|cuisson|cooking)\s*:?\s*(\d{1,3})\s*(?:min|mn)?",
+                meta_text,
+            )
+        ]
+        if minutes:
+            return sum(minutes)
+        m = re.search(r"(?i)(\d{1,3})\s*(?:min|mn)\b", meta_text)
+        return int(m.group(1)) if m else None
+
+    def _serves_from_meta(meta_text: str) -> str | None:
+        if not meta_text:
+            return None
+        flat = " ".join(meta_text.split())
+        m = re.search(
+            r"(?i)(?:pour|portions?)\s*:?\s*(.+?)(?=\s+(?:difficulté|difficulte|préparation|preparation|cuisson|cooking)\s*:|$)",
+            flat,
+        )
+        if not m:
+            return None
+        value = " ".join(m.group(1).strip().split())
+        return value or None
+
+    def _align_recipe_card_meta(card: RecipeCard | None) -> RecipeCard | None:
+        if card is None:
+            return None
+        article_id = _article_id_for_chunk_ids(card.source_chunk_ids)
+        meta_text = _recipe_meta_for_article(article_id)
+        if not meta_text:
+            return card
+        update: dict[str, Any] = {}
+        duration_min = _duration_min_from_meta(meta_text)
+        serves = _serves_from_meta(meta_text)
+        if duration_min is not None:
+            update["duration_min"] = duration_min
+        if serves is not None:
+            update["serves"] = serves
+        return card.model_copy(update=update) if update else card
+
+    answer.recipe_card = _align_recipe_card_meta(answer.recipe_card)
+    answer.recipe_card_secondary = _align_recipe_card_meta(answer.recipe_card_secondary)
+
     # Même article ou même titre : une seule carte (évite doublon visuel dans le widget).
     if answer.recipe_card is not None and answer.recipe_card_secondary is not None:
-
-        def _article_id_for(rc: RecipeCard) -> int | None:
-            want = {cid for cid in rc.source_chunk_ids if cid in valid_ids}
-            for h in hits:
-                if h.hit.chunk_id in want:
-                    return int(h.hit.article_external_id)
-            return None
-
-        def _norm_recipe_title(t: str) -> str:
-            return " ".join(t.strip().lower().replace("’", "'").split())
-
-        a1, a2 = _article_id_for(answer.recipe_card), _article_id_for(
-            answer.recipe_card_secondary
+        a1, a2 = _article_id_for_chunk_ids(answer.recipe_card.source_chunk_ids), (
+            _article_id_for_chunk_ids(answer.recipe_card_secondary.source_chunk_ids)
         )
         if a1 is not None and a2 is not None and a1 == a2:
             answer.recipe_card_secondary = None
@@ -535,5 +608,28 @@ def validate_grounding(
             t2 = _norm_recipe_title(answer.recipe_card_secondary.title)
             if t1 and t2 and t1 == t2:
                 answer.recipe_card_secondary = None
+
+    # Produit OLJ : une seule fiche cliquable dans le widget. La deuxième idée,
+    # si le modèle en a généré une, devient une relance textuelle.
+    if answer.recipe_card_secondary is not None:
+        secondary = answer.recipe_card_secondary
+        secondary_title = _title_for_chunk_ids(secondary.source_chunk_ids, secondary.title)
+        follow = (answer.follow_up or "").strip()
+        prompt = f"Je peux aussi vous proposer {secondary_title} si vous voulez."
+        if secondary_title and secondary_title.lower() not in follow.lower():
+            answer.follow_up = f"{follow} {prompt}".strip() if follow else prompt
+        answer.recipe_card_secondary = None
+
+    # Chef et recette doivent rester sur la même fiche : mieux vaut retirer la bio
+    # que laisser le modèle mélanger Carla Rebeiz avec un autre article.
+    if answer.recipe_card is not None and answer.chef_card is not None:
+        recipe_article = _article_id_for_chunk_ids(answer.recipe_card.source_chunk_ids)
+        chef_article = _article_id_for_chunk_ids(answer.chef_card.source_chunk_ids)
+        if (
+            recipe_article is not None
+            and chef_article is not None
+            and recipe_article != chef_article
+        ):
+            answer.chef_card = None
 
     return answer

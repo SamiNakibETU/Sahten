@@ -394,20 +394,6 @@ export class SahtenChat {
             });
         }
 
-        // Accueil : exemples de questions → insertion dans le champ
-        if (this.dom.body) {
-            this.dom.body.addEventListener('click', (e) => {
-                const btn = e.target.closest('.welcome-example-prompt');
-                if (!btn || !this.dom.body.contains(btn)) return;
-                e.preventDefault();
-                const text = btn.textContent.replace(/\s+/g, ' ').trim();
-                if (!text || !this.dom.input) return;
-                this.dom.input.value = text;
-                this.dom.input.focus();
-                if (this.dom.input.tagName === 'TEXTAREA') this.autoResizeInput();
-            });
-        }
-
         // Textarea: Enter = send, Shift+Enter = newline; auto-resize
         if (this.dom.input && this.dom.input.tagName === 'TEXTAREA') {
             this.dom.input.addEventListener('keydown', (e) => {
@@ -499,14 +485,6 @@ export class SahtenChat {
                             <p class="welcome-sub">🌿🍋 Dites-moi tout, et je vous proposerai une recette répondant à vos envies.</p>
                             <p class="welcome-note">Soyez indulgents avec moi, je vais certainement faire des erreurs, mais je viens de me lancer. Et avec le temps, je vais certainement m’améliorer.</p>
                         </div>
-                        <section class="welcome-examples welcome-examples--reference" role="region" aria-labelledby="welcome-examples-title">
-                            <p class="welcome-examples-label" id="welcome-examples-title">Pour commencer</p>
-                            <ul class="welcome-examples-list">
-                                <li><button type="button" class="welcome-example-prompt">Léger et rapide ce soir ?</button></li>
-                                <li><button type="button" class="welcome-example-prompt">Un menu pour six ?</button></li>
-                                <li><button type="button" class="welcome-example-prompt">Trois idées au poulet ?</button></li>
-                            </ul>
-                        </section>
                     </article>`
                 });
             }

@@ -164,25 +164,171 @@ def _wrap_section(kind: str, html: str, *, heading: str | None = None) -> str:
     return f'<section data-kind="{kind}">{head}{html}</section>'
 
 
-def _format_recipe_meta(item: dict[str, Any]) -> str:
+_RECIPE_META_CONTAINER_KEYS = (
+    "recipe_information",
+    "recipeInformation",
+    "recipe_info",
+    "recipeInfo",
+    "recipe_meta",
+    "recipeMeta",
+    "recipe_metadata",
+    "recipeMetadata",
+    "recipe_preparation",
+    "recipe_prepartion",
+    "preparation",
+    "preparation_info",
+    "metadata",
+)
+
+
+def _recipe_meta_sources(item: dict[str, Any]) -> list[dict[str, Any]]:
+    sources = [item]
+    for key in _RECIPE_META_CONTAINER_KEYS:
+        value = item.get(key)
+        if isinstance(value, dict):
+            sources.append(value)
+    return sources
+
+
+def _clean_meta_scalar(value: Any) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, (list, tuple)):
+        return " ".join(_clean_meta_scalar(v) for v in value if _clean_meta_scalar(v)).strip()
+    if isinstance(value, dict):
+        for key in ("value", "label", "text", "name", "html", "content", "raw"):
+            if key in value:
+                return _clean_meta_scalar(value[key])
+        return ""
+    return " ".join(str(value).replace("\xa0", " ").split()).strip()
+
+
+def _first_meta_value(
+    sources: list[dict[str, Any]],
+    aliases: tuple[str, ...],
+) -> tuple[str, list[str]]:
+    values: list[tuple[str, str]] = []
+    for src in sources:
+        for key in aliases:
+            if key not in src:
+                continue
+            value = _clean_meta_scalar(src.get(key))
+            if value:
+                values.append((key, value))
+    if not values:
+        return "", []
+
+    first = values[0][1]
+    seen: set[str] = {first.lower()}
+    conflicts: list[str] = []
+    for key, value in values[1:]:
+        norm = value.lower()
+        if norm not in seen:
+            seen.add(norm)
+            conflicts.append(f"{key}={value}")
+    return first, conflicts
+
+
+def _format_duration_value(value: str) -> str:
+    if not value:
+        return ""
+    low = value.lower()
+    if any(unit in low for unit in ("min", "h", "heure", "mn")):
+        return value
+    return f"{value} min"
+
+
+def _format_persons_value(value: str) -> str:
+    if not value:
+        return ""
+    low = value.lower()
+    if any(word in low for word in ("personne", "portion", "parts", "convive")):
+        return value
+    return f"{value} personnes"
+
+
+def _format_recipe_meta(item: dict[str, Any]) -> tuple[str, list[str]]:
     """Construit un bloc HTML « infos pratiques » à partir des metadata recette."""
     rows: list[tuple[str, str]] = []
-    prep = item.get("preparation_time")
-    cook = item.get("cooking_time")
-    persons = item.get("persons")
-    diff = item.get("difficulty")
+    notes: list[str] = []
+    sources = _recipe_meta_sources(item)
+    prep, prep_conflicts = _first_meta_value(
+        sources,
+        (
+            "preparation_time",
+            "preparationTime",
+            "prep_time",
+            "prepTime",
+            "preparation",
+            "temps_preparation",
+            "tempsPreparation",
+            "time_preparation",
+            "timePreparation",
+        ),
+    )
+    cook, cook_conflicts = _first_meta_value(
+        sources,
+        (
+            "cooking_time",
+            "cookingTime",
+            "cook_time",
+            "cookTime",
+            "cuisson",
+            "temps_cuisson",
+            "tempsCuisson",
+            "time_cooking",
+            "timeCooking",
+        ),
+    )
+    persons, persons_conflicts = _first_meta_value(
+        sources,
+        (
+            "persons",
+            "serves",
+            "servings",
+            "portions",
+            "portion",
+            "people",
+            "yield",
+            "nb_personnes",
+            "number_of_persons",
+        ),
+    )
+    diff, diff_conflicts = _first_meta_value(
+        sources,
+        (
+            "difficulty",
+            "difficulte",
+            "difficulté",
+            "difficulty_level",
+            "difficultyLevel",
+            "level",
+        ),
+    )
+
+    for label, conflicts in (
+        ("préparation", prep_conflicts),
+        ("cuisson", cook_conflicts),
+        ("portions", persons_conflicts),
+        ("difficulté", diff_conflicts),
+    ):
+        if conflicts:
+            notes.append(
+                f"metadata recette: valeurs divergentes pour {label} ({'; '.join(conflicts)}), première valeur conservée"
+            )
+
     if prep:
-        rows.append(("Préparation", f"{prep} min"))
+        rows.append(("Préparation", _format_duration_value(prep)))
     if cook:
-        rows.append(("Cuisson", f"{cook} min"))
+        rows.append(("Cuisson", _format_duration_value(cook)))
     if persons:
-        rows.append(("Pour", f"{persons} personnes"))
+        rows.append(("Pour", _format_persons_value(persons)))
     if diff:
         rows.append(("Difficulté", str(diff)))
     if not rows:
-        return ""
+        return "", notes
     li = "".join(f"<li><strong>{escape(k)} :</strong> {escape(v)}</li>" for k, v in rows)
-    return f"<ul>{li}</ul>"
+    return f"<ul>{li}</ul>", notes
 
 
 def _format_chef_block(chef: dict[str, Any]) -> tuple[str, str]:
@@ -228,7 +374,8 @@ def _assemble_body_html(item: dict[str, Any]) -> tuple[str, list[str]]:
     notes: list[str] = []
     blocks: list[str] = []
 
-    meta_html = _format_recipe_meta(item)
+    meta_html, meta_notes = _format_recipe_meta(item)
+    notes.extend(meta_notes)
     if meta_html:
         blocks.append(_wrap_section("recipe_meta", meta_html, heading="Infos pratiques"))
 

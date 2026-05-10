@@ -908,6 +908,24 @@
 .welcome-editorial--atable {
   gap: 0;
 }
+.welcome-editorial--atable .welcome-stanza {
+  gap: 10px;
+}
+.welcome-editorial--atable .welcome-lead {
+  font-size: 17px;
+  line-height: 1.58;
+  margin-bottom: 4px;
+}
+.welcome-editorial--atable .welcome-sub {
+  font-size: 15.5px;
+  line-height: 1.56;
+  margin-bottom: 4px;
+}
+.welcome-editorial--atable .welcome-note {
+  font-size: 13.5px;
+  line-height: 1.6;
+  padding-top: 12px;
+}
 .welcome-stanza {
   max-width: 100%;
   margin: 0;
