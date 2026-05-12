@@ -11,19 +11,28 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import re
 import time
 import unicodedata
 from collections import defaultdict
 from dataclasses import dataclass
+from pathlib import Path
+from typing import Any
 
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .. import sessions as sessions_store
+from ..llm.response_generator import (
+    GroundedAnswer,
+    GroundedSentence,
+    RecipeCard,
+    ResponseGenerator,
+    validate_grounding,
+)
 from ..llm.query_understanding import QueryAnalyzer, QueryPlan
 from ..llm.session_focus import SessionFocus, SessionFocusAnalyzer
-from ..llm.response_generator import GroundedAnswer, ResponseGenerator
 from ..settings import get_settings
 from .embeddings import OpenAIEmbeddings
 from .reranker import Reranker, build_default_reranker
@@ -255,6 +264,32 @@ _ALIAS_GROUPS: tuple[tuple[str, ...], ...] = (
     ("moghrabieh", "moghrabie", "moghrabié", "moghrabiyé"),
 )
 
+_BASE2_JSON_PATH = Path(__file__).resolve().parents[3].parent / "Data_base_2.json"
+_BASE2_RECIPE_ALIASES: tuple[tuple[str, ...], ...] = (
+    ("houmous", "hoummous", "hummus", "hommos", "hommous"),
+    ("moghrabieh", "moghrabié", "moghrabie", "moghrabiyé"),
+)
+_BASE2_TOKEN_STOPWORDS = {
+    "recette",
+    "recettes",
+    "de",
+    "du",
+    "des",
+    "la",
+    "le",
+    "les",
+    "d",
+    "l",
+    "a",
+    "au",
+    "aux",
+    "base",
+    "faire",
+    "comment",
+    "pour",
+}
+_BASE2_RECIPES_CACHE: list[dict[str, Any]] | None = None
+
 
 def _contains_term(text: str, term: str) -> bool:
     return bool(re.search(rf"(?i)\b{re.escape(term)}\b", text))
@@ -275,6 +310,251 @@ def _expand_query_with_aliases(q: str) -> str:
     if not extras:
         return base
     return f"{base} {' '.join(extras)}".strip()
+
+
+def _base2_normalize_text(text: str) -> str:
+    t = unicodedata.normalize("NFKD", text or "")
+    t = "".join(ch for ch in t if not unicodedata.combining(ch)).lower()
+    t = re.sub(r"[^\w\s]+", " ", t)
+    return " ".join(t.split())
+
+
+def _base2_canonicalize_aliases(text: str) -> str:
+    out = _base2_normalize_text(text)
+    for group in _BASE2_RECIPE_ALIASES:
+        canonical = _base2_normalize_text(group[0])
+        for alias in group:
+            alias_norm = _base2_normalize_text(alias)
+            if alias_norm == canonical:
+                continue
+            out = re.sub(rf"\b{re.escape(alias_norm)}\b", canonical, out)
+    return " ".join(out.split())
+
+
+def _extract_explicit_recipe_name(user_query: str) -> str | None:
+    raw = (user_query or "").strip()
+    if not raw:
+        return None
+    lowered = _base2_canonicalize_aliases(raw)
+    candidate = ""
+    patterns = (
+        r"\b(?:recette|plat)\s+(?:de|du|des|d|l)?\s*(.+)$",
+        r"^comment\s+(?:faire|preparer)\s+(?:de|du|des|d|l)?\s*(.+)$",
+        r"^ta\s+recette\s+(?:de|du|des|d|l)?\s*(.+)$",
+        r"^la\s+recette\s+(?:de|du|des|d|l)?\s*(.+)$",
+    )
+    for pat in patterns:
+        m = re.search(pat, lowered)
+        if m:
+            candidate = m.group(1)
+            break
+    if not candidate:
+        return None
+    tokens = [
+        tok
+        for tok in candidate.split()
+        if tok not in _BASE2_TOKEN_STOPWORDS and len(tok) > 1
+    ]
+    if not tokens:
+        return None
+    return " ".join(tokens).strip()
+
+
+def _load_base2_recipes() -> list[dict[str, Any]]:
+    global _BASE2_RECIPES_CACHE
+    if _BASE2_RECIPES_CACHE is not None:
+        return _BASE2_RECIPES_CACHE
+    if not _BASE2_JSON_PATH.is_file():
+        _BASE2_RECIPES_CACHE = []
+        return _BASE2_RECIPES_CACHE
+    try:
+        data = json.loads(_BASE2_JSON_PATH.read_text(encoding="utf-8"))
+    except Exception as exc:  # noqa: BLE001
+        log.warning("rag.pipeline.base2_load_failed", error=str(exc))
+        _BASE2_RECIPES_CACHE = []
+        return _BASE2_RECIPES_CACHE
+    rows: list[dict[str, Any]] = []
+    if isinstance(data, dict):
+        for category, items in data.items():
+            if not isinstance(items, list):
+                continue
+            for item in items:
+                if not isinstance(item, dict):
+                    continue
+                name = str(item.get("nom") or "").strip()
+                if not name:
+                    continue
+                rows.append(
+                    {
+                        "name": name,
+                        "name_norm": _base2_canonicalize_aliases(name),
+                        "category": str(category or "").strip(),
+                        "serves": item.get("nombre_de_personnes"),
+                        "prep": str(item.get("temps_preparation") or "").strip(),
+                        "cook": str(item.get("temps_cuisson") or "").strip(),
+                        "difficulty": str(item.get("difficulte") or "").strip(),
+                        "ingredients": item.get("ingredients") or [],
+                        "steps": item.get("etapes") or [],
+                    }
+                )
+    _BASE2_RECIPES_CACHE = rows
+    return rows
+
+
+def _match_base2_recipe(user_query: str) -> dict[str, Any] | None:
+    requested = _extract_explicit_recipe_name(user_query)
+    if not requested:
+        return None
+    recipes = _load_base2_recipes()
+    if not recipes:
+        return None
+    wanted = _base2_canonicalize_aliases(requested)
+    for recipe in recipes:
+        if wanted == recipe.get("name_norm", ""):
+            return recipe
+    return None
+
+
+def _best_chunk_for_article(
+    reranked: list[RerankedHit], article_external_id: int
+) -> RerankedHit | None:
+    best: RerankedHit | None = None
+    for h in reranked:
+        if int(h.hit.article_external_id) != int(article_external_id):
+            continue
+        sk = (h.hit.section_kind or "").lower()
+        if sk == "recipe_meta":
+            return h
+        if best is None:
+            best = h
+            continue
+        if sk == "recipe_summary" and (best.hit.section_kind or "").lower() != "recipe_summary":
+            best = h
+    return best
+
+
+def _format_base2_ingredients_short(raw_ingredients: Any) -> str:
+    if not isinstance(raw_ingredients, list) or not raw_ingredients:
+        return ""
+    rendered: list[str] = []
+    for row in raw_ingredients[:6]:
+        if not isinstance(row, dict):
+            continue
+        name = str(row.get("nom") or "").strip()
+        qty = row.get("quantite")
+        unit = str(row.get("unite") or "").strip()
+        if not name:
+            continue
+        if qty is None or qty == "":
+            rendered.append(name)
+            continue
+        rendered.append(f"{qty} {unit} {name}".strip())
+    return ", ".join(rendered)
+
+
+def _format_base2_steps_short(raw_steps: Any) -> str:
+    if not isinstance(raw_steps, list) or not raw_steps:
+        return ""
+    steps = [str(s).strip() for s in raw_steps if str(s).strip()]
+    if not steps:
+        return ""
+    return " | ".join(steps[:3])
+
+
+def _build_base2_last_resort_answer(
+    *,
+    user_query: str,
+    base2_recipe: dict[str, Any],
+    reranked: list[RerankedHit],
+) -> GroundedAnswer:
+    top_canonical = next(
+        (r for r in reranked if _is_canonical_olj_url(r.hit.article_url)),
+        reranked[0] if reranked else None,
+    )
+    recipe_card: RecipeCard | None = None
+    olj_title = ""
+    olj_chunk_id: int | None = None
+    if top_canonical is not None:
+        aid = int(top_canonical.hit.article_external_id)
+        picked = _best_chunk_for_article(reranked, aid) or top_canonical
+        olj_chunk_id = int(picked.hit.chunk_id)
+        olj_title = picked.hit.article_title or top_canonical.hit.article_title or ""
+        recipe_card = RecipeCard(
+            title=olj_title or "Recette OLJ",
+            chef=None,
+            duration_min=None,
+            serves=None,
+            ingredients=[],
+            steps=[],
+            source_chunk_ids=[olj_chunk_id],
+        )
+
+    serves = base2_recipe.get("serves")
+    prep = str(base2_recipe.get("prep") or "").strip()
+    cook = str(base2_recipe.get("cook") or "").strip()
+    difficulty = str(base2_recipe.get("difficulty") or "").strip()
+    details_bits: list[str] = []
+    if serves:
+        details_bits.append(f"pour {serves} personnes")
+    if prep:
+        details_bits.append(f"préparation {prep}")
+    if cook:
+        details_bits.append(f"cuisson {cook}")
+    if difficulty:
+        details_bits.append(f"difficulté {difficulty}")
+    details = ", ".join(details_bits)
+    ingredients_short = _format_base2_ingredients_short(base2_recipe.get("ingredients"))
+    steps_short = _format_base2_steps_short(base2_recipe.get("steps"))
+    base2_name = str(base2_recipe.get("name") or "cette recette").strip()
+
+    sentences = [
+        GroundedSentence(
+            text="Désolé, je n'ai pas cette recette dans mes carnets",
+            source_chunk_ids=[],
+        )
+    ]
+    if details:
+        sentences.append(
+            GroundedSentence(
+                text=f"En dernier recours, voici une version courte de {base2_name} ({details}).",
+                source_chunk_ids=[],
+            )
+        )
+    if ingredients_short:
+        sentences.append(
+            GroundedSentence(
+                text=f"Ingrédients (résumé) : {ingredients_short}.",
+                source_chunk_ids=[],
+            )
+        )
+    if steps_short:
+        sentences.append(
+            GroundedSentence(
+                text=f"Étapes (courtes) : {steps_short}.",
+                source_chunk_ids=[],
+            )
+        )
+    if olj_title and olj_chunk_id is not None:
+        sentences.append(
+            GroundedSentence(
+                text=f'Pour la version OLJ indexée, la fiche « {olj_title} » est la plus proche disponible.',
+                source_chunk_ids=[olj_chunk_id],
+            )
+        )
+    follow_up = (
+        f'Si vous voulez, je peux vous guider pas à pas sur la fiche OLJ « {olj_title} ».'
+        if olj_title
+        else "Si vous voulez, je peux chercher une autre variante OLJ indexée."
+    )
+    answer = GroundedAnswer(
+        answer_sentences=sentences,
+        recipe_card=recipe_card,
+        recipe_card_secondary=None,
+        chef_card=None,
+        follow_up=follow_up,
+        confidence=0.42,
+    )
+    return validate_grounding(answer, reranked, user_query=user_query)
 
 
 def _expand_search_q_with_ingredients(base_q: str, plan: QueryPlan) -> str:
@@ -368,6 +648,7 @@ class PipelineResult:
     reranked: list[RerankedHit]
     answer: GroundedAnswer
     timings_ms: dict[str, int]
+    is_base2_fallback: bool = False
 
 
 class RagPipeline:
@@ -638,17 +919,33 @@ class RagPipeline:
         timings["rerank_ms"] = int((time.perf_counter() - t2) * 1000)
 
         t3 = time.perf_counter()
-        thread_summary = (
-            (focus.thread_summary or "").strip()
-            if focus
-            else ""
-        )
-        answer = await self.generator.generate(
-            user_query,
-            reranked,
-            conversation_history=conversation_history,
-            session_thread_summary=thread_summary or None,
-        )
+        base2_fallback_used = False
+        base2_recipe = _match_base2_recipe(user_query)
+        if base2_recipe is not None:
+            answer = _build_base2_last_resort_answer(
+                user_query=user_query,
+                base2_recipe=base2_recipe,
+                reranked=reranked,
+            )
+            base2_fallback_used = True
+            log.info(
+                "rag.pipeline.base2_last_resort_used",
+                query=user_query[:80],
+                base2_recipe=base2_recipe.get("name"),
+                has_olj_suggestion=bool(answer.recipe_card),
+            )
+        else:
+            thread_summary = (
+                (focus.thread_summary or "").strip()
+                if focus
+                else ""
+            )
+            answer = await self.generator.generate(
+                user_query,
+                reranked,
+                conversation_history=conversation_history,
+                session_thread_summary=thread_summary or None,
+            )
         timings["generation_ms"] = int((time.perf_counter() - t3) * 1000)
         timings["total_ms"] = sum(timings.values())
 
@@ -662,5 +959,5 @@ class RagPipeline:
         )
         return PipelineResult(
             plan=plan, hits=hits, reranked=reranked,
-            answer=answer, timings_ms=timings,
+            answer=answer, timings_ms=timings, is_base2_fallback=base2_fallback_used,
         )
