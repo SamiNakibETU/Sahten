@@ -199,6 +199,34 @@ def _apply_article_rerank(
     )
 
 
+_ALIAS_GROUPS: tuple[tuple[str, ...], ...] = (
+    # Variantes orthographiques courantes (FR/EN/translittération).
+    ("houmous", "hoummous", "hummus", "hommos", "hommous"),
+    ("moghrabieh", "moghrabie", "moghrabié", "moghrabiyé"),
+)
+
+
+def _contains_term(text: str, term: str) -> bool:
+    return bool(re.search(rf"(?i)\b{re.escape(term)}\b", text))
+
+
+def _expand_query_with_aliases(q: str) -> str:
+    """Ajoute des alias orthographiques à la requête documentaire."""
+    base = (q or "").strip()
+    if not base:
+        return base
+    extras: list[str] = []
+    for group in _ALIAS_GROUPS:
+        if not any(_contains_term(base, t) for t in group):
+            continue
+        for t in group:
+            if not _contains_term(base, t):
+                extras.append(t)
+    if not extras:
+        return base
+    return f"{base} {' '.join(extras)}".strip()
+
+
 def _expand_search_q_with_ingredients(base_q: str, plan: QueryPlan) -> str:
     """Aligne requête BM25/embedding sur les mots d’ingrédient s’ils ne sont pas déjà dans q."""
     qn = (base_q or "").strip()
@@ -212,8 +240,8 @@ def _expand_search_q_with_ingredients(base_q: str, plan: QueryPlan) -> str:
             continue
         extra.append(w)
     if not extra:
-        return qn
-    return f"{qn} {' '.join(extra)}".strip()
+        return _expand_query_with_aliases(qn)
+    return _expand_query_with_aliases(f"{qn} {' '.join(extra)}".strip())
 
 
 _STOPWORDS_FR = {
@@ -265,6 +293,10 @@ def _retrieval_fallback_queries(user_query: str, plan: QueryPlan) -> list[str]:
         add(w)
         if w:
             add(f"{w} recette")
+            expanded = _expand_query_with_aliases(w)
+            if expanded != w:
+                add(expanded)
+                add(f"{expanded} recette")
     for w in re.findall(r"\b[\wàâäéèêëïîôùûç]+\b", uq.lower()):
         if w not in _STOPWORDS_FR and len(w) > 2:
             add(w)
@@ -273,6 +305,9 @@ def _retrieval_fallback_queries(user_query: str, plan: QueryPlan) -> list[str]:
     rw = (plan.rewritten_query or "").strip()
     if rw and rw.casefold() != uq.casefold():
         add(rw)
+    add(_expand_query_with_aliases(uq))
+    if rw:
+        add(_expand_query_with_aliases(rw))
     return out[:10]
 
 
