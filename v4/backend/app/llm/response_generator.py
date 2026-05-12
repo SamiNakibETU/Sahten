@@ -694,6 +694,7 @@ def validate_grounding(
 
     if user_query:
         answer = _maybe_inject_closest_recipe_fallback(answer, hits, user_query)
+        answer = _enforce_carnets_phrase(answer, user_query)
 
     # Chef et recette doivent rester sur la même fiche : mieux vaut retirer la bio
     # que laisser le modèle mélanger Carla Rebeiz avec un autre article.
@@ -750,6 +751,33 @@ def _looks_like_refusal_without_card(answer: GroundedAnswer) -> bool:
             "dans les extraits dont vous disposez",
         )
     )
+
+
+def _enforce_carnets_phrase(answer: GroundedAnswer, user_query: str | None) -> GroundedAnswer:
+    q = (user_query or "").strip()
+    if not _wants_recipe_suggestion(q):
+        return answer
+    if not answer.answer_sentences:
+        return answer
+    first = (answer.answer_sentences[0].text or "").strip()
+    low = first.lower().replace("’", "'")
+    if "désolé, je n'ai pas cette recette dans mes carnets" in low:
+        return answer
+    refusal_tokens = (
+        "je n'ai pas de fiche",
+        "je n'ai pas de recette",
+        "je ne trouve pas",
+        "pas de recette",
+        "pas de fiche",
+        "extraits consult",
+        "archives",
+    )
+    if any(t in low for t in refusal_tokens):
+        answer.answer_sentences[0] = GroundedSentence(
+            text="Désolé, je n'ai pas cette recette dans mes carnets",
+            source_chunk_ids=[],
+        )
+    return answer
 
 
 def _maybe_inject_closest_recipe_fallback(

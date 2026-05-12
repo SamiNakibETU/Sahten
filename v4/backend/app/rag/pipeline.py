@@ -13,6 +13,7 @@ from __future__ import annotations
 import asyncio
 import re
 import time
+import unicodedata
 from collections import defaultdict
 from dataclasses import dataclass
 
@@ -197,6 +198,55 @@ def _apply_article_rerank(
             -float(r.rerank_score),
         ),
     )
+
+
+def _norm_text(s: str) -> str:
+    t = unicodedata.normalize("NFKD", s or "")
+    t = "".join(ch for ch in t if not unicodedata.combining(ch))
+    t = re.sub(r"[^\w\s]+", " ", t.lower())
+    return " ".join(t.split())
+
+
+def _is_canonical_olj_url(url: str | None) -> bool:
+    u = (url or "").lower()
+    return "lorientlejour.com/cuisine-liban-a-table/" in u
+
+
+def _apply_source_priority(
+    reranked: list[RerankedHit],
+    user_query: str,
+) -> list[RerankedHit]:
+    """Priorise OLJ indexé; non-canonique seulement sur demande exacte.
+
+    Règle produit demandée :
+    - priorité au corpus OLJ indexé (base principale),
+    - une fiche non canonique ne remonte que si l’utilisateur la demande
+      de façon quasi exacte (titre/fiche précis).
+    """
+    if len(reranked) < 2:
+        return reranked
+    qn = _norm_text(user_query or "")
+    qn = re.sub(r"\b(recette|fiche|de|du|des|la|le|les)\b", " ", qn)
+    qn = " ".join(qn.split())
+
+    def _is_exact_title_match(title: str) -> bool:
+        tn = _norm_text(title or "")
+        if not qn or len(qn) < 6 or not tn:
+            return False
+        return qn in tn or tn in qn
+
+    def _bucket(r: RerankedHit) -> tuple[int, float]:
+        canonical = _is_canonical_olj_url(r.hit.article_url)
+        exact_noncanonical = (not canonical) and _is_exact_title_match(
+            r.hit.article_title or ""
+        )
+        if canonical:
+            return (0, -float(r.rerank_score))
+        if exact_noncanonical:
+            return (1, -float(r.rerank_score))
+        return (2, -float(r.rerank_score))
+
+    return sorted(reranked, key=_bucket)
 
 
 _ALIAS_GROUPS: tuple[tuple[str, ...], ...] = (
@@ -584,6 +634,7 @@ class RagPipeline:
                 )
             except Exception as exc:  # noqa: BLE001
                 log.warning("rag.pipeline.article_rerank_failed_fallback", error=str(exc))
+        reranked = _apply_source_priority(reranked, user_query)
         timings["rerank_ms"] = int((time.perf_counter() - t2) * 1000)
 
         t3 = time.perf_counter()
