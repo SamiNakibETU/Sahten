@@ -98,6 +98,16 @@ candidate_articles AS (
                   AND i.slug IN (
                       SELECT unnest((SELECT ingredient_slugs FROM filters))
                   )
+            ) OR EXISTS (
+                SELECT 1
+                FROM chunks c_ing
+                CROSS JOIN unnest((SELECT ingredient_slugs FROM filters)) AS ing_slug(slug)
+                WHERE c_ing.article_id = a.id
+                  AND c_ing.kind = 'ingredients_list'
+                  AND (
+                    c_ing.text ILIKE ('%%' || replace(ing_slug.slug, '-', ' ') || '%%')
+                    OR c_ing.text ILIKE ('%%' || ing_slug.slug || '%%')
+                  )
             )
         )
         AND (

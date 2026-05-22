@@ -31,6 +31,11 @@ import structlog
 CARNETS_PHRASE = "Désolé, je n'ai pas cette recette dans mes carnets."
 
 from ..settings import get_settings
+from ..rag.ingredient_match import (
+    filter_reranked_by_ingredient_slugs,
+    recipe_card_matches_required_ingredients,
+    chunk_confirms_ingredient,
+)
 from ..rag.reranker import RerankedHit
 
 log = structlog.get_logger(__name__)
@@ -400,6 +405,14 @@ Règles ABSOLUES :
    pas une fiche dessert ni un angle sucré. Si aucun extrait du bon registre
    n’est présent, dis-le clairement et propose une relance cohérente avec cette
    contrainte, sans casser le fil.
+23. **Ingrédient explicitement demandé** (« recette avec du concombre », « au
+   poulet », etc.) : ne propose **jamais** une `recipe_card` dont la liste
+   d'ingrédients indexée ne contient pas cet ingrédient. Cite de préférence un
+   chunk `ingredients_list` du même article. Si l'utilisateur corrige (« non,
+   avec du concombre ») ou dit « oui » à une salade au concombre que tu viens
+   d'évoquer, la carte doit correspondre (ex. fattouche, pas un autre plat sans
+   concombre). Ne mentionne pas l'ingrédient seulement en accompagnement dans
+   les étapes de cuisson.
 """
 
 
@@ -433,6 +446,7 @@ class ResponseGenerator:
         conversation_history: str | None = None,
         session_thread_summary: str | None = None,
         model: str | None = None,
+        required_ingredient_slugs: list[str] | None = None,
     ) -> GroundedAnswer:
         if not hits:
             # Pas d'appel LLM : sans chunks le schéma JSON serait rempli d'inventions
@@ -523,7 +537,12 @@ class ResponseGenerator:
                 follow_up="Réessayez dans un petit moment.",
                 confidence=0.0,
             )
-        return validate_grounding(answer, hits, user_query=user_query)
+        return validate_grounding(
+            answer,
+            hits,
+            user_query=user_query,
+            required_ingredient_slugs=required_ingredient_slugs,
+        )
 
 
 def validate_grounding(
@@ -531,6 +550,7 @@ def validate_grounding(
     hits: list[RerankedHit],
     *,
     user_query: str | None = None,
+    required_ingredient_slugs: list[str] | None = None,
 ) -> GroundedAnswer:
     """Filtre les phrases sans citation valide. Recalcule la confidence si besoin.
 
@@ -701,7 +721,15 @@ def validate_grounding(
         answer.recipe_card_secondary = None
 
     if user_query:
-        answer = _maybe_inject_closest_recipe_fallback(answer, hits, user_query)
+        answer = _realign_recipe_card_for_ingredients(
+            answer, hits, required_ingredient_slugs
+        )
+        answer = _maybe_inject_closest_recipe_fallback(
+            answer,
+            hits,
+            user_query,
+            required_ingredient_slugs=required_ingredient_slugs,
+        )
         answer = _enforce_carnets_phrase(answer, user_query)
         answer = _polish_user_facing_tone(answer)
 
@@ -880,10 +908,80 @@ def _enforce_carnets_phrase(answer: GroundedAnswer, user_query: str | None) -> G
     return answer
 
 
+def _pick_recipe_hit_for_card(
+    hits: list[RerankedHit],
+    *,
+    required_ingredient_slugs: list[str] | None = None,
+) -> RerankedHit | None:
+    if not hits:
+        return None
+    candidates = hits
+    if required_ingredient_slugs:
+        filtered = filter_reranked_by_ingredient_slugs(
+            hits, required_ingredient_slugs
+        )
+        if filtered:
+            candidates = filtered
+        else:
+            return None
+    top = candidates[0]
+    aid = int(top.hit.article_external_id)
+    picked = top
+    for h in candidates:
+        if int(h.hit.article_external_id) != aid:
+            continue
+        sk = (h.hit.section_kind or "").lower()
+        if sk == "recipe_meta":
+            picked = h
+            break
+        psk = (picked.hit.section_kind or "").lower()
+        if sk == "recipe_summary" and psk != "recipe_meta":
+            picked = h
+    return picked
+
+
+def _recipe_card_from_hit(picked: RerankedHit, hits: list[RerankedHit]) -> RecipeCard:
+    title = picked.hit.article_title or "Recette"
+    chef = _chef_name_from_metadata(picked.hit.metadata)
+    rc = RecipeCard(
+        title=title,
+        chef=chef,
+        duration_min=None,
+        serves=None,
+        ingredients=[],
+        steps=[],
+        source_chunk_ids=[picked.hit.chunk_id],
+    )
+    return _align_recipe_card_with_hits(rc, hits)
+
+
+def _realign_recipe_card_for_ingredients(
+    answer: GroundedAnswer,
+    hits: list[RerankedHit],
+    required_ingredient_slugs: list[str] | None,
+) -> GroundedAnswer:
+    if not required_ingredient_slugs:
+        return answer
+    if answer.recipe_card is not None and recipe_card_matches_required_ingredients(
+        answer.recipe_card, hits, required_ingredient_slugs
+    ):
+        return answer
+    picked = _pick_recipe_hit_for_card(
+        hits, required_ingredient_slugs=required_ingredient_slugs
+    )
+    if picked is None:
+        answer.recipe_card = None
+        return answer
+    answer.recipe_card = _recipe_card_from_hit(picked, hits)
+    return answer
+
+
 def _maybe_inject_closest_recipe_fallback(
     answer: GroundedAnswer,
     hits: list[RerankedHit],
     user_query: str,
+    *,
+    required_ingredient_slugs: list[str] | None = None,
 ) -> GroundedAnswer:
     """Si le LLM refuse alors que le rerank a des articles, force l'accroche produit
     (règle 17) + une carte sur le meilleur article."""
@@ -897,37 +995,18 @@ def _maybe_inject_closest_recipe_fallback(
     if not _looks_like_refusal_without_card(answer):
         return answer
 
-    top = hits[0]
-    if top.rerank_score < 0.05:
+    picked = _pick_recipe_hit_for_card(
+        hits, required_ingredient_slugs=required_ingredient_slugs
+    )
+    if picked is None:
+        return answer
+    if picked.rerank_score < 0.05 and not required_ingredient_slugs:
         return answer
 
-    aid = int(top.hit.article_external_id)
-    picked = top
-    for h in hits:
-        if int(h.hit.article_external_id) != aid:
-            continue
-        sk = (h.hit.section_kind or "").lower()
-        if sk == "recipe_meta":
-            picked = h
-            break
-        psk = (picked.hit.section_kind or "").lower()
-        if sk == "recipe_summary" and psk != "recipe_meta":
-            picked = h
-
     cid = picked.hit.chunk_id
-    title = picked.hit.article_title or top.hit.article_title or "Recette"
+    title = picked.hit.article_title or "Recette"
     chef = _chef_name_from_metadata(picked.hit.metadata)
-
-    rc = RecipeCard(
-        title=title,
-        chef=chef,
-        duration_min=None,
-        serves=None,
-        ingredients=[],
-        steps=[],
-        source_chunk_ids=[cid],
-    )
-    answer.recipe_card = _align_recipe_card_with_hits(rc, hits)
+    answer.recipe_card = _recipe_card_from_hit(picked, hits)
 
     answer.answer_sentences = [
         GroundedSentence(text=CARNETS_PHRASE, source_chunk_ids=[]),
@@ -940,8 +1019,16 @@ def _maybe_inject_closest_recipe_fallback(
     answer.recipe_card_secondary = None
 
     if len(hits) > 1:
+        aid = int(picked.hit.article_external_id)
         for h in hits[1:]:
             if int(h.hit.article_external_id) == aid:
+                continue
+            if required_ingredient_slugs and not any(
+                chunk_confirms_ingredient(
+                    h.hit.section_kind, h.hit.chunk_text, slug
+                )
+                for slug in required_ingredient_slugs
+            ):
                 continue
             t2 = h.hit.article_title or ""
             if not t2:

@@ -37,6 +37,11 @@ from ..llm.query_understanding import QueryAnalyzer, QueryPlan
 from ..llm.session_focus import SessionFocus, SessionFocusAnalyzer
 from ..settings import get_settings
 from .embeddings import OpenAIEmbeddings
+from .ingredient_match import (
+    filter_hits_by_ingredient_slugs,
+    filter_reranked_by_ingredient_slugs,
+    supplement_ingredient_slugs,
+)
 from .reranker import Reranker, build_default_reranker
 from .retriever import HybridRetriever, Hit
 from .reranker import RerankedHit
@@ -109,13 +114,13 @@ def _merge_objection_boost(
                 "prioriser une fiche où l'ingrédient apparaît au texte."
             ),
             user_wants_different_article=True,
-            suggest_broaden_corpus_search=True,
+            suggest_broaden_corpus_search=False,
         )
     boost = f"{(focus.search_boost_phrase or '').strip()} {extra}".strip()
     return focus.model_copy(
         update={
             "search_boost_phrase": boost,
-            "suggest_broaden_corpus_search": True,
+            "suggest_broaden_corpus_search": False,
             "user_wants_different_article": True,
             "thread_summary": (
                 (focus.thread_summary or "").strip()
@@ -694,6 +699,9 @@ class RagPipeline:
             or plan.category_slugs
             or plan.keyword_slugs
         )
+        ingredient_only = bool(plan.ingredient_slugs) and not (
+            plan.chef_slugs or plan.category_slugs or plan.keyword_slugs
+        )
 
         hits = await self.retriever.search(
             session,
@@ -705,7 +713,7 @@ class RagPipeline:
             final_limit=final_limit,
             exclude_article_external_ids=excl,
         )
-        if not hits and has_sql_filters:
+        if not hits and has_sql_filters and not ingredient_only:
             log.warning(
                 "rag.pipeline.retrieval_empty_with_filters_retrying_broad",
                 ingredient_slugs=plan.ingredient_slugs,
@@ -724,6 +732,7 @@ class RagPipeline:
         if (
             s.rag_retrieval_widen_enabled
             and has_sql_filters
+            and not ingredient_only
             and hits
             and (
                 force_corpus_broaden
@@ -761,8 +770,8 @@ class RagPipeline:
                     hits = await self.retriever.search(
                         session,
                         alt,
-                        chef_slugs=[],
-                        ingredient_slugs=[],
+                        chef_slugs=plan.chef_slugs if ingredient_only else [],
+                        ingredient_slugs=plan.ingredient_slugs if ingredient_only else [],
                         category_slugs=[],
                         keyword_slugs=[],
                         final_limit=final_limit,
@@ -782,6 +791,17 @@ class RagPipeline:
                         n_hits=len(hits),
                     )
                     break
+        if plan.ingredient_slugs:
+            filtered = filter_hits_by_ingredient_slugs(hits, plan.ingredient_slugs)
+            if filtered:
+                hits = filtered
+            elif hits:
+                log.warning(
+                    "rag.pipeline.ingredient_filter_removed_all_hits",
+                    ingredient_slugs=plan.ingredient_slugs,
+                    n_before=len(hits),
+                )
+                hits = []
         return hits
 
     async def answer(
@@ -842,6 +862,7 @@ class RagPipeline:
                 )
             focus = None
         focus = _merge_objection_boost(user_query, conversation_history, focus)
+        plan = supplement_ingredient_slugs(plan, user_query, conversation_history)
         timings["query_understanding_ms"] = int((time.perf_counter() - t0) * 1000)
 
         t1 = time.perf_counter()
@@ -931,6 +952,18 @@ class RagPipeline:
             except Exception as exc:  # noqa: BLE001
                 log.warning("rag.pipeline.article_rerank_failed_fallback", error=str(exc))
         reranked = _apply_source_priority(reranked, user_query)
+        if plan.ingredient_slugs:
+            ing_reranked = filter_reranked_by_ingredient_slugs(
+                reranked, plan.ingredient_slugs
+            )
+            if ing_reranked:
+                reranked = ing_reranked
+            elif reranked:
+                log.warning(
+                    "rag.pipeline.ingredient_rerank_filter_empty",
+                    ingredient_slugs=plan.ingredient_slugs,
+                )
+                reranked = []
         timings["rerank_ms"] = int((time.perf_counter() - t2) * 1000)
 
         t3 = time.perf_counter()
@@ -961,6 +994,7 @@ class RagPipeline:
                 conversation_history=conversation_history,
                 session_thread_summary=thread_summary or None,
                 model=model,
+                required_ingredient_slugs=plan.ingredient_slugs or None,
             )
         timings["generation_ms"] = int((time.perf_counter() - t3) * 1000)
         timings["total_ms"] = sum(timings.values())
