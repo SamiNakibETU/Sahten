@@ -42,7 +42,7 @@ class Settings(BaseSettings):
     arq_queue: str = "sahten_ingest"
 
     openai_api_key: str = ""
-    llm_model: str = "gpt-4.1"
+    llm_model: str = "gpt-4.1-mini"
     llm_temperature: float = 0.0
 
     # text-embedding-3-small (1536 dim) : compatible HNSW pgvector

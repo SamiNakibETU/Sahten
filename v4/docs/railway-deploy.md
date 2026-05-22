@@ -23,7 +23,7 @@ OLJ_API_BASE=https://api.lorientlejour.com/cms
 OLJ_API_KEY=...               # clé valide (la clé locale 21-char retourne 401)
 WEBHOOK_SECRET=...            # généré : python -c "import uuid; print(uuid.uuid4())"
 COHERE_API_KEY=...            # rerank-multilingual-v3.0
-LLM_MODEL=gpt-4.1
+LLM_MODEL=gpt-4.1-mini
 EMBEDDING_MODEL=text-embedding-3-large
 EMBEDDING_DIM=3072
 ```

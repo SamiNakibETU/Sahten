@@ -158,6 +158,7 @@ class QueryAnalyzer:
         *,
         conversation_history: str | None = None,
         max_history_chars: int = 14_000,
+        model: str | None = None,
     ) -> QueryPlan:
         if not user_query or not user_query.strip():
             return QueryPlan(rewritten_query="", intent="mixed")
@@ -177,7 +178,7 @@ class QueryAnalyzer:
         else:
             user_content = uq
         completion = await self._client.chat.completions.create(
-            model=self._model,
+            model=model or self._model,
             temperature=0.0,
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},

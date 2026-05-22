@@ -32,6 +32,7 @@ from ..llm.response_generator import (
     ResponseGenerator,
     validate_grounding,
 )
+from ..llm.models_config import resolve_llm_model
 from ..llm.query_understanding import QueryAnalyzer, QueryPlan
 from ..llm.session_focus import SessionFocus, SessionFocusAnalyzer
 from ..settings import get_settings
@@ -791,9 +792,11 @@ class RagPipeline:
         rerank_top_n: int | None = None,
         session_id: str | None = None,
         conversation_history: str | None = None,
+        llm_model: str | None = None,
     ) -> PipelineResult:
         timings: dict[str, int] = {}
         rerank_top_n = rerank_top_n or self.settings.rag_rerank_top_k
+        model = resolve_llm_model(llm_model)
 
         t0 = time.perf_counter()
         focus: SessionFocus | None = None
@@ -801,21 +804,29 @@ class RagPipeline:
             if conversation_history and conversation_history.strip():
                 plan, focus = await asyncio.gather(
                     self.analyzer.analyze(
-                        user_query, conversation_history=conversation_history
+                        user_query,
+                        conversation_history=conversation_history,
+                        model=model,
                     ),
                     self._session_focus.infer(
-                        user_query, conversation_history
+                        user_query,
+                        conversation_history,
+                        model=model,
                     ),
                 )
             else:
                 plan = await self.analyzer.analyze(
-                    user_query, conversation_history=None
+                    user_query,
+                    conversation_history=None,
+                    model=model,
                 )
         except Exception as exc:  # noqa: BLE001
             log.warning("rag.pipeline.query_focus_failed_fallback", error=str(exc))
             try:
                 plan = await self.analyzer.analyze(
-                    user_query, conversation_history=conversation_history
+                    user_query,
+                    conversation_history=conversation_history,
+                    model=model,
                 )
             except Exception as exc2:  # noqa: BLE001
                 log.warning("rag.pipeline.query_analyze_failed_fallback", error=str(exc2))
@@ -949,6 +960,7 @@ class RagPipeline:
                 reranked,
                 conversation_history=conversation_history,
                 session_thread_summary=thread_summary or None,
+                model=model,
             )
         timings["generation_ms"] = int((time.perf_counter() - t3) * 1000)
         timings["total_ms"] = sum(timings.values())

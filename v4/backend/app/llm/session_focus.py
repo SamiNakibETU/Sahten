@@ -111,6 +111,7 @@ class SessionFocusAnalyzer:
         conversation_history: str,
         *,
         max_history_chars: int = 14_000,
+        model: str | None = None,
     ) -> SessionFocus:
         h = (conversation_history or "").strip()
         if len(h) > max_history_chars:
@@ -121,7 +122,7 @@ class SessionFocusAnalyzer:
         )
         try:
             completion = await self._client.chat.completions.create(
-                model=self._model,
+                model=model or self._model,
                 temperature=0.0,
                 messages=[
                     {"role": "system", "content": SYSTEM},

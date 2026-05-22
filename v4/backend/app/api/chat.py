@@ -23,6 +23,7 @@ from ..db.base import get_session
 from ..limiter_support import limiter
 from ..rag.html_renderer import render_answer_html
 from ..rag.pipeline import RagPipeline
+from ..llm.models_config import resolve_llm_model
 from ..settings import get_settings
 
 # Aligné sur les usages réels (recettes collées, contexte long) — au-delà, 422 côté validation.
@@ -147,7 +148,7 @@ def _fallback_chat_response(
     detail: str,
     total_ms: int = 0,
 ) -> ChatResponse:
-    model_used = payload.model or get_settings().llm_model
+    model_used = resolve_llm_model(payload.model)
     safe_detail = (detail or "").strip()
     html = (
         '<div class="sahten-narrative"><p><em>Mille excuses, un petit incident '
@@ -188,6 +189,7 @@ async def _run_chat_pipeline(
 
     sid = payload.session_id or _new_session_id()
     request_id = _new_request_id()
+    model_used = resolve_llm_model(payload.model)
     started = time.perf_counter()
 
     history_block = ""
@@ -202,6 +204,7 @@ async def _run_chat_pipeline(
             text,
             session_id=sid,
             conversation_history=history_block or None,
+            llm_model=model_used,
         )
     except Exception as exc:
         log.exception("chat.rag_failed", query_preview=text[:200])
@@ -222,7 +225,7 @@ async def _run_chat_pipeline(
                 confidence=0.0,
                 sources=[],
                 timings_ms={"total_ms": total_ms},
-                model_used=payload.model or get_settings().llm_model,
+                model_used=model_used,
             )
         except Exception as rec_exc:
             log.warning("chat.record_turn_failed_on_error", error=str(rec_exc))
@@ -246,7 +249,6 @@ async def _run_chat_pipeline(
         for r in result.reranked
     ]
     html_str = render_answer_html(result.answer, result.reranked)
-    model_used = payload.model or get_settings().llm_model
 
     try:
         await sessions.record_turn(

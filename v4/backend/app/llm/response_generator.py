@@ -432,6 +432,7 @@ class ResponseGenerator:
         *,
         conversation_history: str | None = None,
         session_thread_summary: str | None = None,
+        model: str | None = None,
     ) -> GroundedAnswer:
         if not hits:
             # Pas d'appel LLM : sans chunks le schéma JSON serait rempli d'inventions
@@ -493,7 +494,7 @@ class ResponseGenerator:
         user_content = "\n\n".join(user_parts)
         try:
             completion = await self._client.chat.completions.create(
-                model=self._model,
+                model=model or self._model,
                 temperature=self._temperature,
                 messages=[
                     {"role": "system", "content": SYSTEM_PROMPT},

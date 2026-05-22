@@ -16,6 +16,7 @@ from .. import sessions as sessions_store
 from ..auth_deps import require_admin_token
 from ..db.base import get_session
 from ..limiter_support import limiter
+from ..llm.models_config import list_llm_models
 from ..settings import get_settings
 
 log = structlog.get_logger(__name__)
@@ -28,9 +29,7 @@ def models() -> dict[str, Any]:
     s = get_settings()
     return {
         "default": s.llm_model,
-        "models": [
-            {"id": s.llm_model, "label": s.llm_model, "provider": "openai"},
-        ],
+        "models": list_llm_models(),
     }
 
 
