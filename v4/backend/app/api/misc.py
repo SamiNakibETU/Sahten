@@ -8,13 +8,14 @@ from typing import Any
 import structlog
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, ConfigDict
-from sqlalchemy import text
+from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .. import __version__, analytics_store
 from .. import sessions as sessions_store
 from ..auth_deps import require_admin_token
 from ..db.base import get_session
+from ..db.models import Chunk
 from ..limiter_support import limiter
 from ..llm.models_config import list_llm_models
 from ..settings import get_settings
@@ -150,5 +151,31 @@ async def health_deep(session: AsyncSession = Depends(get_session)) -> dict[str,
         "cohere": bool(s.cohere_api_key),
     }
 
-    out["status"] = "ok" if out["db"].get("ok") else "degraded"
+    try:
+        n_chunks = int(
+            (await session.execute(select(func.count()).select_from(Chunk))).scalar_one()
+            or 0
+        )
+        n_embedded = int(
+            (
+                await session.execute(
+                    select(func.count())
+                    .select_from(Chunk)
+                    .where(Chunk.embedding.is_not(None))
+                )
+            ).scalar_one()
+            or 0
+        )
+        out["corpus"] = {
+            "chunks": n_chunks,
+            "chunks_embedded": n_embedded,
+            "searchable": n_embedded > 0,
+        }
+        if n_embedded == 0:
+            out["status"] = "degraded"
+    except Exception as exc:  # noqa: BLE001
+        out["corpus"] = {"error": str(exc)}
+
+    if out.get("status") != "degraded":
+        out["status"] = "ok" if out["db"].get("ok") else "degraded"
     return out

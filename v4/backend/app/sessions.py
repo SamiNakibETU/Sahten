@@ -226,6 +226,24 @@ async def recent_article_external_ids(
     return seen
 
 
+async def last_offered_article_external_id(session_id: str) -> int | None:
+    """Dernier article cité dans la dernière réponse assistant (pour « une autre »)."""
+    msgs = await get_session_messages(session_id)
+    for m in reversed(msgs):
+        if m.get("role") != "assistant":
+            continue
+        for src in m.get("sources") or []:
+            aid = src.get("article_external_id")
+            if aid is None:
+                continue
+            try:
+                return int(aid)
+            except (TypeError, ValueError):
+                continue
+        break
+    return None
+
+
 async def get_session_messages(session_id: str) -> list[dict[str, Any]]:
     redis = await _get_redis()
     if redis is None:
@@ -256,6 +274,7 @@ __all__ = [
     "list_sessions",
     "get_session_messages",
     "recent_article_external_ids",
+    "last_offered_article_external_id",
     "conversation_block_for_llm",
     "healthcheck",
 ]

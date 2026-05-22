@@ -16,6 +16,7 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..db import models
+from .ingredient_linker import link_article_ingredients
 from .mapper import (
     MappedArticle,
     MappedAuthor,
@@ -30,6 +31,7 @@ async def upsert_article(session: AsyncSession, mapped: MappedArticle) -> models
     await _link_authors(session, article.id, mapped.authors)
     await _link_keywords(session, article.id, mapped.keywords)
     await _link_categories(session, article.id, mapped.categories)
+    await link_article_ingredients(session, article.id)
     return article
 
 

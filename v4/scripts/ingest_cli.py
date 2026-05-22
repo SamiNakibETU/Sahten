@@ -251,6 +251,16 @@ async def cmd_reindex_all(
     print(f"[reindex-all] terminé : {counts}")
 
 
+async def cmd_link_ingredients() -> None:
+    from app.ingestion.ingredient_linker import link_all_article_ingredients
+
+    sm = get_sessionmaker()
+    async with sm() as session:
+        stats = await link_all_article_ingredients(session)
+        await session.commit()
+    print(f"[link-ingredients] terminé : {stats}")
+
+
 def main() -> None:
     p = argparse.ArgumentParser()
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -304,6 +314,11 @@ def main() -> None:
     )
     p_ra.add_argument("--dry-run", action="store_true")
 
+    sub.add_parser(
+        "link-ingredients",
+        help="Backfill article_ingredients depuis les sections déjà en base",
+    )
+
     args = p.parse_args()
     if args.cmd == "one":
         asyncio.run(cmd_one(args.article_id))
@@ -335,6 +350,8 @@ def main() -> None:
                 seed_only=args.seed_only,
             )
         )
+    elif args.cmd == "link-ingredients":
+        asyncio.run(cmd_link_ingredients())
 
 
 if __name__ == "__main__":

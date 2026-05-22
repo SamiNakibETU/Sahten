@@ -3,7 +3,9 @@ from backend.app.rag.ingredient_match import (
     chunk_confirms_ingredient,
     extract_ingredient_slugs_from_text,
     filter_hits_by_ingredient_slugs,
+    is_short_follow_up,
     supplement_ingredient_slugs,
+    wants_another_recipe,
 )
 from backend.app.rag.retriever import Hit
 
@@ -68,3 +70,20 @@ def test_chunk_confirms_ingredient_strict_on_steps_only() -> None:
         "2 concombres moyens",
         "concombre",
     )
+
+
+def test_short_follow_up_detection() -> None:
+    assert is_short_follow_up("oui")
+    assert is_short_follow_up("une autre")
+    assert not is_short_follow_up("recette avec du concombre")
+
+
+def test_wants_another_recipe() -> None:
+    assert wants_another_recipe("une autre")
+    assert wants_another_recipe("encore une autre recette")
+    assert not wants_another_recipe("recette houmous")
+
+
+def test_fuzzy_typo_tomatge() -> None:
+    slugs = extract_ingredient_slugs_from_text("recette avec de la tomatge")
+    assert "tomate" in slugs

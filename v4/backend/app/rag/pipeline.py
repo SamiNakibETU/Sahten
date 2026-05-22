@@ -41,6 +41,8 @@ from .ingredient_match import (
     filter_hits_by_ingredient_slugs,
     filter_reranked_by_ingredient_slugs,
     supplement_ingredient_slugs,
+    wants_another_recipe,
+    ingredient_display_name,
 )
 from .reranker import Reranker, build_default_reranker
 from .retriever import HybridRetriever, Hit
@@ -128,6 +130,69 @@ def _merge_objection_boost(
             )[:400],
         }
     )
+
+
+def _merge_follow_up_boost(
+    user_query: str,
+    focus: SessionFocus | None,
+) -> SessionFocus | None:
+    """Renfort si l'utilisateur demande explicitement une autre recette."""
+    if not wants_another_recipe(user_query):
+        return focus
+    if focus is None:
+        return SessionFocus(
+            user_wants_different_article=True,
+            suggest_broaden_corpus_search=False,
+            thread_summary="[Relance] L'utilisateur veut une autre recette sur le même fil.",
+        )
+    return focus.model_copy(
+        update={
+            "user_wants_different_article": True,
+            "suggest_broaden_corpus_search": False,
+        }
+    )
+
+
+def _build_no_alternate_ingredient_answer(slugs: list[str]) -> GroundedAnswer:
+    ing = ingredient_display_name(slugs[0])
+    return GroundedAnswer(
+        answer_sentences=[
+            GroundedSentence(
+                text=(
+                    f"Je n'ai pas d'autre recette à base de {ing} "
+                    f"à vous proposer pour l'instant."
+                ),
+                source_chunk_ids=[],
+            )
+        ],
+        recipe_card=None,
+        recipe_card_secondary=None,
+        chef_card=None,
+        follow_up=(
+            "Souhaitez-vous un autre ingrédient ou le nom d'un plat libanais précis ?"
+        ),
+        confidence=0.12,
+    )
+
+
+async def _probe_corpus_searchable(
+    retriever: HybridRetriever,
+    session: AsyncSession,
+) -> bool:
+    """True si au moins un chunk est retrievable sans filtre structuré."""
+    try:
+        probe = await retriever.search(
+            session,
+            "recette libanaise",
+            chef_slugs=[],
+            ingredient_slugs=[],
+            category_slugs=[],
+            keyword_slugs=[],
+            final_limit=1,
+        )
+        return bool(probe)
+    except Exception:  # noqa: BLE001
+        return False
 
 
 def _dedupe_merge_hits(primary: list[Hit], secondary: list[Hit], *, cap: int = 100) -> list[Hit]:
@@ -713,26 +778,50 @@ class RagPipeline:
             final_limit=final_limit,
             exclude_article_external_ids=excl,
         )
-        if not hits and has_sql_filters and not ingredient_only:
-            log.warning(
-                "rag.pipeline.retrieval_empty_with_filters_retrying_broad",
-                ingredient_slugs=plan.ingredient_slugs,
-                chef_slugs=plan.chef_slugs,
-            )
-            hits = await self.retriever.search(
-                session,
-                q,
-                chef_slugs=[],
-                ingredient_slugs=[],
-                category_slugs=[],
-                keyword_slugs=[],
-                final_limit=final_limit,
-                exclude_article_external_ids=excl,
-            )
+        if not hits and has_sql_filters:
+            if ingredient_only:
+                log.info(
+                    "rag.pipeline.ingredient_broad_retry",
+                    ingredient_slugs=plan.ingredient_slugs,
+                )
+                broad = await self.retriever.search(
+                    session,
+                    q,
+                    chef_slugs=[],
+                    ingredient_slugs=[],
+                    category_slugs=[],
+                    keyword_slugs=[],
+                    final_limit=final_limit + 24,
+                    exclude_article_external_ids=excl,
+                )
+                if broad and plan.ingredient_slugs:
+                    filtered = filter_hits_by_ingredient_slugs(
+                        broad, plan.ingredient_slugs
+                    )
+                    if not filtered:
+                        filtered = filter_hits_by_ingredient_slugs(
+                            broad, plan.ingredient_slugs, strict=False
+                        )
+                    hits = filtered
+            elif not ingredient_only:
+                log.warning(
+                    "rag.pipeline.retrieval_empty_with_filters_retrying_broad",
+                    ingredient_slugs=plan.ingredient_slugs,
+                    chef_slugs=plan.chef_slugs,
+                )
+                hits = await self.retriever.search(
+                    session,
+                    q,
+                    chef_slugs=[],
+                    ingredient_slugs=[],
+                    category_slugs=[],
+                    keyword_slugs=[],
+                    final_limit=final_limit,
+                    exclude_article_external_ids=excl,
+                )
         if (
             s.rag_retrieval_widen_enabled
             and has_sql_filters
-            and not ingredient_only
             and hits
             and (
                 force_corpus_broaden
@@ -771,12 +860,30 @@ class RagPipeline:
                         session,
                         alt,
                         chef_slugs=plan.chef_slugs if ingredient_only else [],
-                        ingredient_slugs=plan.ingredient_slugs if ingredient_only else [],
+                        ingredient_slugs=(
+                            plan.ingredient_slugs if ingredient_only else []
+                        ),
                         category_slugs=[],
                         keyword_slugs=[],
                         final_limit=final_limit,
                         exclude_article_external_ids=excl,
                     )
+                    if not hits and ingredient_only and plan.ingredient_slugs:
+                        broad = await self.retriever.search(
+                            session,
+                            alt,
+                            chef_slugs=[],
+                            ingredient_slugs=[],
+                            category_slugs=[],
+                            keyword_slugs=[],
+                            final_limit=final_limit + 24,
+                            exclude_article_external_ids=excl,
+                        )
+                        hits = filter_hits_by_ingredient_slugs(
+                            broad, plan.ingredient_slugs
+                        ) or filter_hits_by_ingredient_slugs(
+                            broad, plan.ingredient_slugs, strict=False
+                        )
                 except Exception as exc:  # noqa: BLE001
                     log.warning(
                         "rag.pipeline.retrieval_fallback_failed",
@@ -862,6 +969,7 @@ class RagPipeline:
                 )
             focus = None
         focus = _merge_objection_boost(user_query, conversation_history, focus)
+        focus = _merge_follow_up_boost(user_query, focus)
         plan = supplement_ingredient_slugs(plan, user_query, conversation_history)
         timings["query_understanding_ms"] = int((time.perf_counter() - t0) * 1000)
 
@@ -871,10 +979,17 @@ class RagPipeline:
         if focus and (focus.search_boost_phrase or "").strip():
             q = f"{q} {(focus.search_boost_phrase or '').strip()}".strip()
         force_broaden = bool(focus and focus.suggest_broaden_corpus_search)
+        wants_different = bool(
+            focus and focus.user_wants_different_article
+        ) or wants_another_recipe(user_query)
         excluded: list[int] = []
-        if session_id and bool(focus and focus.user_wants_different_article):
+        if session_id and wants_different:
             try:
-                excluded = await sessions_store.recent_article_external_ids(session_id)
+                last_id = await sessions_store.last_offered_article_external_id(
+                    session_id
+                )
+                if last_id is not None:
+                    excluded = [last_id]
             except Exception as exc:  # noqa: BLE001
                 log.warning("rag.pipeline.session_exclusions_failed", error=str(exc))
         try:
@@ -887,7 +1002,7 @@ class RagPipeline:
                 excluded,
                 force_corpus_broaden=force_broaden,
             )
-            if not hits and excluded:
+            if not hits and excluded and not wants_different:
                 log.info(
                     "rag.pipeline.retrieval_retry_no_session_article_exclusions",
                     n_excluded=len(excluded),
@@ -900,6 +1015,11 @@ class RagPipeline:
                     rerank_top_n,
                     [],
                     force_corpus_broaden=force_broaden,
+                )
+            elif not hits and excluded and wants_different:
+                log.info(
+                    "rag.pipeline.no_retry_user_wants_different",
+                    n_excluded=len(excluded),
                 )
         except Exception as exc:  # noqa: BLE001
             log.exception("rag.pipeline.retrieval_failed")
@@ -969,7 +1089,21 @@ class RagPipeline:
         t3 = time.perf_counter()
         base2_fallback_used = False
         base2_recipe = _match_base2_recipe(user_query)
-        if base2_recipe is not None:
+        if (
+            not reranked
+            and plan.ingredient_slugs
+            and wants_different
+            and base2_recipe is None
+        ):
+            answer = _build_no_alternate_ingredient_answer(plan.ingredient_slugs)
+        elif not reranked and base2_recipe is None:
+            corpus_ok = await _probe_corpus_searchable(self.retriever, session)
+            answer = self.generator.build_empty_retrieval_answer(
+                user_query,
+                required_ingredient_slugs=plan.ingredient_slugs or None,
+                corpus_searchable=corpus_ok,
+            )
+        elif base2_recipe is not None:
             answer = _build_base2_last_resort_answer(
                 user_query=user_query,
                 base2_recipe=base2_recipe,

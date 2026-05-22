@@ -16,6 +16,7 @@ from ..db.base import get_session
 from ..llm.query_understanding import QueryAnalyzer, QueryPlan
 from ..rag.embeddings import OpenAIEmbeddings
 from ..rag.pipeline import _retrieval_fallback_queries
+from ..rag.ingredient_match import supplement_ingredient_slugs
 from ..rag.retriever import HybridRetriever
 from ..settings import get_settings
 from ..db.models import (
@@ -137,6 +138,7 @@ async def diagnose_retrieval(
     plan_error: str | None = None
     try:
         plan_obj = await QueryAnalyzer().analyze(q)
+        plan_obj = supplement_ingredient_slugs(plan_obj, q, None)
         plan_dump = plan_obj.model_dump()
     except Exception as exc:  # noqa: BLE001
         plan_error = str(exc)

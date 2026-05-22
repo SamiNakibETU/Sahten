@@ -1,7 +1,6 @@
 """POST /api/webhook/recipe — webhook WhiteBeard.
 
-Vérification HMAC SHA-256 + déclenchement async d'une ré-ingestion exhaustive
-(via le service `ingest_article_id`). Idempotent.
+Vérification HMAC SHA-256 + ingestion + reindex (chunks + embeddings).
 """
 
 from __future__ import annotations
@@ -12,10 +11,14 @@ from hashlib import sha256
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from pydantic import BaseModel
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from ..db import models
 from ..db.base import get_session
 from ..ingestion.service import ingest_article_id
+from ..rag.embeddings import OpenAIEmbeddings
+from ..rag.indexer import reindex_article
 from ..settings import get_settings
 
 router = APIRouter(prefix="/api/webhook", tags=["webhook"])
@@ -59,8 +62,19 @@ async def webhook_recipe(
 
     if payload.event in ("article.published", "article.updated"):
         result = await ingest_article_id(session, payload.article_id)
-        return {"status": "reindexed", "article": result.article_id}
+        res = await session.execute(
+            select(models.Article).where(models.Article.id == result.article_id)
+        )
+        article = res.scalar_one()
+        embedder = OpenAIEmbeddings()
+        n_chunks = await reindex_article(session, article, embedder)
+        await session.commit()
+        return {
+            "status": "reindexed",
+            "article": result.article_id,
+            "external_id": result.external_id,
+            "chunks": n_chunks,
+        }
     if payload.event == "article.deleted":
-        # Suppression : on délègue à un endpoint dédié dans une itération suivante
         return {"status": "noop_deletion_pending"}
     return {"status": "ignored", "event": payload.event}

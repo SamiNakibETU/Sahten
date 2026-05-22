@@ -53,11 +53,42 @@ _KNOWN_ING_WORDS: dict[str, str] = {
 }
 
 
+_FOLLOW_UP_RE = re.compile(
+    r"(?i)^(?:oui|non|ok|merci|d'accord|une autre|encore(?:\s+une)?(?:\s+autre)?|"
+    r"autre(?:\s+recette)?|autre chose|la premi(?:è|e)re?|celle(?:-là)?)\.?$"
+)
+_WANTS_ANOTHER_RE = re.compile(
+    r"(?i)\b(une autre|encore une|autre recette|autre chose|autre idée)\b"
+)
+
+
 def _ascii_slug(word: str) -> str:
     s = unicodedata.normalize("NFKD", word.strip().lower())
     s = s.encode("ascii", "ignore").decode("ascii")
     s = re.sub(r"[^a-z0-9]+", "-", s).strip("-")
     return s or word.strip().lower()
+
+
+def _levenshtein(a: str, b: str) -> int:
+    if a == b:
+        return 0
+    if not a:
+        return len(b)
+    if not b:
+        return len(a)
+    prev = list(range(len(b) + 1))
+    for i, ca in enumerate(a, 1):
+        cur = [i]
+        for j, cb in enumerate(b, 1):
+            cur.append(
+                min(
+                    prev[j] + 1,
+                    cur[j - 1] + 1,
+                    prev[j - 1] + (ca != cb),
+                )
+            )
+        prev = cur
+    return prev[-1]
 
 
 def slug_search_terms(slug: str) -> tuple[str, ...]:
@@ -100,9 +131,38 @@ def _word_to_slug(word: str) -> str | None:
     w = word.strip().lower().replace("’", "'")
     if w in _KNOWN_ING_WORDS:
         return _KNOWN_ING_WORDS[w]
+    if len(w) >= 4:
+        for canonical in INGREDIENT_SLUG_ALIASES:
+            for term in slug_search_terms(canonical):
+                t = term.lower().replace("-", " ")
+                if len(t) >= 4 and _levenshtein(w, t) <= 1:
+                    return canonical
     if len(w) < 3:
         return None
     return _ascii_slug(w)
+
+
+def scan_known_ingredient_slugs(text: str) -> list[str]:
+    """Repère tous les ingrédients connus présents dans un bloc de texte."""
+    if not text or not text.strip():
+        return []
+    low = text.lower().replace("’", "'")
+    found: list[str] = []
+    seen: set[str] = set()
+    for canonical, terms in INGREDIENT_SLUG_ALIASES.items():
+        for term in terms:
+            t = term.lower().replace("-", " ")
+            if len(t) < 3:
+                continue
+            if re.search(
+                rf"(?<![\wàâäéèêëïîôùûç-]){re.escape(t)}(?![\wàâäéèêëïîôùûç-])",
+                low,
+            ):
+                if canonical not in seen:
+                    seen.add(canonical)
+                    found.append(canonical)
+                break
+    return found
 
 
 def extract_ingredient_slugs_from_text(text: str) -> list[str]:
@@ -241,3 +301,29 @@ def recipe_card_matches_required_ingredients(
                 continue
             return False
     return True
+
+
+def is_short_follow_up(user_query: str) -> bool:
+    return bool(_FOLLOW_UP_RE.match((user_query or "").strip()))
+
+
+def wants_another_recipe(user_query: str) -> bool:
+    q = (user_query or "").strip()
+    low = q.lower().replace("'", "'")
+    if low in {"une autre", "encore", "autre", "autre recette", "autre chose"}:
+        return True
+    return bool(_WANTS_ANOTHER_RE.search(q))
+
+
+def is_ingredient_browse_query(required_ingredient_slugs: list[str] | None) -> bool:
+    return bool(required_ingredient_slugs)
+
+
+def ingredient_display_name(slug: str) -> str:
+    terms = slug_search_terms(slug)
+    if not terms:
+        return slug.replace("-", " ")
+    for term in terms:
+        if " " not in term and len(term) >= 3:
+            return term.replace("-", " ")
+    return terms[0].replace("-", " ")

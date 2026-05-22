@@ -13,7 +13,7 @@ from __future__ import annotations
 from arq.connections import RedisSettings
 
 from app.db.base import get_sessionmaker
-from app.ingestion.service import backfill_all, ingest_article_id
+from app.ingestion.service import ingest_article_id
 from app.ingestion.whitebeard_client import WhiteBeardClient
 from app.rag.embeddings import OpenAIEmbeddings
 from app.rag.indexer import reindex_article
@@ -49,8 +49,31 @@ async def ingest_one(ctx: dict, article_external_id: int) -> dict:
 async def ingest_backfill(
     ctx: dict, category: str | None = None, page_size: int = 50
 ) -> dict:
+    from app.db import models
+
     sm = ctx["session_factory"]
-    counts = await backfill_all(sm, category=category, page_size=page_size)
+    embedder = ctx["embedder"]
+    counts = {"ok": 0, "partial": 0, "failed": 0, "needs_playwright": 0, "chunks": 0}
+    async with WhiteBeardClient() as cli:
+        async for item in cli.iter_all_articles(
+            category=category, page_size=page_size
+        ):
+            external_id = int(item.get("id") or 0)
+            if not external_id:
+                continue
+            try:
+                async with sm() as session:
+                    result = await ingest_article_id(
+                        session, external_id, client=cli
+                    )
+                    article = await session.get(models.Article, result.article_id)
+                    if article is not None:
+                        n_chunks = await reindex_article(session, article, embedder)
+                        counts["chunks"] = counts.get("chunks", 0) + n_chunks
+                    await session.commit()
+                counts[result.status] = counts.get(result.status, 0) + 1
+            except Exception:  # noqa: BLE001
+                counts["failed"] += 1
     return counts
 
 

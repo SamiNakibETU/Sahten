@@ -3,10 +3,12 @@ from backend.app.llm.response_generator import (
     GroundedAnswer,
     GroundedSentence,
     RecipeCard,
+    ResponseGenerator,
     _enforce_carnets_phrase,
     _polish_user_facing_tone,
+    _sanitize_carnets_for_context,
 )
-from backend.app.rag.pipeline import _apply_source_priority
+from backend.app.rag.pipeline import _apply_source_priority, _build_no_alternate_ingredient_answer
 from backend.app.rag.reranker import RerankedHit
 from backend.app.rag.retriever import Hit
 
@@ -102,3 +104,81 @@ def test_polish_user_facing_tone_rewrites_meta_pivot() -> None:
     assert "mouloukhiyé" in pivot
     assert "je peux aussi vous proposer" in out.follow_up.lower()
     assert "autre plat" in out.follow_up.lower()
+
+
+def test_enforce_carnets_skipped_for_ingredient_browse() -> None:
+    answer = GroundedAnswer(
+        answer_sentences=[
+            GroundedSentence(
+                text="Je n'ai pas de fiche dans les extraits consultés.",
+                source_chunk_ids=[],
+            )
+        ],
+        recipe_card=RecipeCard(
+            title="Fattouche",
+            chef="Chef",
+            duration_min=None,
+            serves=None,
+            ingredients=[],
+            steps=[],
+            source_chunk_ids=[1],
+        ),
+        confidence=0.4,
+    )
+    out = _enforce_carnets_phrase(
+        answer, "recette avec du concombre", required_ingredient_slugs=["concombre"]
+    )
+    assert out.answer_sentences[0].text != CARNETS_PHRASE
+
+
+def test_sanitize_carnets_removes_contradiction_with_recipe_card() -> None:
+    answer = GroundedAnswer(
+        answer_sentences=[
+            GroundedSentence(text=CARNETS_PHRASE, source_chunk_ids=[]),
+            GroundedSentence(text="En voici une idée.", source_chunk_ids=[1]),
+        ],
+        recipe_card=RecipeCard(
+            title="Courgettes aux tomates",
+            chef="Karim Haïdar",
+            duration_min=50,
+            serves="4",
+            ingredients=[],
+            steps=[],
+            source_chunk_ids=[1],
+        ),
+        confidence=0.4,
+    )
+    out = _sanitize_carnets_for_context(
+        answer,
+        user_query="recette avec de la tomate",
+        required_ingredient_slugs=["tomate"],
+    )
+    texts = [s.text for s in out.answer_sentences]
+    assert CARNETS_PHRASE not in texts
+    assert any("idée" in t.lower() for t in texts)
+
+
+def test_no_alternate_ingredient_answer_tone() -> None:
+    out = _build_no_alternate_ingredient_answer(["tomate"])
+    blob = out.answer_sentences[0].text.lower()
+    assert "tomate" in blob
+    assert "archives indexées" not in blob
+    assert out.recipe_card is None
+
+
+def test_empty_retrieval_messages() -> None:
+    gen = ResponseGenerator.__new__(ResponseGenerator)
+    empty_corpus = gen.build_empty_retrieval_answer(
+        "recette avec du concombre",
+        required_ingredient_slugs=["concombre"],
+        corpus_searchable=False,
+    )
+    assert "index" in empty_corpus.answer_sentences[0].text.lower() or "carnets" in empty_corpus.answer_sentences[0].text.lower()
+    assert "archives indexées" not in empty_corpus.answer_sentences[0].text
+
+    no_ing = gen.build_empty_retrieval_answer(
+        "recette avec du concombre",
+        required_ingredient_slugs=["concombre"],
+        corpus_searchable=True,
+    )
+    assert "concombre" in no_ing.answer_sentences[0].text.lower()

@@ -35,6 +35,8 @@ from ..rag.ingredient_match import (
     filter_reranked_by_ingredient_slugs,
     recipe_card_matches_required_ingredients,
     chunk_confirms_ingredient,
+    ingredient_display_name,
+    is_short_follow_up,
 )
 from ..rag.reranker import RerankedHit
 
@@ -438,6 +440,50 @@ class ResponseGenerator:
         self._model = s.llm_model
         self._temperature = s.llm_temperature
 
+    def build_empty_retrieval_answer(
+        self,
+        user_query: str,
+        *,
+        required_ingredient_slugs: list[str] | None = None,
+        corpus_searchable: bool = True,
+    ) -> GroundedAnswer:
+        if not corpus_searchable:
+            text = (
+                "Mes carnets de recettes ne sont pas encore disponibles pour "
+                "répondre — l'index des articles est en cours de chargement. "
+                "Réessayez dans quelques minutes."
+            )
+            follow_up = "Souhaitez-vous réessayer un peu plus tard ?"
+            confidence = 0.03
+        elif required_ingredient_slugs:
+            ing = ingredient_display_name(required_ingredient_slugs[0])
+            text = (
+                f"Je n'ai pas trouvé de recette à base de {ing} dans mes carnets "
+                f"pour l'instant."
+            )
+            follow_up = (
+                "Souhaitez-vous un autre ingrédient ou le nom d'un plat libanais précis ?"
+            )
+            confidence = 0.08
+        else:
+            text = (
+                "Je n'ai pas trouvé de recette correspondant à votre demande "
+                "dans mes carnets. Précisez un plat, un chef ou un ingrédient."
+            )
+            follow_up = (
+                "Souhaitez-vous essayer un autre ingrédient ou le nom d'un plat "
+                "libanais ?"
+            )
+            confidence = 0.05
+        return GroundedAnswer(
+            answer_sentences=[GroundedSentence(text=text, source_chunk_ids=[])],
+            recipe_card=None,
+            recipe_card_secondary=None,
+            chef_card=None,
+            follow_up=follow_up,
+            confidence=confidence,
+        )
+
     async def generate(
         self,
         user_query: str,
@@ -449,29 +495,10 @@ class ResponseGenerator:
         required_ingredient_slugs: list[str] | None = None,
     ) -> GroundedAnswer:
         if not hits:
-            # Pas d'appel LLM : sans chunks le schéma JSON serait rempli d'inventions
-            # (« plus de recettes dans mon répertoire », etc.).
-            return GroundedAnswer(
-                answer_sentences=[
-                    GroundedSentence(
-                        text=(
-                            "Je n’ai trouvé aucun extrait d’article correspondant "
-                            "dans les archives indexées pour cette question. Les "
-                            "recherches par ingrédient passent par le texte des "
-                            "recettes : reformulez ou précisez un plat, un chef ou "
-                            "un mot-clé."
-                        ),
-                        source_chunk_ids=[],
-                    )
-                ],
-                recipe_card=None,
-                recipe_card_secondary=None,
-                chef_card=None,
-                follow_up=(
-                    "Souhaitez-vous essayer un autre ingrédient ou le nom d’un plat "
-                    "libanais ?"
-                ),
-                confidence=0.05,
+            return self.build_empty_retrieval_answer(
+                user_query,
+                required_ingredient_slugs=required_ingredient_slugs,
+                corpus_searchable=True,
             )
 
         context = _format_context(hits)
@@ -730,7 +757,14 @@ def validate_grounding(
             user_query,
             required_ingredient_slugs=required_ingredient_slugs,
         )
-        answer = _enforce_carnets_phrase(answer, user_query)
+        answer = _enforce_carnets_phrase(
+            answer, user_query, required_ingredient_slugs=required_ingredient_slugs
+        )
+        answer = _sanitize_carnets_for_context(
+            answer,
+            user_query=user_query,
+            required_ingredient_slugs=required_ingredient_slugs,
+        )
         answer = _polish_user_facing_tone(answer)
 
     # Chef et recette doivent rester sur la même fiche : mieux vaut retirer la bio
@@ -751,6 +785,8 @@ def validate_grounding(
 def _wants_recipe_suggestion(q: str) -> bool:
     t = (q or "").strip()
     if not t:
+        return False
+    if is_short_follow_up(t):
         return False
     if re.search(
         r"(?i)\b(recette|plat|cuisiner|cuisine|préparer|preparer|ingrédients?"
@@ -803,6 +839,66 @@ def _format_closest_recipe_pivot(title: str, chef: str | None) -> str:
         f"En revanche, {dish} pourrait vous séduire — "
         f"c'est un plat proche en esprit."
     )
+
+
+def _format_ingredient_recipe_intro(
+    title: str, chef: str | None, slug: str
+) -> str:
+    ing = ingredient_display_name(slug)
+    dish = (title or "cette recette").strip()
+    chef_name = (chef or "").strip()
+    if chef_name:
+        return (
+            f"Voici {dish}, proposée par {chef_name}, "
+            f"une idée à base de {ing}."
+        )
+    return f"Voici {dish}, une idée à base de {ing}."
+
+
+def _carnets_phrase_allowed(
+    user_query: str | None,
+    required_ingredient_slugs: list[str] | None,
+    has_recipe_card: bool,
+) -> bool:
+    if required_ingredient_slugs:
+        return False
+    if has_recipe_card:
+        return False
+    if is_short_follow_up(user_query or ""):
+        return False
+    return _wants_recipe_suggestion(user_query or "")
+
+
+def _strip_carnets_sentences(answer: GroundedAnswer) -> GroundedAnswer:
+    kept: list[GroundedSentence] = []
+    for sent in answer.answer_sentences:
+        low = (sent.text or "").lower().replace("'", "'")
+        if "désolé, je n'ai pas cette recette dans mes carnets" in low:
+            continue
+        kept.append(sent)
+    if not kept and answer.recipe_card is not None:
+        rc = answer.recipe_card
+        kept = [
+            GroundedSentence(
+                text=_format_closest_recipe_pivot(rc.title, rc.chef),
+                source_chunk_ids=list(rc.source_chunk_ids or [])[:1],
+            )
+        ]
+    answer.answer_sentences = kept
+    return answer
+
+
+def _sanitize_carnets_for_context(
+    answer: GroundedAnswer,
+    *,
+    user_query: str | None,
+    required_ingredient_slugs: list[str] | None,
+) -> GroundedAnswer:
+    if _carnets_phrase_allowed(
+        user_query, required_ingredient_slugs, answer.recipe_card is not None
+    ):
+        return answer
+    return _strip_carnets_sentences(answer)
 
 
 def _ensure_terminal_punctuation(text: str) -> str:
@@ -877,9 +973,16 @@ def _polish_user_facing_tone(answer: GroundedAnswer) -> GroundedAnswer:
     return answer
 
 
-def _enforce_carnets_phrase(answer: GroundedAnswer, user_query: str | None) -> GroundedAnswer:
+def _enforce_carnets_phrase(
+    answer: GroundedAnswer,
+    user_query: str | None,
+    *,
+    required_ingredient_slugs: list[str] | None = None,
+) -> GroundedAnswer:
     q = (user_query or "").strip()
-    if not _wants_recipe_suggestion(q):
+    if not _carnets_phrase_allowed(
+        q, required_ingredient_slugs, answer.recipe_card is not None
+    ):
         return answer
     if not answer.answer_sentences:
         return answer
@@ -912,6 +1015,7 @@ def _pick_recipe_hit_for_card(
     hits: list[RerankedHit],
     *,
     required_ingredient_slugs: list[str] | None = None,
+    exclude_article_ids: list[int] | None = None,
 ) -> RerankedHit | None:
     if not hits:
         return None
@@ -924,20 +1028,25 @@ def _pick_recipe_hit_for_card(
             candidates = filtered
         else:
             return None
-    top = candidates[0]
-    aid = int(top.hit.article_external_id)
-    picked = top
+    excl = set(exclude_article_ids or [])
     for h in candidates:
-        if int(h.hit.article_external_id) != aid:
+        if int(h.hit.article_external_id) in excl:
             continue
-        sk = (h.hit.section_kind or "").lower()
-        if sk == "recipe_meta":
-            picked = h
-            break
-        psk = (picked.hit.section_kind or "").lower()
-        if sk == "recipe_summary" and psk != "recipe_meta":
-            picked = h
-    return picked
+        top = h
+        aid = int(top.hit.article_external_id)
+        picked = top
+        for cand in candidates:
+            if int(cand.hit.article_external_id) != aid:
+                continue
+            sk = (cand.hit.section_kind or "").lower()
+            if sk == "recipe_meta":
+                picked = cand
+                break
+            psk = (picked.hit.section_kind or "").lower()
+            if sk == "recipe_summary" and psk != "recipe_meta":
+                picked = cand
+        return picked
+    return None
 
 
 def _recipe_card_from_hit(picked: RerankedHit, hits: list[RerankedHit]) -> RecipeCard:
@@ -1008,13 +1117,21 @@ def _maybe_inject_closest_recipe_fallback(
     chef = _chef_name_from_metadata(picked.hit.metadata)
     answer.recipe_card = _recipe_card_from_hit(picked, hits)
 
-    answer.answer_sentences = [
-        GroundedSentence(text=CARNETS_PHRASE, source_chunk_ids=[]),
-        GroundedSentence(
-            text=_format_closest_recipe_pivot(title, chef),
-            source_chunk_ids=[cid],
-        ),
-    ]
+    if required_ingredient_slugs:
+        intro = _format_ingredient_recipe_intro(
+            title, chef, required_ingredient_slugs[0]
+        )
+        answer.answer_sentences = [
+            GroundedSentence(text=intro, source_chunk_ids=[cid]),
+        ]
+    else:
+        answer.answer_sentences = [
+            GroundedSentence(text=CARNETS_PHRASE, source_chunk_ids=[]),
+            GroundedSentence(
+                text=_format_closest_recipe_pivot(title, chef),
+                source_chunk_ids=[cid],
+            ),
+        ]
     answer.confidence = min(answer.confidence, 0.48)
     answer.recipe_card_secondary = None
 
