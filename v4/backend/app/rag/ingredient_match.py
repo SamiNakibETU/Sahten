@@ -271,12 +271,24 @@ def filter_reranked_by_ingredient_slugs(
     slugs: list[str] | None,
     *,
     strict: bool = True,
+    retrieval_hits: list[Hit] | None = None,
 ) -> list[RerankedHit]:
-    if not slugs:
+    if not slugs or not reranked:
         return reranked
-    valid = _article_ids_matching_slugs(reranked, slugs, strict=strict)
+    by_chunk: dict[int, Hit | RerankedHit] = {}
+    for h in retrieval_hits or []:
+        by_chunk[h.chunk_id] = h
+    for r in reranked:
+        by_chunk[r.hit.chunk_id] = r
+    evidence = list(by_chunk.values())
+
+    valid = _article_ids_matching_slugs(evidence, slugs, strict=strict)
     if not valid and strict:
-        valid = _article_ids_matching_slugs(reranked, slugs, strict=False)
+        valid = _article_ids_matching_slugs(evidence, slugs, strict=False)
+    if not valid and retrieval_hits:
+        # Le pré-filtre SQL a déjà validé l'article ; les chunks rerankés
+        # peuvent être recipe_summary/steps sans repasser ingredients_list.
+        valid = {int(h.article_external_id) for h in retrieval_hits}
     if not valid:
         return []
     return [r for r in reranked if int(r.hit.article_external_id) in valid]

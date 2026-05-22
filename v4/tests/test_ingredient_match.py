@@ -3,10 +3,12 @@ from backend.app.rag.ingredient_match import (
     chunk_confirms_ingredient,
     extract_ingredient_slugs_from_text,
     filter_hits_by_ingredient_slugs,
+    filter_reranked_by_ingredient_slugs,
     is_short_follow_up,
     supplement_ingredient_slugs,
     wants_another_recipe,
 )
+from backend.app.rag.reranker import RerankedHit
 from backend.app.rag.retriever import Hit
 
 
@@ -94,3 +96,17 @@ def test_canonical_pois_chiches() -> None:
 
     assert canonical_ingredient_slug("pois-chiches") == "pois-chiche"
     assert "pois-chiche" in scan_known_ingredient_slugs("pois chiches")
+
+
+def test_filter_reranked_keeps_sql_prefiltered_articles() -> None:
+    """Rerank ne renvoie que recipe_summary ; retrieval avait ingredients_list."""
+    ing_hit = _hit(1, 10, "ingredients_list", "400 g pois chiches", "Hommos")
+    summary = _hit(1, 11, "recipe_summary", "Un hommos crémeux", "Hommos")
+    reranked = [RerankedHit(hit=summary, rerank_score=0.9)]
+    out = filter_reranked_by_ingredient_slugs(
+        reranked,
+        ["pois-chiche"],
+        retrieval_hits=[ing_hit, summary],
+    )
+    assert len(out) == 1
+    assert out[0].hit.article_external_id == 1

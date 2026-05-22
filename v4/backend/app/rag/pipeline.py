@@ -903,6 +903,12 @@ class RagPipeline:
             if filtered:
                 hits = filtered
             elif hits:
+                log.info(
+                    "rag.pipeline.ingredient_post_filter_kept_sql_prefilter",
+                    ingredient_slugs=plan.ingredient_slugs,
+                    n_hits=len(hits),
+                )
+            else:
                 log.warning(
                     "rag.pipeline.ingredient_filter_removed_all_hits",
                     ingredient_slugs=plan.ingredient_slugs,
@@ -1074,10 +1080,24 @@ class RagPipeline:
         reranked = _apply_source_priority(reranked, user_query)
         if plan.ingredient_slugs:
             ing_reranked = filter_reranked_by_ingredient_slugs(
-                reranked, plan.ingredient_slugs
+                reranked,
+                plan.ingredient_slugs,
+                retrieval_hits=hits,
             )
             if ing_reranked:
                 reranked = ing_reranked
+            elif reranked and hits:
+                valid_aids = {int(h.article_external_id) for h in hits}
+                reranked = [
+                    r
+                    for r in reranked
+                    if int(r.hit.article_external_id) in valid_aids
+                ]
+                log.info(
+                    "rag.pipeline.ingredient_rerank_kept_sql_prefilter",
+                    ingredient_slugs=plan.ingredient_slugs,
+                    n_reranked=len(reranked),
+                )
             elif reranked:
                 log.warning(
                     "rag.pipeline.ingredient_rerank_filter_empty",
