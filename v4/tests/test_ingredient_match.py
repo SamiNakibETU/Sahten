@@ -87,3 +87,12 @@ def test_wants_another_recipe() -> None:
 def test_fuzzy_typo_tomatge() -> None:
     slugs = extract_ingredient_slugs_from_text("recette avec de la tomatge")
     assert "tomate" in slugs
+
+
+def test_canonical_pois_chiches() -> None:
+    from backend.app.rag.ingredient_match import canonical_ingredient_slug, scan_known_ingredient_slugs
+
+    assert canonical_ingredient_slug("pois-chiches") == "pois-chiche"
+    assert "pois-chiche" in scan_known_ingredient_slugs("pois chiches")
+    slugs = extract_ingredient_slugs_from_text("recette avec des pois chiches")
+    assert "pois-chiche" in slugs

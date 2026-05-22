@@ -19,8 +19,20 @@ INGREDIENT_SLUG_ALIASES: dict[str, tuple[str, ...]] = {
     "aubergine": ("aubergine", "aubergines"),
     "courgette": ("courgette", "courgettes"),
     "pois-chiche": ("pois chiche", "pois chiches", "pois-chiche", "pois-chiches"),
-    "pois-chiches": ("pois chiche", "pois chiches", "pois-chiche", "pois-chiches"),
 }
+
+# Variantes plurielles / synonymes → slug canonique unique en base.
+_INGREDIENT_SLUG_CANONICAL: dict[str, str] = {
+    "pois-chiches": "pois-chiche",
+    "tomates": "tomate",
+    "concombres": "concombre",
+    "poulets": "poulet",
+    "citrons": "citron",
+    "aubergines": "aubergine",
+    "courgettes": "courgette",
+}
+for _canonical in INGREDIENT_SLUG_ALIASES:
+    _INGREDIENT_SLUG_CANONICAL.setdefault(_canonical, _canonical)
 
 _INGREDIENT_EXTRACT_RE = re.compile(
     r"(?i)\b(?:avec|au|aux|à base de)\s+"
@@ -91,8 +103,13 @@ def _levenshtein(a: str, b: str) -> int:
     return prev[-1]
 
 
+def canonical_ingredient_slug(slug: str) -> str:
+    s = (slug or "").strip().lower()
+    return _INGREDIENT_SLUG_CANONICAL.get(s, s)
+
+
 def slug_search_terms(slug: str) -> tuple[str, ...]:
-    raw = (slug or "").strip().lower()
+    raw = canonical_ingredient_slug((slug or "").strip().lower())
     if raw in INGREDIENT_SLUG_ALIASES:
         return INGREDIENT_SLUG_ALIASES[raw]
     base = raw.replace("-", " ")
@@ -160,7 +177,7 @@ def scan_known_ingredient_slugs(text: str) -> list[str]:
             ):
                 if canonical not in seen:
                     seen.add(canonical)
-                    found.append(canonical)
+                    found.append(canonical_ingredient_slug(canonical))
                 break
     return found
 
@@ -173,11 +190,15 @@ def extract_ingredient_slugs_from_text(text: str) -> list[str]:
     for pattern in (_INGREDIENT_EXTRACT_RE, _INGREDIENT_RECETTE_RE):
         for m in pattern.finditer(text):
             slug = _word_to_slug(m.group(1))
+            if slug:
+                slug = canonical_ingredient_slug(slug)
             if slug and slug not in seen:
                 seen.add(slug)
                 found.append(slug)
     for m in re.finditer(r"(?i)\b([\wàâäéèêëïîôùûç-]+)\b", text):
         slug = _word_to_slug(m.group(1))
+        if slug:
+            slug = canonical_ingredient_slug(slug)
         if slug and slug not in seen and slug in INGREDIENT_SLUG_ALIASES:
             seen.add(slug)
             found.append(slug)

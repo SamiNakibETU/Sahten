@@ -97,6 +97,7 @@ async def ingest_article_id(
         log.exception("ingest.failed", external_id=external_id)
         error = str(e)
         status = "failed"
+        await session.rollback()
         raise
     finally:
         duration_ms = int((time.perf_counter() - started) * 1000)
@@ -110,7 +111,11 @@ async def ingest_article_id(
                 payload_size=payload_size,
             )
         )
-        await session.commit()
+        try:
+            await session.commit()
+        except Exception:  # noqa: BLE001
+            await session.rollback()
+            raise
         if own_client:
             await cli.close()
 

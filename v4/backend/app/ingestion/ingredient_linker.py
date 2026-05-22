@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..db import models
 from ..rag.ingredient_match import (
     INGREDIENT_SLUG_ALIASES,
+    canonical_ingredient_slug,
     extract_ingredient_slugs_from_text,
     ingredient_display_name,
     scan_known_ingredient_slugs,
@@ -20,9 +21,32 @@ def _ingredient_name(slug: str) -> str:
     return label[:1].upper() + label[1:] if label else slug.replace("-", " ")
 
 
+def _aliases_for_slug(slug: str) -> list[str]:
+    canonical = canonical_ingredient_slug(slug)
+    terms: set[str] = set()
+    for key, aliases in INGREDIENT_SLUG_ALIASES.items():
+        if canonical_ingredient_slug(key) == canonical:
+            terms.update(aliases)
+            terms.add(key.replace("-", " "))
+    return sorted(terms)
+
+
+async def _find_ingredient_by_name(
+    session: AsyncSession, name: str
+) -> models.Ingredient | None:
+    res = await session.execute(
+        select(models.Ingredient).where(
+            func.lower(models.Ingredient.name) == name.strip().lower()
+        )
+    )
+    return res.scalar_one_or_none()
+
+
 async def _upsert_ingredient(session: AsyncSession, slug: str) -> models.Ingredient:
-    aliases = list(INGREDIENT_SLUG_ALIASES.get(slug, ()))
+    slug = canonical_ingredient_slug(slug)
+    aliases = _aliases_for_slug(slug)
     name = _ingredient_name(slug)
+
     res = await session.execute(
         select(models.Ingredient).where(models.Ingredient.slug == slug)
     )
@@ -31,10 +55,28 @@ async def _upsert_ingredient(session: AsyncSession, slug: str) -> models.Ingredi
         if aliases and not existing.aliases:
             existing.aliases = aliases
         return existing
-    obj = models.Ingredient(name=name, slug=slug, aliases=aliases or None)
-    session.add(obj)
-    await session.flush()
-    return obj
+
+    by_name = await _find_ingredient_by_name(session, name)
+    if by_name is not None:
+        if by_name.slug != slug and not by_name.slug:
+            by_name.slug = slug
+        if aliases:
+            merged = sorted(set((by_name.aliases or []) + aliases))
+            by_name.aliases = merged
+        await session.flush()
+        return by_name
+
+    stmt = (
+        pg_insert(models.Ingredient)
+        .values(name=name, slug=slug, aliases=aliases or None)
+        .on_conflict_do_update(
+            index_elements=[models.Ingredient.slug],
+            set_={"aliases": aliases or None},
+        )
+        .returning(models.Ingredient)
+    )
+    row = (await session.execute(stmt)).scalar_one()
+    return row
 
 
 async def link_article_ingredients(
@@ -61,9 +103,10 @@ async def link_article_ingredients(
     seen: set[str] = set()
     ordered: list[str] = []
     for slug in slugs:
-        if slug not in seen:
-            seen.add(slug)
-            ordered.append(slug)
+        canonical = canonical_ingredient_slug(slug)
+        if canonical not in seen:
+            seen.add(canonical)
+            ordered.append(canonical)
 
     await session.execute(
         models.ArticleIngredient.__table__.delete().where(
