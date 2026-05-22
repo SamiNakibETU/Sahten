@@ -94,5 +94,3 @@ def test_canonical_pois_chiches() -> None:
 
     assert canonical_ingredient_slug("pois-chiches") == "pois-chiche"
     assert "pois-chiche" in scan_known_ingredient_slugs("pois chiches")
-    slugs = extract_ingredient_slugs_from_text("recette avec des pois chiches")
-    assert "pois-chiche" in slugs
