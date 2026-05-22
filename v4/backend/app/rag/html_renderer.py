@@ -347,6 +347,18 @@ def _render_sources(
     return "".join(parts)
 
 
+def _join_display_sentences(texts: list[str]) -> str:
+    parts: list[str] = []
+    for raw in texts:
+        t = (raw or "").strip()
+        if not t:
+            continue
+        if t[-1] not in ".!?…":
+            t = f"{t}."
+        parts.append(t)
+    return " ".join(parts)
+
+
 def render_answer_html(
     answer: GroundedAnswer,
     hits: list[RerankedHit],
@@ -361,10 +373,10 @@ def render_answer_html(
     - `follow_up` proposé en italique en bas.
     """
     used_ids: set[int] = set()
-    sentences_html: list[str] = []
+    raw_sentences: list[str] = []
     for sent in answer.answer_sentences:
         used_ids.update(sent.source_chunk_ids)
-        sentences_html.append(_escape(sent.text))
+        raw_sentences.append(sent.text)
     if answer.recipe_card is not None:
         used_ids.update(answer.recipe_card.source_chunk_ids)
     if answer.recipe_card_secondary is not None:
@@ -430,8 +442,10 @@ def render_answer_html(
         or answer.recipe_card_secondary is not None
         or answer.chef_card is not None
     )
-    if sentences_html:
-        parts.append("<p>" + " ".join(sentences_html) + "</p>")
+    if raw_sentences:
+        parts.append(
+            "<p>" + _escape(_join_display_sentences(raw_sentences)) + "</p>"
+        )
     elif has_cards or follow_pre:
         # Le modèle a pu filtrer les phrases (citations invalides) mais proposer
         # encore une carte ou une relance — éviter le message d'échec générique.

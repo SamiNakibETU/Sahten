@@ -1,7 +1,10 @@
 from backend.app.llm.response_generator import (
+    CARNETS_PHRASE,
     GroundedAnswer,
     GroundedSentence,
+    RecipeCard,
     _enforce_carnets_phrase,
+    _polish_user_facing_tone,
 )
 from backend.app.rag.pipeline import _apply_source_priority
 from backend.app.rag.reranker import RerankedHit
@@ -64,4 +67,38 @@ def test_enforce_carnets_phrase_on_recipe_refusal() -> None:
         confidence=0.2,
     )
     out = _enforce_carnets_phrase(answer, "recette houmous")
-    assert out.answer_sentences[0].text == "Désolé, je n'ai pas cette recette dans mes carnets"
+    assert out.answer_sentences[0].text == CARNETS_PHRASE
+
+
+def test_polish_user_facing_tone_rewrites_meta_pivot() -> None:
+    answer = GroundedAnswer(
+        answer_sentences=[
+            GroundedSentence(text=CARNETS_PHRASE, source_chunk_ids=[]),
+            GroundedSentence(
+                text=(
+                    "La fiche « La Mouloukhiyé de Tara Khattar » est celle qui "
+                    "se rapproche le plus de votre demande parmi les extraits "
+                    "disponibles."
+                ),
+                source_chunk_ids=[1],
+            ),
+        ],
+        recipe_card=RecipeCard(
+            title="La Mouloukhiyé de Tara Khattar",
+            chef="Tara Khattar",
+            duration_min=None,
+            serves=None,
+            ingredients=[],
+            steps=[],
+            source_chunk_ids=[1],
+        ),
+        follow_up="Souhaitez-vous aussi ouvrir la fiche « Autre plat » ?",
+        confidence=0.4,
+    )
+    out = _polish_user_facing_tone(answer)
+    pivot = out.answer_sentences[1].text.lower()
+    assert "fiche" not in pivot
+    assert "extrait" not in pivot
+    assert "mouloukhiyé" in pivot
+    assert "je peux aussi vous proposer" in out.follow_up.lower()
+    assert "autre plat" in out.follow_up.lower()

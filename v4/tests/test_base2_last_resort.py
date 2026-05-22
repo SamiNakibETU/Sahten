@@ -1,3 +1,4 @@
+from backend.app.llm.response_generator import CARNETS_PHRASE
 from backend.app.rag.pipeline import (
     _build_base2_last_resort_answer,
     _match_base2_recipe,
@@ -57,7 +58,7 @@ def test_build_base2_last_resort_answer_includes_olj_suggestion() -> None:
         base2_recipe=recipe,
         reranked=reranked,
     )
-    assert out.answer_sentences[0].text == "Désolé, je n'ai pas cette recette dans mes carnets"
+    assert out.answer_sentences[0].text == CARNETS_PHRASE
     assert any("Ingrédients (résumé)" in s.text for s in out.answer_sentences)
     assert out.recipe_card is not None
     assert out.recipe_card.title == "Le hommos au cumin"

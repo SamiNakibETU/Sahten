@@ -28,6 +28,8 @@ from pydantic import BaseModel, Field
 
 import structlog
 
+CARNETS_PHRASE = "Désolé, je n'ai pas cette recette dans mes carnets."
+
 from ..settings import get_settings
 from ..rag.reranker import RerankedHit
 
@@ -311,9 +313,12 @@ Règles ABSOLUES :
    du chunk `recipe_meta` du **même article** quand il existe ; sinon, ne les
    invente pas.
 11. N'utilise JAMAIS les formulations « mon répertoire », « plus d'autres recettes
-   pour l'instant », « explorez nos recettes sur L'Orient-Le Jour » : tu n'es
-   pas un site web, tu cites des extraits d'archives. Si le CONTEXTE est vide ou
-   insuffisant, dis-le sans inventer de politesse marketing.
+   pour l'instant », « explorez nos recettes sur L'Orient-Le Jour ». Dans le texte
+   visible par l'utilisateur, reste **incarné** (guide culinaire chaleureux) :
+   parle de **plats**, de **chefs**, de **saveurs** — jamais de « fiche »,
+   « extrait », « extraits disponibles », « archives consultées », « corpus »
+   ou « indexé ». Si le CONTEXTE est vide ou insuffisant, dis-le sans jargon
+   technique ni politesse marketing.
 12. Si la requête est une demande de recette, termine souvent `follow_up` par une
    question qui ouvre vers un autre plat ou une variante, sans redonner la recette.
 13. Si tu expliques que les archives **ne contiennent pas** de réponse adaptée,
@@ -343,14 +348,16 @@ Règles ABSOLUES :
    dans les extraits : pas de `recipe_card_secondary`, et pas de mention
    détaillée hors corpus.
 17. **Recette demandée absente, alternative pertinente** : si l'utilisateur cite un
-   **nom de plat ou de fiche très précis** (ex. « ta recette de X ») et que ce
-   plat **n'est pas** dans le CONTEXTE, mais qu'un autre extrait **reste réellement**
-   pertinent (même ingrédient principal, même esprit, même chef ou même type de
-   plat), la toute première phrase doit commencer exactement par :
-   « Désolé, je n'ai pas cette recette dans mes carnets »
-   puis expliquer brièvement pourquoi la fiche proposée est la plus proche
-   (ingrédient, esprit, chef, occasion), avec les chunks de **cet** article.
-   Reste au vouvoiement. Ne dis pas « pour me faire pardonner ».
+   **nom de plat très précis** (ex. « ta recette de X ») et que ce plat **n'est pas**
+   dans le CONTEXTE, mais qu'un autre extrait **reste réellement** pertinent (même
+   ingrédient principal, même esprit, même chef ou même type de plat), la toute
+   première phrase doit être **exactement** :
+   « Désolé, je n'ai pas cette recette dans mes carnets. »
+   (avec le point final). Ensuite, en ton chaleureux et incarné, propose
+   brièvement l'alternative la plus proche en expliquant **pourquoi** (ingrédient,
+   esprit, chef, occasion) — sans jamais dire « fiche », « extrait » ou
+   « extraits disponibles ». Cite les chunks de **cet** article. Reste au
+   vouvoiement. Ne dis pas « pour me faire pardonner ».
    **Interdiction stricte** d'utiliser cette accroche pour « une autre [recette] »,
    « encore », « autre idée » ou toute **continuation d'un ingrédient / thème**
    (ex. après « concombre ») : dans ce cas c'est « une fiche de plus sur le
@@ -695,6 +702,7 @@ def validate_grounding(
     if user_query:
         answer = _maybe_inject_closest_recipe_fallback(answer, hits, user_query)
         answer = _enforce_carnets_phrase(answer, user_query)
+        answer = _polish_user_facing_tone(answer)
 
     # Chef et recette doivent rester sur la même fiche : mieux vaut retirer la bio
     # que laisser le modèle mélanger Carla Rebeiz avec un autre article.
@@ -753,6 +761,93 @@ def _looks_like_refusal_without_card(answer: GroundedAnswer) -> bool:
     )
 
 
+def _format_closest_recipe_pivot(title: str, chef: str | None) -> str:
+    """Phrase pivot role-play quand la recette exacte manque."""
+    dish = (title or "cette recette").strip()
+    chef_name = (chef or "").strip()
+    if chef_name:
+        return (
+            f"En revanche, {dish}, proposée par {chef_name}, pourrait vous séduire "
+            f"— c'est un plat proche en esprit."
+        )
+    return (
+        f"En revanche, {dish} pourrait vous séduire — "
+        f"c'est un plat proche en esprit."
+    )
+
+
+def _ensure_terminal_punctuation(text: str) -> str:
+    t = (text or "").strip()
+    if not t:
+        return t
+    if t[-1] in ".!?…":
+        return t
+    return f"{t}."
+
+
+def _polish_user_facing_tone(answer: GroundedAnswer) -> GroundedAnswer:
+    """Retire le jargon RAG (« fiche », « extraits ») du texte visible."""
+    meta_markers = (
+        "extrait",
+        "fiche «",
+        "fiche \"",
+        "archives consult",
+        "corpus",
+        "indexé",
+        "indexee",
+    )
+    polished: list[GroundedSentence] = []
+    for idx, sent in enumerate(answer.answer_sentences):
+        text = _ensure_terminal_punctuation(sent.text or "")
+        low = text.lower().replace("’", "'")
+        if idx == 0 and "désolé, je n'ai pas cette recette dans mes carnets" in low:
+            text = CARNETS_PHRASE
+        elif any(m in low for m in meta_markers):
+            if answer.recipe_card is not None and idx <= 1:
+                text = _format_closest_recipe_pivot(
+                    answer.recipe_card.title,
+                    answer.recipe_card.chef,
+                )
+            else:
+                text = re.sub(
+                    r"(?i)\b(la|une)\s+fiche\s*[«\"]([^»\"]+)[»\"]\s*",
+                    r"\2 ",
+                    text,
+                )
+                text = re.sub(
+                    r"(?i)\bparmi les extraits disponibles\.?",
+                    "",
+                    text,
+                )
+                text = re.sub(
+                    r"(?i)\bdans les extraits (?:consultés|disponibles|dont je dispose)\.?",
+                    "",
+                    text,
+                )
+                text = " ".join(text.split()).strip()
+                text = _ensure_terminal_punctuation(text)
+        polished.append(
+            GroundedSentence(text=text, source_chunk_ids=sent.source_chunk_ids)
+        )
+    answer.answer_sentences = polished
+
+    follow = (answer.follow_up or "").strip()
+    if follow:
+        follow = re.sub(
+            r"(?i)souhaitez-vous aussi ouvrir la fiche\s*[«\"]([^»\"]+)[»\"]\s*\?",
+            r"Je peux aussi vous proposer \1 si vous voulez.",
+            follow,
+        )
+        follow = re.sub(
+            r"(?i)\b(?:la|une)\s+fiche\s*[«\"]([^»\"]+)[»\"]",
+            r"\1",
+            follow,
+        )
+        follow = " ".join(follow.split()).strip()
+        answer.follow_up = follow
+    return answer
+
+
 def _enforce_carnets_phrase(answer: GroundedAnswer, user_query: str | None) -> GroundedAnswer:
     q = (user_query or "").strip()
     if not _wants_recipe_suggestion(q):
@@ -762,6 +857,10 @@ def _enforce_carnets_phrase(answer: GroundedAnswer, user_query: str | None) -> G
     first = (answer.answer_sentences[0].text or "").strip()
     low = first.lower().replace("’", "'")
     if "désolé, je n'ai pas cette recette dans mes carnets" in low:
+        answer.answer_sentences[0] = GroundedSentence(
+            text=CARNETS_PHRASE,
+            source_chunk_ids=answer.answer_sentences[0].source_chunk_ids,
+        )
         return answer
     refusal_tokens = (
         "je n'ai pas de fiche",
@@ -774,7 +873,7 @@ def _enforce_carnets_phrase(answer: GroundedAnswer, user_query: str | None) -> G
     )
     if any(t in low for t in refusal_tokens):
         answer.answer_sentences[0] = GroundedSentence(
-            text="Désolé, je n'ai pas cette recette dans mes carnets",
+            text=CARNETS_PHRASE,
             source_chunk_ids=[],
         )
     return answer
@@ -829,17 +928,12 @@ def _maybe_inject_closest_recipe_fallback(
     )
     answer.recipe_card = _align_recipe_card_with_hits(rc, hits)
 
-    answer.answer_sentences = [GroundedSentence(
-        text="Désolé, je n'ai pas cette recette dans mes carnets",
-        source_chunk_ids=[],
-    ),
+    answer.answer_sentences = [
+        GroundedSentence(text=CARNETS_PHRASE, source_chunk_ids=[]),
         GroundedSentence(
-            text=(
-                f'La fiche « {title} » est celle qui se rapproche le plus de votre '
-                f"demande parmi les extraits disponibles."
-            ),
+            text=_format_closest_recipe_pivot(title, chef),
             source_chunk_ids=[cid],
-        )
+        ),
     ]
     answer.confidence = min(answer.confidence, 0.48)
     answer.recipe_card_secondary = None
@@ -851,7 +945,7 @@ def _maybe_inject_closest_recipe_fallback(
             t2 = h.hit.article_title or ""
             if not t2:
                 continue
-            tail = f"Souhaitez-vous aussi ouvrir la fiche « {t2} » ?"
+            tail = f"Je peux aussi vous proposer {t2} si vous voulez."
             fu = (answer.follow_up or "").strip()
             if tail.lower() not in fu.lower():
                 answer.follow_up = f"{fu} {tail}".strip() if fu else tail

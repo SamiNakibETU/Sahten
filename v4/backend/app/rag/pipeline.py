@@ -25,6 +25,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from .. import sessions as sessions_store
 from ..llm.response_generator import (
+    CARNETS_PHRASE,
     GroundedAnswer,
     GroundedSentence,
     RecipeCard,
@@ -508,15 +509,15 @@ def _build_base2_last_resort_answer(
     base2_name = str(base2_recipe.get("name") or "cette recette").strip()
 
     sentences = [
-        GroundedSentence(
-            text="Désolé, je n'ai pas cette recette dans mes carnets",
-            source_chunk_ids=[],
-        )
+        GroundedSentence(text=CARNETS_PHRASE, source_chunk_ids=[]),
     ]
     if details:
         sentences.append(
             GroundedSentence(
-                text=f"En dernier recours, voici une version courte de {base2_name} ({details}).",
+                text=(
+                    f"Voici tout de même une version courte de {base2_name} "
+                    f"({details})."
+                ),
                 source_chunk_ids=[],
             )
         )
@@ -537,14 +538,17 @@ def _build_base2_last_resort_answer(
     if olj_title and olj_chunk_id is not None:
         sentences.append(
             GroundedSentence(
-                text=f'Pour la version OLJ indexée, la fiche « {olj_title} » est la plus proche disponible.',
+                text=(
+                    f"Sur L'Orient-Le Jour, je vous recommande aussi {olj_title}, "
+                    f"une recette proche publiée dans nos pages « À table »."
+                ),
                 source_chunk_ids=[olj_chunk_id],
             )
         )
     follow_up = (
-        f'Si vous voulez, je peux vous guider pas à pas sur la fiche OLJ « {olj_title} ».'
+        f"Souhaitez-vous que je vous en dise plus sur {olj_title} ?"
         if olj_title
-        else "Si vous voulez, je peux chercher une autre variante OLJ indexée."
+        else "Souhaitez-vous que je cherche une autre variante proche ?"
     )
     answer = GroundedAnswer(
         answer_sentences=sentences,
