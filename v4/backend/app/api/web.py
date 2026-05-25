@@ -28,10 +28,16 @@ router = APIRouter(tags=["web"])
 WEB_STATIC_DIR = Path(__file__).resolve().parents[3] / "web_static"
 
 
+_WEB_ROOT = WEB_STATIC_DIR.resolve()
+
+
 def _serve(path: str) -> FileResponse:
-    full = WEB_STATIC_DIR / path
+    full = (WEB_STATIC_DIR / path).resolve()
+    # Protection path traversal : le fichier résolu DOIT rester sous web_static/.
+    if not str(full).startswith(str(_WEB_ROOT) + ("/" if str(_WEB_ROOT)[-1] != "/" else "")):
+        raise HTTPException(status_code=404, detail="not found")
     if not full.is_file():
-        raise HTTPException(status_code=404, detail=f"page introuvable: {path}")
+        raise HTTPException(status_code=404, detail="not found")
     return FileResponse(full)
 
 

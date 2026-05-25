@@ -238,14 +238,18 @@ async def list_articles(
         Article.ingestion_status,
     ).order_by(Article.first_published_at.desc().nullslast(), Article.id.desc())
     if search:
-        like = f"%{search.lower()}%"
-        stmt = stmt.where(func.lower(Article.title).like(like))
+        # Échapper les métacaractères LIKE (%, _) pour éviter l'énumération.
+        safe = search.lower().replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+        like = f"%{safe}%"
+        stmt = stmt.where(func.lower(Article.title).like(like, escape="\\"))
     stmt = stmt.limit(limit).offset(offset)
     rows = (await session.execute(stmt)).all()
 
     total_stmt = select(func.count()).select_from(Article)
     if search:
-        total_stmt = total_stmt.where(func.lower(Article.title).like(f"%{search.lower()}%"))
+        safe = search.lower().replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+        like = f"%{safe}%"
+        total_stmt = total_stmt.where(func.lower(Article.title).like(like, escape="\\"))
     total = int((await session.execute(total_stmt)).scalar_one() or 0)
 
     return {

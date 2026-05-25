@@ -23,9 +23,7 @@ async def readyz(session: AsyncSession = Depends(get_session)) -> dict:
     try:
         await session.execute(text("SELECT 1"))
         db = "ok"
-    except Exception as e:  # noqa: BLE001
-        if get_settings().app_env == "production":
-            db = "error"
-        else:
-            db = f"error: {e}"
+    except Exception:  # noqa: BLE001
+        # Ne jamais exposer le détail de l'erreur DB dans une route publique.
+        db = "error"
     return {"status": "ok" if db == "ok" else "degraded", "db": db, "version": __version__}

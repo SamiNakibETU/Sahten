@@ -17,6 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ..db import models
 from ..db.base import get_session
 from ..ingestion.service import ingest_article_id
+from ..limiter_support import limiter
 from ..rag.embeddings import OpenAIEmbeddings
 from ..rag.indexer import reindex_article
 from ..settings import get_settings
@@ -47,6 +48,7 @@ def _verify(body: bytes, signature: str | None) -> None:
 
 
 @router.post("/recipe", dependencies=[Depends(_require_production_secrets)])
+@limiter.limit("10/minute")
 async def webhook_recipe(
     request: Request,
     x_signature_256: str | None = Header(default=None, alias="X-Signature-256"),
@@ -58,7 +60,7 @@ async def webhook_recipe(
         data = json.loads(body)
         payload = WebhookPayload.model_validate(data)
     except Exception as e:  # noqa: BLE001
-        raise HTTPException(400, f"Payload invalide: {e}") from e
+        raise HTTPException(400, "Payload invalide") from e
 
     if payload.event in ("article.published", "article.updated"):
         result = await ingest_article_id(session, payload.article_id)
