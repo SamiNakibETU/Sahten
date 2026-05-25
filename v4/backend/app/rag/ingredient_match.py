@@ -222,22 +222,23 @@ def supplement_ingredient_slugs(
 ) -> QueryPlan:
     """Enrichit les slugs ingrédient depuis la requête et l'historique.
 
-    Règle clé : si la requête actuelle ne contient aucun ingrédient ET que le LLM
-    n'en a pas extrait, on NE scanne PAS l'historique pour ne pas hériter des slugs
-    d'un ancien fil de conversation (ex. poivron → recettes simple pour le soir).
+    Le filtrage des requêtes "humeur" (simple, soir…) est géré en amont dans
+    pipeline.py en passant conversation_history=None pour ces cas. Ici on scan
+    l'historique inconditionnellement s'il est fourni, afin que les suivis courts
+    ("une salde", "une autre", "oui") héritent bien du fil ingrédient courant.
     """
     slugs = list(plan.ingredient_slugs or [])
     seen = set(slugs)
 
-    # Extraction depuis la requête courante seulement (toujours faite).
+    # Extraction depuis la requête courante (toujours faite).
     for slug in extract_ingredient_slugs_from_text(user_query or ""):
         if slug not in seen:
             seen.add(slug)
             slugs.append(slug)
 
-    # Scanner l'historique uniquement si on a déjà un contexte ingrédient.
-    # Évite de polluer une requête "humeur" (simple, soir…) avec les slugs du fil précédent.
-    if slugs and conversation_history:
+    # Scanner l'historique si le caller l'a fourni (les requêtes humeur arrivent
+    # avec conversation_history=None depuis pipeline.py).
+    if conversation_history:
         for slug in extract_ingredient_slugs_from_text(conversation_history):
             if slug not in seen:
                 seen.add(slug)

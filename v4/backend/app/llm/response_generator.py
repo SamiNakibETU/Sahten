@@ -825,13 +825,21 @@ def _wants_recipe_suggestion(q: str) -> bool:
 def _looks_like_refusal_without_card(answer: GroundedAnswer) -> bool:
     if answer.recipe_card is not None:
         return False
-    blob = " ".join(s.text for s in answer.answer_sentences).lower()
+    blob = " ".join(s.text for s in answer.answer_sentences).lower().replace("'", "'")
     return any(
         m in blob
         for m in (
+            # CARNETS_PHRASE (après normalisation par _enforce_carnets_phrase)
+            "désolé, je n'ai pas cette recette dans mes carnets",
+            "desole, je n'ai pas cette recette dans mes carnets",
+            # Variantes LLM originales
             "ne trouve pas",
             "pas trouvé",
             "pas trouve",
+            "n'ai pas trouvé",
+            "n'ai pas trouve",
+            "je n'ai pas trouvé",
+            "je n'ai pas trouve",
             "pas de recette",
             "pas dans les extraits",
             "extraits dont je dispose",

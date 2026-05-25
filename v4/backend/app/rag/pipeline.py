@@ -1198,6 +1198,28 @@ class RagPipeline:
                     ingredient_slugs=plan.ingredient_slugs,
                 )
                 reranked = []
+            # Filtre anti-"sauce collection" : un article dont le titre est une liste
+            # de sauces/condiments (ex. "Sauces : tarator, toum, yaourt, concombre")
+            # ne constitue pas une "vraie recette" au sens de l'utilisateur.
+            # On l'élimine si des articles plus pertinents existent.
+            if reranked and re.match(
+                r"(?i)^sauces?\s*[:\–-]",
+                reranked[0].hit.article_title or "",
+            ):
+                non_sauce = [
+                    r for r in reranked
+                    if not re.match(
+                        r"(?i)^sauces?\s*[:\–-]",
+                        r.hit.article_title or "",
+                    )
+                ]
+                if non_sauce:
+                    log.info(
+                        "rag.pipeline.sauce_collection_filtered",
+                        filtered_title=(reranked[0].hit.article_title or "")[:80],
+                        n_remaining=len(non_sauce),
+                    )
+                    reranked = non_sauce
         timings["rerank_ms"] = int((time.perf_counter() - t2) * 1000)
 
         t3 = time.perf_counter()
