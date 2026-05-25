@@ -55,7 +55,13 @@ class ChatRequest(BaseModel):
 
     query: str | None = Field(default=None, max_length=CHAT_INPUT_MAX_LEN)
     message: str | None = Field(default=None, max_length=CHAT_INPUT_MAX_LEN)
-    session_id: str | None = None
+    # Format limité : préfixe ses_ ou req_, suivi de caractères alphanum/tiret.
+    # max_length=80 empêche les tentatives d'injection via session_id long.
+    session_id: str | None = Field(
+        default=None,
+        max_length=80,
+        pattern=r"^[a-zA-Z0-9_\-]{1,80}$",
+    )
     debug: bool = False
     model: str | None = None
 
@@ -117,6 +123,8 @@ class ChatResponse(BaseModel):
     sources: list[ChatHit]
     timings_ms: dict[str, int]
     intent: str
+    cost_usd: float | None = None
+    cost_breakdown: dict | None = None
 
 
 def _new_session_id() -> str:
@@ -149,7 +157,8 @@ def _fallback_chat_response(
     total_ms: int = 0,
 ) -> ChatResponse:
     model_used = resolve_llm_model(payload.model)
-    safe_detail = (detail or "").strip()
+    # Ne pas exposer le détail de l'erreur interne à l'utilisateur final.
+    _ = detail  # conservé pour le log interne seulement
     html = (
         '<div class="sahten-narrative"><p><em>Mille excuses, un petit incident '
         "en cuisine est survenu.</em></p>"
@@ -157,8 +166,6 @@ def _fallback_chat_response(
         "</div>"
     )
     follow_up = "Souhaitez-vous réessayer dans quelques instants ?"
-    if safe_detail:
-        follow_up = f"{follow_up} ({safe_detail[:180]})"
     return ChatResponse(
         html=html,
         request_id=request_id,
@@ -277,6 +284,7 @@ async def _run_chat_pipeline(
             model_used=model_used,
             timings_ms=result.timings_ms,
             is_base2_fallback=bool(result.is_base2_fallback),
+            cost_breakdown=result.cost_breakdown,
         )
     except Exception as exc:
         log.warning("chat.analytics_trace_failed", error=str(exc))
@@ -298,6 +306,12 @@ async def _run_chat_pipeline(
         sources=sources,
         timings_ms=result.timings_ms,
         intent=result.plan.intent,
+        cost_usd=(
+            float(result.cost_breakdown.get("estimated_usd", 0.0))
+            if result.cost_breakdown
+            else None
+        ),
+        cost_breakdown=result.cost_breakdown,
     )
 
 

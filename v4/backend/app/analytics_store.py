@@ -1,8 +1,17 @@
-"""Agrégation analytics / traces en Redis (mêmes clés que le MVP, client async)."""
+"""Agrégation analytics / traces en Redis (mêmes clés que le MVP, client async).
+
+Observabilité production-grade :
+- Traces de requête (TTL 30 jours)
+- Latence P50 / P95 / P99 via sorted-set Redis (1 000 derniers échantillons)
+- Buckets horaires (7 jours glissants) pour courbes de charge
+- Compteurs d'erreurs par type
+- Métriques intent / modèle / coût
+"""
 
 from __future__ import annotations
 
 import json
+import time
 from datetime import datetime, timezone
 from typing import Any
 
@@ -14,6 +23,8 @@ log = structlog.get_logger(__name__)
 
 _TRACE_LIST = "sahten:traces:recent"
 _TRACE_MAX = 499
+_LATENCY_KEY = "sahten:latency:samples"
+_LATENCY_MAX = 1000  # Nombre max d'échantillons pour les percentiles
 
 
 async def record_chat_trace(
@@ -28,15 +39,29 @@ async def record_chat_trace(
     model_used: str,
     timings_ms: dict[str, int],
     is_base2_fallback: bool = False,
+    cost_breakdown: dict[str, Any] | None = None,
+    error: bool = False,
+    error_type: str | None = None,
 ) -> None:
-    """Enregistre une trace + compteurs métier (modèle, intent, requêtes)."""
+    """Enregistre une trace + compteurs métier (modèle, intent, requêtes).
+
+    Observabilité ajoutée :
+    - Latence P50/P95/P99 via sorted-set Redis
+    - Bucket horaire (expiration 7 jours) pour courbes de charge
+    - Compteur d'erreurs par type
+    """
     r = await redis_client()
     if r is None:
         return
     try:
+        now_utc = datetime.now(timezone.utc)
         latency_ms = int(timings_ms.get("total_ms", 0))
+        cost_usd = 0.0
+        if cost_breakdown:
+            cost_usd = float(cost_breakdown.get("estimated_usd", 0.0) or 0.0)
+
         trace: dict[str, Any] = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": now_utc.isoformat(),
             "request_id": request_id,
             "session_id": session_id,
             "user_message": user_message,
@@ -48,22 +73,106 @@ async def record_chat_trace(
             "model_used": model_used,
             "is_base2_fallback": is_base2_fallback,
             "latency_ms": latency_ms,
+            "timings_ms": timings_ms,
+            "cost_usd": round(cost_usd, 6),
+            "cost_breakdown": cost_breakdown,
+            "error": error,
         }
         raw = json.dumps(trace, ensure_ascii=False)
+
+        # Bucket horaire — clé : sahten:hourly:YYYY-MM-DDTHH:count (TTL 7 j)
+        hour_key = "sahten:hourly:" + now_utc.strftime("%Y-%m-%dT%H") + ":count"
+
         pipe = r.pipeline(transaction=False)
         pipe.set(f"trace:{request_id}", raw, ex=60 * 60 * 24 * 30)
         pipe.lpush(_TRACE_LIST, raw)
         pipe.ltrim(_TRACE_LIST, 0, _TRACE_MAX)
         pipe.incr("sahten:metrics:total_requests")
+
+        # Latence P50/P95/P99 : sorted-set avec score = latence (ms)
+        # member = timestamp:request_id pour l'unicité
+        member = f"{time.time_ns()}:{request_id}"
+        pipe.zadd(_LATENCY_KEY, {member: float(latency_ms)})
+        pipe.zremrangebyrank(_LATENCY_KEY, 0, -(_LATENCY_MAX + 1))
+
+        # Bucket horaire (7 jours)
+        pipe.incr(hour_key)
+        pipe.expire(hour_key, 7 * 24 * 3600)
+
+        if error:
+            pipe.incr("sahten:metrics:errors:total_count")
+            if error_type:
+                safe_type = error_type.replace(":", "_")[:40]
+                pipe.incr(f"sahten:metrics:errors:{safe_type}:count")
+
         if is_base2_fallback:
             pipe.incr("sahten:metrics:base2_fallback_count")
+
         mk = model_used.replace(".", "_").replace("-", "_")
         pipe.incr(f"sahten:metrics:model:{mk}:count")
         if intent:
             pipe.incr(f"sahten:metrics:intent:{intent}:count")
+        if cost_usd > 0:
+            micros = int(round(cost_usd * 1_000_000))
+            pipe.incrby("sahten:metrics:cost_usd_micros", micros)
+            pipe.incr("sahten:metrics:cost_tracked_requests")
+
         await pipe.execute()
     except Exception as exc:  # noqa: BLE001
         log.warning("analytics.trace_failed", error=str(exc))
+
+
+async def get_latency_percentiles() -> dict[str, float | None]:
+    """Calcule P50 / P95 / P99 sur les derniers _LATENCY_MAX échantillons."""
+    r = await redis_client()
+    if r is None:
+        return {"p50": None, "p95": None, "p99": None, "count": 0}
+    try:
+        count = await r.zcard(_LATENCY_KEY)
+        if count == 0:
+            return {"p50": None, "p95": None, "p99": None, "count": 0}
+        # Redis ZRANGEBYSCORE donne les scores triés : on lit tout d'un coup.
+        # Pour les percentiles on lit les scores directement.
+        samples_raw = await r.zrange(_LATENCY_KEY, 0, -1, withscores=True)
+        scores = sorted(float(s) for _, s in samples_raw)
+        n = len(scores)
+
+        def _percentile(p: float) -> float:
+            idx = max(0, min(n - 1, int(p / 100.0 * n)))
+            return round(scores[idx], 1)
+
+        return {
+            "p50": _percentile(50),
+            "p95": _percentile(95),
+            "p99": _percentile(99),
+            "count": n,
+        }
+    except Exception as exc:  # noqa: BLE001
+        log.warning("analytics.latency_percentile_failed", error=str(exc))
+        return {"p50": None, "p95": None, "p99": None, "count": 0}
+
+
+async def get_hourly_buckets(hours: int = 24) -> list[dict[str, Any]]:
+    """Retourne les compteurs horaires des `hours` dernières heures."""
+    r = await redis_client()
+    if r is None:
+        return []
+    now = datetime.now(timezone.utc)
+    result: list[dict[str, Any]] = []
+    for h in range(hours - 1, -1, -1):
+        # Calcul de l'heure passée
+        ts_h = now.replace(minute=0, second=0, microsecond=0)
+        offset_s = h * 3600
+        ts_h_unix = ts_h.timestamp() - offset_s
+        from datetime import datetime as dt
+        hour_str = dt.fromtimestamp(ts_h_unix, tz=timezone.utc).strftime("%Y-%m-%dT%H")
+        key = f"sahten:hourly:{hour_str}:count"
+        try:
+            count = int(await r.get(key) or 0)
+        except Exception:  # noqa: BLE001
+            count = 0
+        result.append({"hour": hour_str, "requests": count})
+    return result
 
 
 async def record_widget_event(
@@ -212,6 +321,12 @@ async def get_analytics() -> dict[str, Any]:
             round(positive / total_feedback * 100, 1) if total_feedback > 0 else 0
         )
         total_requests = int(await r.get("sahten:metrics:total_requests") or 0)
+        cost_micros = int(await r.get("sahten:metrics:cost_usd_micros") or 0)
+        cost_tracked = int(await r.get("sahten:metrics:cost_tracked_requests") or 0)
+        cost_usd_total = round(cost_micros / 1_000_000.0, 4)
+        avg_cost_usd = (
+            round(cost_usd_total / cost_tracked, 6) if cost_tracked > 0 else 0.0
+        )
         base2_fallbacks = int(await r.get("sahten:metrics:base2_fallback_count") or 0)
         fallback_rate = (
             round(base2_fallbacks / total_requests * 100, 1)
@@ -260,6 +375,15 @@ async def get_analytics() -> dict[str, Any]:
             if c > 0:
                 intent_stats[ik] = c
 
+        # ── Latence P50/P95/P99 ───────────────────────────────────────────
+        latency = await get_latency_percentiles()
+
+        # ── Erreurs ───────────────────────────────────────────────────────
+        total_errors = int(await r.get("sahten:metrics:errors:total_count") or 0)
+        error_rate = (
+            round(total_errors / total_requests * 100, 2) if total_requests > 0 else 0.0
+        )
+
         return {
             "status": "ok",
             "timestamp": now,
@@ -276,15 +400,26 @@ async def get_analytics() -> dict[str, Any]:
                 "ctr": ctr,
                 "satisfaction": satisfaction_rate,
                 "fallback_rate": fallback_rate,
+                "error_rate_pct": error_rate,
             },
             "fallback": {
                 "total_requests": total_requests,
                 "base2_count": base2_fallbacks,
             },
+            "costs": {
+                "total_usd": cost_usd_total,
+                "tracked_requests": cost_tracked,
+                "avg_usd_per_request": avg_cost_usd,
+            },
             "feedback": {
                 "positive": positive,
                 "negative": negative,
                 "total": total_feedback,
+            },
+            "latency_ms": latency,
+            "errors": {
+                "total": total_errors,
+                "rate_pct": error_rate,
             },
             "models": model_stats,
             "intents": intent_stats,

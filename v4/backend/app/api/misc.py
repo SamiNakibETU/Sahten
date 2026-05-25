@@ -26,7 +26,8 @@ router = APIRouter(prefix="/api", tags=["misc"])
 
 
 @router.get("/models")
-def models() -> dict[str, Any]:
+@limiter.limit("30/minute")
+async def models(request: Request) -> dict[str, Any]:
     s = get_settings()
     return {
         "default": s.llm_model,

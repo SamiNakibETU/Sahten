@@ -11,8 +11,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
-from app.api import admin, chat, health, misc, sessions, web, webhook
+from app.api import admin, chat, health, metrics, misc, sessions, web, webhook
 from app.limiter_support import limiter
+from app.request_id_middleware import RequestIdMiddleware
 from app.security_middleware import SecurityHeadersMiddleware
 from app.settings import Settings, get_settings
 
@@ -67,14 +68,24 @@ def create_app() -> FastAPI:
     app.state.limiter = limiter
     app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
+    # Middlewares — ordre inverse d'exécution (dernier ajouté = premier exécuté)
     app.add_middleware(SecurityHeadersMiddleware)
+    app.add_middleware(RequestIdMiddleware)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_allowed_origins(),
         allow_credentials=False,
-        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-        allow_headers=["*"],
-        expose_headers=["*"],
+        # Seules les méthodes réellement utilisées par l'API
+        allow_methods=["GET", "POST", "OPTIONS"],
+        # Headers explicitement listés (pas de wildcard)
+        allow_headers=[
+            "Content-Type",
+            "Authorization",
+            "X-Sahten-Admin-Token",
+            "X-Requested-With",
+        ],
+        # Ne pas exposer tous les headers de réponse
+        expose_headers=["X-Request-ID"],
     )
     # Routers API d'abord (priorité de routing FastAPI : premier matché gagne).
     app.include_router(health.router)
@@ -83,6 +94,7 @@ def create_app() -> FastAPI:
     app.include_router(sessions.router)
     app.include_router(admin.router)
     app.include_router(misc.router)
+    app.include_router(metrics.router)
     # Pages HTML / statiques en dernier (catch-all sur /assets, /css, /js).
     app.include_router(web.router)
     return app

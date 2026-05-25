@@ -1,12 +1,30 @@
-"""En-têtes HTTP de durcissement (sans CSP strict qui casserait les pages inline)."""
+"""En-têtes HTTP de durcissement conforme aux standards OWASP Secure Headers.
+
+Architecture :
+- /api/*       → JSON, pas de cache, X-Frame-Options: DENY
+- /dashboard   → pages internes, X-Frame-Options: SAMEORIGIN
+- /widget/*    → iframe cross-origin (iframe embeddable sur lorientlejour.com),
+                 pas de X-Frame-Options (allow-from n'est plus supporté)
+- Toutes routes → X-Content-Type-Options, Referrer-Policy, Permissions-Policy
+- staging/prod  → HSTS (maxAge 1 an, includeSubDomains)
+"""
 
 from __future__ import annotations
 
+import os
 from collections.abc import Awaitable, Callable
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
+
+# Détection env sans dépendance circulaire (settings non chargé ici).
+_APP_ENV = os.getenv("APP_ENV", "local").lower()
+_IS_PROD_LIKE = _APP_ENV in ("staging", "production")
+
+# Pages internes (dashboard, admin) : on peut y appliquer X-Frame-Options: DENY.
+_ADMIN_PATHS = ("/dashboard", "/admin", "/api/admin", "/api/traces",
+                "/api/analytics", "/api/metrics", "/api/health/deep")
 
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
@@ -14,17 +32,65 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
     ) -> Response:
         response = await call_next(request)
-        # Pas de X-Frame-Options global : l'intégration site peut utiliser iframe cross-origin.
+        path = request.url.path
+
+        # ── En-têtes universels ────────────────────────────────────────────────
         response.headers.setdefault("X-Content-Type-Options", "nosniff")
         response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
         response.headers.setdefault(
             "Permissions-Policy",
             "camera=(), microphone=(), geolocation=(), payment=()",
         )
-        # API-only hardening : les navigateurs n'exécutent pas de JS sur le JSON.
-        if request.url.path.startswith("/api/"):
+
+        # ── HSTS : uniquement en staging/production (HTTP→HTTPS forcé) ────────
+        if _IS_PROD_LIKE:
+            response.headers.setdefault(
+                "Strict-Transport-Security",
+                "max-age=31536000; includeSubDomains",
+            )
+
+        # ── Endpoints API JSON ─────────────────────────────────────────────────
+        if path.startswith("/api/"):
             response.headers.setdefault(
                 "Cache-Control",
                 "no-store, no-cache, must-revalidate, private",
             )
+            response.headers.setdefault("X-Frame-Options", "DENY")
+            response.headers.setdefault(
+                "Content-Security-Policy",
+                "default-src 'none'; frame-ancestors 'none'",
+            )
+            return response
+
+        # ── Pages internes (dashboard, admin HTML) ────────────────────────────
+        is_admin_page = any(path.startswith(p) for p in _ADMIN_PATHS)
+        if is_admin_page:
+            response.headers.setdefault("X-Frame-Options", "SAMEORIGIN")
+            response.headers.setdefault(
+                "Content-Security-Policy",
+                (
+                    "default-src 'self'; "
+                    "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+                    "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+                    "img-src 'self' data: https:; "
+                    "frame-ancestors 'self'"
+                ),
+            )
+            return response
+
+        # ── Widget (iframe cross-origin) : pas de X-Frame-Options ─────────────
+        # lorientlejour.com intègre le widget en iframe ; X-Frame-Options DENY
+        # ou SAMEORIGIN casserait l'embed. CSP frame-ancestors plus précis.
+        if path.startswith("/widget"):
+            response.headers.setdefault(
+                "Content-Security-Policy",
+                (
+                    "default-src 'self'; "
+                    "script-src 'self' 'unsafe-inline'; "
+                    "style-src 'self' 'unsafe-inline'; "
+                    "img-src 'self' data: https:; "
+                    "frame-ancestors https://www.lorientlejour.com https://*.lorientlejour.com 'self'"
+                ),
+            )
+
         return response
