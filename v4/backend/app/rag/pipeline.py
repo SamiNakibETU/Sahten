@@ -23,7 +23,8 @@ from typing import Any
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .. import sessions as sessions_store
+from ..cost_tracker import cost_tracker_scope, get_request_cost
+from .. import sessions as sessions_store  # noqa: E402 — import circulaire évité par lazy
 from ..llm.response_generator import (
     CARNETS_PHRASE,
     GroundedAnswer,
@@ -336,6 +337,36 @@ _ALIAS_GROUPS: tuple[tuple[str, ...], ...] = (
     ("moghrabieh", "moghrabie", "moghrabié", "moghrabiyé"),
 )
 
+# Alias arabes / levantins pour chaque ingrédient connu.
+# Utilisés pour enrichir la requête de recherche quand un slug ingrédient est actif,
+# car beaucoup d'articles OLJ mélangent le français et l'arabe translittéré dans leurs chunks.
+_INGREDIENT_ARABIC_ALIASES: dict[str, tuple[str, ...]] = {
+    "concombre": ("khyar", "khiar", "fattouche", "fattoush", "fattouch", "fattush"),
+    "tomate": ("banadoura", "bandoura", "tomates fraîches"),
+    "aubergine": ("batinjane", "batinghane", "moutabbal", "mouttabbal"),
+    "courgette": ("kousa", "kusa", "mehche kousa"),
+    "poulet": ("djej", "dajaj", "djeij"),
+    "pois-chiche": ("hommos", "houmous", "hummus", "hoummous"),
+    "citron": ("laymoun", "hamad", "jus de citron"),
+    "persil": ("baqle", "baqlé"),
+    "menthe": ("naana", "naané"),
+}
+
+# Regex pour détecter une rupture de fil ingrédient dans la question courante.
+# Ex : "sans poivron", "pas forcément de/du X", "sans aucun X", "rien avec X"
+_NEGATIVE_INGREDIENT_RE = re.compile(
+    r"(?i)\b(?:sans|pas de|pas du|pas d'|pas forcément|sans forcément|sans aucun|"
+    r"ne veux pas|je ne veux pas|éviter|autre chose|pas d'ingrédient)\b",
+)
+
+# Détecte les requêtes de type « humeur / ambiance » sans ingrédient précis.
+# Ces requêtes doivent réinitialiser le contexte ingrédient issu de l'historique.
+_MOOD_QUERY_RE = re.compile(
+    r"(?i)\b(?:simple|simplement|facile|rapide|express|léger|légère|soir|ce soir|"
+    r"pour ce midi|ce midi|vite fait|vite-fait|rapide à faire|facile à faire|"
+    r"ce weekend|pour demain|plat du soir|repas du soir|dîner rapide|dîner simple)\b",
+)
+
 _BASE2_JSON_PATH = Path(__file__).resolve().parents[3].parent / "Data_base_2.json"
 _BASE2_RECIPE_ALIASES: tuple[tuple[str, ...], ...] = (
     ("houmous", "hoummous", "hummus", "hommos", "hommous"),
@@ -629,21 +660,29 @@ def _build_base2_last_resort_answer(
         follow_up=follow_up,
         confidence=0.42,
     )
-    return validate_grounding(answer, reranked, user_query=user_query)
+    return validate_grounding(answer, reranked, user_query=user_query, preserve_carnets=True)
 
 
 def _expand_search_q_with_ingredients(base_q: str, plan: QueryPlan) -> str:
-    """Aligne requête BM25/embedding sur les mots d’ingrédient s’ils ne sont pas déjà dans q."""
+    """Aligne requête BM25/embedding sur les mots d’ingrédient et leurs alias arabes."""
     qn = (base_q or "").strip()
     qlow = qn.lower()
     extra: list[str] = []
+    extra_set: set[str] = set()
+
+    def _add(w: str) -> None:
+        wl = w.lower()
+        if wl and wl not in qlow and wl not in extra_set:
+            extra_set.add(wl)
+            extra.append(w)
+
     for s in plan.ingredient_slugs or []:
         w = s.replace("-", " ").strip()
         if not w:
             continue
-        if w.lower() in qlow:
-            continue
-        extra.append(w)
+        _add(w)
+        for alias in _INGREDIENT_ARABIC_ALIASES.get(s, ()):
+            _add(alias)
     if not extra:
         return _expand_query_with_aliases(qn)
     return _expand_query_with_aliases(f"{qn} {' '.join(extra)}".strip())
@@ -724,6 +763,7 @@ class PipelineResult:
     answer: GroundedAnswer
     timings_ms: dict[str, int]
     is_base2_fallback: bool = False
+    cost_breakdown: dict[str, Any] | None = None
 
 
 class RagPipeline:
@@ -927,6 +967,26 @@ class RagPipeline:
         conversation_history: str | None = None,
         llm_model: str | None = None,
     ) -> PipelineResult:
+        with cost_tracker_scope():
+            return await self._answer_impl(
+                session,
+                user_query,
+                rerank_top_n=rerank_top_n,
+                session_id=session_id,
+                conversation_history=conversation_history,
+                llm_model=llm_model,
+            )
+
+    async def _answer_impl(
+        self,
+        session: AsyncSession,
+        user_query: str,
+        *,
+        rerank_top_n: int | None = None,
+        session_id: str | None = None,
+        conversation_history: str | None = None,
+        llm_model: str | None = None,
+    ) -> PipelineResult:
         timings: dict[str, int] = {}
         rerank_top_n = rerank_top_n or self.settings.rag_rerank_top_k
         model = resolve_llm_model(llm_model)
@@ -976,7 +1036,30 @@ class RagPipeline:
             focus = None
         focus = _merge_objection_boost(user_query, conversation_history, focus)
         focus = _merge_follow_up_boost(user_query, focus)
-        plan = supplement_ingredient_slugs(plan, user_query, conversation_history)
+        # Détecter une requête "humeur" sans ingrédient explicite : ne pas hériter
+        # des slugs de l'historique (l'utilisateur a changé de sujet).
+        _query_has_ingredient = bool(
+            plan.ingredient_slugs
+            or re.search(
+                r"(?i)\b(?:avec du|avec de la|avec de l'|avec des|à base de|"
+                r"au|aux|recette de|recette au|recette aux)\s+\w",
+                user_query or "",
+            )
+        )
+        _is_mood_query = bool(
+            _MOOD_QUERY_RE.search(user_query or "")
+            and not _query_has_ingredient
+        )
+        _conv_to_scan = None if _is_mood_query else conversation_history
+        plan = supplement_ingredient_slugs(plan, user_query, _conv_to_scan)
+        # Si l'utilisateur exclut explicitement l'ingrédient en cours, vider les slugs.
+        if plan.ingredient_slugs and _NEGATIVE_INGREDIENT_RE.search(user_query or ""):
+            log.info(
+                "rag.pipeline.ingredient_slugs_cleared_negative_constraint",
+                ingredient_slugs=plan.ingredient_slugs,
+                query=user_query[:80],
+            )
+            plan = plan.model_copy(update={"ingredient_slugs": []})
         timings["query_understanding_ms"] = int((time.perf_counter() - t0) * 1000)
 
         t1 = time.perf_counter()
@@ -1055,9 +1138,19 @@ class RagPipeline:
                 RerankedHit(hit=h, rerank_score=float(h.score_rrf or 0.0))
                 for h in hits_for_rerank[:rerank_top_n]
             ]
-        reranked = [
+        _reranked_above_thresh = [
             r for r in reranked if r.rerank_score >= self.settings.rag_min_rerank_score
-        ] or reranked[: max(1, rerank_top_n // 2)]
+        ]
+        if not _reranked_above_thresh:
+            _best_score = max((r.rerank_score for r in reranked), default=0.0)
+            if plan.ingredient_slugs and _best_score < 0.10:
+                # Tous les résultats sont très mauvais pour une requête ingrédient :
+                # préférer un message "non trouvé" propre plutôt que des chunks hors-sujet.
+                reranked = []
+            else:
+                reranked = reranked[: max(1, rerank_top_n // 2)]
+        else:
+            reranked = _reranked_above_thresh
         if self.settings.rag_article_rerank_enabled and len(reranked) > 1:
             try:
                 article_docs = _article_rerank_documents(
@@ -1069,6 +1162,7 @@ class RagPipeline:
                     rq,
                     article_docs,
                     top_n=min(len(article_docs), self.settings.rag_article_rerank_max_articles),
+                    cost_step="article_rerank",
                 )
                 reranked = _apply_article_rerank(
                     reranked,
@@ -1161,7 +1255,15 @@ class RagPipeline:
             n_reranked=len(reranked),
             timings_ms=timings,
         )
+        cost_acc = get_request_cost()
+        cost_breakdown = cost_acc.to_dict() if cost_acc is not None else None
+        if cost_breakdown:
+            log.info(
+                "rag.pipeline.cost",
+                estimated_usd=cost_breakdown.get("estimated_usd"),
+            )
         return PipelineResult(
             plan=plan, hits=hits, reranked=reranked,
             answer=answer, timings_ms=timings, is_base2_fallback=base2_fallback_used,
+            cost_breakdown=cost_breakdown,
         )

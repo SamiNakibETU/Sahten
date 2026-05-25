@@ -30,6 +30,7 @@ import structlog
 
 CARNETS_PHRASE = "Désolé, je n'ai pas cette recette dans mes carnets."
 
+from ..cost_tracker import get_request_cost
 from ..settings import get_settings
 from ..rag.ingredient_match import (
     filter_reranked_by_ingredient_slugs,
@@ -415,6 +416,20 @@ Règles ABSOLUES :
    d'évoquer, la carte doit correspondre (ex. fattouche, pas un autre plat sans
    concombre). Ne mentionne pas l'ingrédient seulement en accompagnement dans
    les étapes de cuisson.
+24. **INTERDICTION ABSOLUE — formulations techniques** : les expressions suivantes
+   sont **strictement interdites** dans TOUT texte visible par l'utilisateur, sans
+   exception :
+   • « contexte disponible » / « le contexte ne contient pas »
+   • « extraits disponibles » / « extraits consultés »
+   • « archives disponibles » / « archives indexées » / « archives consultées »
+   • « dans ce contexte » (sens technique RAG)
+   • « les informations disponibles »
+   Si les extraits RAG décrivent mal ou pas l'ingrédient demandé, dis simplement :
+   « Je n'ai pas trouvé de recette à base de [ingrédient] pour l'instant. » — puis
+   remplis `follow_up` avec une proposition concrète, mets `recipe_card=null`,
+   `source_chunk_ids=[]` sur chaque phrase et `confidence ≤ 0.35`. **Ne propose
+   jamais une recette où l'ingrédient est seulement mentionné dans une liste de
+   sauces ou d'accompagnements pour satisfaire la demande.**
 """
 
 
@@ -533,9 +548,10 @@ class ResponseGenerator:
         user_parts.append(f"QUESTION : {user_query.strip()}")
         user_parts.append(context)
         user_content = "\n\n".join(user_parts)
+        used_model = model or self._model
         try:
             completion = await self._client.chat.completions.create(
-                model=model or self._model,
+                model=used_model,
                 temperature=self._temperature,
                 messages=[
                     {"role": "system", "content": SYSTEM_PROMPT},
@@ -543,6 +559,13 @@ class ResponseGenerator:
                 ],
                 response_format={"type": "json_schema", "json_schema": JSON_SCHEMA},
             )
+            acc = get_request_cost()
+            if acc is not None:
+                acc.record_openai_chat_usage(
+                    "generation",
+                    model=used_model,
+                    usage=completion.usage,
+                )
             raw = completion.choices[0].message.content or "{}"
             answer = GroundedAnswer.model_validate_json(raw)
         except Exception as exc:  # noqa: BLE001
@@ -578,6 +601,7 @@ def validate_grounding(
     *,
     user_query: str | None = None,
     required_ingredient_slugs: list[str] | None = None,
+    preserve_carnets: bool = False,
 ) -> GroundedAnswer:
     """Filtre les phrases sans citation valide. Recalcule la confidence si besoin.
 
@@ -760,11 +784,12 @@ def validate_grounding(
         answer = _enforce_carnets_phrase(
             answer, user_query, required_ingredient_slugs=required_ingredient_slugs
         )
-        answer = _sanitize_carnets_for_context(
-            answer,
-            user_query=user_query,
-            required_ingredient_slugs=required_ingredient_slugs,
-        )
+        if not preserve_carnets:
+            answer = _sanitize_carnets_for_context(
+                answer,
+                user_query=user_query,
+                required_ingredient_slugs=required_ingredient_slugs,
+            )
         answer = _polish_user_facing_tone(answer)
 
     # Chef et recette doivent rester sur la même fiche : mieux vaut retirer la bio

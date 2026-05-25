@@ -12,8 +12,8 @@ from .reranker import RerankedHit
 from .retriever import Hit
 
 INGREDIENT_SLUG_ALIASES: dict[str, tuple[str, ...]] = {
-    "concombre": ("concombre", "concombres"),
-    "tomate": ("tomate", "tomates"),
+    "concombre": ("concombre", "concombres", "khyar", "khiar"),
+    "tomate": ("tomate", "tomates", "banadoura", "bandoura"),
     "poulet": ("poulet", "poulets"),
     "citron": ("citron", "citrons"),
     "aubergine": ("aubergine", "aubergines"),
@@ -62,6 +62,16 @@ _KNOWN_ING_WORDS: dict[str, str] = {
     "menthe": "menthe",
     "persil": "persil",
     "yaourt": "yaourt",
+    "khyar": "concombre",
+    "khiar": "concombre",
+    "banadoura": "tomate",
+    "bandoura": "tomate",
+    "batinjane": "aubergine",
+    "batinghane": "aubergine",
+    "kousa": "courgette",
+    "kusa": "courgette",
+    "djej": "poulet",
+    "dajaj": "poulet",
 }
 
 
@@ -138,7 +148,7 @@ def chunk_confirms_ingredient(
     strict: bool = True,
 ) -> bool:
     sk = (section_kind or "").lower()
-    allowed = ("ingredients_list",) if strict else ("ingredients_list", "recipe_summary", "anchor")
+    allowed = ("ingredients_list",) if strict else ("ingredients_list", "recipe_summary", "anchor", "recipe_steps")
     if sk not in allowed:
         return False
     return text_contains_ingredient(chunk_text, slug_search_terms(slug))
@@ -210,15 +220,29 @@ def supplement_ingredient_slugs(
     user_query: str,
     conversation_history: str | None,
 ) -> QueryPlan:
+    """Enrichit les slugs ingrédient depuis la requête et l'historique.
+
+    Règle clé : si la requête actuelle ne contient aucun ingrédient ET que le LLM
+    n'en a pas extrait, on NE scanne PAS l'historique pour ne pas hériter des slugs
+    d'un ancien fil de conversation (ex. poivron → recettes simple pour le soir).
+    """
     slugs = list(plan.ingredient_slugs or [])
     seen = set(slugs)
-    blob = "\n".join(
-        part for part in (conversation_history or "", user_query or "") if part.strip()
-    )
-    for slug in extract_ingredient_slugs_from_text(blob):
+
+    # Extraction depuis la requête courante seulement (toujours faite).
+    for slug in extract_ingredient_slugs_from_text(user_query or ""):
         if slug not in seen:
             seen.add(slug)
             slugs.append(slug)
+
+    # Scanner l'historique uniquement si on a déjà un contexte ingrédient.
+    # Évite de polluer une requête "humeur" (simple, soir…) avec les slugs du fil précédent.
+    if slugs and conversation_history:
+        for slug in extract_ingredient_slugs_from_text(conversation_history):
+            if slug not in seen:
+                seen.add(slug)
+                slugs.append(slug)
+
     if slugs == (plan.ingredient_slugs or []):
         return plan
     return plan.model_copy(update={"ingredient_slugs": slugs})

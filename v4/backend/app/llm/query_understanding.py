@@ -30,6 +30,7 @@ from typing import Any, Literal
 from openai import AsyncOpenAI
 from pydantic import BaseModel, Field
 
+from ..cost_tracker import get_request_cost
 from ..settings import get_settings
 
 
@@ -141,6 +142,17 @@ N'invente pas de noms de chefs, plats ou ingrédients jamais évoqués ; mais tu
   ou « pas dessert », conserve explicitement cette contrainte dans
   `rewritten_query` (ex. "plat salé, pas dessert"), pour éviter des résultats
   hors registre.
+- **Rupture de fil ingrédient** : si l’utilisateur dit « sans poivron »,
+  « pas forcément de X », « autre chose », ou toute contrainte excluant
+  l’ingrédient du fil précédent, mets `ingredient_slugs: []` (tableau vide).
+  Même si le fil portait sur le poivron, une demande « recettes simples
+  pour le soir » sans mention d’ingrédient doit avoir `ingredient_slugs: []`.
+- **Requête humeur / ambiance** (« simple », « rapide », « pour le soir »,
+  « ce soir », « léger », « vite fait ») sans ingrédient nommé →
+  `ingredient_slugs: []`, `intent: "recipe"`,
+  `rewritten_query` = reformulation de la contrainte humeur
+  (ex. « recette simple rapide pour le soir ») sans récupérer les ingrédients
+  de l’historique ancêtre.
 """
 
 
@@ -177,8 +189,9 @@ class QueryAnalyzer:
             )
         else:
             user_content = uq
+        used_model = model or self._model
         completion = await self._client.chat.completions.create(
-            model=model or self._model,
+            model=used_model,
             temperature=0.0,
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
@@ -186,5 +199,12 @@ class QueryAnalyzer:
             ],
             response_format={"type": "json_schema", "json_schema": JSON_SCHEMA},
         )
+        acc = get_request_cost()
+        if acc is not None:
+            acc.record_openai_chat_usage(
+                "query_analyzer",
+                model=used_model,
+                usage=completion.usage,
+            )
         raw = completion.choices[0].message.content or "{}"
         return QueryPlan.model_validate_json(raw)

@@ -11,6 +11,7 @@ from typing import Any
 from openai import AsyncOpenAI
 from pydantic import BaseModel, Field
 
+from ..cost_tracker import get_request_cost
 from ..settings import get_settings
 
 
@@ -94,6 +95,16 @@ Règles :
   inclus ce nom pour la recherche documentaire. Mets `suggest_broaden_corpus_search`
   à **true**. Résume dans `thread_summary` que l’utilisateur exige une fiche où
   l’ingrédient est **explicite** dans le texte (pas seulement accessoire).
+- **Rupture de fil ingrédient** : si l’utilisateur dit « sans X », « pas de X »,
+  « pas forcément de X », ou formule une requête humeur sans ingrédient
+  (« simple », « pour le soir », « rapide »), mets `search_boost_phrase: ""`
+  (vide) et `suggest_broaden_corpus_search: false`. Ne perpétue pas l’ingrédient
+  de l’ancien fil dans `thread_summary` si l’utilisateur a clairement changé de sujet.
+- **« non une vrai recette » / correction du type de résultat** : si l’utilisateur
+  dit que le résultat est une sauce / condiment / liste et pas un plat réel :
+  `user_wants_different_article: true`, `suggest_broaden_corpus_search: true`,
+  et dans `thread_summary` : l’utilisateur veut un plat principal ou une entrée,
+  pas une sauce — même ingrédient, autre catégorie.
 """
 
 
@@ -121,8 +132,9 @@ class SessionFocusAnalyzer:
             f"{h}\n\n---\nQUESTION ACTUELLE :\n{uq}"
         )
         try:
+            used_model = model or self._model
             completion = await self._client.chat.completions.create(
-                model=model or self._model,
+                model=used_model,
                 temperature=0.0,
                 messages=[
                     {"role": "system", "content": SYSTEM},
@@ -130,6 +142,13 @@ class SessionFocusAnalyzer:
                 ],
                 response_format={"type": "json_schema", "json_schema": JSON_SCHEMA},
             )
+            acc = get_request_cost()
+            if acc is not None:
+                acc.record_openai_chat_usage(
+                    "session_focus",
+                    model=used_model,
+                    usage=completion.usage,
+                )
             raw = completion.choices[0].message.content or "{}"
             return SessionFocus.model_validate_json(raw)
         except Exception:  # noqa: BLE001
