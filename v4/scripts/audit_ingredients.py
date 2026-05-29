@@ -26,8 +26,12 @@ from typing import Any, Literal
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.db.base import get_sessionmaker
-from backend.app.rag.ingredient_match import INGREDIENT_SLUG_ALIASES
+try:
+    from app.db.base import get_sessionmaker
+    from app.rag.ingredient_match import INGREDIENT_SLUG_ALIASES
+except ModuleNotFoundError:
+    from backend.app.db.base import get_sessionmaker
+    from backend.app.rag.ingredient_match import INGREDIENT_SLUG_ALIASES
 
 
 @dataclass(frozen=True)
