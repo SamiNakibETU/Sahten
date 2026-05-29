@@ -1,4 +1,5 @@
 from scripts.audit_ingredients import (
+    INGREDIENT_AUDIT_SQL,
     IngredientAuditRow,
     build_alias_gap_report,
     render_markdown_report,
@@ -64,3 +65,9 @@ def test_markdown_report_includes_summary_rows_and_gaps() -> None:
     assert "# Audit ingredients Sahtein v4" in markdown
     assert "| concombre | Concombre | legume | 3 | 5 | khyar |" in markdown
     assert "`concombre`: concombres" in markdown
+
+
+def test_sql_guards_jsonb_alias_expansion_and_avoids_slice_bind() -> None:
+    assert "jsonb_typeof(i.aliases) = 'array'" in INGREDIENT_AUDIT_SQL
+    assert "jsonb_array_elements_text(\n                CASE" in INGREDIENT_AUDIT_SQL
+    assert "[:3]" not in INGREDIENT_AUDIT_SQL

@@ -33,6 +33,76 @@ except ModuleNotFoundError:
     from backend.app.db.base import get_sessionmaker
     from backend.app.rag.ingredient_match import INGREDIENT_SLUG_ALIASES
 
+INGREDIENT_AUDIT_SQL = """
+WITH ingredient_article_counts AS (
+    SELECT
+        i.id AS ingredient_id,
+        COUNT(DISTINCT ai.article_id) AS article_count
+    FROM ingredients i
+    LEFT JOIN article_ingredients ai ON ai.ingredient_id = i.id
+    GROUP BY i.id
+),
+ingredient_mentions AS (
+    SELECT
+        i.id AS ingredient_id,
+        COUNT(DISTINCT c.id) AS ingredients_list_mentions
+    FROM ingredients i
+    LEFT JOIN chunks c
+      ON c.kind = 'ingredients_list'
+     AND (
+        c.text ILIKE ('%%' || i.name || '%%')
+        OR EXISTS (
+            SELECT 1
+            FROM jsonb_array_elements_text(
+                CASE
+                    WHEN jsonb_typeof(i.aliases) = 'array' THEN i.aliases
+                    ELSE '[]'::jsonb
+                END
+            ) AS alias(value)
+            WHERE c.text ILIKE ('%%' || alias.value || '%%')
+        )
+     )
+    GROUP BY i.id
+),
+examples AS (
+    SELECT
+        ingredient_id,
+        array_agg(example ORDER BY article_count DESC, external_id ASC) AS examples
+    FROM (
+        SELECT
+            ai.ingredient_id,
+            a.external_id,
+            COUNT(*) AS article_count,
+            (a.external_id::text || ': ' || a.title) AS example,
+            ROW_NUMBER() OVER (
+                PARTITION BY ai.ingredient_id
+                ORDER BY COUNT(*) DESC, a.external_id ASC
+            ) AS rn
+        FROM article_ingredients ai
+        JOIN articles a ON a.id = ai.article_id
+        GROUP BY ai.ingredient_id, a.external_id, a.title
+    ) ranked
+    WHERE rn <= 3
+    GROUP BY ingredient_id
+)
+SELECT
+    i.slug,
+    i.name,
+    CASE
+        WHEN jsonb_typeof(i.aliases) = 'array' THEN i.aliases
+        ELSE '[]'::jsonb
+    END AS aliases,
+    COALESCE(i.category, '') AS category,
+    COALESCE(iac.article_count, 0) AS article_count,
+    COALESCE(im.ingredients_list_mentions, 0) AS ingredients_list_mentions,
+    COALESCE(e.examples, ARRAY[]::text[]) AS example_articles
+FROM ingredients i
+LEFT JOIN ingredient_article_counts iac ON iac.ingredient_id = i.id
+LEFT JOIN ingredient_mentions im ON im.ingredient_id = i.id
+LEFT JOIN examples e ON e.ingredient_id = i.id
+ORDER BY iac.article_count DESC NULLS LAST, i.slug ASC
+"""
+
 
 @dataclass(frozen=True)
 class IngredientAuditRow:
@@ -205,71 +275,7 @@ def _coerce_examples(value: Any) -> list[str]:
 
 
 async def fetch_ingredient_audit_rows(session: AsyncSession) -> list[IngredientAuditRow]:
-    result = await session.execute(
-        text(
-            """
-WITH ingredient_article_counts AS (
-    SELECT
-        i.id AS ingredient_id,
-        COUNT(DISTINCT ai.article_id) AS article_count
-    FROM ingredients i
-    LEFT JOIN article_ingredients ai ON ai.ingredient_id = i.id
-    GROUP BY i.id
-),
-ingredient_mentions AS (
-    SELECT
-        i.id AS ingredient_id,
-        COUNT(DISTINCT c.id) AS ingredients_list_mentions
-    FROM ingredients i
-    LEFT JOIN chunks c
-      ON c.kind = 'ingredients_list'
-     AND (
-        c.text ILIKE ('%%' || i.name || '%%')
-        OR EXISTS (
-            SELECT 1
-            FROM jsonb_array_elements_text(COALESCE(i.aliases, '[]'::jsonb)) AS alias(value)
-            WHERE c.text ILIKE ('%%' || alias.value || '%%')
-        )
-     )
-    GROUP BY i.id
-),
-examples AS (
-    SELECT
-        ingredient_id,
-        array_agg(example ORDER BY article_count DESC, external_id ASC) AS examples
-    FROM (
-        SELECT
-            ai.ingredient_id,
-            a.external_id,
-            COUNT(*) AS article_count,
-            (a.external_id::text || ': ' || a.title) AS example,
-            ROW_NUMBER() OVER (
-                PARTITION BY ai.ingredient_id
-                ORDER BY COUNT(*) DESC, a.external_id ASC
-            ) AS rn
-        FROM article_ingredients ai
-        JOIN articles a ON a.id = ai.article_id
-        GROUP BY ai.ingredient_id, a.external_id, a.title
-    ) ranked
-    WHERE rn <= 3
-    GROUP BY ingredient_id
-)
-SELECT
-    i.slug,
-    i.name,
-    COALESCE(i.aliases, '[]'::jsonb) AS aliases,
-    COALESCE(i.category, '') AS category,
-    COALESCE(iac.article_count, 0) AS article_count,
-    COALESCE(im.ingredients_list_mentions, 0) AS ingredients_list_mentions,
-    COALESCE(e.examples, ARRAY[]::text[]) AS example_articles
-FROM ingredients i
-LEFT JOIN ingredient_article_counts iac ON iac.ingredient_id = i.id
-LEFT JOIN ingredient_mentions im ON im.ingredient_id = i.id
-LEFT JOIN examples e ON e.ingredient_id = i.id
-ORDER BY iac.article_count DESC NULLS LAST, i.slug ASC
-"""
-        )
-    )
+    result = await session.execute(text(INGREDIENT_AUDIT_SQL))
     rows = result.mappings().all()
     return [
         IngredientAuditRow(
