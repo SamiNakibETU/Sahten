@@ -236,17 +236,22 @@ ingredient_mentions AS (
 examples AS (
     SELECT
         ingredient_id,
-        array_agg(example ORDER BY article_count DESC, external_id ASC)[:3] AS examples
+        array_agg(example ORDER BY article_count DESC, external_id ASC) AS examples
     FROM (
         SELECT
             ai.ingredient_id,
             a.external_id,
             COUNT(*) AS article_count,
-            (a.external_id::text || ': ' || a.title) AS example
+            (a.external_id::text || ': ' || a.title) AS example,
+            ROW_NUMBER() OVER (
+                PARTITION BY ai.ingredient_id
+                ORDER BY COUNT(*) DESC, a.external_id ASC
+            ) AS rn
         FROM article_ingredients ai
         JOIN articles a ON a.id = ai.article_id
         GROUP BY ai.ingredient_id, a.external_id, a.title
     ) ranked
+    WHERE rn <= 3
     GROUP BY ingredient_id
 )
 SELECT
