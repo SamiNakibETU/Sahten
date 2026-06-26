@@ -404,23 +404,44 @@ def _contains_term(text: str, term: str) -> bool:
 # qu'ajouter laisse le mauvais token tirer ailleurs (ex. 'tabbouleh taboulé'
 # échoue, mais 'taboulé' seul rang 1). Voir docs/alias-validation-report.md.
 _DISH_ALIASES_PATH = Path(__file__).resolve().parents[3] / "data" / "aliases_dishes.json"
+_INGREDIENT_ALIASES_PATH = (
+    Path(__file__).resolve().parents[3] / "data" / "aliases_ingredients.json"
+)
 
 
-def _load_dish_canon_rules() -> list[tuple[re.Pattern[str], str]]:
+def _build_canon_rules() -> list[tuple[re.Pattern[str], str]]:
+    """Règles variante→forme indexée, depuis les datasets plats + ingrédients."""
+    pairs: list[tuple[str, str]] = []
+    # Plats : cible = canonical_indexed.
     try:
-        data = json.loads(_DISH_ALIASES_PATH.read_text(encoding="utf-8"))
+        dishes = json.loads(_DISH_ALIASES_PATH.read_text(encoding="utf-8"))
+        for dish in dishes.get("dishes", []):
+            canon = (dish.get("canonical_indexed") or "").strip()
+            if not canon:
+                continue
+            for variant in dish.get("user_variants", []):
+                v = (variant or "").strip()
+                if v and v.lower() != canon.lower():
+                    pairs.append((v, canon))
     except Exception as exc:  # noqa: BLE001
         log.warning("rag.pipeline.dish_aliases_load_failed", error=str(exc))
-        return []
-    pairs: list[tuple[str, str]] = []
-    for dish in data.get("dishes", []):
-        canon = (dish.get("canonical_indexed") or "").strip()
-        if not canon:
-            continue
-        for variant in dish.get("user_variants", []):
-            v = (variant or "").strip()
-            if v and v.lower() != canon.lower():
-                pairs.append((v, canon))
+    # Ingrédients : cible = inject[0] (forme présente dans les chunks). On saute
+    # « pois-chiche » dont les graphies (hommos/houmous) sont gérées comme PLAT.
+    try:
+        ings = json.loads(_INGREDIENT_ALIASES_PATH.read_text(encoding="utf-8"))
+        for ing in ings.get("ingredients", []):
+            if ing.get("canonical") == "pois-chiche":
+                continue
+            inject = ing.get("inject") or []
+            target = (inject[0] if inject else (ing.get("canonical") or "")).strip()
+            if not target:
+                continue
+            for variant in ing.get("variants", []):
+                v = (variant or "").strip()
+                if v and v.lower() != target.lower():
+                    pairs.append((v, target))
+    except Exception as exc:  # noqa: BLE001
+        log.warning("rag.pipeline.ingredient_aliases_load_failed", error=str(exc))
     # Plus longues d'abord (multi-mots avant mono-mot) pour éviter les chevauchements.
     pairs.sort(key=lambda p: len(p[0]), reverse=True)
     rules: list[tuple[re.Pattern[str], str]] = []
@@ -431,7 +452,7 @@ def _load_dish_canon_rules() -> list[tuple[re.Pattern[str], str]]:
     return rules
 
 
-_DISH_CANON_RULES = _load_dish_canon_rules()
+_DISH_CANON_RULES = _build_canon_rules()
 
 
 def _canonicalize_dish_aliases(q: str) -> str:

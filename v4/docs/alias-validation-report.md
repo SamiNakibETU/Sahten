@@ -69,8 +69,10 @@ GET /api/admin/diagnose-retrieval?q=manouche   (en-tête X-Sahten-Admin-Token)
 
 1. **Déployer** `sota/v4` sur staging, puis valider via `diagnose-retrieval`
    (rang ≤ 3 pour chaque graphie du panel). Mettre à jour ce tableau.
-2. **Loader ingrédients** : même mécanisme que les plats, depuis
-   `aliases_ingredients.json` (étendre `_INGREDIENT_ARABIC_ALIASES`).
+2. ✅ **Loader ingrédients** : FAIT — `aliases_ingredients.json` chargé par le même
+   canoniseur (`_build_canon_rules`), cible = `inject[0]` (forme dans les chunks).
+   136 règles au total (plats + ingrédients). `pois-chiche` exclu (graphies
+   hommos/houmous gérées comme PLAT). za'atar→zaatar, labneh→labné, etc.
 3. **Élargir** le panel à 40+ plats / 40+ ingrédients via l'agent auto-améliorant
    (`docs/alias-self-improving-agent.md` + `scripts/mine_missing_aliases.py`).
 4. **Aliases côté article** (indexation) : à terme, stocker les translittérations

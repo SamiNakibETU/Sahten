@@ -73,3 +73,18 @@ def test_manouche_full_pipeline_query_paths() -> None:
     plan = QueryPlan(rewritten_query="recette manouche", intent="recipe")
     blob = " | ".join(_retrieval_fallback_queries("recette manouche", plan)).lower()
     assert "manaiche" in blob
+
+
+# ── Canonicalisation des ingrédients translittérés ──────────────────────────
+
+def test_canonicalize_ingredient_transliterations() -> None:
+    assert "zaatar" in _canonicalize_dish_aliases("recette au za'atar").lower()
+    assert "sumac" in _canonicalize_dish_aliases("avec du sumak").lower()
+    assert "freekeh" in _canonicalize_dish_aliases("recette de frikeh").lower()
+
+
+def test_ingredient_canon_does_not_hijack_houmous_dish() -> None:
+    # pois-chiche est volontairement exclu : 'houmous' reste un PLAT, pas 'pois chiche'
+    out = _canonicalize_dish_aliases("recette houmous").lower()
+    assert "pois" not in out
+    assert "houmous" in out
