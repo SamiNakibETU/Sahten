@@ -465,6 +465,58 @@ def _canonicalize_dish_aliases(q: str) -> str:
     return s
 
 
+def _norm_match(s: str) -> str:
+    t = unicodedata.normalize("NFKD", (s or "").lower())
+    return "".join(ch for ch in t if not unicodedata.combining(ch))
+
+
+def _load_dish_match_terms() -> list[tuple[str, ...]]:
+    """Par plat : termes normalisés (>=4 car.) pour détecter le plat demandé et
+    vérifier qu'une carte recette le concerne bien (anti carte hors-sujet)."""
+    out: list[tuple[str, ...]] = []
+    try:
+        data = json.loads(_DISH_ALIASES_PATH.read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001
+        return out
+    for dish in data.get("dishes", []):
+        terms: set[str] = set()
+        canon = dish.get("canonical_indexed")
+        if isinstance(canon, str):
+            terms.add(canon)
+        for key in ("indexed_forms", "user_variants"):
+            for v in dish.get(key, []) or []:
+                if isinstance(v, str):
+                    terms.add(v)
+        norm = {_norm_match(t) for t in terms}
+        norm = {t for t in norm if len(t) >= 4}
+        if norm:
+            out.append(tuple(sorted(norm, key=len, reverse=True)))
+    return out
+
+
+_DISH_MATCH_TERMS = _load_dish_match_terms()
+
+
+def _requested_dish_terms(user_query: str) -> list[str]:
+    """Termes des plats explicitement nommés dans la requête (vide si aucun)."""
+    qn = _norm_match(user_query)
+    found: list[str] = []
+    for terms in _DISH_MATCH_TERMS:
+        if any(t in qn for t in terms):
+            found.extend(terms)
+    return found
+
+
+def _card_title_matches_requested_dish(
+    card_title: str, requested_terms: list[str]
+) -> bool:
+    """True si aucun plat précis n'est demandé, ou si le titre concerne ce plat."""
+    if not requested_terms:
+        return True
+    t = _norm_match(card_title)
+    return any(term in t for term in requested_terms)
+
+
 def _expand_query_with_aliases(q: str) -> str:
     """Canonicalise les translittérations de plats puis ajoute les alias ortho."""
     base = _canonicalize_dish_aliases((q or "").strip())
@@ -1333,6 +1385,23 @@ class RagPipeline:
                 model=model,
                 required_ingredient_slugs=plan.ingredient_slugs or None,
             )
+        # Gating de pertinence de la carte : si l'utilisateur nomme un plat précis
+        # et que la carte proposée n'y correspond pas (titre), on la retire plutôt
+        # que d'afficher une fiche hors-sujet (bug "manouche -> Lahm bi aajine").
+        if answer.recipe_card is not None:
+            _requested = _requested_dish_terms(user_query)
+            if _requested and not _card_title_matches_requested_dish(
+                answer.recipe_card.title, _requested
+            ):
+                log.info(
+                    "rag.pipeline.recipe_card_dropped_dish_mismatch",
+                    query=user_query[:80],
+                    card_title=(answer.recipe_card.title or "")[:80],
+                )
+                answer = answer.model_copy(
+                    update={"recipe_card": None, "recipe_card_secondary": None}
+                )
+
         timings["generation_ms"] = int((time.perf_counter() - t3) * 1000)
         timings["total_ms"] = sum(timings.values())
 
