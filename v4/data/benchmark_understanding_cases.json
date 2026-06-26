@@ -1,0 +1,57 @@
+{
+  "description": "Cas pour l'étage STRUCTURÉ (query_understanding). Teste la compréhension : extraction d'intent, ingrédients, chefs, gestion des anaphores/relances et des contraintes. Scoring sur QueryPlan (JSON strict).",
+  "cases": [
+    {
+      "id": "recipe-taboule",
+      "query": "Donne-moi la recette du taboulé",
+      "expect": {"intents": ["recipe"], "rewritten_any": ["taboul"]}
+    },
+    {
+      "id": "chef-mouzawak",
+      "query": "Qui est Kamal Mouzawak ?",
+      "expect": {"intents": ["chef_bio"], "chefs": ["kamal-mouzawak"]}
+    },
+    {
+      "id": "ingredient-concombre",
+      "query": "une recette avec du concombre",
+      "expect": {"intents": ["recipe", "ingredient"], "ingredients": ["concombre"]}
+    },
+    {
+      "id": "ingredient-aubergine",
+      "query": "quelque chose à base d'aubergine",
+      "expect": {"intents": ["recipe", "ingredient"], "ingredients": ["aubergine"]}
+    },
+    {
+      "id": "manouche-recipe",
+      "query": "recette manouche",
+      "expect": {"intents": ["recipe"], "rewritten_any": ["manouch", "manaich", "manouche"]}
+    },
+    {
+      "id": "anaphora-oui-fattouche",
+      "query": "oui",
+      "history": "Utilisateur : une salade au concombre ?\nAssistant : Je peux vous proposer le fattouche, une salade libanaise au concombre. Souhaitez-vous cette recette ?",
+      "expect": {"intents": ["recipe"], "ingredients": ["concombre"], "rewritten_any": ["fattouche", "concombre"]}
+    },
+    {
+      "id": "mood-no-ingredient",
+      "query": "un truc simple et rapide pour ce soir",
+      "expect": {"intents": ["recipe"], "ingredients_empty": true, "rewritten_any": ["simple", "rapide", "soir"]}
+    },
+    {
+      "id": "constraint-sale-pas-dessert",
+      "query": "je veux un plat salé, surtout pas un dessert",
+      "expect": {"intents": ["recipe"], "rewritten_any": ["sal", "pas", "dessert"]}
+    },
+    {
+      "id": "exclusion-sans-poivron",
+      "query": "autre chose, sans poivron",
+      "history": "Utilisateur : une recette au poivron ?\nAssistant : Voici une fiche au poivron grillé. En voulez-vous une autre ?",
+      "expect": {"intents": ["recipe"], "ingredients_empty": true}
+    },
+    {
+      "id": "chef-aline",
+      "query": "parle-moi de la cheffe Aline Kamakian",
+      "expect": {"intents": ["chef_bio"], "chefs": ["aline-kamakian"]}
+    }
+  ]
+}

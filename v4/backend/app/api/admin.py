@@ -175,11 +175,15 @@ async def diagnose_retrieval(
             )
             return
         titles = list({h.article_title for h in hits[:8]})
+        sample_article_ids = list(
+            dict.fromkeys(int(h.article_external_id) for h in hits[:8])
+        )
         searches.append(
             {
                 "step": step,
                 "query": query_str,
                 "n_hits": len(hits),
+                "sample_article_ids": sample_article_ids,
                 "sample_titles": titles,
             }
         )

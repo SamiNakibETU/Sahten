@@ -1,0 +1,138 @@
+{
+  "description": "Translittérations de plats levantins -> forme INDEXÉE (canonical_indexed). Donnée auditable. Le retrieval doit REMPLACER la graphie utilisateur par 'canonical_indexed' (canonicalisation), PAS l'ajouter : l'empirie montre qu'ajouter laisse le mauvais token tirer ailleurs (ex. 'tabbouleh taboulé' échoue, mais 'taboulé' seul rang 1). Validé partiellement contre l'API live (champ 'validation' = found/rank mesurés). indexed_form vient des titres réels du corpus (déterministe).",
+  "method": "canonicalize_replace",
+  "generated_against": "https://web-sahtein-19-04-staging.up.railway.app",
+  "dishes": [
+    {
+      "canonical": "manouche",
+      "canonical_indexed": "manaiche",
+      "indexed_forms": ["manaïichs", "manaiche"],
+      "source_article_id": 1474718,
+      "source_title": "Les manaïichs du Chouf de Salim Azzam",
+      "user_variants": ["manouche", "manouché", "man'ouché", "man'ouche", "manakish", "manakiche", "manaeesh", "mankoushe", "manouchi", "manouchee", "manoushe"],
+      "validation": [
+        {"query": "manaiche Salim Azzam", "found": true, "rank": 1},
+        {"query": "manouche", "found": false, "rank": null},
+        {"query": "manouche manaiche", "found": true, "rank": 2},
+        {"query": "manakish", "found": false, "rank": null}
+      ],
+      "note": "Bug d'écran initial. 'manouche/manouché/manakish' -> canoniser en 'manaiche'."
+    },
+    {
+      "canonical": "taboule",
+      "canonical_indexed": "taboulé",
+      "indexed_forms": ["taboulé"],
+      "source_article_id": 1469385,
+      "source_title": "taboulé (plusieurs fiches OLJ, dont Kamal Mouzawak 1227694)",
+      "user_variants": ["taboule", "tabboule", "tabbouleh", "tabouli", "tabbouli", "taboulah", "tabouleh", "tabboulé"],
+      "validation": [
+        {"query": "taboule", "found": true, "rank": 1},
+        {"query": "tabboule", "found": false, "rank": null, "with_inject_failed": true},
+        {"query": "tabbouleh", "found": false, "rank": null, "with_inject_failed": true},
+        {"query": "tabbouli", "found": false, "rank": null, "with_inject_failed": true}
+      ],
+      "note": "Les graphies EN à double b échouent même avec injection -> la canonicalisation (remplacer par 'taboulé') est nécessaire."
+    },
+    {
+      "canonical": "mouloukhieh",
+      "canonical_indexed": "mouloukhiyé",
+      "indexed_forms": ["mouloukhiyé", "mouloukhiya"],
+      "source_article_id": 1469013,
+      "source_title": "La Mouloukhiyé (ragoût de corète) de Tara Khattar",
+      "user_variants": ["mouloukhia", "molokhia", "mloukhiyeh", "moloukhieh", "mloukhieh", "molokheya", "molokhiya", "mloukhiye"],
+      "validation": [
+        {"query": "molokhia", "found": true, "rank": 1},
+        {"query": "mloukhiyeh", "found": true, "rank": 1},
+        {"query": "mouloukhia", "found": false, "rank": null, "with_inject_ok_rank": 1},
+        {"query": "molokheya", "found": false, "rank": null, "with_inject_failed": true}
+      ]
+    },
+    {
+      "canonical": "kafta",
+      "canonical_indexed": "kafta",
+      "indexed_forms": ["kafta", "kafta bi batata"],
+      "source_article_id": 1350035,
+      "source_title": "La kafta bi batata de Chaker Bou Abdalla",
+      "user_variants": ["kafta", "kefta", "kofta", "köfte", "kufta", "kefta bi batata"],
+      "validation": [
+        {"query": "kafta", "found": true, "rank": 1},
+        {"query": "kefta", "found": false, "rank": null, "with_inject_ok_rank": 1},
+        {"query": "kofta", "found": false, "rank": null, "with_inject_failed": true},
+        {"query": "köfte", "found": false, "rank": null, "with_inject_failed": true}
+      ]
+    },
+    {
+      "canonical": "maamoul",
+      "canonical_indexed": "maamoul",
+      "indexed_forms": ["maamoul", "maamouls"],
+      "source_title": "Les maamouls ... de chef Amani",
+      "user_variants": ["maamoul", "ma'moul", "mamoul", "maamul", "maamoel", "ma'amoul", "maamoool"],
+      "validation": [],
+      "note": "indexed_form depuis titre corpus (déterministe) ; rang live à confirmer via /retrieval-probe."
+    },
+    {
+      "canonical": "kebbe",
+      "canonical_indexed": "kebbé",
+      "indexed_forms": ["kebbé", "kebbe"],
+      "source_title": "La kebbé nayyé ... Youssef Akiki ; Kebbe de potiron",
+      "user_variants": ["kebbe", "kibbeh", "kebbeh", "kibbe", "kubba", "kébbé", "kibbé", "kebab nayé"],
+      "validation": []
+    },
+    {
+      "canonical": "fatteh",
+      "canonical_indexed": "fatteh",
+      "indexed_forms": ["fatteh", "fattit"],
+      "source_title": "La fatteh d'aubergines d'Alan Geaam ; (fattit batinjane)",
+      "user_variants": ["fatteh", "fatte", "fattah", "fattit", "fetté", "fatté"],
+      "validation": []
+    },
+    {
+      "canonical": "su-beureg",
+      "canonical_indexed": "su beureg",
+      "indexed_forms": ["su beureg"],
+      "source_title": "Le Su Beureg maison d'Aline Kamakian",
+      "user_variants": ["su beureg", "su böreg", "soubereg", "su borek", "beoreg", "su boreg", "soeureg"],
+      "validation": []
+    },
+    {
+      "canonical": "ourfa-kebab",
+      "canonical_indexed": "ourfa kebab",
+      "indexed_forms": ["ourfa kebab"],
+      "source_title": "Viande grillée d'Ourfa (Ourfa kebab) d'Aline Kamakian",
+      "user_variants": ["ourfa kebab", "urfa kebab", "urfa kebabi", "ourfa kebabi"],
+      "validation": []
+    },
+    {
+      "canonical": "ouayamat",
+      "canonical_indexed": "ouayamat",
+      "indexed_forms": ["ouayamat"],
+      "source_title": "Les ouayamat (petits beignets au sirop) de Tara Khattar",
+      "user_variants": ["ouayamat", "awamat", "awameh", "awwama", "loukoumades", "luqaimat", "awama"],
+      "validation": []
+    },
+    {
+      "canonical": "samboussek",
+      "canonical_indexed": "samboussek",
+      "indexed_forms": ["samboussek"],
+      "source_title": "Samboussek et samoussa végétaliens",
+      "user_variants": ["samboussek", "sambousek", "sambusak", "sambousa", "sambousak"],
+      "validation": []
+    },
+    {
+      "canonical": "fattouche",
+      "canonical_indexed": "fattouche",
+      "indexed_forms": ["fattouche"],
+      "source_title": "(fattouche, salade libanaise — multiples fiches)",
+      "user_variants": ["fattouche", "fattoush", "fattouch", "fattush", "fatouche"],
+      "validation": []
+    },
+    {
+      "canonical": "houmous",
+      "canonical_indexed": "houmous",
+      "indexed_forms": ["houmous", "hommos"],
+      "source_title": "(houmous — déjà géré par _ALIAS_GROUPS, ajouté ici pour audit)",
+      "user_variants": ["hommos", "hummus", "hoummous", "homos", "hommous", "humus"],
+      "validation": []
+    }
+  ]
+}

@@ -398,9 +398,55 @@ def _contains_term(text: str, term: str) -> bool:
     return bool(re.search(rf"(?i)\b{re.escape(term)}\b", text))
 
 
+# ── Canonicalisation des translittérations de plats (donnée auditable) ──────
+# Source : data/aliases_dishes.json. On REMPLACE la graphie utilisateur par la
+# forme réellement indexée (méthode 'canonicalize_replace'), car l'empirie montre
+# qu'ajouter laisse le mauvais token tirer ailleurs (ex. 'tabbouleh taboulé'
+# échoue, mais 'taboulé' seul rang 1). Voir docs/alias-validation-report.md.
+_DISH_ALIASES_PATH = Path(__file__).resolve().parents[3] / "data" / "aliases_dishes.json"
+
+
+def _load_dish_canon_rules() -> list[tuple[re.Pattern[str], str]]:
+    try:
+        data = json.loads(_DISH_ALIASES_PATH.read_text(encoding="utf-8"))
+    except Exception as exc:  # noqa: BLE001
+        log.warning("rag.pipeline.dish_aliases_load_failed", error=str(exc))
+        return []
+    pairs: list[tuple[str, str]] = []
+    for dish in data.get("dishes", []):
+        canon = (dish.get("canonical_indexed") or "").strip()
+        if not canon:
+            continue
+        for variant in dish.get("user_variants", []):
+            v = (variant or "").strip()
+            if v and v.lower() != canon.lower():
+                pairs.append((v, canon))
+    # Plus longues d'abord (multi-mots avant mono-mot) pour éviter les chevauchements.
+    pairs.sort(key=lambda p: len(p[0]), reverse=True)
+    rules: list[tuple[re.Pattern[str], str]] = []
+    for v, canon in pairs:
+        vn = re.escape(v.replace("’", "'"))
+        pat = re.compile(rf"(?i)(?<![\wàâäéèêëïîôùûç']){vn}(?![\wàâäéèêëïîôùûç'])")
+        rules.append((pat, canon))
+    return rules
+
+
+_DISH_CANON_RULES = _load_dish_canon_rules()
+
+
+def _canonicalize_dish_aliases(q: str) -> str:
+    """Remplace les graphies translittérées de plats par la forme indexée."""
+    if not q:
+        return q
+    s = q.replace("’", "'")
+    for pat, canon in _DISH_CANON_RULES:
+        s = pat.sub(canon, s)
+    return s
+
+
 def _expand_query_with_aliases(q: str) -> str:
-    """Ajoute des alias orthographiques à la requête documentaire."""
-    base = (q or "").strip()
+    """Canonicalise les translittérations de plats puis ajoute les alias ortho."""
+    base = _canonicalize_dish_aliases((q or "").strip())
     if not base:
         return base
     extras: list[str] = []

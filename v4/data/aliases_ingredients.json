@@ -1,0 +1,21 @@
+{
+  "description": "Translittérations d'ingrédients levantins (arabe -> FR/EN), donnée auditable. 'canonical' = slug en base ; 'variants' = graphies utilisateur ; 'inject' = formes arabes/translittérées présentes dans les chunks OLJ à ajouter à la requête. Étend INGREDIENT_SLUG_ALIASES / _INGREDIENT_ARABIC_ALIASES (ne remplace pas les existants concombre/tomate/aubergine/courgette/poulet/citron/persil/menthe/pois-chiche).",
+  "ingredients": [
+    {"canonical": "zaatar", "variants": ["zaatar", "za'atar", "zaatar", "zatar", "zahtar", "za`tar", "zaater"], "inject": ["zaatar", "za'atar"]},
+    {"canonical": "sumac", "variants": ["sumac", "sumak", "summac", "soumac"], "inject": ["sumac"]},
+    {"canonical": "tahini", "variants": ["tahini", "tahina", "tahine", "tahin", "tehina"], "inject": ["tahini", "tahina"]},
+    {"canonical": "labneh", "variants": ["labneh", "labné", "labne", "labaneh", "lebneh"], "inject": ["labné", "labneh"]},
+    {"canonical": "freekeh", "variants": ["freekeh", "frikeh", "frik", "freeke", "friké", "freeké"], "inject": ["freekeh", "frikeh"]},
+    {"canonical": "boulgour", "variants": ["boulgour", "boulghour", "bourghol", "burghul", "bulgur", "borghol"], "inject": ["boulgour", "boulghour"]},
+    {"canonical": "kishk", "variants": ["kishk", "kichk", "kashk", "keshek"], "inject": ["kishk"]},
+    {"canonical": "melasse-de-grenade", "variants": ["mélasse de grenade", "melasse de grenade", "dibs remman", "debs remman", "dibs roumman", "pomegranate molasses"], "inject": ["mélasse de grenade", "dibs remman"]},
+    {"canonical": "eau-de-fleur-oranger", "variants": ["eau de fleur d'oranger", "fleur d'oranger", "mazaher", "mazahar", "orange blossom"], "inject": ["fleur d'oranger", "mazaher"]},
+    {"canonical": "eau-de-rose", "variants": ["eau de rose", "ma ward", "maward", "rose water"], "inject": ["eau de rose", "ma ward"]},
+    {"canonical": "halloumi", "variants": ["halloumi", "haloumi", "hallloumi", "halloum"], "inject": ["halloumi"]},
+    {"canonical": "mahleb", "variants": ["mahleb", "mahlab", "mahlépi", "mahlepi"], "inject": ["mahleb"]},
+    {"canonical": "semoule", "variants": ["semoule", "smid", "smeed", "semolina"], "inject": ["semoule", "smid"]},
+    {"canonical": "pois-chiche", "variants": ["pois chiche", "pois chiches", "hommos", "hummus", "houmous", "homos"], "inject": ["pois chiche", "hommos"]},
+    {"canonical": "corete", "variants": ["corète", "corete", "mouloukhia", "molokhia", "jute mallow"], "inject": ["corète", "mouloukhiyé"]},
+    {"canonical": "arak", "variants": ["arak", "araq", "arac"], "inject": ["arak"]}
+  ]
+}

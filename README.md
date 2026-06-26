@@ -1,45 +1,57 @@
-# Sahten
+# Sahteïn
 
-Dépôt **Python (FastAPI)** + **frontend statique** : assistant recettes pour *L’Orient-Le Jour*, appuyé sur un index de fiches « Liban à Table ».  
-Le backend enchaîne analyse de requête, recherche dans le corpus, éventuellement rerank / LLM, et renvoie du HTML (cartes recette avec liens OLJ). Un webhook permet d’ingérer les publications CMS.
+Assistant culinaire libanais de **L'Orient-Le Jour** — un RAG sur les recettes de
+chefs publiées dans « Liban à Table ».
 
-## Arborescence
+> ⚠️ **L'application vivante est dans [`v4/`](v4/).** L'ancienne app v2.1
+> (`backend/`, `frontend/`, JSON canonique) a été supprimée le 2026-06-25 :
+> elle est remplacée par la stack Postgres + pgvector de `v4/`.
+> Récupérable dans l'historique git si besoin (`git log -- backend`).
 
-| Élément | Rôle |
-|--------|------|
-| `backend/` | API (`main.py`, préfixe `/api`), bot, RAG, webhook, schémas Pydantic, tests. |
-| `frontend/` | `index.html` (page par défaut `/`), `widget.html` (`/embed`), `css/`, `js/`, `assets/`. |
-| `data/` | Données canoniques servies au retriever (ex. `olj_canonical.json`). |
-| `railway.toml`, `Procfile` | Déploiement type Railway. |
+## Architecture (v4)
 
-## Exécution locale
+FastAPI + **Postgres/pgvector + tsvector** + **Redis** (cache + queue `arq`),
+Docker, Alembic. Pipeline RAG hybride (dense + lexical → RRF → rerank Cohere →
+rerank article → génération groundée phrase-par-phrase).
 
-```bash
-cd backend
-pip install -r requirements.txt
-# Copier .env.example vers .env et renseigner au minimum OPENAI_API_KEY
-python main.py
+```
+v4/
+├── backend/app/        # API + RAG + LLM + ingestion + db
+├── web_static/         # frontend (widget, demo, admin, dashboard)
+├── scripts/            # ingest_cli, run_rag_eval, audits
+├── data/               # golden_eval_fr.json (marqueurs), olj_seed_ids.json
+├── docs/               # runbooks, go-live, audit RAG/Epicure
+└── Dockerfile.web      # image déployée par railway.toml
 ```
 
-URL : http://localhost:8000/ (démo). API : `/api/chat`, `/api/health`, etc.
+## Démarrage local
 
-## Configuration
+```bash
+cd v4
+pip install -e .[dev]
+cp .env.example .env          # OPENAI_API_KEY, DATABASE_URL, REDIS_URL, COHERE_API_KEY...
+docker compose -f infra/docker-compose.yml up -d   # Postgres + Redis
+cd infra/alembic && alembic upgrade head
+python -m scripts.ingest_cli reindex-all --publication 17 --content-type 4 --seed-file data/olj_seed_ids.json
+python -m uvicorn backend.main:app --reload
+```
 
-Voir `backend/.env.example` (clé OpenAI, CORS, Redis optionnel pour traces/analytics, secret webhook).
+## Tests & marqueurs d'acceptation
 
-## Déploiement (ex. Railway) & intégration OLJ
+```bash
+cd v4 && set PYTHONPATH=.
+pytest -q                                              # 60 tests unitaires
+python scripts/run_rag_eval.py --golden data/golden_eval_fr.json   # golden set (DB peuplée)
+```
 
-- **Le déploiement est OK** si `https://…/api/health` répond et le widget charge. Le texte « mode test local » sur la page d’accueil était uniquement une **phrase statique** dans `frontend/index.html` (remplacée par un libellé neutre).
-- **Pages utiles** (même origine que l’app déployée) :
-  - `/` — démo complète
-  - `/embed` — page widget (référence intégration)
-  - `/dashboard` — **analytics** (métriques + traces si Redis configuré)
-  - `/admin` — liste recettes canoniques
-- **Analytics** : `GET /api/analytics` + dashboard nécessitent **Upstash Redis en REST** (`UPSTASH_REDIS_REST_URL` = URL `https://…upstash.io`, `UPSTASH_REDIS_REST_TOKEN`). La variable Railway **`REDIS_URL` en `redis://` ne suffit pas** pour ce code : créer une base gratuite sur [Upstash](https://console.upstash.com) et copier REST URL + token. Sans ça, le chat marche, traces/stats non (plus d’erreur 500 sur `/api/traces`).
-- **Production** : `DEBUG=false`, `OPENAI_API_KEY` (ou fournisseur configuré), `WEBHOOK_SECRET` si le CMS appelle le webhook.
-- **CORS** : les domaines OLJ sont déjà dans `app/core/config.py` ; ajoute l’URL exacte de ton service Railway si besoin (ex. `https://sahten.up.railway.app`).
-- **Intégration site OLJ** : charger le script / iframe depuis ton domaine d’hébergement Sahten ; le widget utilise en général `window.location.origin + "/api"` pour l’API (même host). Si l’API est sur un autre domaine, configurer l’URL API côté init du widget et **autoriser le domaine du site OLJ** dans `cors_origins`.
+Voir [`Specifications.md`](Specifications.md) pour le périmètre, l'arbitrage
+modèle et la définition de « FINI ».
+
+## Déploiement
+
+Railway : service **web** (`v4/Dockerfile.web`) + **Postgres** (pgvector) +
+**Redis**. Health check `GET /healthz`. Détails : [`v4/docs/railway-runbook.md`](v4/docs/railway-runbook.md).
 
 ## Licence
 
-Usage interne L’Orient-Le Jour.
+Usage interne L'Orient-Le Jour.

@@ -1,5 +1,6 @@
 from backend.app.llm.query_understanding import QueryPlan
 from backend.app.rag.pipeline import (
+    _canonicalize_dish_aliases,
     _expand_query_with_aliases,
     _expand_search_q_with_ingredients,
     _retrieval_fallback_queries,
@@ -34,3 +35,41 @@ def test_expand_search_query_with_ingredient_aliases() -> None:
     )
     out = _expand_search_q_with_ingredients("recette hoummous", plan).lower()
     assert "hommos" in out
+
+
+# ── Canonicalisation des translittérations de plats (bug manouche & co.) ────
+
+def test_canonicalize_manouche_variants_to_indexed_form() -> None:
+    for q in ("recette manouche", "recette manouché", "man'ouché", "manakish"):
+        out = _canonicalize_dish_aliases(q).lower()
+        assert "manaiche" in out, f"{q!r} -> {out!r}"
+        assert "manouche" not in out and "manakish" not in out
+
+
+def test_canonicalize_taboule_english_spellings() -> None:
+    for q in ("recette de tabbouleh", "tabbouli", "taboule"):
+        assert "taboulé" in _canonicalize_dish_aliases(q).lower()
+
+
+def test_canonicalize_kofta_and_mouloukhieh() -> None:
+    assert "kafta" in _canonicalize_dish_aliases("recette de kofta").lower()
+    assert "kafta" in _canonicalize_dish_aliases("köfte").lower()
+    assert "mouloukhiyé" in _canonicalize_dish_aliases("molokheya").lower()
+
+
+def test_canonicalize_is_noop_for_plain_query() -> None:
+    assert _canonicalize_dish_aliases("recette de poulet") == "recette de poulet"
+
+
+def test_expand_query_canonicalizes_then_keeps_houmous_group() -> None:
+    # non-régression : la canonicalisation ne casse pas l'expansion houmous
+    out = _expand_query_with_aliases("recette houmous").lower()
+    assert "houmous" in out and "hommos" in out and "hummus" in out
+    # et la canonicalisation manouche s'applique dans le même chemin
+    assert "manaiche" in _expand_query_with_aliases("recette manouche").lower()
+
+
+def test_manouche_full_pipeline_query_paths() -> None:
+    plan = QueryPlan(rewritten_query="recette manouche", intent="recipe")
+    blob = " | ".join(_retrieval_fallback_queries("recette manouche", plan)).lower()
+    assert "manaiche" in blob

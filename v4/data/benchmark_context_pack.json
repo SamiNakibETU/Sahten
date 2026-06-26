@@ -1,0 +1,65 @@
+{
+  "description": "Pack de contexte figé pour benchmarker l'étape de GÉNÉRATION (rédaction + compréhension + abstention) indépendamment de Postgres. Chaque cas fournit des chunks réalistes (comme le retriever) + les assertions de comportement attendu. Le cas 'manouche' reproduit le bug de prod : des chunks qui MENTIONNENT le zaatar sans être une recette de manouche.",
+  "cases": [
+    {
+      "id": "taboule-present",
+      "category": "recipe_present",
+      "query": "Donne-moi la recette du taboulé de Kamal Mouzawak",
+      "chunks": [
+        {"chunk_id": 101, "article_external_id": 1227694, "article_title": "Les commandements du taboulé de Kamal Mouzawak", "section_kind": "recipe_steps", "chunk_text": "Le taboulé est avant tout une salade de persil, et non de boulghour. Hachez très finement de grandes quantités de persil plat, ajoutez tomates en petits dés, oignons nouveaux, un peu de boulghour fin trempé, menthe, jus de citron, huile d'olive et sel."},
+        {"chunk_id": 102, "article_external_id": 1227694, "article_title": "Les commandements du taboulé de Kamal Mouzawak", "section_kind": "recipe_meta", "chunk_text": "Pour 6 personnes. Préparation : 40 min. Difficulté : facile."},
+        {"chunk_id": 103, "article_external_id": 1227694, "article_title": "Les commandements du taboulé de Kamal Mouzawak", "section_kind": "ingredients_list", "chunk_text": "Persil plat, tomates, oignons nouveaux, boulghour fin, menthe fraîche, citron, huile d'olive, sel."}
+      ],
+      "assert": {"must_contain": ["persil"], "must_not_contain": ["Désolé, je n'ai pas cette recette dans mes carnets"], "require_recipe_card": true, "max_recipe_cards": 1, "must_abstain": false}
+    },
+    {
+      "id": "chef-mouzawak-bio",
+      "category": "chef_bio",
+      "query": "Qui est Kamal Mouzawak ?",
+      "chunks": [
+        {"chunk_id": 201, "article_external_id": 1227694, "article_title": "Les commandements du taboulé de Kamal Mouzawak", "section_kind": "chef_bio", "chunk_text": "Kamal Mouzawak est le fondateur de Souk el-Tayeb, le premier marché de producteurs fermiers du Liban, lancé à Beyrouth en 2004. Il défend une cuisine de terroir qui rassemble les communautés."}
+      ],
+      "assert": {"must_contain": ["Souk"], "any_contains": ["Mouzawak", "el-Tayeb"], "require_chef_card": true, "must_abstain": false}
+    },
+    {
+      "id": "manouche-out-of-corpus",
+      "category": "anti_regression",
+      "query": "recette manouche",
+      "chunks": [
+        {"chunk_id": 301, "article_external_id": 1450583, "article_title": "Cookies au zaatar, chocolat et noisettes", "section_kind": "recipe_steps", "chunk_text": "Ces cookies revisités marient le zaatar à du chocolat noir et des noisettes torréfiées. Mélangez beurre, sucre, farine, ajoutez le zaatar puis les pépites de chocolat."},
+        {"chunk_id": 302, "article_external_id": 1462364, "article_title": "Le poulet citron zaatar (et son bouillon unique)", "section_kind": "recipe_steps", "chunk_text": "Un poulet rôti mariné au citron et au zaatar, accompagné d'un bouillon parfumé. Frottez le poulet de zaatar et de citron avant cuisson."}
+      ],
+      "assert": {"any_contains": ["carnets", "pas trouv", "n'ai pas"], "must_not_contain": ["cookies", "noisettes", "poulet citron"], "max_recipe_cards": 0, "must_abstain": true, "note": "BUG PROD : aucune de ces fiches n'est une recette de manouche. Le modèle doit s'abstenir, AUCUNE carte, ne pas décrire le manouche depuis une simple mention de zaatar."}
+    },
+    {
+      "id": "poulet-present",
+      "category": "ingredient",
+      "query": "un plat libanais au poulet pour recevoir",
+      "chunks": [
+        {"chunk_id": 401, "article_external_id": 1462364, "article_title": "Le poulet citron zaatar (et son bouillon unique)", "section_kind": "recipe_steps", "chunk_text": "Un poulet entier mariné au citron et au zaatar, rôti lentement, servi avec un bouillon parfumé et du riz. Idéal pour une grande tablée."},
+        {"chunk_id": 402, "article_external_id": 1462364, "article_title": "Le poulet citron zaatar (et son bouillon unique)", "section_kind": "recipe_meta", "chunk_text": "Pour 6 à 8 personnes. Préparation : 30 min. Cuisson : 1 h 20."}
+      ],
+      "assert": {"must_contain": ["poulet"], "require_recipe_card": true, "max_recipe_cards": 1, "must_abstain": false}
+    },
+    {
+      "id": "concombre-wrong-card-trap",
+      "category": "anti_regression",
+      "query": "une recette avec du concombre",
+      "chunks": [
+        {"chunk_id": 501, "article_external_id": 1469013, "article_title": "Houmous onctueux aux pois chiches", "section_kind": "ingredients_list", "chunk_text": "Pois chiches, tahini, ail, citron, huile d'olive, cumin. Aucun concombre."},
+        {"chunk_id": 502, "article_external_id": 1462364, "article_title": "Le poulet citron zaatar", "section_kind": "ingredients_list", "chunk_text": "Poulet, citron, zaatar, oignon, riz. Aucun concombre."}
+      ],
+      "assert": {"any_contains": ["carnets", "pas trouv", "n'ai pas", "concombre"], "must_not_contain": ["pois chiche", "houmous"], "max_recipe_cards": 0, "must_abstain": true, "note": "Aucun chunk ne contient de concombre : ne PAS proposer houmous/poulet comme s'ils répondaient. Règle 23."}
+    },
+    {
+      "id": "couscous-no-dessert",
+      "category": "constraint",
+      "query": "je veux du couscous, un plat salé surtout pas un dessert",
+      "chunks": [
+        {"chunk_id": 601, "article_external_id": 1486116, "article_title": "Moghrabieh libanaise au poulet", "section_kind": "recipe_steps", "chunk_text": "La moghrabieh, le couscous libanais à grosses perles de semoule, mijotée avec du poulet, des oignons grelots et des pois chiches, parfumée au carvi."},
+        {"chunk_id": 602, "article_external_id": 1485509, "article_title": "Sfouf, gâteau libanais au curcuma", "section_kind": "recipe_steps", "chunk_text": "Le sfouf est un gâteau jaune au curcuma et à la semoule, sucré, parfumé à l'anis. Un dessert traditionnel."}
+      ],
+      "assert": {"any_contains": ["moghrab", "couscous"], "must_not_contain": ["sfouf", "dessert", "gâteau"], "max_recipe_cards": 1, "must_abstain": false, "note": "Contrainte salé : choisir la moghrabieh, jamais le sfouf (dessert)."}
+    }
+  ]
+}

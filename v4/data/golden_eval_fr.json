@@ -1,24 +1,288 @@
 {
-  "version": 1,
-  "description": "Jeu d'or Sahteïn v4 : retrieval (external_id) + sous-chaînes attendues dans la réponse.",
+  "version": 2,
+  "description": "Jeu d'or Sahteïn v4 — marqueurs d'acceptation du RAG. Retrieval (external_id) + comportement de la réponse (contenu, abstention, discipline des cartes). Chaque item est un MARQUEUR : tant qu'il ne passe pas, le projet n'est pas 'fini' pour cette catégorie.",
+  "legend": {
+    "category": "famille du marqueur (recipe_present | chef_bio | ingredient | alias | constraint | out_of_corpus | coherence | anti_regression)",
+    "expected_article_external_ids": "vide = on ne vérifie pas le retrieval (cas comportemental). Sinon, au moins un de ces IDs doit être dans le top-k.",
+    "answer_must_contain": "toutes ces sous-chaînes doivent apparaître (insensible casse)",
+    "answer_any_contains": "au moins une de ces sous-chaînes",
+    "answer_must_not_contain": "aucune de ces sous-chaînes (anti-hors-sujet)",
+    "answer_prefix": "la réponse doit COMMENCER par cette phrase",
+    "max_recipe_cards": "nombre max de cartes recette (0 = abstention sans carte)",
+    "require_recipe_card": "true = une carte recette est obligatoire",
+    "require_chef_card": "true = une carte chef est obligatoire",
+    "note": "explication / dette / phase cible"
+  },
+  "acceptance": {
+    "must_pass_now": ["recipe_present", "chef_bio", "ingredient", "alias"],
+    "phase_1_target": ["out_of_corpus", "coherence", "anti_regression"],
+    "global_gate": "Le projet est 'présentable' quand 100% de anti_regression + out_of_corpus passent, et >=90% du reste.",
+    "todo_fill_ids": "Renseigner les expected_article_external_ids reels depuis /admin (page liste des articles) pour durcir la couverture retrieval."
+  },
   "items": [
     {
       "id": "taboule-commandements",
+      "category": "recipe_present",
       "query": "Quels sont les commandements du taboulé de Kamal Mouzawak ?",
       "expected_article_external_ids": [1227694],
-      "answer_must_contain": ["persil", "commandement"]
+      "answer_must_contain": ["persil", "commandement"],
+      "max_recipe_cards": 1
     },
+    {
+      "id": "taboule-recette-directe",
+      "category": "recipe_present",
+      "query": "Donne-moi la recette du taboulé",
+      "expected_article_external_ids": [1227694],
+      "answer_must_contain": ["taboul"],
+      "answer_must_not_contain": ["Désolé, je n'ai pas cette recette dans mes carnets"],
+      "require_recipe_card": true,
+      "max_recipe_cards": 1
+    },
+    {
+      "id": "poulet-citron-zaatar",
+      "category": "recipe_present",
+      "query": "une recette de poulet au citron et zaatar",
+      "expected_article_external_ids": [],
+      "answer_any_contains": ["poulet", "zaatar", "citron"],
+      "require_recipe_card": true,
+      "max_recipe_cards": 1,
+      "note": "Renseigner l'external_id reel du 'poulet citron zaatar' depuis /admin."
+    },
+    {
+      "id": "cailles-melasse-grenade",
+      "category": "recipe_present",
+      "query": "les cailles à la mélasse de grenade de Karim Haïdar",
+      "expected_article_external_ids": [],
+      "answer_any_contains": ["caille", "grenade", "Haïdar", "Haidar"],
+      "require_recipe_card": true,
+      "max_recipe_cards": 1
+    },
+    {
+      "id": "maamoul",
+      "category": "recipe_present",
+      "query": "comment faire des maamouls ?",
+      "expected_article_external_ids": [],
+      "answer_any_contains": ["maamoul", "Désolé, je n'ai pas cette recette dans mes carnets"],
+      "max_recipe_cards": 1
+    },
+    {
+      "id": "mouloukhie",
+      "category": "recipe_present",
+      "query": "recette de la mouloukhié",
+      "expected_article_external_ids": [],
+      "answer_any_contains": ["mouloukhi", "corète", "corete", "Désolé, je n'ai pas cette recette dans mes carnets"],
+      "max_recipe_cards": 1
+    },
+
     {
       "id": "chef-souk",
+      "category": "chef_bio",
       "query": "Qui est le fondateur de Souk el-Tayeb ?",
       "expected_article_external_ids": [1227694],
-      "answer_must_contain": ["Souk", "Mouzawak"]
+      "answer_must_contain": ["Souk", "Mouzawak"],
+      "require_chef_card": true
     },
     {
+      "id": "chef-carla-rebeiz",
+      "category": "chef_bio",
+      "query": "qui est Carla Rebeiz ?",
+      "expected_article_external_ids": [],
+      "answer_must_contain": ["Carla Rebeiz"],
+      "answer_must_not_contain": ["Désolé, je n'ai pas cette recette dans mes carnets"],
+      "max_recipe_cards": 1
+    },
+    {
+      "id": "chef-aline-kamakian",
+      "category": "chef_bio",
+      "query": "parle-moi de la cheffe Aline Kamakian",
+      "expected_article_external_ids": [],
+      "answer_any_contains": ["Kamakian", "arménienne", "armenienne", "Mayrig"],
+      "answer_must_not_contain": ["Désolé, je n'ai pas cette recette dans mes carnets"]
+    },
+
+    {
       "id": "ingredient-poulet",
+      "category": "ingredient",
       "query": "Propose-moi un plat libanais avec du poulet pour plusieurs convives",
       "expected_article_external_ids": [],
-      "answer_must_contain": ["poulet"]
+      "answer_must_contain": ["poulet"],
+      "max_recipe_cards": 1
+    },
+    {
+      "id": "ingredient-aubergine",
+      "category": "ingredient",
+      "query": "une recette à base d'aubergine",
+      "expected_article_external_ids": [],
+      "answer_any_contains": ["aubergine", "batinjane"],
+      "max_recipe_cards": 1
+    },
+    {
+      "id": "ingredient-pois-chiche",
+      "category": "ingredient",
+      "query": "un plat avec des pois chiches",
+      "expected_article_external_ids": [],
+      "answer_any_contains": ["pois chiche", "houmous", "hommos"],
+      "max_recipe_cards": 1
+    },
+    {
+      "id": "ingredient-concombre",
+      "category": "ingredient",
+      "query": "une recette avec du concombre",
+      "expected_article_external_ids": [],
+      "answer_any_contains": ["concombre", "fattouche", "salade"],
+      "answer_must_not_contain": ["Désolé, je n'ai pas cette recette dans mes carnets"],
+      "max_recipe_cards": 1,
+      "note": "Le concombre doit reellement figurer dans la recette proposee (regle 23 du prompt)."
+    },
+
+    {
+      "id": "alias-houmous-orthographe",
+      "category": "alias",
+      "query": "recette de hommos",
+      "expected_article_external_ids": [],
+      "answer_any_contains": ["houmous", "hommos", "pois chiche", "Désolé, je n'ai pas cette recette dans mes carnets"],
+      "max_recipe_cards": 1,
+      "note": "houmous / hommos / hummus doivent ramener la meme famille (test_query_aliases)."
+    },
+    {
+      "id": "alias-houmous-hummus",
+      "category": "alias",
+      "query": "do you have a hummus recipe",
+      "expected_article_external_ids": [],
+      "answer_any_contains": ["houmous", "hommos", "pois chiche", "carnets"],
+      "max_recipe_cards": 1
+    },
+    {
+      "id": "alias-taboule-variantes",
+      "category": "alias",
+      "query": "la recette du tabboulé",
+      "expected_article_external_ids": [1227694],
+      "answer_must_contain": ["taboul"],
+      "max_recipe_cards": 1,
+      "note": "taboulé / tabboulé / tabbouleh = meme article."
+    },
+
+    {
+      "id": "constraint-sale-pas-dessert",
+      "category": "constraint",
+      "query": "je veux un plat salé, surtout pas un dessert",
+      "expected_article_external_ids": [],
+      "answer_must_not_contain": ["dessert", "gâteau", "gateau", "cookies", "cookie", "sucré", "sfouf", "brownie", "pavlova"],
+      "max_recipe_cards": 1,
+      "note": "Contrainte de registre (regle 22) : aucune fiche dessert/sucre."
+    },
+    {
+      "id": "constraint-couscous-salty",
+      "category": "constraint",
+      "query": "non un plat salé je veux du couscous",
+      "expected_article_external_ids": [],
+      "answer_any_contains": ["moghrab", "couscous", "plat sal"],
+      "answer_must_not_contain": ["cookies", "cookie", "dessert", "gâteau"],
+      "max_recipe_cards": 1
+    },
+
+    {
+      "id": "couscous-relevance-no-dessert",
+      "category": "coherence",
+      "query": "recette de couscous",
+      "expected_article_external_ids": [],
+      "answer_any_contains": ["moghrab", "couscous", "Désolé, je n'ai pas cette recette dans mes carnets"],
+      "answer_must_not_contain": ["cookies", "cookie", "sfouf", "brownie"],
+      "max_recipe_cards": 1
+    },
+    {
+      "id": "single-clickable-card",
+      "category": "coherence",
+      "query": "propose moi une recette de poulet",
+      "expected_article_external_ids": [],
+      "max_recipe_cards": 1,
+      "note": "Une seule carte cliquable dans le widget (regle 15)."
+    },
+    {
+      "id": "coherence-no-self-contradiction",
+      "category": "coherence",
+      "query": "tu as une recette d'aubergine ?",
+      "expected_article_external_ids": [],
+      "answer_must_not_contain": ["plus de recettes pour l'instant", "explorez nos recettes", "mon répertoire", "contexte disponible", "extraits disponibles", "archives indexées"],
+      "note": "Aucune formulation technique/marketing interdite (regles 11, 24)."
+    },
+    {
+      "id": "coherence-no-jargon-rag",
+      "category": "coherence",
+      "query": "tu peux m'aider à cuisiner libanais ce soir ?",
+      "expected_article_external_ids": [],
+      "answer_must_not_contain": ["chunk", "corpus", "indexé", "le contexte ne contient pas", "embedding"],
+      "note": "Jamais de jargon technique cote utilisateur."
+    },
+
+    {
+      "id": "out-of-corpus-sushi",
+      "category": "out_of_corpus",
+      "query": "donne-moi une recette de sushi",
+      "expected_article_external_ids": [],
+      "max_recipe_cards": 0,
+      "answer_any_contains": ["carnets", "pas trouv", "n'ai pas"],
+      "answer_must_not_contain": ["taboul", "houmous", "fattouche"],
+      "note": "Plat hors registre libanais : abstention franche, AUCUNE carte."
+    },
+    {
+      "id": "out-of-corpus-pizza",
+      "category": "out_of_corpus",
+      "query": "recette de pizza margherita",
+      "expected_article_external_ids": [],
+      "max_recipe_cards": 0,
+      "answer_any_contains": ["carnets", "pas trouv", "n'ai pas"],
+      "note": "Abstention sans inventer ni coller une carte hors-sujet."
+    },
+    {
+      "id": "out-of-corpus-burger",
+      "category": "out_of_corpus",
+      "query": "un bon burger maison",
+      "expected_article_external_ids": [],
+      "max_recipe_cards": 0,
+      "answer_any_contains": ["carnets", "pas trouv", "n'ai pas"]
+    },
+
+    {
+      "id": "anti-regression-manouche-recipe",
+      "category": "anti_regression",
+      "query": "recette manouche",
+      "expected_article_external_ids": [1474718],
+      "answer_any_contains": ["Salim Azzam", "Chouf", "manaï", "Azzam"],
+      "answer_must_not_contain": ["kishk", "lahm bi aajine", "cailles", "cookies"],
+      "require_recipe_card": true,
+      "max_recipe_cards": 1,
+      "note": "BUG JUIN 2026 CONFIRMÉ via API live : l'article 1474718 « Les manaïichs du Chouf de Salim Azzam » EXISTE dans l'index, mais la graphie 'manouche' ne le retrouve pas (translittération) → réponse 'pas trouvé' + carte hors-sujet. Doit le TROUVER. Échoue actuellement — marqueur n.1."
+    },
+    {
+      "id": "anti-regression-manouche-accent",
+      "category": "anti_regression",
+      "query": "recette de manouché au zaatar",
+      "expected_article_external_ids": [1474718],
+      "answer_any_contains": ["Salim Azzam", "Chouf", "manaï", "Azzam"],
+      "answer_must_not_contain": ["pâtes au kishk", "kishk et pesto"],
+      "max_recipe_cards": 1,
+      "note": "Graphie 'manouché' → renvoyait à tort les pâtes au kishk/zaatar (1487133). Doit trouver 1474718."
+    },
+    {
+      "id": "anti-regression-manakish",
+      "category": "anti_regression",
+      "query": "manakish",
+      "expected_article_external_ids": [1474718],
+      "answer_any_contains": ["Salim Azzam", "Chouf", "manaï", "Azzam"],
+      "answer_must_not_contain": ["lahm bi aajine"],
+      "max_recipe_cards": 1,
+      "note": "Graphie 'manakish' → proposait une carte « Lahm bi aajine » hors-sujet. Canoniser : manouche=manouché=man'ouché=manakish=manaïiche=manaïichs=manaïch → article 1474718."
+    },
+    {
+      "id": "anti-regression-recipe-card-must-match",
+      "category": "anti_regression",
+      "query": "recette de fattouche au concombre",
+      "expected_article_external_ids": [],
+      "answer_any_contains": ["fattouche", "concombre", "salade", "carnets"],
+      "answer_must_not_contain": ["mélasse de grenade", "cailles"],
+      "max_recipe_cards": 1,
+      "note": "La carte proposee doit contenir l'ingredient demande (regle 23) — jamais un plat ou l'ingredient est absent."
     }
   ]
 }
