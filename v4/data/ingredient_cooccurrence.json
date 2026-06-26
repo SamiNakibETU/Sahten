@@ -1,0 +1,3010 @@
+{
+  "description": "Graphe de cooccurrence ingrédient-recette (NPMI). PROTOTYPE offline pour diagnostic (Epicure P2) — non branché au runtime.",
+  "n_recipes": 102,
+  "n_ingredients_kept": 76,
+  "min_recipes": 4,
+  "neighbors": {
+    "ail": [
+      {
+        "ingredient": "oignon",
+        "cooccur": 21,
+        "npmi": 0.426
+      },
+      {
+        "ingredient": "cuilleree",
+        "cooccur": 4,
+        "npmi": 0.422
+      },
+      {
+        "ingredient": "bouillon",
+        "cooccur": 6,
+        "npmi": 0.381
+      },
+      {
+        "ingredient": "sauce",
+        "cooccur": 4,
+        "npmi": 0.353
+      },
+      {
+        "ingredient": "noir",
+        "cooccur": 8,
+        "npmi": 0.346
+      },
+      {
+        "ingredient": "basilic",
+        "cooccur": 5,
+        "npmi": 0.342
+      },
+      {
+        "ingredient": "courgette",
+        "cooccur": 5,
+        "npmi": 0.342
+      },
+      {
+        "ingredient": "curcuma",
+        "cooccur": 3,
+        "npmi": 0.306
+      }
+    ],
+    "aubergine": [
+      {
+        "ingredient": "poivron",
+        "cooccur": 3,
+        "npmi": 0.435
+      },
+      {
+        "ingredient": "courgette",
+        "cooccur": 2,
+        "npmi": 0.402
+      },
+      {
+        "ingredient": "tomate",
+        "cooccur": 4,
+        "npmi": 0.363
+      },
+      {
+        "ingredient": "menthe",
+        "cooccur": 3,
+        "npmi": 0.312
+      },
+      {
+        "ingredient": "yaourt",
+        "cooccur": 2,
+        "npmi": 0.265
+      },
+      {
+        "ingredient": "oignon",
+        "cooccur": 5,
+        "npmi": 0.234
+      },
+      {
+        "ingredient": "persil",
+        "cooccur": 2,
+        "npmi": 0.226
+      },
+      {
+        "ingredient": "d'huile",
+        "cooccur": 2,
+        "npmi": 0.226
+      }
+    ],
+    "basilic": [
+      {
+        "ingredient": "pignon",
+        "cooccur": 5,
+        "npmi": 0.572
+      },
+      {
+        "ingredient": "courgette",
+        "cooccur": 3,
+        "npmi": 0.519
+      },
+      {
+        "ingredient": "pain",
+        "cooccur": 2,
+        "npmi": 0.363
+      },
+      {
+        "ingredient": "noir",
+        "cooccur": 3,
+        "npmi": 0.344
+      },
+      {
+        "ingredient": "ail",
+        "cooccur": 5,
+        "npmi": 0.342
+      },
+      {
+        "ingredient": "bouillon",
+        "cooccur": 2,
+        "npmi": 0.329
+      },
+      {
+        "ingredient": "vinaigre",
+        "cooccur": 2,
+        "npmi": 0.226
+      },
+      {
+        "ingredient": "yaourt",
+        "cooccur": 2,
+        "npmi": 0.226
+      }
+    ],
+    "baton": [
+      {
+        "ingredient": "laurier",
+        "cooccur": 5,
+        "npmi": 0.745
+      },
+      {
+        "ingredient": "viande",
+        "cooccur": 3,
+        "npmi": 0.525
+      },
+      {
+        "ingredient": "carotte",
+        "cooccur": 3,
+        "npmi": 0.492
+      },
+      {
+        "ingredient": "cuil",
+        "cooccur": 3,
+        "npmi": 0.435
+      },
+      {
+        "ingredient": "pain",
+        "cooccur": 2,
+        "npmi": 0.402
+      },
+      {
+        "ingredient": "riz",
+        "cooccur": 2,
+        "npmi": 0.311
+      },
+      {
+        "ingredient": "citron",
+        "cooccur": 2,
+        "npmi": 0.265
+      },
+      {
+        "ingredient": "cannelle",
+        "cooccur": 2,
+        "npmi": 0.245
+      }
+    ],
+    "beurre": [
+      {
+        "ingredient": "bouillon",
+        "cooccur": 7,
+        "npmi": 0.46
+      },
+      {
+        "ingredient": "ufs",
+        "cooccur": 9,
+        "npmi": 0.445
+      },
+      {
+        "ingredient": "farine",
+        "cooccur": 13,
+        "npmi": 0.327
+      },
+      {
+        "ingredient": "parmesan",
+        "cooccur": 3,
+        "npmi": 0.306
+      },
+      {
+        "ingredient": "glace",
+        "cooccur": 4,
+        "npmi": 0.297
+      },
+      {
+        "ingredient": "riz",
+        "cooccur": 5,
+        "npmi": 0.223
+      },
+      {
+        "ingredient": "jaune",
+        "cooccur": 4,
+        "npmi": 0.208
+      },
+      {
+        "ingredient": "lait",
+        "cooccur": 5,
+        "npmi": 0.192
+      }
+    ],
+    "bicarbonate": [
+      {
+        "ingredient": "gingembre",
+        "cooccur": 2,
+        "npmi": 0.591
+      },
+      {
+        "ingredient": "graine",
+        "cooccur": 2,
+        "npmi": 0.534
+      },
+      {
+        "ingredient": "vanille",
+        "cooccur": 2,
+        "npmi": 0.488
+      },
+      {
+        "ingredient": "levure",
+        "cooccur": 2,
+        "npmi": 0.384
+      },
+      {
+        "ingredient": "poudre",
+        "cooccur": 2,
+        "npmi": 0.384
+      },
+      {
+        "ingredient": "farine",
+        "cooccur": 4,
+        "npmi": 0.353
+      },
+      {
+        "ingredient": "vinaigre",
+        "cooccur": 2,
+        "npmi": 0.311
+      },
+      {
+        "ingredient": "melasse",
+        "cooccur": 2,
+        "npmi": 0.311
+      }
+    ],
+    "blanc": [
+      {
+        "ingredient": "noix",
+        "cooccur": 5,
+        "npmi": 0.38
+      },
+      {
+        "ingredient": "glace",
+        "cooccur": 3,
+        "npmi": 0.295
+      },
+      {
+        "ingredient": "gingembre",
+        "cooccur": 2,
+        "npmi": 0.265
+      },
+      {
+        "ingredient": "bicarbonate",
+        "cooccur": 2,
+        "npmi": 0.208
+      },
+      {
+        "ingredient": "carotte",
+        "cooccur": 3,
+        "npmi": 0.18
+      },
+      {
+        "ingredient": "poudre",
+        "cooccur": 3,
+        "npmi": 0.18
+      },
+      {
+        "ingredient": "d'ail",
+        "cooccur": 4,
+        "npmi": 0.172
+      },
+      {
+        "ingredient": "fleur",
+        "cooccur": 2,
+        "npmi": 0.162
+      }
+    ],
+    "bouillon": [
+      {
+        "ingredient": "parmesan",
+        "cooccur": 2,
+        "npmi": 0.471
+      },
+      {
+        "ingredient": "champignon",
+        "cooccur": 2,
+        "npmi": 0.471
+      },
+      {
+        "ingredient": "echalote",
+        "cooccur": 2,
+        "npmi": 0.471
+      },
+      {
+        "ingredient": "beurre",
+        "cooccur": 7,
+        "npmi": 0.46
+      },
+      {
+        "ingredient": "vin",
+        "cooccur": 2,
+        "npmi": 0.414
+      },
+      {
+        "ingredient": "ail",
+        "cooccur": 6,
+        "npmi": 0.381
+      },
+      {
+        "ingredient": "riz",
+        "cooccur": 3,
+        "npmi": 0.38
+      },
+      {
+        "ingredient": "basilic",
+        "cooccur": 2,
+        "npmi": 0.329
+      }
+    ],
+    "boulghour": [
+      {
+        "ingredient": "melange",
+        "cooccur": 2,
+        "npmi": 0.505
+      },
+      {
+        "ingredient": "menthe",
+        "cooccur": 2,
+        "npmi": 0.279
+      },
+      {
+        "ingredient": "oignon",
+        "cooccur": 3,
+        "npmi": 0.17
+      }
+    ],
+    "bouquet": [
+      {
+        "ingredient": "vin",
+        "cooccur": 2,
+        "npmi": 0.534
+      },
+      {
+        "ingredient": "carotte",
+        "cooccur": 2,
+        "npmi": 0.384
+      },
+      {
+        "ingredient": "tomate",
+        "cooccur": 3,
+        "npmi": 0.303
+      },
+      {
+        "ingredient": "noir",
+        "cooccur": 2,
+        "npmi": 0.291
+      },
+      {
+        "ingredient": "ail",
+        "cooccur": 2,
+        "npmi": 0.115
+      },
+      {
+        "ingredient": "oignon",
+        "cooccur": 3,
+        "npmi": 0.107
+      },
+      {
+        "ingredient": "jus",
+        "cooccur": 2,
+        "npmi": 0.054
+      }
+    ],
+    "cannelle": [
+      {
+        "ingredient": "d'oignon",
+        "cooccur": 3,
+        "npmi": 0.503
+      },
+      {
+        "ingredient": "melange",
+        "cooccur": 4,
+        "npmi": 0.463
+      },
+      {
+        "ingredient": "viande",
+        "cooccur": 4,
+        "npmi": 0.422
+      },
+      {
+        "ingredient": "laurier",
+        "cooccur": 4,
+        "npmi": 0.386
+      },
+      {
+        "ingredient": "cube",
+        "cooccur": 2,
+        "npmi": 0.348
+      },
+      {
+        "ingredient": "cuilleree",
+        "cooccur": 2,
+        "npmi": 0.348
+      },
+      {
+        "ingredient": "hache",
+        "cooccur": 2,
+        "npmi": 0.348
+      },
+      {
+        "ingredient": "melasse",
+        "cooccur": 4,
+        "npmi": 0.297
+      }
+    ],
+    "carotte": [
+      {
+        "ingredient": "laurier",
+        "cooccur": 4,
+        "npmi": 0.499
+      },
+      {
+        "ingredient": "baton",
+        "cooccur": 3,
+        "npmi": 0.492
+      },
+      {
+        "ingredient": "cuil",
+        "cooccur": 4,
+        "npmi": 0.437
+      },
+      {
+        "ingredient": "viande",
+        "cooccur": 3,
+        "npmi": 0.41
+      },
+      {
+        "ingredient": "pomme",
+        "cooccur": 3,
+        "npmi": 0.41
+      },
+      {
+        "ingredient": "d'ail",
+        "cooccur": 4,
+        "npmi": 0.386
+      },
+      {
+        "ingredient": "bouquet",
+        "cooccur": 2,
+        "npmi": 0.384
+      },
+      {
+        "ingredient": "oignon",
+        "cooccur": 9,
+        "npmi": 0.365
+      }
+    ],
+    "champignon": [
+      {
+        "ingredient": "echalote",
+        "cooccur": 2,
+        "npmi": 0.647
+      },
+      {
+        "ingredient": "bouillon",
+        "cooccur": 2,
+        "npmi": 0.471
+      },
+      {
+        "ingredient": "une",
+        "cooccur": 2,
+        "npmi": 0.311
+      },
+      {
+        "ingredient": "ail",
+        "cooccur": 3,
+        "npmi": 0.306
+      },
+      {
+        "ingredient": "creme",
+        "cooccur": 2,
+        "npmi": 0.238
+      },
+      {
+        "ingredient": "tomate",
+        "cooccur": 2,
+        "npmi": 0.226
+      },
+      {
+        "ingredient": "beurre",
+        "cooccur": 2,
+        "npmi": 0.171
+      },
+      {
+        "ingredient": "oignon",
+        "cooccur": 2,
+        "npmi": 0.049
+      }
+    ],
+    "chocolat": [
+      {
+        "ingredient": "glace",
+        "cooccur": 2,
+        "npmi": 0.441
+      },
+      {
+        "ingredient": "lait",
+        "cooccur": 3,
+        "npmi": 0.435
+      },
+      {
+        "ingredient": "ufs",
+        "cooccur": 3,
+        "npmi": 0.41
+      },
+      {
+        "ingredient": "creme",
+        "cooccur": 4,
+        "npmi": 0.378
+      },
+      {
+        "ingredient": "levure",
+        "cooccur": 2,
+        "npmi": 0.338
+      },
+      {
+        "ingredient": "farine",
+        "cooccur": 4,
+        "npmi": 0.297
+      },
+      {
+        "ingredient": "beurre",
+        "cooccur": 3,
+        "npmi": 0.191
+      }
+    ],
+    "citron": [
+      {
+        "ingredient": "coriandre",
+        "cooccur": 8,
+        "npmi": 0.594
+      },
+      {
+        "ingredient": "orange",
+        "cooccur": 2,
+        "npmi": 0.368
+      },
+      {
+        "ingredient": "sumac",
+        "cooccur": 2,
+        "npmi": 0.368
+      },
+      {
+        "ingredient": "cuil",
+        "cooccur": 4,
+        "npmi": 0.348
+      },
+      {
+        "ingredient": "d'ail",
+        "cooccur": 4,
+        "npmi": 0.297
+      },
+      {
+        "ingredient": "laurier",
+        "cooccur": 3,
+        "npmi": 0.295
+      },
+      {
+        "ingredient": "riz",
+        "cooccur": 3,
+        "npmi": 0.265
+      },
+      {
+        "ingredient": "baton",
+        "cooccur": 2,
+        "npmi": 0.265
+      }
+    ],
+    "concentre": [
+      {
+        "ingredient": "piment",
+        "cooccur": 5,
+        "npmi": 0.464
+      },
+      {
+        "ingredient": "sumac",
+        "cooccur": 2,
+        "npmi": 0.441
+      },
+      {
+        "ingredient": "cube",
+        "cooccur": 2,
+        "npmi": 0.441
+      },
+      {
+        "ingredient": "cuilleree",
+        "cooccur": 2,
+        "npmi": 0.441
+      },
+      {
+        "ingredient": "paprika",
+        "cooccur": 2,
+        "npmi": 0.441
+      },
+      {
+        "ingredient": "poivron",
+        "cooccur": 4,
+        "npmi": 0.437
+      },
+      {
+        "ingredient": "pomme",
+        "cooccur": 3,
+        "npmi": 0.41
+      },
+      {
+        "ingredient": "noir",
+        "cooccur": 4,
+        "npmi": 0.386
+      }
+    ],
+    "coriandre": [
+      {
+        "ingredient": "citron",
+        "cooccur": 8,
+        "npmi": 0.594
+      },
+      {
+        "ingredient": "sauce",
+        "cooccur": 4,
+        "npmi": 0.523
+      },
+      {
+        "ingredient": "cuilleree",
+        "cooccur": 3,
+        "npmi": 0.462
+      },
+      {
+        "ingredient": "d'ail",
+        "cooccur": 6,
+        "npmi": 0.404
+      },
+      {
+        "ingredient": "poivron",
+        "cooccur": 5,
+        "npmi": 0.374
+      },
+      {
+        "ingredient": "cumin",
+        "cooccur": 3,
+        "npmi": 0.347
+      },
+      {
+        "ingredient": "concentre",
+        "cooccur": 4,
+        "npmi": 0.341
+      },
+      {
+        "ingredient": "laurier",
+        "cooccur": 4,
+        "npmi": 0.341
+      }
+    ],
+    "courgette": [
+      {
+        "ingredient": "basilic",
+        "cooccur": 3,
+        "npmi": 0.519
+      },
+      {
+        "ingredient": "aubergine",
+        "cooccur": 2,
+        "npmi": 0.402
+      },
+      {
+        "ingredient": "noir",
+        "cooccur": 3,
+        "npmi": 0.344
+      },
+      {
+        "ingredient": "ail",
+        "cooccur": 5,
+        "npmi": 0.342
+      },
+      {
+        "ingredient": "menthe",
+        "cooccur": 3,
+        "npmi": 0.268
+      },
+      {
+        "ingredient": "tomate",
+        "cooccur": 3,
+        "npmi": 0.208
+      },
+      {
+        "ingredient": "d'huile",
+        "cooccur": 2,
+        "npmi": 0.186
+      },
+      {
+        "ingredient": "oignon",
+        "cooccur": 4,
+        "npmi": 0.101
+      }
+    ],
+    "creme": [
+      {
+        "ingredient": "jaune",
+        "cooccur": 5,
+        "npmi": 0.384
+      },
+      {
+        "ingredient": "semoule",
+        "cooccur": 5,
+        "npmi": 0.384
+      },
+      {
+        "ingredient": "orange",
+        "cooccur": 3,
+        "npmi": 0.38
+      },
+      {
+        "ingredient": "chocolat",
+        "cooccur": 4,
+        "npmi": 0.378
+      },
+      {
+        "ingredient": "glace",
+        "cooccur": 4,
+        "npmi": 0.378
+      },
+      {
+        "ingredient": "vanille",
+        "cooccur": 4,
+        "npmi": 0.378
+      },
+      {
+        "ingredient": "lait",
+        "cooccur": 5,
+        "npmi": 0.279
+      },
+      {
+        "ingredient": "friture",
+        "cooccur": 2,
+        "npmi": 0.238
+      }
+    ],
+    "cube": [
+      {
+        "ingredient": "pomme",
+        "cooccur": 2,
+        "npmi": 0.471
+      },
+      {
+        "ingredient": "concentre",
+        "cooccur": 2,
+        "npmi": 0.441
+      },
+      {
+        "ingredient": "melasse",
+        "cooccur": 2,
+        "npmi": 0.368
+      },
+      {
+        "ingredient": "cannelle",
+        "cooccur": 2,
+        "npmi": 0.348
+      },
+      {
+        "ingredient": "oignon",
+        "cooccur": 3,
+        "npmi": 0.17
+      },
+      {
+        "ingredient": "jus",
+        "cooccur": 2,
+        "npmi": 0.111
+      }
+    ],
+    "cuil": [
+      {
+        "ingredient": "viande",
+        "cooccur": 6,
+        "npmi": 0.685
+      },
+      {
+        "ingredient": "riz",
+        "cooccur": 5,
+        "npmi": 0.509
+      },
+      {
+        "ingredient": "carotte",
+        "cooccur": 4,
+        "npmi": 0.437
+      },
+      {
+        "ingredient": "laurier",
+        "cooccur": 4,
+        "npmi": 0.437
+      },
+      {
+        "ingredient": "baton",
+        "cooccur": 3,
+        "npmi": 0.435
+      },
+      {
+        "ingredient": "d'eau",
+        "cooccur": 3,
+        "npmi": 0.391
+      },
+      {
+        "ingredient": "citron",
+        "cooccur": 4,
+        "npmi": 0.348
+      },
+      {
+        "ingredient": "d'ail",
+        "cooccur": 4,
+        "npmi": 0.324
+      }
+    ],
+    "cuilleree": [
+      {
+        "ingredient": "curcuma",
+        "cooccur": 2,
+        "npmi": 0.647
+      },
+      {
+        "ingredient": "sauce",
+        "cooccur": 2,
+        "npmi": 0.591
+      },
+      {
+        "ingredient": "cumin",
+        "cooccur": 2,
+        "npmi": 0.544
+      },
+      {
+        "ingredient": "noir",
+        "cooccur": 3,
+        "npmi": 0.503
+      },
+      {
+        "ingredient": "coriandre",
+        "cooccur": 3,
+        "npmi": 0.462
+      },
+      {
+        "ingredient": "concentre",
+        "cooccur": 2,
+        "npmi": 0.441
+      },
+      {
+        "ingredient": "ail",
+        "cooccur": 4,
+        "npmi": 0.422
+      },
+      {
+        "ingredient": "poivron",
+        "cooccur": 2,
+        "npmi": 0.39
+      }
+    ],
+    "cumin": [
+      {
+        "ingredient": "cuilleree",
+        "cooccur": 2,
+        "npmi": 0.544
+      },
+      {
+        "ingredient": "paprika",
+        "cooccur": 2,
+        "npmi": 0.544
+      },
+      {
+        "ingredient": "sauce",
+        "cooccur": 2,
+        "npmi": 0.488
+      },
+      {
+        "ingredient": "poi",
+        "cooccur": 2,
+        "npmi": 0.402
+      },
+      {
+        "ingredient": "tahini",
+        "cooccur": 2,
+        "npmi": 0.402
+      },
+      {
+        "ingredient": "piment",
+        "cooccur": 3,
+        "npmi": 0.367
+      },
+      {
+        "ingredient": "coriandre",
+        "cooccur": 3,
+        "npmi": 0.347
+      },
+      {
+        "ingredient": "concentre",
+        "cooccur": 2,
+        "npmi": 0.338
+      }
+    ],
+    "curcuma": [
+      {
+        "ingredient": "cuilleree",
+        "cooccur": 2,
+        "npmi": 0.647
+      },
+      {
+        "ingredient": "graine",
+        "cooccur": 2,
+        "npmi": 0.591
+      },
+      {
+        "ingredient": "coriandre",
+        "cooccur": 2,
+        "npmi": 0.311
+      },
+      {
+        "ingredient": "ail",
+        "cooccur": 3,
+        "npmi": 0.306
+      },
+      {
+        "ingredient": "oignon",
+        "cooccur": 3,
+        "npmi": 0.17
+      },
+      {
+        "ingredient": "jus",
+        "cooccur": 2,
+        "npmi": 0.111
+      }
+    ],
+    "d'ail": [
+      {
+        "ingredient": "d'huile",
+        "cooccur": 7,
+        "npmi": 0.51
+      },
+      {
+        "ingredient": "d'eau",
+        "cooccur": 4,
+        "npmi": 0.463
+      },
+      {
+        "ingredient": "coriandre",
+        "cooccur": 6,
+        "npmi": 0.404
+      },
+      {
+        "ingredient": "carotte",
+        "cooccur": 4,
+        "npmi": 0.386
+      },
+      {
+        "ingredient": "riz",
+        "cooccur": 4,
+        "npmi": 0.353
+      },
+      {
+        "ingredient": "gingembre",
+        "cooccur": 2,
+        "npmi": 0.348
+      },
+      {
+        "ingredient": "tahini",
+        "cooccur": 3,
+        "npmi": 0.344
+      },
+      {
+        "ingredient": "poi",
+        "cooccur": 3,
+        "npmi": 0.344
+      }
+    ],
+    "d'eau": [
+      {
+        "ingredient": "riz",
+        "cooccur": 4,
+        "npmi": 0.544
+      },
+      {
+        "ingredient": "gingembre",
+        "cooccur": 2,
+        "npmi": 0.505
+      },
+      {
+        "ingredient": "d'ail",
+        "cooccur": 4,
+        "npmi": 0.463
+      },
+      {
+        "ingredient": "d'huile",
+        "cooccur": 4,
+        "npmi": 0.44
+      },
+      {
+        "ingredient": "cuil",
+        "cooccur": 3,
+        "npmi": 0.391
+      },
+      {
+        "ingredient": "viande",
+        "cooccur": 2,
+        "npmi": 0.329
+      },
+      {
+        "ingredient": "concentre",
+        "cooccur": 2,
+        "npmi": 0.299
+      },
+      {
+        "ingredient": "vinaigre",
+        "cooccur": 2,
+        "npmi": 0.226
+      }
+    ],
+    "d'huile": [
+      {
+        "ingredient": "d'ail",
+        "cooccur": 7,
+        "npmi": 0.51
+      },
+      {
+        "ingredient": "d'eau",
+        "cooccur": 4,
+        "npmi": 0.44
+      },
+      {
+        "ingredient": "menthe",
+        "cooccur": 6,
+        "npmi": 0.333
+      },
+      {
+        "ingredient": "riz",
+        "cooccur": 4,
+        "npmi": 0.33
+      },
+      {
+        "ingredient": "gingembre",
+        "cooccur": 2,
+        "npmi": 0.329
+      },
+      {
+        "ingredient": "tahini",
+        "cooccur": 3,
+        "npmi": 0.323
+      },
+      {
+        "ingredient": "cuil",
+        "cooccur": 4,
+        "npmi": 0.301
+      },
+      {
+        "ingredient": "pignon",
+        "cooccur": 4,
+        "npmi": 0.249
+      }
+    ],
+    "d'oignon": [
+      {
+        "ingredient": "melange",
+        "cooccur": 3,
+        "npmi": 0.678
+      },
+      {
+        "ingredient": "hache",
+        "cooccur": 2,
+        "npmi": 0.647
+      },
+      {
+        "ingredient": "cannelle",
+        "cooccur": 3,
+        "npmi": 0.503
+      },
+      {
+        "ingredient": "yaourt",
+        "cooccur": 2,
+        "npmi": 0.368
+      },
+      {
+        "ingredient": "pignon",
+        "cooccur": 2,
+        "npmi": 0.348
+      },
+      {
+        "ingredient": "menthe",
+        "cooccur": 2,
+        "npmi": 0.279
+      },
+      {
+        "ingredient": "beurre",
+        "cooccur": 2,
+        "npmi": 0.171
+      },
+      {
+        "ingredient": "oignon",
+        "cooccur": 2,
+        "npmi": 0.049
+      }
+    ],
+    "echalote": [
+      {
+        "ingredient": "champignon",
+        "cooccur": 2,
+        "npmi": 0.647
+      },
+      {
+        "ingredient": "pain",
+        "cooccur": 2,
+        "npmi": 0.505
+      },
+      {
+        "ingredient": "bouillon",
+        "cooccur": 2,
+        "npmi": 0.471
+      },
+      {
+        "ingredient": "une",
+        "cooccur": 2,
+        "npmi": 0.311
+      },
+      {
+        "ingredient": "creme",
+        "cooccur": 2,
+        "npmi": 0.238
+      },
+      {
+        "ingredient": "ail",
+        "cooccur": 2,
+        "npmi": 0.171
+      },
+      {
+        "ingredient": "beurre",
+        "cooccur": 2,
+        "npmi": 0.171
+      }
+    ],
+    "farine": [
+      {
+        "ingredient": "ufs",
+        "cooccur": 9,
+        "npmi": 0.445
+      },
+      {
+        "ingredient": "levure",
+        "cooccur": 7,
+        "npmi": 0.416
+      },
+      {
+        "ingredient": "lait",
+        "cooccur": 8,
+        "npmi": 0.412
+      },
+      {
+        "ingredient": "vanille",
+        "cooccur": 5,
+        "npmi": 0.393
+      },
+      {
+        "ingredient": "bicarbonate",
+        "cooccur": 4,
+        "npmi": 0.353
+      },
+      {
+        "ingredient": "beurre",
+        "cooccur": 13,
+        "npmi": 0.327
+      },
+      {
+        "ingredient": "fecule",
+        "cooccur": 3,
+        "npmi": 0.306
+      },
+      {
+        "ingredient": "glace",
+        "cooccur": 4,
+        "npmi": 0.297
+      }
+    ],
+    "fecule": [
+      {
+        "ingredient": "vanille",
+        "cooccur": 2,
+        "npmi": 0.544
+      },
+      {
+        "ingredient": "jaune",
+        "cooccur": 2,
+        "npmi": 0.471
+      },
+      {
+        "ingredient": "lait",
+        "cooccur": 2,
+        "npmi": 0.39
+      },
+      {
+        "ingredient": "une",
+        "cooccur": 2,
+        "npmi": 0.311
+      },
+      {
+        "ingredient": "farine",
+        "cooccur": 3,
+        "npmi": 0.306
+      },
+      {
+        "ingredient": "beurre",
+        "cooccur": 2,
+        "npmi": 0.171
+      },
+      {
+        "ingredient": "jus",
+        "cooccur": 2,
+        "npmi": 0.111
+      }
+    ],
+    "fleur": [
+      {
+        "ingredient": "noix",
+        "cooccur": 3,
+        "npmi": 0.492
+      },
+      {
+        "ingredient": "pistache",
+        "cooccur": 2,
+        "npmi": 0.402
+      },
+      {
+        "ingredient": "semoule",
+        "cooccur": 2,
+        "npmi": 0.368
+      },
+      {
+        "ingredient": "ufs",
+        "cooccur": 2,
+        "npmi": 0.265
+      },
+      {
+        "ingredient": "blanc",
+        "cooccur": 2,
+        "npmi": 0.162
+      },
+      {
+        "ingredient": "creme",
+        "cooccur": 2,
+        "npmi": 0.135
+      },
+      {
+        "ingredient": "beurre",
+        "cooccur": 2,
+        "npmi": 0.068
+      },
+      {
+        "ingredient": "farine",
+        "cooccur": 2,
+        "npmi": 0.068
+      }
+    ],
+    "friture": [
+      {
+        "ingredient": "pignon",
+        "cooccur": 2,
+        "npmi": 0.348
+      },
+      {
+        "ingredient": "creme",
+        "cooccur": 2,
+        "npmi": 0.238
+      },
+      {
+        "ingredient": "farine",
+        "cooccur": 2,
+        "npmi": 0.171
+      }
+    ],
+    "gingembre": [
+      {
+        "ingredient": "bicarbonate",
+        "cooccur": 2,
+        "npmi": 0.591
+      },
+      {
+        "ingredient": "d'eau",
+        "cooccur": 2,
+        "npmi": 0.505
+      },
+      {
+        "ingredient": "vinaigre",
+        "cooccur": 2,
+        "npmi": 0.368
+      },
+      {
+        "ingredient": "d'ail",
+        "cooccur": 2,
+        "npmi": 0.348
+      },
+      {
+        "ingredient": "d'huile",
+        "cooccur": 2,
+        "npmi": 0.329
+      },
+      {
+        "ingredient": "blanc",
+        "cooccur": 2,
+        "npmi": 0.265
+      },
+      {
+        "ingredient": "oignon",
+        "cooccur": 2,
+        "npmi": 0.049
+      }
+    ],
+    "glace": [
+      {
+        "ingredient": "poudre",
+        "cooccur": 3,
+        "npmi": 0.492
+      },
+      {
+        "ingredient": "chocolat",
+        "cooccur": 2,
+        "npmi": 0.441
+      },
+      {
+        "ingredient": "creme",
+        "cooccur": 4,
+        "npmi": 0.378
+      },
+      {
+        "ingredient": "jaune",
+        "cooccur": 2,
+        "npmi": 0.368
+      },
+      {
+        "ingredient": "semoule",
+        "cooccur": 2,
+        "npmi": 0.368
+      },
+      {
+        "ingredient": "zeste",
+        "cooccur": 2,
+        "npmi": 0.338
+      },
+      {
+        "ingredient": "beurre",
+        "cooccur": 4,
+        "npmi": 0.297
+      },
+      {
+        "ingredient": "farine",
+        "cooccur": 4,
+        "npmi": 0.297
+      }
+    ],
+    "graine": [
+      {
+        "ingredient": "curcuma",
+        "cooccur": 2,
+        "npmi": 0.591
+      },
+      {
+        "ingredient": "bicarbonate",
+        "cooccur": 2,
+        "npmi": 0.534
+      },
+      {
+        "ingredient": "vinaigre",
+        "cooccur": 3,
+        "npmi": 0.462
+      },
+      {
+        "ingredient": "ail",
+        "cooccur": 3,
+        "npmi": 0.243
+      },
+      {
+        "ingredient": "oignon",
+        "cooccur": 3,
+        "npmi": 0.107
+      },
+      {
+        "ingredient": "jus",
+        "cooccur": 2,
+        "npmi": 0.054
+      }
+    ],
+    "hache": [
+      {
+        "ingredient": "melange",
+        "cooccur": 3,
+        "npmi": 0.678
+      },
+      {
+        "ingredient": "d'oignon",
+        "cooccur": 2,
+        "npmi": 0.647
+      },
+      {
+        "ingredient": "poudre",
+        "cooccur": 2,
+        "npmi": 0.441
+      },
+      {
+        "ingredient": "yaourt",
+        "cooccur": 2,
+        "npmi": 0.368
+      },
+      {
+        "ingredient": "cannelle",
+        "cooccur": 2,
+        "npmi": 0.348
+      },
+      {
+        "ingredient": "pignon",
+        "cooccur": 2,
+        "npmi": 0.348
+      },
+      {
+        "ingredient": "beurre",
+        "cooccur": 2,
+        "npmi": 0.171
+      }
+    ],
+    "jaune": [
+      {
+        "ingredient": "vanille",
+        "cooccur": 4,
+        "npmi": 0.661
+      },
+      {
+        "ingredient": "semoule",
+        "cooccur": 4,
+        "npmi": 0.572
+      },
+      {
+        "ingredient": "lait",
+        "cooccur": 4,
+        "npmi": 0.474
+      },
+      {
+        "ingredient": "fecule",
+        "cooccur": 2,
+        "npmi": 0.471
+      },
+      {
+        "ingredient": "creme",
+        "cooccur": 5,
+        "npmi": 0.384
+      },
+      {
+        "ingredient": "glace",
+        "cooccur": 2,
+        "npmi": 0.368
+      },
+      {
+        "ingredient": "beurre",
+        "cooccur": 4,
+        "npmi": 0.208
+      },
+      {
+        "ingredient": "farine",
+        "cooccur": 4,
+        "npmi": 0.208
+      }
+    ],
+    "jus": [
+      {
+        "ingredient": "coriandre",
+        "cooccur": 9,
+        "npmi": 0.254
+      },
+      {
+        "ingredient": "sumac",
+        "cooccur": 3,
+        "npmi": 0.238
+      },
+      {
+        "ingredient": "cumin",
+        "cooccur": 4,
+        "npmi": 0.223
+      },
+      {
+        "ingredient": "melasse",
+        "cooccur": 7,
+        "npmi": 0.22
+      },
+      {
+        "ingredient": "laurier",
+        "cooccur": 5,
+        "npmi": 0.179
+      },
+      {
+        "ingredient": "zeste",
+        "cooccur": 5,
+        "npmi": 0.179
+      },
+      {
+        "ingredient": "piment",
+        "cooccur": 7,
+        "npmi": 0.162
+      },
+      {
+        "ingredient": "menthe",
+        "cooccur": 8,
+        "npmi": 0.147
+      }
+    ],
+    "lait": [
+      {
+        "ingredient": "jaune",
+        "cooccur": 4,
+        "npmi": 0.474
+      },
+      {
+        "ingredient": "levure",
+        "cooccur": 4,
+        "npmi": 0.437
+      },
+      {
+        "ingredient": "vanille",
+        "cooccur": 3,
+        "npmi": 0.435
+      },
+      {
+        "ingredient": "chocolat",
+        "cooccur": 3,
+        "npmi": 0.435
+      },
+      {
+        "ingredient": "farine",
+        "cooccur": 8,
+        "npmi": 0.412
+      },
+      {
+        "ingredient": "fecule",
+        "cooccur": 2,
+        "npmi": 0.39
+      },
+      {
+        "ingredient": "semoule",
+        "cooccur": 3,
+        "npmi": 0.353
+      },
+      {
+        "ingredient": "glace",
+        "cooccur": 2,
+        "npmi": 0.287
+      }
+    ],
+    "laurier": [
+      {
+        "ingredient": "baton",
+        "cooccur": 5,
+        "npmi": 0.745
+      },
+      {
+        "ingredient": "viande",
+        "cooccur": 4,
+        "npmi": 0.536
+      },
+      {
+        "ingredient": "carotte",
+        "cooccur": 4,
+        "npmi": 0.499
+      },
+      {
+        "ingredient": "cuil",
+        "cooccur": 4,
+        "npmi": 0.437
+      },
+      {
+        "ingredient": "cannelle",
+        "cooccur": 4,
+        "npmi": 0.386
+      },
+      {
+        "ingredient": "oignon",
+        "cooccur": 9,
+        "npmi": 0.365
+      },
+      {
+        "ingredient": "riz",
+        "cooccur": 3,
+        "npmi": 0.347
+      },
+      {
+        "ingredient": "coriandre",
+        "cooccur": 4,
+        "npmi": 0.341
+      }
+    ],
+    "levure": [
+      {
+        "ingredient": "lait",
+        "cooccur": 4,
+        "npmi": 0.437
+      },
+      {
+        "ingredient": "farine",
+        "cooccur": 7,
+        "npmi": 0.416
+      },
+      {
+        "ingredient": "semoule",
+        "cooccur": 3,
+        "npmi": 0.41
+      },
+      {
+        "ingredient": "bicarbonate",
+        "cooccur": 2,
+        "npmi": 0.384
+      },
+      {
+        "ingredient": "chocolat",
+        "cooccur": 2,
+        "npmi": 0.338
+      },
+      {
+        "ingredient": "pistache",
+        "cooccur": 2,
+        "npmi": 0.299
+      },
+      {
+        "ingredient": "tahini",
+        "cooccur": 2,
+        "npmi": 0.299
+      },
+      {
+        "ingredient": "noix",
+        "cooccur": 2,
+        "npmi": 0.235
+      }
+    ],
+    "melange": [
+      {
+        "ingredient": "hache",
+        "cooccur": 3,
+        "npmi": 0.678
+      },
+      {
+        "ingredient": "d'oignon",
+        "cooccur": 3,
+        "npmi": 0.678
+      },
+      {
+        "ingredient": "boulghour",
+        "cooccur": 2,
+        "npmi": 0.505
+      },
+      {
+        "ingredient": "cannelle",
+        "cooccur": 4,
+        "npmi": 0.463
+      },
+      {
+        "ingredient": "persil",
+        "cooccur": 3,
+        "npmi": 0.323
+      },
+      {
+        "ingredient": "poivron",
+        "cooccur": 2,
+        "npmi": 0.248
+      },
+      {
+        "ingredient": "melasse",
+        "cooccur": 2,
+        "npmi": 0.226
+      },
+      {
+        "ingredient": "tomate",
+        "cooccur": 3,
+        "npmi": 0.208
+      }
+    ],
+    "melasse": [
+      {
+        "ingredient": "cube",
+        "cooccur": 2,
+        "npmi": 0.368
+      },
+      {
+        "ingredient": "orange",
+        "cooccur": 2,
+        "npmi": 0.368
+      },
+      {
+        "ingredient": "vin",
+        "cooccur": 2,
+        "npmi": 0.311
+      },
+      {
+        "ingredient": "bicarbonate",
+        "cooccur": 2,
+        "npmi": 0.311
+      },
+      {
+        "ingredient": "cannelle",
+        "cooccur": 4,
+        "npmi": 0.297
+      },
+      {
+        "ingredient": "melange",
+        "cooccur": 2,
+        "npmi": 0.226
+      },
+      {
+        "ingredient": "tahini",
+        "cooccur": 2,
+        "npmi": 0.226
+      },
+      {
+        "ingredient": "jus",
+        "cooccur": 7,
+        "npmi": 0.22
+      }
+    ],
+    "menthe": [
+      {
+        "ingredient": "d'huile",
+        "cooccur": 6,
+        "npmi": 0.333
+      },
+      {
+        "ingredient": "aubergine",
+        "cooccur": 3,
+        "npmi": 0.312
+      },
+      {
+        "ingredient": "yaourt",
+        "cooccur": 5,
+        "npmi": 0.304
+      },
+      {
+        "ingredient": "paprika",
+        "cooccur": 2,
+        "npmi": 0.279
+      },
+      {
+        "ingredient": "d'oignon",
+        "cooccur": 2,
+        "npmi": 0.279
+      },
+      {
+        "ingredient": "sumac",
+        "cooccur": 2,
+        "npmi": 0.279
+      },
+      {
+        "ingredient": "boulghour",
+        "cooccur": 2,
+        "npmi": 0.279
+      },
+      {
+        "ingredient": "courgette",
+        "cooccur": 3,
+        "npmi": 0.268
+      }
+    ],
+    "noir": [
+      {
+        "ingredient": "cuilleree",
+        "cooccur": 3,
+        "npmi": 0.503
+      },
+      {
+        "ingredient": "piment",
+        "cooccur": 6,
+        "npmi": 0.428
+      },
+      {
+        "ingredient": "concentre",
+        "cooccur": 4,
+        "npmi": 0.386
+      },
+      {
+        "ingredient": "parmesan",
+        "cooccur": 2,
+        "npmi": 0.348
+      },
+      {
+        "ingredient": "ail",
+        "cooccur": 8,
+        "npmi": 0.346
+      },
+      {
+        "ingredient": "basilic",
+        "cooccur": 3,
+        "npmi": 0.344
+      },
+      {
+        "ingredient": "courgette",
+        "cooccur": 3,
+        "npmi": 0.344
+      },
+      {
+        "ingredient": "bouillon",
+        "cooccur": 3,
+        "npmi": 0.306
+      }
+    ],
+    "noix": [
+      {
+        "ingredient": "fleur",
+        "cooccur": 3,
+        "npmi": 0.492
+      },
+      {
+        "ingredient": "blanc",
+        "cooccur": 5,
+        "npmi": 0.38
+      },
+      {
+        "ingredient": "pistache",
+        "cooccur": 2,
+        "npmi": 0.299
+      },
+      {
+        "ingredient": "ufs",
+        "cooccur": 3,
+        "npmi": 0.295
+      },
+      {
+        "ingredient": "cannelle",
+        "cooccur": 3,
+        "npmi": 0.273
+      },
+      {
+        "ingredient": "levure",
+        "cooccur": 2,
+        "npmi": 0.235
+      },
+      {
+        "ingredient": "laurier",
+        "cooccur": 2,
+        "npmi": 0.235
+      },
+      {
+        "ingredient": "beurre",
+        "cooccur": 4,
+        "npmi": 0.172
+      }
+    ],
+    "oignon": [
+      {
+        "ingredient": "ail",
+        "cooccur": 21,
+        "npmi": 0.426
+      },
+      {
+        "ingredient": "tomate",
+        "cooccur": 17,
+        "npmi": 0.377
+      },
+      {
+        "ingredient": "carotte",
+        "cooccur": 9,
+        "npmi": 0.365
+      },
+      {
+        "ingredient": "laurier",
+        "cooccur": 9,
+        "npmi": 0.365
+      },
+      {
+        "ingredient": "riz",
+        "cooccur": 9,
+        "npmi": 0.322
+      },
+      {
+        "ingredient": "poivron",
+        "cooccur": 9,
+        "npmi": 0.283
+      },
+      {
+        "ingredient": "cuil",
+        "cooccur": 9,
+        "npmi": 0.283
+      },
+      {
+        "ingredient": "viande",
+        "cooccur": 7,
+        "npmi": 0.281
+      }
+    ],
+    "orange": [
+      {
+        "ingredient": "creme",
+        "cooccur": 3,
+        "npmi": 0.38
+      },
+      {
+        "ingredient": "citron",
+        "cooccur": 2,
+        "npmi": 0.368
+      },
+      {
+        "ingredient": "melasse",
+        "cooccur": 2,
+        "npmi": 0.368
+      },
+      {
+        "ingredient": "jus",
+        "cooccur": 2,
+        "npmi": 0.111
+      }
+    ],
+    "pain": [
+      {
+        "ingredient": "paprika",
+        "cooccur": 2,
+        "npmi": 0.505
+      },
+      {
+        "ingredient": "echalote",
+        "cooccur": 2,
+        "npmi": 0.505
+      },
+      {
+        "ingredient": "yaourt",
+        "cooccur": 4,
+        "npmi": 0.488
+      },
+      {
+        "ingredient": "baton",
+        "cooccur": 2,
+        "npmi": 0.402
+      },
+      {
+        "ingredient": "basilic",
+        "cooccur": 2,
+        "npmi": 0.363
+      },
+      {
+        "ingredient": "poi",
+        "cooccur": 2,
+        "npmi": 0.363
+      },
+      {
+        "ingredient": "tahini",
+        "cooccur": 2,
+        "npmi": 0.363
+      },
+      {
+        "ingredient": "pignon",
+        "cooccur": 3,
+        "npmi": 0.344
+      }
+    ],
+    "paprika": [
+      {
+        "ingredient": "tahini",
+        "cooccur": 3,
+        "npmi": 0.678
+      },
+      {
+        "ingredient": "cumin",
+        "cooccur": 2,
+        "npmi": 0.544
+      },
+      {
+        "ingredient": "yaourt",
+        "cooccur": 3,
+        "npmi": 0.525
+      },
+      {
+        "ingredient": "pain",
+        "cooccur": 2,
+        "npmi": 0.505
+      },
+      {
+        "ingredient": "concentre",
+        "cooccur": 2,
+        "npmi": 0.441
+      },
+      {
+        "ingredient": "poivron",
+        "cooccur": 2,
+        "npmi": 0.39
+      },
+      {
+        "ingredient": "piment",
+        "cooccur": 2,
+        "npmi": 0.329
+      },
+      {
+        "ingredient": "coriandre",
+        "cooccur": 2,
+        "npmi": 0.311
+      }
+    ],
+    "parmesan": [
+      {
+        "ingredient": "bouillon",
+        "cooccur": 2,
+        "npmi": 0.471
+      },
+      {
+        "ingredient": "riz",
+        "cooccur": 2,
+        "npmi": 0.414
+      },
+      {
+        "ingredient": "noir",
+        "cooccur": 2,
+        "npmi": 0.348
+      },
+      {
+        "ingredient": "piment",
+        "cooccur": 2,
+        "npmi": 0.329
+      },
+      {
+        "ingredient": "une",
+        "cooccur": 2,
+        "npmi": 0.311
+      },
+      {
+        "ingredient": "beurre",
+        "cooccur": 3,
+        "npmi": 0.306
+      },
+      {
+        "ingredient": "oignon",
+        "cooccur": 2,
+        "npmi": 0.049
+      }
+    ],
+    "persil": [
+      {
+        "ingredient": "melange",
+        "cooccur": 3,
+        "npmi": 0.323
+      },
+      {
+        "ingredient": "poivron",
+        "cooccur": 4,
+        "npmi": 0.301
+      },
+      {
+        "ingredient": "tomate",
+        "cooccur": 6,
+        "npmi": 0.259
+      },
+      {
+        "ingredient": "menthe",
+        "cooccur": 5,
+        "npmi": 0.253
+      },
+      {
+        "ingredient": "piment",
+        "cooccur": 4,
+        "npmi": 0.226
+      },
+      {
+        "ingredient": "d'huile",
+        "cooccur": 4,
+        "npmi": 0.226
+      },
+      {
+        "ingredient": "aubergine",
+        "cooccur": 2,
+        "npmi": 0.226
+      },
+      {
+        "ingredient": "pain",
+        "cooccur": 2,
+        "npmi": 0.186
+      }
+    ],
+    "pignon": [
+      {
+        "ingredient": "basilic",
+        "cooccur": 5,
+        "npmi": 0.572
+      },
+      {
+        "ingredient": "friture",
+        "cooccur": 2,
+        "npmi": 0.348
+      },
+      {
+        "ingredient": "d'oignon",
+        "cooccur": 2,
+        "npmi": 0.348
+      },
+      {
+        "ingredient": "hache",
+        "cooccur": 2,
+        "npmi": 0.348
+      },
+      {
+        "ingredient": "pain",
+        "cooccur": 3,
+        "npmi": 0.344
+      },
+      {
+        "ingredient": "tahini",
+        "cooccur": 3,
+        "npmi": 0.344
+      },
+      {
+        "ingredient": "yaourt",
+        "cooccur": 4,
+        "npmi": 0.297
+      },
+      {
+        "ingredient": "sauce",
+        "cooccur": 2,
+        "npmi": 0.291
+      }
+    ],
+    "piment": [
+      {
+        "ingredient": "concentre",
+        "cooccur": 5,
+        "npmi": 0.464
+      },
+      {
+        "ingredient": "noir",
+        "cooccur": 6,
+        "npmi": 0.428
+      },
+      {
+        "ingredient": "sauce",
+        "cooccur": 3,
+        "npmi": 0.418
+      },
+      {
+        "ingredient": "tomate",
+        "cooccur": 8,
+        "npmi": 0.401
+      },
+      {
+        "ingredient": "cumin",
+        "cooccur": 3,
+        "npmi": 0.367
+      },
+      {
+        "ingredient": "cuilleree",
+        "cooccur": 2,
+        "npmi": 0.329
+      },
+      {
+        "ingredient": "sumac",
+        "cooccur": 2,
+        "npmi": 0.329
+      },
+      {
+        "ingredient": "parmesan",
+        "cooccur": 2,
+        "npmi": 0.329
+      }
+    ],
+    "pistache": [
+      {
+        "ingredient": "fleur",
+        "cooccur": 2,
+        "npmi": 0.402
+      },
+      {
+        "ingredient": "levure",
+        "cooccur": 2,
+        "npmi": 0.299
+      },
+      {
+        "ingredient": "noix",
+        "cooccur": 2,
+        "npmi": 0.299
+      },
+      {
+        "ingredient": "farine",
+        "cooccur": 3,
+        "npmi": 0.147
+      },
+      {
+        "ingredient": "blanc",
+        "cooccur": 2,
+        "npmi": 0.123
+      },
+      {
+        "ingredient": "beurre",
+        "cooccur": 2,
+        "npmi": 0.029
+      }
+    ],
+    "poi": [
+      {
+        "ingredient": "cumin",
+        "cooccur": 2,
+        "npmi": 0.402
+      },
+      {
+        "ingredient": "pain",
+        "cooccur": 2,
+        "npmi": 0.363
+      },
+      {
+        "ingredient": "d'ail",
+        "cooccur": 3,
+        "npmi": 0.344
+      },
+      {
+        "ingredient": "viande",
+        "cooccur": 2,
+        "npmi": 0.329
+      },
+      {
+        "ingredient": "menthe",
+        "cooccur": 3,
+        "npmi": 0.268
+      },
+      {
+        "ingredient": "cuil",
+        "cooccur": 2,
+        "npmi": 0.248
+      },
+      {
+        "ingredient": "yaourt",
+        "cooccur": 2,
+        "npmi": 0.226
+      },
+      {
+        "ingredient": "citron",
+        "cooccur": 2,
+        "npmi": 0.226
+      }
+    ],
+    "poivron": [
+      {
+        "ingredient": "concentre",
+        "cooccur": 4,
+        "npmi": 0.437
+      },
+      {
+        "ingredient": "aubergine",
+        "cooccur": 3,
+        "npmi": 0.435
+      },
+      {
+        "ingredient": "cuilleree",
+        "cooccur": 2,
+        "npmi": 0.39
+      },
+      {
+        "ingredient": "sumac",
+        "cooccur": 2,
+        "npmi": 0.39
+      },
+      {
+        "ingredient": "paprika",
+        "cooccur": 2,
+        "npmi": 0.39
+      },
+      {
+        "ingredient": "coriandre",
+        "cooccur": 5,
+        "npmi": 0.374
+      },
+      {
+        "ingredient": "tomate",
+        "cooccur": 6,
+        "npmi": 0.344
+      },
+      {
+        "ingredient": "piment",
+        "cooccur": 4,
+        "npmi": 0.301
+      }
+    ],
+    "pomme": [
+      {
+        "ingredient": "cube",
+        "cooccur": 2,
+        "npmi": 0.471
+      },
+      {
+        "ingredient": "concentre",
+        "cooccur": 3,
+        "npmi": 0.41
+      },
+      {
+        "ingredient": "carotte",
+        "cooccur": 3,
+        "npmi": 0.41
+      },
+      {
+        "ingredient": "tomate",
+        "cooccur": 5,
+        "npmi": 0.368
+      },
+      {
+        "ingredient": "d'ail",
+        "cooccur": 3,
+        "npmi": 0.306
+      },
+      {
+        "ingredient": "poivron",
+        "cooccur": 2,
+        "npmi": 0.214
+      },
+      {
+        "ingredient": "lait",
+        "cooccur": 2,
+        "npmi": 0.214
+      },
+      {
+        "ingredient": "cuil",
+        "cooccur": 2,
+        "npmi": 0.214
+      }
+    ],
+    "poudre": [
+      {
+        "ingredient": "glace",
+        "cooccur": 3,
+        "npmi": 0.492
+      },
+      {
+        "ingredient": "hache",
+        "cooccur": 2,
+        "npmi": 0.441
+      },
+      {
+        "ingredient": "bicarbonate",
+        "cooccur": 2,
+        "npmi": 0.384
+      },
+      {
+        "ingredient": "vanille",
+        "cooccur": 2,
+        "npmi": 0.338
+      },
+      {
+        "ingredient": "semoule",
+        "cooccur": 2,
+        "npmi": 0.265
+      },
+      {
+        "ingredient": "farine",
+        "cooccur": 5,
+        "npmi": 0.258
+      },
+      {
+        "ingredient": "zeste",
+        "cooccur": 2,
+        "npmi": 0.235
+      },
+      {
+        "ingredient": "lait",
+        "cooccur": 2,
+        "npmi": 0.184
+      }
+    ],
+    "riz": [
+      {
+        "ingredient": "d'eau",
+        "cooccur": 4,
+        "npmi": 0.544
+      },
+      {
+        "ingredient": "cuil",
+        "cooccur": 5,
+        "npmi": 0.509
+      },
+      {
+        "ingredient": "parmesan",
+        "cooccur": 2,
+        "npmi": 0.414
+      },
+      {
+        "ingredient": "bouillon",
+        "cooccur": 3,
+        "npmi": 0.38
+      },
+      {
+        "ingredient": "viande",
+        "cooccur": 3,
+        "npmi": 0.38
+      },
+      {
+        "ingredient": "d'ail",
+        "cooccur": 4,
+        "npmi": 0.353
+      },
+      {
+        "ingredient": "carotte",
+        "cooccur": 3,
+        "npmi": 0.347
+      },
+      {
+        "ingredient": "laurier",
+        "cooccur": 3,
+        "npmi": 0.347
+      }
+    ],
+    "sauce": [
+      {
+        "ingredient": "cuilleree",
+        "cooccur": 2,
+        "npmi": 0.591
+      },
+      {
+        "ingredient": "coriandre",
+        "cooccur": 4,
+        "npmi": 0.523
+      },
+      {
+        "ingredient": "cumin",
+        "cooccur": 2,
+        "npmi": 0.488
+      },
+      {
+        "ingredient": "piment",
+        "cooccur": 3,
+        "npmi": 0.418
+      },
+      {
+        "ingredient": "ail",
+        "cooccur": 4,
+        "npmi": 0.353
+      },
+      {
+        "ingredient": "vinaigre",
+        "cooccur": 2,
+        "npmi": 0.311
+      },
+      {
+        "ingredient": "tomate",
+        "cooccur": 3,
+        "npmi": 0.303
+      },
+      {
+        "ingredient": "noir",
+        "cooccur": 2,
+        "npmi": 0.291
+      }
+    ],
+    "semoule": [
+      {
+        "ingredient": "jaune",
+        "cooccur": 4,
+        "npmi": 0.572
+      },
+      {
+        "ingredient": "vanille",
+        "cooccur": 3,
+        "npmi": 0.525
+      },
+      {
+        "ingredient": "levure",
+        "cooccur": 3,
+        "npmi": 0.41
+      },
+      {
+        "ingredient": "creme",
+        "cooccur": 5,
+        "npmi": 0.384
+      },
+      {
+        "ingredient": "fleur",
+        "cooccur": 2,
+        "npmi": 0.368
+      },
+      {
+        "ingredient": "glace",
+        "cooccur": 2,
+        "npmi": 0.368
+      },
+      {
+        "ingredient": "lait",
+        "cooccur": 3,
+        "npmi": 0.353
+      },
+      {
+        "ingredient": "poudre",
+        "cooccur": 2,
+        "npmi": 0.265
+      }
+    ],
+    "sesame": [
+      {
+        "ingredient": "thym",
+        "cooccur": 2,
+        "npmi": 0.544
+      },
+      {
+        "ingredient": "cuil",
+        "cooccur": 2,
+        "npmi": 0.287
+      },
+      {
+        "ingredient": "citron",
+        "cooccur": 2,
+        "npmi": 0.265
+      },
+      {
+        "ingredient": "farine",
+        "cooccur": 2,
+        "npmi": 0.068
+      },
+      {
+        "ingredient": "beurre",
+        "cooccur": 2,
+        "npmi": 0.068
+      },
+      {
+        "ingredient": "oignon",
+        "cooccur": 3,
+        "npmi": 0.055
+      }
+    ],
+    "sumac": [
+      {
+        "ingredient": "concentre",
+        "cooccur": 2,
+        "npmi": 0.441
+      },
+      {
+        "ingredient": "poivron",
+        "cooccur": 2,
+        "npmi": 0.39
+      },
+      {
+        "ingredient": "citron",
+        "cooccur": 2,
+        "npmi": 0.368
+      },
+      {
+        "ingredient": "piment",
+        "cooccur": 2,
+        "npmi": 0.329
+      },
+      {
+        "ingredient": "coriandre",
+        "cooccur": 2,
+        "npmi": 0.311
+      },
+      {
+        "ingredient": "menthe",
+        "cooccur": 2,
+        "npmi": 0.279
+      },
+      {
+        "ingredient": "jus",
+        "cooccur": 3,
+        "npmi": 0.238
+      },
+      {
+        "ingredient": "creme",
+        "cooccur": 2,
+        "npmi": 0.238
+      }
+    ],
+    "tahini": [
+      {
+        "ingredient": "paprika",
+        "cooccur": 3,
+        "npmi": 0.678
+      },
+      {
+        "ingredient": "yaourt",
+        "cooccur": 5,
+        "npmi": 0.598
+      },
+      {
+        "ingredient": "cumin",
+        "cooccur": 2,
+        "npmi": 0.402
+      },
+      {
+        "ingredient": "pain",
+        "cooccur": 2,
+        "npmi": 0.363
+      },
+      {
+        "ingredient": "pignon",
+        "cooccur": 3,
+        "npmi": 0.344
+      },
+      {
+        "ingredient": "d'ail",
+        "cooccur": 3,
+        "npmi": 0.344
+      },
+      {
+        "ingredient": "d'huile",
+        "cooccur": 3,
+        "npmi": 0.323
+      },
+      {
+        "ingredient": "levure",
+        "cooccur": 2,
+        "npmi": 0.299
+      }
+    ],
+    "thym": [
+      {
+        "ingredient": "sesame",
+        "cooccur": 2,
+        "npmi": 0.544
+      },
+      {
+        "ingredient": "oignon",
+        "cooccur": 2,
+        "npmi": 0.049
+      }
+    ],
+    "tomate": [
+      {
+        "ingredient": "piment",
+        "cooccur": 8,
+        "npmi": 0.401
+      },
+      {
+        "ingredient": "oignon",
+        "cooccur": 17,
+        "npmi": 0.377
+      },
+      {
+        "ingredient": "pomme",
+        "cooccur": 5,
+        "npmi": 0.368
+      },
+      {
+        "ingredient": "aubergine",
+        "cooccur": 4,
+        "npmi": 0.363
+      },
+      {
+        "ingredient": "poivron",
+        "cooccur": 6,
+        "npmi": 0.344
+      },
+      {
+        "ingredient": "sauce",
+        "cooccur": 3,
+        "npmi": 0.303
+      },
+      {
+        "ingredient": "bouquet",
+        "cooccur": 3,
+        "npmi": 0.303
+      },
+      {
+        "ingredient": "ail",
+        "cooccur": 10,
+        "npmi": 0.269
+      }
+    ],
+    "ufs": [
+      {
+        "ingredient": "beurre",
+        "cooccur": 9,
+        "npmi": 0.445
+      },
+      {
+        "ingredient": "farine",
+        "cooccur": 9,
+        "npmi": 0.445
+      },
+      {
+        "ingredient": "chocolat",
+        "cooccur": 3,
+        "npmi": 0.41
+      },
+      {
+        "ingredient": "noix",
+        "cooccur": 3,
+        "npmi": 0.295
+      },
+      {
+        "ingredient": "glace",
+        "cooccur": 2,
+        "npmi": 0.265
+      },
+      {
+        "ingredient": "vanille",
+        "cooccur": 2,
+        "npmi": 0.265
+      },
+      {
+        "ingredient": "fleur",
+        "cooccur": 2,
+        "npmi": 0.265
+      },
+      {
+        "ingredient": "lait",
+        "cooccur": 3,
+        "npmi": 0.238
+      }
+    ],
+    "une": [
+      {
+        "ingredient": "parmesan",
+        "cooccur": 2,
+        "npmi": 0.311
+      },
+      {
+        "ingredient": "champignon",
+        "cooccur": 2,
+        "npmi": 0.311
+      },
+      {
+        "ingredient": "fecule",
+        "cooccur": 2,
+        "npmi": 0.311
+      },
+      {
+        "ingredient": "echalote",
+        "cooccur": 2,
+        "npmi": 0.311
+      },
+      {
+        "ingredient": "aubergine",
+        "cooccur": 2,
+        "npmi": 0.208
+      },
+      {
+        "ingredient": "vanille",
+        "cooccur": 2,
+        "npmi": 0.208
+      },
+      {
+        "ingredient": "baton",
+        "cooccur": 2,
+        "npmi": 0.208
+      },
+      {
+        "ingredient": "poivron",
+        "cooccur": 3,
+        "npmi": 0.175
+      }
+    ],
+    "vanille": [
+      {
+        "ingredient": "jaune",
+        "cooccur": 4,
+        "npmi": 0.661
+      },
+      {
+        "ingredient": "fecule",
+        "cooccur": 2,
+        "npmi": 0.544
+      },
+      {
+        "ingredient": "semoule",
+        "cooccur": 3,
+        "npmi": 0.525
+      },
+      {
+        "ingredient": "bicarbonate",
+        "cooccur": 2,
+        "npmi": 0.488
+      },
+      {
+        "ingredient": "lait",
+        "cooccur": 3,
+        "npmi": 0.435
+      },
+      {
+        "ingredient": "farine",
+        "cooccur": 5,
+        "npmi": 0.393
+      },
+      {
+        "ingredient": "creme",
+        "cooccur": 4,
+        "npmi": 0.378
+      },
+      {
+        "ingredient": "poudre",
+        "cooccur": 2,
+        "npmi": 0.338
+      }
+    ],
+    "viande": [
+      {
+        "ingredient": "cuil",
+        "cooccur": 6,
+        "npmi": 0.685
+      },
+      {
+        "ingredient": "laurier",
+        "cooccur": 4,
+        "npmi": 0.536
+      },
+      {
+        "ingredient": "baton",
+        "cooccur": 3,
+        "npmi": 0.525
+      },
+      {
+        "ingredient": "cannelle",
+        "cooccur": 4,
+        "npmi": 0.422
+      },
+      {
+        "ingredient": "carotte",
+        "cooccur": 3,
+        "npmi": 0.41
+      },
+      {
+        "ingredient": "riz",
+        "cooccur": 3,
+        "npmi": 0.38
+      },
+      {
+        "ingredient": "pain",
+        "cooccur": 2,
+        "npmi": 0.329
+      },
+      {
+        "ingredient": "d'eau",
+        "cooccur": 2,
+        "npmi": 0.329
+      }
+    ],
+    "vin": [
+      {
+        "ingredient": "bouquet",
+        "cooccur": 2,
+        "npmi": 0.534
+      },
+      {
+        "ingredient": "bouillon",
+        "cooccur": 2,
+        "npmi": 0.414
+      },
+      {
+        "ingredient": "melasse",
+        "cooccur": 2,
+        "npmi": 0.311
+      },
+      {
+        "ingredient": "noir",
+        "cooccur": 2,
+        "npmi": 0.291
+      },
+      {
+        "ingredient": "ail",
+        "cooccur": 2,
+        "npmi": 0.115
+      },
+      {
+        "ingredient": "oignon",
+        "cooccur": 3,
+        "npmi": 0.107
+      },
+      {
+        "ingredient": "jus",
+        "cooccur": 2,
+        "npmi": 0.054
+      }
+    ],
+    "vinaigre": [
+      {
+        "ingredient": "graine",
+        "cooccur": 3,
+        "npmi": 0.462
+      },
+      {
+        "ingredient": "cuilleree",
+        "cooccur": 2,
+        "npmi": 0.368
+      },
+      {
+        "ingredient": "gingembre",
+        "cooccur": 2,
+        "npmi": 0.368
+      },
+      {
+        "ingredient": "sauce",
+        "cooccur": 2,
+        "npmi": 0.311
+      },
+      {
+        "ingredient": "bicarbonate",
+        "cooccur": 2,
+        "npmi": 0.311
+      },
+      {
+        "ingredient": "basilic",
+        "cooccur": 2,
+        "npmi": 0.226
+      },
+      {
+        "ingredient": "pain",
+        "cooccur": 2,
+        "npmi": 0.226
+      },
+      {
+        "ingredient": "d'eau",
+        "cooccur": 2,
+        "npmi": 0.226
+      }
+    ],
+    "yaourt": [
+      {
+        "ingredient": "tahini",
+        "cooccur": 5,
+        "npmi": 0.598
+      },
+      {
+        "ingredient": "paprika",
+        "cooccur": 3,
+        "npmi": 0.525
+      },
+      {
+        "ingredient": "pain",
+        "cooccur": 4,
+        "npmi": 0.488
+      },
+      {
+        "ingredient": "d'oignon",
+        "cooccur": 2,
+        "npmi": 0.368
+      },
+      {
+        "ingredient": "hache",
+        "cooccur": 2,
+        "npmi": 0.368
+      },
+      {
+        "ingredient": "menthe",
+        "cooccur": 5,
+        "npmi": 0.304
+      },
+      {
+        "ingredient": "pignon",
+        "cooccur": 4,
+        "npmi": 0.297
+      },
+      {
+        "ingredient": "d'ail",
+        "cooccur": 4,
+        "npmi": 0.297
+      }
+    ],
+    "zeste": [
+      {
+        "ingredient": "glace",
+        "cooccur": 2,
+        "npmi": 0.338
+      },
+      {
+        "ingredient": "semoule",
+        "cooccur": 2,
+        "npmi": 0.265
+      },
+      {
+        "ingredient": "poudre",
+        "cooccur": 2,
+        "npmi": 0.235
+      },
+      {
+        "ingredient": "jus",
+        "cooccur": 5,
+        "npmi": 0.179
+      },
+      {
+        "ingredient": "beurre",
+        "cooccur": 4,
+        "npmi": 0.172
+      },
+      {
+        "ingredient": "ufs",
+        "cooccur": 2,
+        "npmi": 0.162
+      },
+      {
+        "ingredient": "citron",
+        "cooccur": 2,
+        "npmi": 0.162
+      },
+      {
+        "ingredient": "creme",
+        "cooccur": 3,
+        "npmi": 0.15
+      }
+    ]
+  }
+}
