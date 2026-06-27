@@ -41,6 +41,7 @@ from .embeddings import OpenAIEmbeddings
 from .ingredient_match import (
     filter_hits_by_ingredient_slugs,
     filter_reranked_by_ingredient_slugs,
+    slug_search_terms,
     supplement_ingredient_slugs,
     wants_another_recipe,
     ingredient_display_name,
@@ -515,6 +516,19 @@ def _card_title_matches_requested_dish(
         return True
     t = _norm_match(card_title)
     return any(term in t for term in requested_terms)
+
+
+def _drop_speculative_ingredients(slugs: list[str], user_query: str) -> list[str]:
+    """Requête nommant un plat connu → ne garder que les ingrédients réellement
+    tapés (le LLM invente parfois des composants, ex. manouche→zaatar/pain-pita,
+    qui en filtre dur excluent l'article du plat). Sinon, liste inchangée."""
+    if not slugs or not _requested_dish_terms(user_query):
+        return slugs
+    qn = _norm_match(user_query)
+    return [
+        s for s in slugs
+        if any(_norm_match(t) in qn for t in slug_search_terms(s))
+    ]
 
 
 def _expand_query_with_aliases(q: str) -> str:
@@ -1109,6 +1123,10 @@ class RagPipeline:
         timings: dict[str, int] = {}
         rerank_top_n = rerank_top_n or self.settings.rag_rerank_top_k
         model = resolve_llm_model(llm_model)
+        # SOTA : normaliser les translittérations AVANT la compréhension de requête,
+        # pour que le LLM analyse la forme indexée (ex. "manouche" -> "manaiche")
+        # et n'invente pas d'ingrédients-composants hors-sujet.
+        analyze_query = _canonicalize_dish_aliases((user_query or "").strip()) or user_query
 
         t0 = time.perf_counter()
         focus: SessionFocus | None = None
@@ -1116,7 +1134,7 @@ class RagPipeline:
             if conversation_history and conversation_history.strip():
                 plan, focus = await asyncio.gather(
                     self.analyzer.analyze(
-                        user_query,
+                        analyze_query,
                         conversation_history=conversation_history,
                         model=model,
                     ),
@@ -1128,7 +1146,7 @@ class RagPipeline:
                 )
             else:
                 plan = await self.analyzer.analyze(
-                    user_query,
+                    analyze_query,
                     conversation_history=None,
                     model=model,
                 )
@@ -1136,7 +1154,7 @@ class RagPipeline:
             log.warning("rag.pipeline.query_focus_failed_fallback", error=str(exc))
             try:
                 plan = await self.analyzer.analyze(
-                    user_query,
+                    analyze_query,
                     conversation_history=conversation_history,
                     model=model,
                 )
@@ -1179,6 +1197,17 @@ class RagPipeline:
                 query=user_query[:80],
             )
             plan = plan.model_copy(update={"ingredient_slugs": []})
+        # SOTA : sur une requête nommant un plat connu, retirer les ingrédients
+        # spéculatifs (non tapés) inventés par le LLM (ex. manouche→zaatar/pain-pita).
+        _kept_ing = _drop_speculative_ingredients(plan.ingredient_slugs, user_query)
+        if _kept_ing != plan.ingredient_slugs:
+            log.info(
+                "rag.pipeline.dish_query_dropped_speculative_ingredients",
+                query=user_query[:80],
+                before=plan.ingredient_slugs,
+                after=_kept_ing,
+            )
+            plan = plan.model_copy(update={"ingredient_slugs": _kept_ing})
         timings["query_understanding_ms"] = int((time.perf_counter() - t0) * 1000)
 
         t1 = time.perf_counter()
