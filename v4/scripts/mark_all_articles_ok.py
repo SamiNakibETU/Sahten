@@ -47,9 +47,8 @@ _backend_dir = Path(__file__).resolve().parents[1] / "backend"
 if _backend_dir.is_dir():
     sys.path.insert(0, str(_backend_dir))
 
-from sqlalchemy import text  # noqa: E402
-
 from app.db.base import get_sessionmaker  # noqa: E402
+from sqlalchemy import text  # noqa: E402
 
 
 async def main() -> None:

@@ -30,9 +30,12 @@ async def run_eval(golden_path: Path, write_db: bool = True) -> dict:
         from datasets import Dataset  # type: ignore
         from ragas import evaluate  # type: ignore
         from ragas.metrics import (  # type: ignore
-            answer_relevancy, context_precision, context_recall, faithfulness,
+            answer_relevancy,
+            context_precision,
+            context_recall,
+            faithfulness,
         )
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         print(f"RAGAS non installé : {e}. `pip install -e .[eval]`", file=sys.stderr)
         sys.exit(2)
 
@@ -74,7 +77,7 @@ async def run_eval(golden_path: Path, write_db: bool = True) -> dict:
             sha = subprocess.check_output(
                 ["git", "rev-parse", "--short", "HEAD"], cwd=Path.cwd()
             ).decode().strip()
-        except Exception:  # noqa: BLE001
+        except Exception:
             sha = None
         async with sm() as session:
             session.add(EvalRun(

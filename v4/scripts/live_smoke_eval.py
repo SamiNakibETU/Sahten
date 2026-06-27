@@ -53,7 +53,7 @@ def chat(base: str, q: str, sid: str) -> dict:
                 for s in (d.get("sources") or [])[:3]
             ],
         }
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         return {"error": str(e)[:120]}
 
 

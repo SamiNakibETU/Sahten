@@ -4,7 +4,6 @@ comprendre comment paginer les recettes."""
 from __future__ import annotations
 
 import asyncio
-import json
 
 from app.ingestion.whitebeard_client import WhiteBeardClient
 

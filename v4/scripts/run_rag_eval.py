@@ -178,7 +178,7 @@ async def _run_one_http(
 
     try:
         resp = await asyncio.to_thread(_post)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         return {
             "id": item.get("id"),
             "query": q,
@@ -195,7 +195,7 @@ async def _run_one_http(
         }
     try:
         body = resp.json()
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         return {
             "id": item.get("id"),
             "query": q,

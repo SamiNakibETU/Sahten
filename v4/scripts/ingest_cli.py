@@ -37,12 +37,11 @@ from app.rag.indexer import reindex_article
 async def cmd_one(article_id: int) -> None:
     sm = get_sessionmaker()
     embedder = OpenAIEmbeddings()
-    async with WhiteBeardClient() as cli:
-        async with sm() as session:
-            res = await ingest_article_id(session, article_id, client=cli)
-            article = await session.get(Article, res.article_id)
-            n = await reindex_article(session, article, embedder)
-            await session.commit()
+    async with WhiteBeardClient() as cli, sm() as session:
+        res = await ingest_article_id(session, article_id, client=cli)
+        article = await session.get(Article, res.article_id)
+        n = await reindex_article(session, article, embedder)
+        await session.commit()
     print(f"ok status={res.status} article_id={res.article_id} chunks={n}")
 
 
@@ -119,7 +118,7 @@ async def cmd_from_ids(file_path: str, *, embed: bool, skip_existing: bool, limi
                     await session.commit()
                     counts[res.status] = counts.get(res.status, 0) + 1
                     print(f"  [{idx}/{len(ids)}] {ext_id} — status={res.status} chunks={n_chunks}")
-                except Exception as exc:  # noqa: BLE001
+                except Exception as exc:
                     await session.rollback()
                     counts["failed"] += 1
                     print(f"  [{idx}/{len(ids)}] {ext_id} — ERREUR: {exc}", file=sys.stderr)
@@ -243,7 +242,7 @@ async def cmd_reindex_all(
                     print(
                         f"  [{idx}/{len(ids_seen)}] {ext_id} — status={status} chunks={n_chunks}"
                     )
-                except Exception as exc:  # noqa: BLE001
+                except Exception as exc:
                     await session.rollback()
                     counts["failed"] += 1
                     print(f"  [{idx}/{len(ids_seen)}] {ext_id} — ERREUR: {exc}", file=sys.stderr)

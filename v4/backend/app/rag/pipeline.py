@@ -1208,6 +1208,14 @@ class RagPipeline:
 
         t1 = time.perf_counter()
         base_q = (plan.rewritten_query or user_query or "").strip()
+        # Plat nommé connu : la formulation BRUTE de l'utilisateur (canonicalisée)
+        # cible mieux que la réécriture du LLM, qui ajoute des termes diluants
+        # (ex. "libanais") et perd l'article du plat. Vérifié via diagnose-retrieval :
+        # "recette manaiche" -> 1474718 rang 1, mais "recette manaiche libanais" -> faux.
+        if _requested_dish_terms(user_query):
+            _canon_raw = _canonicalize_dish_aliases((user_query or "").strip())
+            if _canon_raw:
+                base_q = _canon_raw
         q = _expand_search_q_with_ingredients(base_q, plan)
         if focus and (focus.search_boost_phrase or "").strip():
             q = f"{q} {(focus.search_boost_phrase or '').strip()}".strip()

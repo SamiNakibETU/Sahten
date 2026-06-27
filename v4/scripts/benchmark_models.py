@@ -135,7 +135,7 @@ def _call(client, model: str, system: str, user: str, schema: dict[str, Any]) ->
     t0 = time.time()
     try:
         resp = client.chat.completions.create(temperature=0.0, **kwargs)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         msg = str(exc).lower()
         if "temperature" in msg or "unsupported" in msg:
             resp = client.chat.completions.create(**kwargs)
@@ -263,7 +263,7 @@ def run(
                     row.update(_score_structured(case, QueryPlan.model_validate_json(raw)))
                 n_ok += 1
                 row["schema_ok"] = True
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 row.update({"schema_ok": False, "passed": False, "error": f"{type(exc).__name__}: {str(exc)[:160]}"})
             rows.append(row)
         n = len(cases)
@@ -303,7 +303,7 @@ def _ascii_table(report: dict[str, Any]) -> str:
         lat = m["avg_latency_ms"] if m["avg_latency_ms"] is not None else "-"
         out.append(
             f"{model:28} {str(m['n_passed'])+'/'+str(m['n_cases']):>7} "
-            f"{str(int(m['schema_valid_rate']*100))+'%':>7} {str(lat):>8} {str(cost):>9}"
+            f"{str(int(m['schema_valid_rate']*100))+'%':>7} {lat!s:>8} {cost!s:>9}"
         )
     return "\n".join(out)
 

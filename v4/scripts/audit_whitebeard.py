@@ -83,7 +83,7 @@ def _load_dotenv_files() -> None:
                 v = v.strip().strip('"').strip("'")
                 if k and k not in os.environ:
                     os.environ[k] = v
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             print(f"[warn] {path}: {exc}", file=sys.stderr)
 
 
@@ -324,7 +324,7 @@ async def _fetch_payload(
 ) -> dict[str, Any] | None:
     try:
         r = await client.get(f"/content/{article_id}")
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         print(f"[err] {article_id}: {exc}", file=sys.stderr)
         return None
     if r.status_code >= 400:
