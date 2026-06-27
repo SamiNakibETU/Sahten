@@ -378,10 +378,7 @@ def is_ingredient_browse_query(required_ingredient_slugs: list[str] | None) -> b
 
 
 def ingredient_display_name(slug: str) -> str:
-    terms = slug_search_terms(slug)
-    if not terms:
-        return slug.replace("-", " ")
-    for term in terms:
-        if " " not in term and len(term) >= 3:
-            return term.replace("-", " ")
-    return terms[0].replace("-", " ")
+    # Affichage = slug canonique dé-hyphené (concombre, riz, pois chiche) ; évite
+    # les pluriels auto-générés ("rizs") et les alias arabes ("khyar").
+    name = canonical_ingredient_slug((slug or "").strip()).replace("-", " ").strip()
+    return name or (slug or "").replace("-", " ")

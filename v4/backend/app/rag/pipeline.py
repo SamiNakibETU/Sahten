@@ -1123,10 +1123,6 @@ class RagPipeline:
         timings: dict[str, int] = {}
         rerank_top_n = rerank_top_n or self.settings.rag_rerank_top_k
         model = resolve_llm_model(llm_model)
-        # SOTA : normaliser les translittérations AVANT la compréhension de requête,
-        # pour que le LLM analyse la forme indexée (ex. "manouche" -> "manaiche")
-        # et n'invente pas d'ingrédients-composants hors-sujet.
-        analyze_query = _canonicalize_dish_aliases((user_query or "").strip()) or user_query
 
         t0 = time.perf_counter()
         focus: SessionFocus | None = None
@@ -1134,7 +1130,7 @@ class RagPipeline:
             if conversation_history and conversation_history.strip():
                 plan, focus = await asyncio.gather(
                     self.analyzer.analyze(
-                        analyze_query,
+                        user_query,
                         conversation_history=conversation_history,
                         model=model,
                     ),
@@ -1146,7 +1142,7 @@ class RagPipeline:
                 )
             else:
                 plan = await self.analyzer.analyze(
-                    analyze_query,
+                    user_query,
                     conversation_history=None,
                     model=model,
                 )
@@ -1154,7 +1150,7 @@ class RagPipeline:
             log.warning("rag.pipeline.query_focus_failed_fallback", error=str(exc))
             try:
                 plan = await self.analyzer.analyze(
-                    analyze_query,
+                    user_query,
                     conversation_history=conversation_history,
                     model=model,
                 )
