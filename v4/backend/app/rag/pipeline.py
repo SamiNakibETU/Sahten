@@ -1215,6 +1215,11 @@ class RagPipeline:
         if _requested_dish_terms(user_query):
             _canon_raw = _canonicalize_dish_aliases((user_query or "").strip())
             if _canon_raw:
+                # Forme nue (1-2 mots sans "recette") -> requête vectorielle trop
+                # sparse et instable (ex. "manaiche" seul). On stabilise en
+                # préfixant "recette" (ex. "recette manaiche" -> 1474718 rang 1).
+                if len(_canon_raw.split()) <= 2 and "recette" not in _canon_raw.lower():
+                    _canon_raw = f"recette {_canon_raw}"
                 base_q = _canon_raw
         q = _expand_search_q_with_ingredients(base_q, plan)
         if focus and (focus.search_boost_phrase or "").strip():
