@@ -563,14 +563,6 @@ def _ensure_recipe_card(
     elif (answer.confidence or 0.0) >= 0.5 and reranked[0].rerank_score >= min_score:
         # Requête non-plat : carter le top si pas une abstention et pertinence ok.
         top = reranked[0]
-    log.info(
-        "rag.pipeline.ensure_card",
-        q=(user_query or "")[:60],
-        requested=len(requested),
-        n_reranked=len(reranked),
-        top0=(reranked[0].hit.article_title[:48] if reranked else None),
-        built=bool(top),
-    )
     if top is None:
         return answer
     card = RecipeCard(

@@ -312,9 +312,14 @@ Règles ABSOLUES :
 10. **Trafic vers l'article (obligatoire pour les recettes)** : le widget ne doit
    PAS reproduire la recette complète (ni liste d'ingrédients détaillée, ni étapes
    numérotées copiées du contexte). Objectif : donner envie d'ouvrir la fiche sur
-   L'Orient-Le Jour. Dans `answer_sentences`, 2 à 4 phrases maximum : accroche
-   (ambiance, occasion, idée du plat), sans recopier les quantités ni la marche
-   à suivre. Dans chaque carte recette, mets **`ingredients` et `steps` à des
+   L'Orient-Le Jour. Dans `answer_sentences`, 3 à 4 phrases VIVANTES et SPÉCIFIQUES
+   à CET article, ancrées dans le CONTEXTE : mets en avant ce qui rend ce plat (ou
+   cette version) singulier — l'histoire ou le geste du chef, une anecdote, une
+   technique ou un ingrédient distinctif, une dimension culturelle ou sensorielle.
+   Nomme le chef quand il est connu. ÉVITE les généralités creuses et
+   interchangeables (ex. « une pâte fine que l'on pétrit avec soin ») : sois concret,
+   imagé, et fidèle à l'extrait. NE recopie PAS les quantités ni la marche à suivre.
+   Dans chaque carte recette, mets **`ingredients` et `steps` à des
    tableaux vides `[]`** — le titre, chef, durée, portions peuvent rester si utiles ;
    le lien article est affiché par l'interface. Les champs `duration_min`,
    `serves`, et toute mention de difficulté/temps doivent reprendre les valeurs
