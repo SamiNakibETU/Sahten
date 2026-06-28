@@ -908,6 +908,41 @@ class PipelineResult:
     cost_breakdown: dict[str, Any] | None = None
 
 
+# Garde d'entrée (sécurité) : injection de prompt / extraction des instructions /
+# jailbreak. Traité EN CODE (pas via le prompt, qui est précisément la cible).
+_PROMPT_ATTACK_RE = re.compile(
+    r"(?i)(?:"
+    r"ignore[a-z]*\s+(?:tou(?:te|s)?s?\s+)?(?:tes|les|ces|vos)\s+(?:instructions|consignes|r[èe]gles|directives)"
+    r"|(?:ton|votre|le|the)\s+(?:prompt|system\s+prompt)"
+    r"|prompt\s+syst[èe]me|system\s+prompt|your\s+(?:system\s+)?prompt|tes\s+instructions"
+    r"|tes\s+consignes|tes\s+r[èe]gles|tes\s+directives|tes\s+r[èe]gles\s+absolues"
+    r"|sans\s+(?:aucune\s+)?restrictions?|tu\s+es\s+maintenant|you\s+are\s+now"
+    r"|jailbreak|mode\s+d[ée]veloppeur|developer\s+mode|copie[- ]le\s+mot\s+pour\s+mot"
+    r"|r[ée]v[èe]le[a-z]*\s+(?:ton|tes|moi)|reveal\s+your"
+    r")"
+)
+
+
+def _build_security_redirect_answer() -> GroundedAnswer:
+    return GroundedAnswer(
+        answer_sentences=[
+            GroundedSentence(
+                text=(
+                    "Je suis Sahteïn, l'assistant culinaire de L'Orient-Le Jour. "
+                    "Je ne partage pas mes instructions internes, mais je serai "
+                    "ravi de vous aider à trouver une recette libanaise."
+                ),
+                source_chunk_ids=[],
+            )
+        ],
+        recipe_card=None,
+        recipe_card_secondary=None,
+        chef_card=None,
+        follow_up="Quel plat, ingrédient ou chef vous ferait envie ?",
+        confidence=0.0,
+    )
+
+
 class RagPipeline:
     def __init__(
         self,
@@ -1132,6 +1167,18 @@ class RagPipeline:
         timings: dict[str, int] = {}
         rerank_top_n = rerank_top_n or self.settings.rag_rerank_top_k
         model = resolve_llm_model(llm_model)
+
+        # Garde sécurité : injection / extraction du prompt / jailbreak -> refus
+        # canné, sans appeler le LLM (qui pourrait paraphraser ses instructions).
+        if _PROMPT_ATTACK_RE.search(user_query or ""):
+            log.info("rag.pipeline.security_redirect", query=(user_query or "")[:80])
+            return PipelineResult(
+                plan=QueryPlan(rewritten_query=(user_query or "").strip(), intent="mixed"),
+                hits=[],
+                reranked=[],
+                answer=_build_security_redirect_answer(),
+                timings_ms={},
+            )
 
         t0 = time.perf_counter()
         focus: SessionFocus | None = None
