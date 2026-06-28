@@ -472,17 +472,19 @@ def _norm_match(s: str) -> str:
     return "".join(ch for ch in t if not unicodedata.combining(ch))
 
 
-def _load_dish_entries() -> list[tuple[tuple[str, ...], str]]:
+def _load_dish_entries() -> list[tuple[tuple[str, ...], str, str | None]]:
     """Par plat : (termes normalisés >=4 car. pour la détection, forme canonique
-    indexée). Sert à détecter le plat demandé, vérifier la carte, et construire
-    une requête de retrieval propre."""
-    out: list[tuple[tuple[str, ...], str]] = []
+    indexée, pin_query optionnel). pin_query = requête distinctive et stable qui
+    pointe DÉTERMINISTE l'article du plat (plat+chef), pour les translittérations
+    où le retrieval vectoriel est instable."""
+    out: list[tuple[tuple[str, ...], str, str | None]] = []
     try:
         data = json.loads(_DISH_ALIASES_PATH.read_text(encoding="utf-8"))
     except Exception:  # noqa: BLE001
         return out
     for dish in data.get("dishes", []):
         canon = (dish.get("canonical_indexed") or "").strip()
+        pin = (dish.get("pin_query") or "").strip() or None
         terms: set[str] = set()
         if canon:
             terms.add(canon)
@@ -492,7 +494,7 @@ def _load_dish_entries() -> list[tuple[tuple[str, ...], str]]:
                     terms.add(v)
         norm = {_norm_match(t) for t in terms if len(_norm_match(t)) >= 4}
         if norm and canon:
-            out.append((tuple(sorted(norm, key=len, reverse=True)), canon))
+            out.append((tuple(sorted(norm, key=len, reverse=True)), canon, pin))
     return out
 
 
@@ -503,7 +505,7 @@ def _requested_dish_terms(user_query: str) -> list[str]:
     """Termes des plats explicitement nommés dans la requête (vide si aucun)."""
     qn = _norm_match(user_query)
     found: list[str] = []
-    for terms, _canon in _DISH_ENTRIES:
+    for terms, _canon, _pin in _DISH_ENTRIES:
         if any(t in qn for t in terms):
             found.extend(terms)
     return found
@@ -512,9 +514,18 @@ def _requested_dish_terms(user_query: str) -> list[str]:
 def _primary_dish_canonical(user_query: str) -> str | None:
     """Forme canonique indexée du premier plat connu nommé dans la requête."""
     qn = _norm_match(user_query)
-    for terms, canon in _DISH_ENTRIES:
+    for terms, canon, _pin in _DISH_ENTRIES:
         if any(t in qn for t in terms):
             return canon
+    return None
+
+
+def _primary_dish_pin(user_query: str) -> str | None:
+    """Requête-pin déterministe du premier plat épinglé nommé (sinon None)."""
+    qn = _norm_match(user_query)
+    for terms, _canon, pin in _DISH_ENTRIES:
+        if pin and any(t in qn for t in terms):
+            return pin
     return None
 
 
@@ -1304,8 +1315,13 @@ class RagPipeline:
         # (ex. "libanais") et perd l'article du plat. Vérifié via diagnose-retrieval :
         # "recette manaiche" -> 1474718 rang 1, mais "recette manaiche libanais" -> faux.
         if _requested_dish_terms(user_query):
+            _pin = _primary_dish_pin(user_query)
             _dish_canon = _primary_dish_canonical(user_query)
-            if _dish_canon and not plan.chef_slugs:
+            if _pin:
+                # Plat épinglé (translittération instable) : requête déterministe
+                # plat+chef qui pointe l'article connu de façon fiable.
+                base_q = _pin
+            elif _dish_canon and not plan.chef_slugs:
                 # Plat nommé sans chef précisé : requête canonique PROPRE. On
                 # strippe le bruit conversationnel ("je voudrais un X classique",
                 # "je veux du X") qui diluait le retrieval -> abstention.

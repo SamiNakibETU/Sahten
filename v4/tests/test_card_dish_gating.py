@@ -6,10 +6,22 @@ from backend.app.rag.pipeline import (
     _drop_speculative_ingredients,
     _ensure_recipe_card,
     _primary_dish_canonical,
+    _primary_dish_pin,
     _requested_dish_terms,
 )
 from backend.app.rag.reranker import RerankedHit
 from backend.app.rag.retriever import Hit
+
+
+def test_pin_query_for_manouche_cluster() -> None:
+    assert _primary_dish_pin("recette manouche") == "manaiche Salim Azzam Chouf"
+    assert _primary_dish_pin("manakish") == "manaiche Salim Azzam Chouf"
+    assert _primary_dish_pin("man'ouché au zaatar") == "manaiche Salim Azzam Chouf"
+
+
+def test_no_pin_for_unpinned_or_non_dish() -> None:
+    assert _primary_dish_pin("recette de taboulé") is None
+    assert _primary_dish_pin("une recette au poulet") is None
 
 
 def _rh(title: str, chunk_id: int = 101, chef: str = "Salim Azzam", score: float = 0.8) -> RerankedHit:

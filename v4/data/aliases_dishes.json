@@ -9,6 +9,7 @@
       "indexed_forms": ["manaïichs", "manaiche"],
       "source_article_id": 1474718,
       "source_title": "Les manaïichs du Chouf de Salim Azzam",
+      "pin_query": "manaiche Salim Azzam Chouf",
       "user_variants": ["manouche", "manouché", "man'ouché", "man'ouche", "manakish", "manakiche", "manaeesh", "mankoushe", "manouchi", "manouchee", "manoushe"],
       "validation": [
         {"query": "manaiche Salim Azzam", "found": true, "rank": 1},
