@@ -108,10 +108,11 @@ def test_drop_invented_ingredients_for_named_dish() -> None:
     assert _drop_speculative_ingredients(["zaatar", "pain-pita"], "recette manouche") == []
 
 
-def test_keep_typed_ingredient_for_dish_query() -> None:
-    # 'concombre' est réellement tapé -> conservé
-    out = _drop_speculative_ingredients(["concombre"], "recette de fattouche au concombre")
-    assert out == ["concombre"]
+def test_drop_all_ingredients_for_named_dish() -> None:
+    # plat nommé -> tous les filtres d'ingrédients retirés (le plat est la cible).
+    # Même un ingrédient tapé ne doit pas filtrer (l'article du plat l'a déjà).
+    assert _drop_speculative_ingredients(["concombre"], "recette de fattouche au concombre") == []
+    assert _drop_speculative_ingredients(["fromage"], "recette de manakish au fromage") == []
 
 
 def test_no_drop_when_no_dish_named() -> None:

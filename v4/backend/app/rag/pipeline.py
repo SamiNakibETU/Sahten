@@ -529,16 +529,13 @@ def _card_title_matches_requested_dish(
 
 
 def _drop_speculative_ingredients(slugs: list[str], user_query: str) -> list[str]:
-    """Requête nommant un plat connu → ne garder que les ingrédients réellement
-    tapés (le LLM invente parfois des composants, ex. manouche→zaatar/pain-pita,
-    qui en filtre dur excluent l'article du plat). Sinon, liste inchangée."""
+    """Requête nommant un plat connu → le PLAT est la cible : on retire TOUS les
+    filtres d'ingrédients. Le LLM extrait souvent des composants (zaatar, fromage),
+    voire le nom du plat lui-même ('manaiichs'), comme 'ingrédient' ; en filtre dur
+    cela exclut à tort l'article du plat (abstention). Sinon, liste inchangée."""
     if not slugs or not _requested_dish_terms(user_query):
         return slugs
-    qn = _norm_match(user_query)
-    return [
-        s for s in slugs
-        if any(_norm_match(t) in qn for t in slug_search_terms(s))
-    ]
+    return []
 
 
 def _ensure_recipe_card(
