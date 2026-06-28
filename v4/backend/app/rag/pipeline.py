@@ -551,24 +551,28 @@ def _ensure_recipe_card(
     if answer.recipe_card is not None or not reranked:
         return answer
     requested = _requested_dish_terms(user_query)
+    top = None
     if requested:
-        # Plat explicitement nommé : prendre le 1er article qui correspond au plat
-        # et le carter même si la confiance est moyenne (ce n'est pas une abstention).
+        # Plat explicitement nommé : 1er article qui correspond au plat (même si
+        # la confiance est moyenne — ce n'est pas une abstention).
         top = next(
             (r for r in reranked
              if _card_title_matches_requested_dish(r.hit.article_title, requested)),
             None,
         )
-        if top is None:
-            return answer
-    else:
-        # Requête non-plat (ingrédient / catégorie / humeur) : respecter une
-        # éventuelle abstention (confiance basse) ou une pertinence trop faible.
-        if (answer.confidence or 0.0) < 0.5:
-            return answer
+    elif (answer.confidence or 0.0) >= 0.5 and reranked[0].rerank_score >= min_score:
+        # Requête non-plat : carter le top si pas une abstention et pertinence ok.
         top = reranked[0]
-        if top.rerank_score < min_score:
-            return answer
+    log.info(
+        "rag.pipeline.ensure_card",
+        q=(user_query or "")[:60],
+        requested=len(requested),
+        n_reranked=len(reranked),
+        top0=(reranked[0].hit.article_title[:48] if reranked else None),
+        built=bool(top),
+    )
+    if top is None:
+        return answer
     card = RecipeCard(
         title=top.hit.article_title,
         chef=_chef_name_from_metadata(top.hit.metadata),
