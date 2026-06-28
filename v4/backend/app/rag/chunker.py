@@ -27,6 +27,7 @@ import tiktoken
 from bs4 import BeautifulSoup
 
 from ..ingestion.html_sectionizer import Section
+from .aliases import article_alias_text
 
 
 MAX_TOKENS = 320
@@ -201,6 +202,11 @@ def _build_anchor_chunk(
     if "chef_bio" in by_kind:
         head = by_kind["chef_bio"].heading or "Chef"
         pieces.append(head)
+    # Enrichissement systémique : alias/translittérations du plat, indexés dans
+    # search_tsv (recherche lexicale déterministe quelle que soit la graphie).
+    alias_text = article_alias_text(article_title)
+    if alias_text:
+        pieces.append(f"Aussi appelé : {alias_text}")
     if len(pieces) <= 1:
         return None
     body = "\n".join(pieces)
