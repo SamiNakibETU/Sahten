@@ -31,6 +31,7 @@ from ..llm.response_generator import (
     GroundedSentence,
     RecipeCard,
     ResponseGenerator,
+    _chef_name_from_metadata,
     validate_grounding,
 )
 from ..llm.models_config import resolve_llm_model
@@ -538,6 +539,42 @@ def _drop_speculative_ingredients(slugs: list[str], user_query: str) -> list[str
         s for s in slugs
         if any(_norm_match(t) in qn for t in slug_search_terms(s))
     ]
+
+
+def _ensure_recipe_card(
+    answer: GroundedAnswer,
+    reranked: list[RerankedHit],
+    user_query: str,
+    min_score: float,
+) -> GroundedAnswer:
+    """Si un article-recette pertinent a été trouvé mais que la génération n'a pas
+    émis de carte (elle a seulement décrit le plat), synthétiser une carte minimale
+    depuis l'article (titre + chef ; le lien est rendu par l'UI). Respecte les
+    abstentions (confiance < 0.5) et la faible pertinence (score < min_score)."""
+    if answer.recipe_card is not None or not reranked:
+        return answer
+    if (answer.confidence or 0.0) < 0.5:
+        return answer
+    top = reranked[0]
+    if top.rerank_score < min_score:
+        return answer
+    requested = _requested_dish_terms(user_query)
+    if requested and not _card_title_matches_requested_dish(top.hit.article_title, requested):
+        top = next(
+            (r for r in reranked
+             if _card_title_matches_requested_dish(r.hit.article_title, requested)),
+            None,
+        ) or (None if requested else top)
+        if top is None:
+            return answer
+    card = RecipeCard(
+        title=top.hit.article_title,
+        chef=_chef_name_from_metadata(top.hit.metadata),
+        source_chunk_ids=[top.hit.chunk_id],
+        ingredients=[],
+        steps=[],
+    )
+    return answer.model_copy(update={"recipe_card": card})
 
 
 def _expand_query_with_aliases(q: str) -> str:
@@ -1501,6 +1538,12 @@ class RagPipeline:
                 answer = answer.model_copy(
                     update={"recipe_card": None, "recipe_card_secondary": None}
                 )
+
+        # Si un article-recette pertinent a été trouvé mais sans carte émise
+        # (le LLM a décrit au lieu de carter), synthétiser la carte depuis l'article.
+        answer = _ensure_recipe_card(
+            answer, reranked, user_query, self.settings.rag_min_rerank_score
+        )
 
         timings["generation_ms"] = int((time.perf_counter() - t3) * 1000)
         timings["total_ms"] = sum(timings.values())

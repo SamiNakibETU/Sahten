@@ -1,11 +1,58 @@
 """Gating de pertinence des cartes recette par plat demandé (anti carte hors-sujet)."""
 
+from backend.app.llm.response_generator import GroundedAnswer, GroundedSentence
 from backend.app.rag.pipeline import (
     _card_title_matches_requested_dish,
     _drop_speculative_ingredients,
+    _ensure_recipe_card,
     _primary_dish_canonical,
     _requested_dish_terms,
 )
+from backend.app.rag.reranker import RerankedHit
+from backend.app.rag.retriever import Hit
+
+
+def _rh(title: str, chunk_id: int = 101, chef: str = "Salim Azzam", score: float = 0.8) -> RerankedHit:
+    h = Hit(
+        chunk_id=chunk_id, article_id=1, article_external_id=1474718, article_title=title,
+        article_url="", cover_image_url=None, section_kind="recipe_steps", chunk_text="...",
+        score_lex=None, score_vec=None, score_rrf=0.5, metadata={"featured_chef": chef},
+    )
+    return RerankedHit(hit=h, rerank_score=score)
+
+
+def _ans(conf: float, card=None) -> GroundedAnswer:
+    return GroundedAnswer(
+        answer_sentences=[GroundedSentence(text="Le manouche est une galette...", source_chunk_ids=[101])],
+        recipe_card=card, recipe_card_secondary=None, chef_card=None, follow_up="", confidence=conf,
+    )
+
+
+def test_ensure_card_synthesizes_when_relevant_article_found() -> None:
+    rh = _rh("Les manaïichs du Chouf de Salim Azzam")
+    out = _ensure_recipe_card(_ans(0.85), [rh], "recette manouche", 0.2)
+    assert out.recipe_card is not None
+    assert "mana" in out.recipe_card.title.lower()
+    assert out.recipe_card.chef == "Salim Azzam"
+
+
+def test_ensure_card_respects_abstention_low_confidence() -> None:
+    rh = _rh("Les manaïichs du Chouf de Salim Azzam")
+    out = _ensure_recipe_card(_ans(0.2), [rh], "recette de sushi", 0.2)
+    assert out.recipe_card is None
+
+
+def test_ensure_card_noop_when_card_exists() -> None:
+    from backend.app.llm.response_generator import RecipeCard
+    existing = RecipeCard(title="Déjà là")
+    out = _ensure_recipe_card(_ans(0.9, card=existing), [_rh("X")], "recette manouche", 0.2)
+    assert out.recipe_card is existing
+
+
+def test_ensure_card_skips_when_dish_named_but_no_match() -> None:
+    rh = _rh("Le sfouf libanais")  # ne matche pas "manouche"
+    out = _ensure_recipe_card(_ans(0.85), [rh], "recette manouche", 0.2)
+    assert out.recipe_card is None
 
 
 def test_primary_dish_canonical_strips_conversational_noise() -> None:
