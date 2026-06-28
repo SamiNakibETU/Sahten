@@ -55,6 +55,14 @@ def test_ensure_card_skips_when_dish_named_but_no_match() -> None:
     assert out.recipe_card is None
 
 
+def test_ensure_card_for_named_dish_even_low_confidence() -> None:
+    # plat nommé + article correspondant -> carte même si confiance moyenne
+    rh = _rh("Les manaïichs du Chouf de Salim Azzam")
+    out = _ensure_recipe_card(_ans(0.35), [rh], "recette manouche", 0.2)
+    assert out.recipe_card is not None
+    assert "mana" in out.recipe_card.title.lower()
+
+
 def test_primary_dish_canonical_strips_conversational_noise() -> None:
     assert _primary_dish_canonical("je voudrais un hommos classique") == "houmous"
     assert _primary_dish_canonical("je veux du hommos") == "houmous"

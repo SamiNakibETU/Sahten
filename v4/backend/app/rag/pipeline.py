@@ -553,19 +553,24 @@ def _ensure_recipe_card(
     abstentions (confiance < 0.5) et la faible pertinence (score < min_score)."""
     if answer.recipe_card is not None or not reranked:
         return answer
-    if (answer.confidence or 0.0) < 0.5:
-        return answer
-    top = reranked[0]
-    if top.rerank_score < min_score:
-        return answer
     requested = _requested_dish_terms(user_query)
-    if requested and not _card_title_matches_requested_dish(top.hit.article_title, requested):
+    if requested:
+        # Plat explicitement nommé : prendre le 1er article qui correspond au plat
+        # et le carter même si la confiance est moyenne (ce n'est pas une abstention).
         top = next(
             (r for r in reranked
              if _card_title_matches_requested_dish(r.hit.article_title, requested)),
             None,
-        ) or (None if requested else top)
+        )
         if top is None:
+            return answer
+    else:
+        # Requête non-plat (ingrédient / catégorie / humeur) : respecter une
+        # éventuelle abstention (confiance basse) ou une pertinence trop faible.
+        if (answer.confidence or 0.0) < 0.5:
+            return answer
+        top = reranked[0]
+        if top.rerank_score < min_score:
             return answer
     card = RecipeCard(
         title=top.hit.article_title,
