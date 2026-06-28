@@ -471,41 +471,50 @@ def _norm_match(s: str) -> str:
     return "".join(ch for ch in t if not unicodedata.combining(ch))
 
 
-def _load_dish_match_terms() -> list[tuple[str, ...]]:
-    """Par plat : termes normalisés (>=4 car.) pour détecter le plat demandé et
-    vérifier qu'une carte recette le concerne bien (anti carte hors-sujet)."""
-    out: list[tuple[str, ...]] = []
+def _load_dish_entries() -> list[tuple[tuple[str, ...], str]]:
+    """Par plat : (termes normalisés >=4 car. pour la détection, forme canonique
+    indexée). Sert à détecter le plat demandé, vérifier la carte, et construire
+    une requête de retrieval propre."""
+    out: list[tuple[tuple[str, ...], str]] = []
     try:
         data = json.loads(_DISH_ALIASES_PATH.read_text(encoding="utf-8"))
     except Exception:  # noqa: BLE001
         return out
     for dish in data.get("dishes", []):
+        canon = (dish.get("canonical_indexed") or "").strip()
         terms: set[str] = set()
-        canon = dish.get("canonical_indexed")
-        if isinstance(canon, str):
+        if canon:
             terms.add(canon)
         for key in ("indexed_forms", "user_variants"):
             for v in dish.get(key, []) or []:
                 if isinstance(v, str):
                     terms.add(v)
-        norm = {_norm_match(t) for t in terms}
-        norm = {t for t in norm if len(t) >= 4}
-        if norm:
-            out.append(tuple(sorted(norm, key=len, reverse=True)))
+        norm = {_norm_match(t) for t in terms if len(_norm_match(t)) >= 4}
+        if norm and canon:
+            out.append((tuple(sorted(norm, key=len, reverse=True)), canon))
     return out
 
 
-_DISH_MATCH_TERMS = _load_dish_match_terms()
+_DISH_ENTRIES = _load_dish_entries()
 
 
 def _requested_dish_terms(user_query: str) -> list[str]:
     """Termes des plats explicitement nommés dans la requête (vide si aucun)."""
     qn = _norm_match(user_query)
     found: list[str] = []
-    for terms in _DISH_MATCH_TERMS:
+    for terms, _canon in _DISH_ENTRIES:
         if any(t in qn for t in terms):
             found.extend(terms)
     return found
+
+
+def _primary_dish_canonical(user_query: str) -> str | None:
+    """Forme canonique indexée du premier plat connu nommé dans la requête."""
+    qn = _norm_match(user_query)
+    for terms, canon in _DISH_ENTRIES:
+        if any(t in qn for t in terms):
+            return canon
+    return None
 
 
 def _card_title_matches_requested_dish(
@@ -1213,14 +1222,20 @@ class RagPipeline:
         # (ex. "libanais") et perd l'article du plat. Vérifié via diagnose-retrieval :
         # "recette manaiche" -> 1474718 rang 1, mais "recette manaiche libanais" -> faux.
         if _requested_dish_terms(user_query):
-            _canon_raw = _canonicalize_dish_aliases((user_query or "").strip())
-            if _canon_raw:
-                # Forme nue (1-2 mots sans "recette") -> requête vectorielle trop
-                # sparse et instable (ex. "manaiche" seul). On stabilise en
-                # préfixant "recette" (ex. "recette manaiche" -> 1474718 rang 1).
-                if len(_canon_raw.split()) <= 2 and "recette" not in _canon_raw.lower():
-                    _canon_raw = f"recette {_canon_raw}"
-                base_q = _canon_raw
+            _dish_canon = _primary_dish_canonical(user_query)
+            if _dish_canon and not plan.chef_slugs:
+                # Plat nommé sans chef précisé : requête canonique PROPRE. On
+                # strippe le bruit conversationnel ("je voudrais un X classique",
+                # "je veux du X") qui diluait le retrieval -> abstention.
+                base_q = f"recette {_dish_canon}"
+            else:
+                # Plat + chef (ou cas particulier) : garder la formulation (le
+                # chef désambiguïse, ex. taboulé de Kamal Mouzawak).
+                _canon_raw = _canonicalize_dish_aliases((user_query or "").strip())
+                if _canon_raw:
+                    if len(_canon_raw.split()) <= 2 and "recette" not in _canon_raw.lower():
+                        _canon_raw = f"recette {_canon_raw}"
+                    base_q = _canon_raw
         q = _expand_search_q_with_ingredients(base_q, plan)
         if focus and (focus.search_boost_phrase or "").strip():
             q = f"{q} {(focus.search_boost_phrase or '').strip()}".strip()

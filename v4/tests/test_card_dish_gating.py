@@ -3,8 +3,20 @@
 from backend.app.rag.pipeline import (
     _card_title_matches_requested_dish,
     _drop_speculative_ingredients,
+    _primary_dish_canonical,
     _requested_dish_terms,
 )
+
+
+def test_primary_dish_canonical_strips_conversational_noise() -> None:
+    assert _primary_dish_canonical("je voudrais un hommos classique") == "houmous"
+    assert _primary_dish_canonical("je veux du hommos") == "houmous"
+    assert _primary_dish_canonical("recette manouche") == "manaiche"
+    assert _primary_dish_canonical("manakish") == "manaiche"
+
+
+def test_primary_dish_canonical_none_when_no_dish() -> None:
+    assert _primary_dish_canonical("une recette au poulet pour ce soir") is None
 
 
 def test_requested_dish_terms_detects_manouche() -> None:
