@@ -20,5 +20,25 @@ def test_taboule_article_gets_user_spellings() -> None:
     assert "tabbouleh" in txt or "taboule" in txt
 
 
+def test_sfiha_links_via_lahm_bi_ajin_title() -> None:
+    # le plat "sfiha" est indexé sous le titre "Lahm bi ajin" -> graphies rattachées
+    txt = article_alias_text("Lahm bi ajin tripolitaine d'Alan Geaam")
+    assert "sfiha" in txt
+    assert "sfeeha" in txt
+    # faux ami : sfouf (gâteau) ne doit PAS être rattaché ici
+    assert "sfouf" not in txt
+
+
+def test_warak_enab_links_via_title() -> None:
+    txt = article_alias_text("Warak enab (Feuilles de vigne farcies) de Tara Khattar")
+    assert "dolma" in txt
+    assert "warak" in txt
+
+
+def test_chawarma_and_falafel_spelling_variants() -> None:
+    assert "shawarma" in article_alias_text("Le chawarma de poulet de John Achkar")
+    assert "falafil" in article_alias_text("Les falafels « maison » d'Andrée Maalouf")
+
+
 def test_no_alias_for_unknown_dish() -> None:
     assert article_alias_text("Un plat inconnu xyzzy sans correspondance") == ""

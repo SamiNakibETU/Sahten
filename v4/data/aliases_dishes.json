@@ -134,6 +134,63 @@
       "source_title": "(houmous — déjà géré par _ALIAS_GROUPS, ajouté ici pour audit)",
       "user_variants": ["hommos", "hummus", "hoummous", "homos", "hommous", "humus"],
       "validation": []
+    },
+    {
+      "canonical": "moutabbal",
+      "canonical_indexed": "moutabbal",
+      "indexed_forms": ["moutabbal"],
+      "source_article_id": 1368004,
+      "source_title": "Le moutabbal de koussa ... à l'ambassade",
+      "user_variants": ["moutabbal", "moutabal", "mtabbal", "m'tabbal", "mutabbal", "moutabbel"],
+      "validation": [],
+      "note": "Présent nativement ; on couvre les graphies. DISTINCT de baba ghanouj (ici = koussa, pas aubergine)."
+    },
+    {
+      "canonical": "baba ghanouj",
+      "canonical_indexed": "baba ghanouj",
+      "indexed_forms": ["baba ghanouj"],
+      "source_article_id": 1495342,
+      "source_title": "La salade de baba ghanouj (purée d'aubergine)",
+      "user_variants": ["baba ghanouj", "baba ghannouj", "baba ghanoush", "baba ganoush", "baba ganouch", "baba ghanoug"],
+      "validation": [],
+      "note": "Article distinct du moutabbal (#1368004)."
+    },
+    {
+      "canonical": "warak enab",
+      "canonical_indexed": "warak enab",
+      "indexed_forms": ["warak enab", "feuilles de vigne"],
+      "source_article_id": 1468901,
+      "source_title": "Warak enab (Feuilles de vigne farcies) de Tara Khattar",
+      "user_variants": ["warak enab", "warak 3enab", "wara2 enab", "warak inab", "warak einab", "feuilles de vigne farcies", "dolma", "dolmas", "yaprak"],
+      "validation": []
+    },
+    {
+      "canonical": "sfiha",
+      "canonical_indexed": "lahm bi ajin",
+      "indexed_forms": ["lahm bi ajin", "lahm bi ajine"],
+      "source_article_id": 1469084,
+      "source_title": "Lahm bi ajin tripolitaine d'Alan Geaam",
+      "user_variants": ["sfiha", "sfeeha", "sfee7a", "sfi7a", "sfihas", "lahm bi aajine", "lahm bi ajeen", "lahmajun", "lahmacun", "lahme bi ajine"],
+      "validation": [],
+      "note": "sfiha = lahm bi ajine (viande sur pâte). NE PAS confondre avec sfouf (#1498245, gâteau au curcuma)."
+    },
+    {
+      "canonical": "falafel",
+      "canonical_indexed": "falafel",
+      "indexed_forms": ["falafel", "falafels"],
+      "source_article_id": 1501470,
+      "source_title": "Les falafels « maison » d'Andrée Maalouf",
+      "user_variants": ["falafel", "falafil", "felafel", "falaffel", "falafal"],
+      "validation": []
+    },
+    {
+      "canonical": "chawarma",
+      "canonical_indexed": "chawarma",
+      "indexed_forms": ["chawarma"],
+      "source_article_id": 1474401,
+      "source_title": "Le chawarma de poulet de John Achkar",
+      "user_variants": ["chawarma", "shawarma", "chawerma", "shawerma", "chaourma", "chawarmas", "shaurma", "chawarmah"],
+      "validation": []
     }
   ]
 }
