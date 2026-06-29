@@ -15,7 +15,7 @@ import json
 import re
 import time
 import unicodedata
-from collections import defaultdict
+from collections import Counter, defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -595,6 +595,61 @@ def _ensure_recipe_card(
         steps=[],
     )
     return answer.model_copy(update={"recipe_card": card})
+
+
+_REFUSAL_RE = re.compile(
+    r"(?i)(?:je ne peux pas|je ne partage pas|je ne traite que|à l'encontre|"
+    r"contenu (?:nuisible|haineux|raciste)|je suis ici pour vous accompagner|"
+    r"je ne (?:fais|donne|fournis) pas|cela va à l'encontre|je préfère rester)"
+)
+
+
+def _is_refusal_text(text: str) -> bool:
+    return bool(_REFUSAL_RE.search(text or ""))
+
+
+def _align_card_with_cited_article(
+    answer: GroundedAnswer, reranked: list[RerankedHit]
+) -> GroundedAnswer:
+    """Cohérence carte/texte : si la carte pointe un autre article que celui que les
+    PHRASES citent majoritairement (ex. texte « Lahm bi aajine » + carte « velouté »),
+    on réaligne la carte sur l'article dominant cité."""
+    rc = answer.recipe_card
+    if rc is None or not reranked:
+        return answer
+    by_chunk = {h.hit.chunk_id: int(h.hit.article_external_id) for h in reranked}
+    card_aids = {by_chunk[c] for c in (rc.source_chunk_ids or []) if c in by_chunk}
+    cited: list[int] = []
+    for s in answer.answer_sentences:
+        for c in s.source_chunk_ids or []:
+            if c in by_chunk:
+                cited.append(by_chunk[c])
+    if not cited:
+        return answer
+    dom_aid = Counter(cited).most_common(1)[0][0]
+    if not card_aids or dom_aid in card_aids:
+        return answer  # déjà cohérent
+    top = next(
+        (h for h in reranked if int(h.hit.article_external_id) == dom_aid), None
+    )
+    if top is None:
+        return answer
+    log.info(
+        "rag.pipeline.card_realigned_to_cited_article",
+        old=(rc.title or "")[:60],
+        new=(top.hit.article_title or "")[:60],
+    )
+    return answer.model_copy(
+        update={
+            "recipe_card": RecipeCard(
+                title=top.hit.article_title,
+                chef=_chef_name_from_metadata(top.hit.metadata),
+                source_chunk_ids=[top.hit.chunk_id],
+                ingredients=[],
+                steps=[],
+            )
+        }
+    )
 
 
 def _expand_query_with_aliases(q: str) -> str:
@@ -1830,6 +1885,15 @@ class RagPipeline:
         # Gating de pertinence de la carte : si l'utilisateur nomme un plat précis
         # et que la carte proposée n'y correspond pas (titre), on la retire plutôt
         # que d'afficher une fiche hors-sujet (bug "manouche -> Lahm bi aajine").
+        # Réponse de refus / sécurité : pas de carte recette hors-sujet (ex. refus
+        # « blague raciste » qui se voyait coller une carte kafta).
+        if answer.recipe_card is not None and _is_refusal_text(
+            " ".join(s.text for s in answer.answer_sentences)
+        ):
+            log.info("rag.pipeline.recipe_card_dropped_refusal", query=user_query[:80])
+            answer = answer.model_copy(
+                update={"recipe_card": None, "recipe_card_secondary": None}
+            )
         if answer.recipe_card is not None:
             _requested = _requested_dish_terms(user_query)
             if _requested and not _card_title_matches_requested_dish(
@@ -1849,6 +1913,8 @@ class RagPipeline:
         answer = _ensure_recipe_card(
             answer, reranked, user_query, self.settings.rag_min_rerank_score
         )
+        # Cohérence carte/texte : la carte doit parler du même article que le texte.
+        answer = _align_card_with_cited_article(answer, reranked)
 
         timings["generation_ms"] = int((time.perf_counter() - t3) * 1000)
         timings["total_ms"] = sum(timings.values())

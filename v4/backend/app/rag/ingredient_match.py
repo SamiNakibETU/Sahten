@@ -348,6 +348,27 @@ def filter_reranked_by_ingredient_slugs(
     return [r for r in reranked if int(r.hit.article_external_id) in valid]
 
 
+# Marqueurs d'ACCOMPAGNEMENT dans un titre : l'ingrédient n'est pas le sujet du
+# plat mais un à-côté (« … à la tomate », « … au citron », « … et concombre »).
+_ACCOMPANIMENT_PREFIX_RE = re.compile(r"(?:a la |a l |au |aux |et |avec |sauce )$")
+
+
+def _ingredient_central_in_title(title: str, terms: tuple[str, ...]) -> bool:
+    """True si l'ingrédient apparaît dans le titre comme SUJET (« kebbé de tomate »)
+    et pas seulement en accompagnement (« panade d'aubergines à la tomate »)."""
+    low = unicodedata.normalize("NFKD", (title or "").lower()).replace("’", "'")
+    low = "".join(c for c in low if not unicodedata.combining(c))
+    for term in terms:
+        t = term.lower().replace("-", " ")
+        for m in re.finditer(
+            rf"(?<![\w]){re.escape(t)}(?![\w])", low
+        ):
+            prefix = low[max(0, m.start() - 7): m.start()]
+            if not _ACCOMPANIMENT_PREFIX_RE.search(prefix):
+                return True
+    return False
+
+
 def rerank_by_ingredient_centrality(
     reranked: list[RerankedHit],
     slugs: list[str] | None,
@@ -357,12 +378,12 @@ def rerank_by_ingredient_centrality(
     """Ré-ordonne pour faire remonter les recettes où l'ingrédient est CENTRAL.
 
     Niveaux (tri stable, le score de rerank départage à l'intérieur d'un niveau) :
-    0. ingrédient dans le TITRE de l'article (ex. « La kebbé de tomate ») ;
-    1. ingrédient confirmé dans la section ingredients_list ;
-    2. simplement mentionné ailleurs (ex. « … peut s'accompagner de tomates »).
+    0. ingrédient SUJET du titre (« La kebbé de tomate ») ;
+    1. ingrédient en accompagnement dans le titre (« … à la tomate ») ;
+    2. ingrédient confirmé dans la section ingredients_list ;
+    3. simplement mentionné ailleurs (« … peut s'accompagner de tomates »).
 
-    Corrige le cas « recette tomate » → blette-qui-mentionne-tomate au lieu de
-    kebbé-de-tomate."""
+    Corrige « recette tomate » → panade d'aubergines/blette au lieu de kebbé-de-tomate."""
     if not slugs or len(reranked) < 2:
         return reranked
     by_article: dict[int, list[Hit]] = defaultdict(list)
@@ -373,8 +394,11 @@ def rerank_by_ingredient_centrality(
 
     def tier(r: RerankedHit) -> int:
         title = r.hit.article_title or ""
-        if any(text_contains_ingredient(title, slug_search_terms(s)) for s in slugs):
+        terms_per_slug = [slug_search_terms(s) for s in slugs]
+        if any(_ingredient_central_in_title(title, terms) for terms in terms_per_slug):
             return 0
+        if any(text_contains_ingredient(title, terms) for terms in terms_per_slug):
+            return 1
         arts = by_article.get(int(r.hit.article_external_id), [])
         if all(
             any(
@@ -383,8 +407,8 @@ def rerank_by_ingredient_centrality(
             )
             for s in slugs
         ):
-            return 1
-        return 2
+            return 2
+        return 3
 
     return sorted(reranked, key=lambda r: (tier(r), -float(r.rerank_score)))
 

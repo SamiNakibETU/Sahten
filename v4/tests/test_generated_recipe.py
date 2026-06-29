@@ -125,6 +125,17 @@ def test_ingredient_text_fallback_keeps_real_ingredient_drops_absent() -> None:
     assert filter_hits_by_ingredient_text(hits, ["katayef"]) == []
 
 
+def test_ingredient_centrality_prefers_subject_over_accompaniment() -> None:
+    from backend.app.rag.ingredient_match import rerank_by_ingredient_centrality
+    panade = _mk_hit(aid=1, title="La panade d'aubergines à la tomate et au basilic", url="u1", chunk_id=1)
+    kebbe = _mk_hit(aid=2, title="La kebbé de tomate de Carla Rebeiz", url="u2", chunk_id=2)
+    # panade a un meilleur score rerank mais tomate y est un accompagnement
+    object.__setattr__(panade, "rerank_score", 0.9)
+    object.__setattr__(kebbe, "rerank_score", 0.5)
+    out = rerank_by_ingredient_centrality([panade, kebbe], ["tomate"])
+    assert out[0].hit.article_external_id == 2  # kebbé DE tomate remonte en tête
+
+
 def test_normalize_dish() -> None:
     assert normalize_dish("Knéfé") == "knefe"
     assert normalize_dish("Baba Ghannouj'") == "baba ghannouj"
