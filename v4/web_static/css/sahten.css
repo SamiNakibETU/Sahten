@@ -288,12 +288,13 @@
     padding: 3px 38px 3px 8px;
   }
   .sahten-input {
-    font-size: 14px;
+    /* 16px : seuil sous lequel iOS Safari zoome au focus (anti-zoom) */
+    font-size: 16px;
     min-height: 32px;
   }
   .send-btn {
-    width: 28px;
-    height: 28px;
+    width: 30px;
+    height: 30px;
     right: 4px;
     border-radius: var(--radius-sm);
   }
@@ -462,13 +463,20 @@
   margin-right: 0;
   min-width: 48px;
   text-align: center;
-  transition: border-color 0.15s ease, color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color var(--dur-ui) var(--ease-out),
+    color var(--dur-ui) var(--ease-out),
+    background-color var(--dur-ui) var(--ease-out),
+    box-shadow var(--dur-ui) var(--ease-out),
+    transform var(--dur-press) var(--ease-out);
   line-height: 1;
 }
 .sahten-model-select:hover {
   border-color: rgba(0, 0, 0, 0.11);
   color: var(--text);
   background: rgba(0, 0, 0, 0.04);
+}
+.sahten-model-select:active {
+  transform: scale(0.97);
 }
 .sahten-model-select:focus {
   outline: none;
@@ -492,11 +500,33 @@
   justify-content: center;
   border-radius: var(--radius-sm);
   flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+  transition: background var(--dur-press) var(--ease-out),
+    color var(--dur-press) var(--ease-out),
+    transform var(--dur-press) var(--ease-out);
 }
-.sahten-size-btn:hover,
-.sahten-close-btn:hover {
-  color: var(--text);
-  background: rgba(0, 0, 0, 0.055);
+.sahten-size-btn svg,
+.sahten-close-btn svg {
+  transition: transform var(--dur-press) var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .sahten-size-btn:hover,
+  .sahten-close-btn:hover {
+    color: var(--text);
+    background: rgba(0, 0, 0, 0.055);
+  }
+}
+/* Feedback de press : l'UI confirme l'appui (skill Emil — buttons must feel responsive) */
+.sahten-size-btn:active,
+.sahten-close-btn:active {
+  transform: scale(0.92);
+  background: rgba(0, 0, 0, 0.08);
+}
+.sahten-size-btn:focus-visible,
+.sahten-close-btn:focus-visible {
+  outline: none;
+  background: rgba(0, 0, 0, 0.05);
+  box-shadow: 0 0 0 2px var(--ring-focus-neutral);
 }
 .sahten-size-btn.active {
   color: var(--text);
@@ -1726,18 +1756,26 @@
   background: var(--surface-app);
   border-top: 1px solid rgba(0, 0, 0, 0.06);
   border-bottom: none;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
 }
 .input-wrapper {
   display: flex;
   align-items: stretch;
   position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   min-height: 40px;
-  padding: 4px 40px 4px 10px;
+  padding: 4px 42px 4px 12px;
   background: var(--footer-field-bg);
   border: 1px solid var(--footer-field-border);
   border-radius: var(--footer-field-radius);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
-  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+  transition: border-color var(--dur-ui) var(--ease-out),
+    box-shadow var(--dur-ui) var(--ease-out);
 }
 .input-wrapper:focus-within {
   border-color: rgba(148, 194, 174, 0.5);
@@ -1745,6 +1783,9 @@
 }
 .sahten-input {
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
   padding: 8px 6px 8px 0;
   border: none;
   background: transparent;
