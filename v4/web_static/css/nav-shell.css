@@ -10,6 +10,12 @@
   --nav-green-d: #2a6452;
   --nav-ui: "DM Sans", system-ui, sans-serif;
   --nav-serif: "Playfair Display", Georgia, serif;
+  /* Rayons + motion unifiés (cohérence widget / homepage) */
+  --radius-xs: 6px;
+  --radius-sm: 8px;
+  --radius-pill: 999px;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --dur-press: 140ms;
 }
 
 nav.top {
@@ -139,7 +145,7 @@ nav.top {
   margin-left: 2px;
   padding: 6px 10px;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--radius-xs);
   background: transparent;
   cursor: pointer;
   font-family: var(--nav-ui, "DM Sans", system-ui, sans-serif);
@@ -212,7 +218,7 @@ nav.top {
   color: var(--nav-ink-3, #999);
   border: 1px solid var(--nav-line, rgba(0, 0, 0, 0.08));
   padding: 5px 10px;
-  border-radius: 6px;
+  border-radius: var(--radius-xs);
   text-decoration: none;
   margin-left: 2px;
   flex-shrink: 0;

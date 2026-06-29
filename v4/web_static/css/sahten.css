@@ -28,9 +28,18 @@
   --backdrop-blur-mid: 20px;
   --backdrop-blur-full: 24px;
   --backdrop-overlay: rgba(43, 43, 43, 0.08);
+  /* Échelle de rayons UNIFIÉE (une seule source de vérité) */
+  --radius-xs: 6px;
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
+  --radius-pill: 999px;
+  --radius-full: 50%;
+  /* Motion — courbes custom (skill Emil Kowalski) + durées calibrées */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --dur-press: 140ms;
+  --dur-ui: 200ms;
   /* Élévation type produit (léger contour + diffuse large) */
   --shadow-soft: 0 0 0 1px rgba(0, 0, 0, 0.04), 0 12px 48px rgba(0, 0, 0, 0.07), 0 4px 16px rgba(0, 0, 0, 0.04);
   --surface-app: #fafafa;
@@ -55,10 +64,10 @@
   --welcome-pill-pad-y: 1px;
   --welcome-example-fs: 13px;
   --welcome-example-lh: 1.4;
-  --welcome-example-radius: 10px;
+  --welcome-example-radius: var(--radius-md);
   --footer-field-bg: #ffffff;
   --footer-field-border: rgba(0, 0, 0, 0.09);
-  --footer-field-radius: 10px;
+  --footer-field-radius: var(--radius-md);
   --welcome-mascot-header: 30px;
   --welcome-mascot-inline: 28px;
 }
@@ -137,7 +146,7 @@
   height: 4px;
   margin: 8px auto 0;
   background: rgba(0, 0, 0, 0.1);
-  border-radius: 99px;
+  border-radius: var(--radius-pill);
 }
 @media (max-width: 480px) {
   .sahten-drag-handle {
@@ -286,7 +295,7 @@
     width: 28px;
     height: 28px;
     right: 4px;
-    border-radius: 7px;
+    border-radius: var(--radius-sm);
   }
   .send-btn svg {
     width: 13px;
@@ -446,7 +455,7 @@
   color: #737373;
   background: rgba(0, 0, 0, 0.03);
   border: 1px solid rgba(0, 0, 0, 0.07);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   appearance: none;
   -webkit-appearance: none;
@@ -481,7 +490,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   flex-shrink: 0;
 }
 .sahten-size-btn:hover,
@@ -503,7 +512,7 @@
   margin-left: 4px;
   padding: 0;
   border-left: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: var(--radius-xs);
   min-width: 36px;
   width: 36px;
   color: #555;
@@ -590,7 +599,7 @@
 .sahten-narrative .sahten-recipe-card--preview {
   margin: 0;
   border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   background: #fff;
   overflow: hidden;
 }
@@ -1239,7 +1248,7 @@
   padding: 0.3rem 0.4rem;
   font-size: 13px;
   line-height: 1.4;
-  border-radius: 5px;
+  border-radius: var(--radius-xs);
 }
 .welcome-example-prompt:hover {
   border-color: color-mix(in srgb, var(--sahten-badge-green) 55%, var(--border));
@@ -1412,7 +1421,7 @@
   background: var(--border);
   background-size: cover;
   background-position: center;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
 }
 .recipe-image.no-image {
   background: linear-gradient(135deg, rgba(0, 0, 0, 0.06) 0%, rgba(0, 0, 0, 0.02) 100%);
@@ -1474,7 +1483,7 @@
   color: var(--text-secondary);
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   padding: 2px 7px;
   white-space: nowrap;
   max-width: 100px;
@@ -1577,7 +1586,7 @@
   background: var(--border);
   background-size: cover;
   background-position: center;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
 }
 .restaurant-image.no-image {
   background: linear-gradient(135deg, rgba(0, 0, 0, 0.06) 0%, rgba(0, 0, 0, 0.02) 100%);
@@ -1642,7 +1651,7 @@
   min-height: 180px;
   height: 200px;
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
@@ -1783,8 +1792,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 8px;
-  transition: background 0.18s ease, transform 0.14s ease, box-shadow 0.18s ease;
+  border-radius: var(--radius-sm);
+  transition: background var(--dur-ui) var(--ease-out),
+    transform var(--dur-press) var(--ease-out),
+    box-shadow var(--dur-ui) var(--ease-out);
   box-shadow: 0 1px 3px rgba(148, 194, 174, 0.4);
 }
 .send-btn:hover {
@@ -1830,7 +1841,7 @@
   padding: 6px 12px;
   background: var(--surface-panel);
   border: 1px solid rgba(0, 0, 0, 0.07);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   box-shadow: 0 1px 8px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(0, 0, 0, 0.02);
   font-family: var(--font-ui);
   font-size: 11px;
@@ -1969,7 +1980,7 @@
 .loading-dots .dot {
   width: 6px;
   height: 6px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   background: rgba(0, 0, 0, 0.28);
   animation: sahten-pulse 1.2s ease-in-out infinite;
 }
@@ -1999,7 +2010,7 @@
   font-size: 12px;
   border: 1px solid var(--border);
   background: white;
-  border-radius: 6px;
+  border-radius: var(--radius-xs);
   cursor: pointer;
   font-family: var(--font-ui);
 }
@@ -2019,14 +2030,14 @@
   flex: 1;
   padding: 8px 12px;
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: var(--radius-xs);
   font-size: 13px;
 }
 .feedback-submit-btn {
   padding: 8px 14px;
   background: var(--text);
   border: none;
-  border-radius: 6px;
+  border-radius: var(--radius-xs);
   color: white;
   cursor: pointer;
   font-size: 12px;
@@ -2034,4 +2045,17 @@
 .feedback-thanks {
   font-size: 12px;
   color: var(--text-muted);
+}
+
+/* Accessibilité — respect de prefers-reduced-motion (skill Emil Kowalski :
+   moins de mouvement, pas zéro). Scopé au widget pour ne pas toucher le site hôte. */
+@media (prefers-reduced-motion: reduce) {
+  .sahten-widget-container,
+  .sahten-widget-container *,
+  .sahten-backdrop {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
