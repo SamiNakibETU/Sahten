@@ -1673,7 +1673,18 @@ class RagPipeline:
         timings["retrieval_ms"] = int((time.perf_counter() - t1) * 1000)
 
         t2 = time.perf_counter()
+        # Pour une requête PAR INGRÉDIENT, reranker sur le terme ingrédient lui-même
+        # (« recette tomate ») et non sur la requête reformulée diluée
+        # (« recette libanaise avec des tomates ») : sinon les recettes où l'ingrédient
+        # est central scorent bas -> coupées par le seuil -> réponse vide à tort,
+        # et le ranking remonte des plats hors-sujet.
         rq = q
+        if plan.ingredient_slugs:
+            ing_terms = " ".join(
+                ingredient_display_name(s) for s in plan.ingredient_slugs
+            ).strip()
+            if ing_terms:
+                rq = f"recette {ing_terms}"
         hits_for_rerank = hits
         if self.settings.rag_prererank_interleave and len(hits) > 1:
             hits_for_rerank = _interleave_hits_by_article(hits)
