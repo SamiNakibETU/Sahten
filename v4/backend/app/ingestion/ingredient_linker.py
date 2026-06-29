@@ -12,6 +12,7 @@ from ..rag.ingredient_match import (
     canonical_ingredient_slug,
     extract_ingredient_slugs_from_text,
     ingredient_display_name,
+    parse_ingredient_slugs_from_lines,
     scan_known_ingredient_slugs,
 )
 
@@ -97,8 +98,16 @@ async def link_article_ingredients(
         .order_by(models.ArticleSection.position)
     )
     sections = res.scalars().all()
+    # 1) DATA-DRIVEN : on parse les vraies LIGNES de la liste d'ingrédients de la
+    #    recette -> vocabulaire complet, quel que soit l'ingrédient (pas de liste figée).
+    list_blob = "\n".join(
+        (s.text or "") for s in sections if s.kind == "ingredients_list"
+    )
+    slugs = parse_ingredient_slugs_from_lines(list_blob)
+    # 2) Complément : alias connus (translittérations arabes khyar->concombre, etc.)
+    #    scannés sur toutes les sections, au cas où la ligne aurait été ratée.
     blob = "\n".join((s.text or "") for s in sections)
-    slugs = extract_ingredient_slugs_from_text(blob)
+    slugs.extend(extract_ingredient_slugs_from_text(blob))
     slugs.extend(scan_known_ingredient_slugs(blob))
     seen: set[str] = set()
     ordered: list[str] = []

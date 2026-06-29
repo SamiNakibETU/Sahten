@@ -250,6 +250,85 @@ def extract_excluded_ingredient_slugs(text: str) -> list[str]:
     return out
 
 
+# ── Extraction data-driven d'un ingrédient depuis une LIGNE de liste de recette ──
+# « 300 g de semoule fine » -> 'semoule' ; « 1/2 tasse de jus de citron » -> 'citron'.
+# Construit le vocabulaire d'ingrédients À PARTIR DES DONNÉES (pas de liste figée).
+_ING_UNITS = (
+    r"(?:g|gr|kg|mg|ml|cl|dl|l|càs|càc|c\.?\s*à\s*(?:soupe|caf[ée]|s|c)\.?|"
+    r"cuill[èe]r\w*|tasses?|verres?|pinc[ée]es?|gousses?|bottes?|branches?|brins?|"
+    r"tranches?|sachets?|bo[îi]tes?|pi[èe]ces?|feuilles?|filets?|tiges?|poign[ée]es?|"
+    r"louches?|doses?|barquettes?|paquets?|kg)"
+)
+_ING_LEAD = re.compile(r"^[\s\d.,/½¼¾⅓⅔⅛°x×+-]+", re.I)
+_ING_UNIT = re.compile(rf"^{_ING_UNITS}\b\.?\s*", re.I)
+_ING_ART = re.compile(
+    r"^(?:de\s+la\s+|de\s+l['’]|du\s+|des\s+|de\s+|d['’]\s*|d\s+|à\s+|au\s+|aux\s+|"
+    r"le\s+|la\s+|les\s+|un\s+|une\s+|quelques\s+|environ\s+|gros(?:se)?s?\s+|"
+    r"petits?\s+|belles?\s+|beaux?\s+)+",
+    re.I,
+)
+_ING_CONTAINER = {
+    "jus", "huile", "filet", "filets", "zeste", "zestes", "coeur", "coeurs",
+    "tranche", "tranches", "morceau", "morceaux", "gousse", "gousses", "botte",
+    "feuille", "feuilles", "brin", "brins", "poignee",
+}
+_ING_ADJ = {
+    "fine", "fin", "fraiche", "frais", "jaune", "rouge", "vert", "verte", "blanc",
+    "blanche", "mure", "mur", "mature", "moyen", "moyenne", "gros", "grosse",
+    "petit", "petite", "plat", "plate", "sec", "seche", "hache", "hachee", "rape",
+    "rapee", "entier", "entiere", "doux", "douce", "libanais", "liban", "libanaise",
+    "bio", "nature", "cuit", "cru", "crue", "grille", "grillee", "confit", "sale",
+    "sucre", "noir", "noire", "neuf", "nouvelle", "nouveau",
+}
+_ING_STOP = {
+    "de", "d", "la", "le", "les", "du", "des", "a", "au", "aux", "et", "ou", "pour",
+    "selon", "gout", "environ", "quelques", "un", "une", "avec", "sans",
+}
+
+
+def _ing_norm(s: str) -> str:
+    t = unicodedata.normalize("NFKD", (s or "").lower()).encode("ascii", "ignore").decode()
+    return re.sub(r"[^a-z0-9 '-]", " ", t).replace("'", " ").strip()
+
+
+def parse_ingredient_slug(line: str) -> str | None:
+    """Nom d'ingrédient canonique extrait d'une ligne de liste, sinon None."""
+    s = (line or "").lower().replace("’", "'").strip()
+    s = re.split(r"[,(:]| - ", s)[0]
+    prev = None
+    while prev != s:
+        prev = s
+        s = _ING_LEAD.sub("", s)
+        s = _ING_UNIT.sub("", s)
+        s = _ING_ART.sub("", s)
+        s = s.strip()
+    words = [w for w in _ing_norm(s).split() if w and w not in _ING_STOP and len(w) > 1]
+    if not words:
+        return None
+    head = words[0]
+    if head in _ING_CONTAINER and len(words) > 1:
+        head = next((w for w in words[1:] if w not in _ING_CONTAINER and w not in _ING_ADJ), head)
+    elif head in _ING_ADJ and len(words) > 1:
+        head = words[1]
+    if len(head) > 4 and head.endswith("s"):
+        head = head[:-1]
+    if len(head) < 3 or head in _ING_ADJ or head in _ING_CONTAINER:
+        return None
+    return canonical_ingredient_slug(head)
+
+
+def parse_ingredient_slugs_from_lines(text: str) -> list[str]:
+    """Tous les ingrédients d'un bloc de liste (une ligne = un item)."""
+    out: list[str] = []
+    seen: set[str] = set()
+    for line in (text or "").splitlines():
+        slug = parse_ingredient_slug(line)
+        if slug and slug not in seen:
+            seen.add(slug)
+            out.append(slug)
+    return out
+
+
 def supplement_ingredient_slugs(
     plan: QueryPlan,
     user_query: str,
