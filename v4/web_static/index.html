@@ -54,8 +54,10 @@
         flex: 1;
         display: grid;
         grid-template-columns: 1fr 420px;
-        padding-top: 44px;
-        min-height: 100vh;
+        /* La nav est sticky (déjà 44px dans le flux) : pas de padding-top ni de
+           min-height:100vh redondants, sinon la page dépasse de 44px et l'input
+           passe sous la ligne de flottaison. flex:1 remplit la hauteur restante. */
+        min-height: 0;
       }
 
       /* ─── Left panel ────────────────────────────────────────────── */
@@ -198,7 +200,12 @@
         background: var(--white);
         display: flex;
         flex-direction: column;
-        position: relative;
+        /* Sidebar collante : le widget reste plein écran et l'input toujours
+           visible, pendant que la colonne éditoriale défile. */
+        position: sticky;
+        top: 44px;
+        height: calc(100vh - 44px);
+        align-self: start;
         border-left: 1px solid var(--border);
       }
 
@@ -274,7 +281,8 @@
       @media (max-width: 920px) {
         .main { grid-template-columns: 1fr; }
         .panel-left { padding: 32px 20px 24px; border-right: none; border-bottom: 1px solid var(--border); }
-        .panel-right { min-height: 560px; border-left: none; }
+        /* Empilé sur mobile : on désactive le sticky pleine hauteur */
+        .panel-right { position: static; height: auto; min-height: 560px; border-left: none; }
         .panel-right .sahten-widget-container { height: 560px !important; }
         .feature-grid { grid-template-columns: 1fr 1fr; }
       }
