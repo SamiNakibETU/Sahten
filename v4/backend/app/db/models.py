@@ -375,3 +375,19 @@ class EvalRun(Base):
     context_precision: Mapped[float | None] = mapped_column(Float)
     context_recall: Mapped[float | None] = mapped_column(Float)
     notes: Mapped[str | None] = mapped_column(Text)
+
+
+# =====================================================================
+# Recettes générées par LLM (cache de dernier recours : plat absent de
+# l'OLJ ET de Data_base_2.json). Persisté en DB car le système de fichiers
+# du conteneur Railway est éphémère. Jamais attribué à l'OLJ/un chef.
+# =====================================================================
+class GeneratedRecipe(Base, TimestampMixin):
+    __tablename__ = "generated_recipes"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    dish_norm: Mapped[str] = mapped_column(
+        String(255), unique=True, index=True, nullable=False
+    )
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    payload: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    model: Mapped[str | None] = mapped_column(String(64))

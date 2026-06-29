@@ -47,6 +47,7 @@ from .ingredient_match import (
     wants_another_recipe,
     ingredient_display_name,
 )
+from .recipe_generator import get_or_generate_recipe
 from .reranker import Reranker, build_default_reranker
 from .retriever import HybridRetriever, Hit
 from .reranker import RerankedHit
@@ -692,18 +693,175 @@ def _load_base2_recipes() -> list[dict[str, Any]]:
     return rows
 
 
+# Tokens génériques de nom de recette base2 : présents dans plusieurs plats, ils
+# ne doivent pas suffire à matcher (sinon "salade" matcherait toutes les salades).
+_BASE2_GENERIC_NAME_TOKENS = {
+    "salade", "soupe", "plat", "entree", "dessert", "caviar", "puree", "feuilles",
+    "vigne", "tranches", "huile", "olive", "froides", "froide", "chaud", "chaude",
+    "maison", "libanais", "libanaise", "aubergine", "aubergines", "pois", "chiche",
+    "chiches", "tomate", "tomates", "roquette", "lentilles", "coriandre",
+}
+
+
 def _match_base2_recipe(user_query: str) -> dict[str, Any] | None:
-    requested = _extract_explicit_recipe_name(user_query)
-    if not requested:
-        return None
+    """Meilleure recette base2 par recouvrement de tokens DISTINCTIFS (et non plus
+    égalité exacte, qui ratait « fattouche » vs « Salade fattouche »). Robuste aux
+    graphies (canonicalisation) et aux noms nus comme aux tournures « recette de X »."""
     recipes = _load_base2_recipes()
     if not recipes:
         return None
-    wanted = _base2_canonicalize_aliases(requested)
+    qn = _base2_canonicalize_aliases(user_query)
+    qtokens = {
+        t for t in qn.split()
+        if t not in _BASE2_TOKEN_STOPWORDS and len(t) > 2
+    }
+    if not qtokens:
+        return None
+    best: dict[str, Any] | None = None
+    best_score = 0
     for recipe in recipes:
-        if wanted == recipe.get("name_norm", ""):
-            return recipe
+        ntokens = {t for t in recipe.get("name_norm", "").split() if len(t) > 2}
+        distinctive = {
+            t for t in (qtokens & ntokens)
+            if t not in _BASE2_GENERIC_NAME_TOKENS and len(t) >= 4
+        }
+        if not distinctive:
+            continue
+        score = sum(len(t) for t in distinctive)
+        if score > best_score:
+            best_score = score
+            best = recipe
+    return best
+
+
+def _olj_has_named_dish(user_query: str, reranked: list[RerankedHit]) -> bool:
+    """True si un plat connu (aliases) nommé dans la requête a un article correspondant."""
+    req = _requested_dish_terms(user_query)
+    if not req:
+        return False
+    return any(
+        _card_title_matches_requested_dish(h.hit.article_title, req) for h in reranked
+    )
+
+
+def _olj_has_dish_text(name: str, reranked: list[RerankedHit]) -> bool:
+    """True si un titre d'article reranké contient le nom de plat (texte libre)."""
+    n = _norm_match(name)
+    if len(n) < 4:
+        return False
+    return any(n in _norm_match(h.hit.article_title) for h in reranked)
+
+
+def _fallback_dish_name(user_query: str, plan: QueryPlan) -> str | None:
+    """Nom de plat candidat à la génération de dernier recours, sinon None.
+    On ne tente la génération que pour une vraie demande de PLAT (pas ingrédient/humeur)."""
+    if plan.ingredient_slugs:
+        return None
+    if plan.intent not in ("recipe", "mixed"):
+        return None
+    name = _extract_explicit_recipe_name(user_query)
+    if name:
+        return name
+    qn = _base2_normalize_text(user_query)
+    toks = [t for t in qn.split() if t not in _BASE2_TOKEN_STOPWORDS and len(t) > 2]
+    if 1 <= len(toks) <= 3:
+        return " ".join(toks)
     return None
+
+
+GENERATED_INTRO = (
+    "Ce plat n'est pas (encore) dans les carnets de L'Orient-Le Jour ; "
+    "voici une version générée à titre indicatif (hors carnets OLJ)."
+)
+
+
+def _build_generated_recipe_answer(
+    *,
+    user_query: str,
+    generated: dict[str, Any],
+    reranked: list[RerankedHit],
+) -> GroundedAnswer:
+    """Réponse pour un plat absent partout : recette générée (clairement étiquetée
+    hors-OLJ) dans le texte + une suggestion OLJ proche en carte (si disponible)."""
+    top_canonical = next(
+        (r for r in reranked if _is_canonical_olj_url(r.hit.article_url)),
+        reranked[0] if reranked else None,
+    )
+    recipe_card: RecipeCard | None = None
+    olj_title = ""
+    olj_chunk_id: int | None = None
+    if top_canonical is not None:
+        aid = int(top_canonical.hit.article_external_id)
+        picked = _best_chunk_for_article(reranked, aid) or top_canonical
+        olj_chunk_id = int(picked.hit.chunk_id)
+        olj_title = picked.hit.article_title or top_canonical.hit.article_title or ""
+        recipe_card = RecipeCard(
+            title=olj_title or "Recette OLJ",
+            source_chunk_ids=[olj_chunk_id],
+            ingredients=[],
+            steps=[],
+        )
+
+    name = str(generated.get("name") or "ce plat").strip()
+    details_bits: list[str] = []
+    serves = str(generated.get("serves") or "").strip()
+    prep = str(generated.get("prep") or "").strip()
+    cook = str(generated.get("cook") or "").strip()
+    difficulty = str(generated.get("difficulty") or "").strip()
+    if serves:
+        details_bits.append(f"pour {serves}")
+    if prep:
+        details_bits.append(f"préparation {prep}")
+    if cook:
+        details_bits.append(f"cuisson {cook}")
+    if difficulty:
+        details_bits.append(f"difficulté {difficulty}")
+    details = ", ".join(details_bits)
+    ingredients = [str(x).strip() for x in (generated.get("ingredients") or []) if str(x).strip()]
+    steps = [str(x).strip() for x in (generated.get("steps") or []) if str(x).strip()]
+
+    sentences = [GroundedSentence(text=GENERATED_INTRO, source_chunk_ids=[])]
+    head = f"Recette de {name}" + (f" ({details})" if details else "") + " :"
+    sentences.append(GroundedSentence(text=head, source_chunk_ids=[]))
+    if ingredients:
+        sentences.append(
+            GroundedSentence(
+                text="Ingrédients : " + " ; ".join(ingredients[:14]) + ".",
+                source_chunk_ids=[],
+            )
+        )
+    if steps:
+        numbered = " ".join(f"{i}. {s}" for i, s in enumerate(steps[:8], 1))
+        sentences.append(
+            GroundedSentence(text="Préparation : " + numbered, source_chunk_ids=[])
+        )
+    note = str(generated.get("note") or "").strip()
+    if note:
+        sentences.append(GroundedSentence(text="Astuce : " + note, source_chunk_ids=[]))
+    if olj_title and olj_chunk_id is not None:
+        sentences.append(
+            GroundedSentence(
+                text=(
+                    f"Sur L'Orient-Le Jour, dans le même esprit, vous pourriez aussi "
+                    f"aimer {olj_title}."
+                ),
+                source_chunk_ids=[olj_chunk_id],
+            )
+        )
+    follow_up = (
+        f"Souhaitez-vous que je vous en dise plus sur {olj_title} ?"
+        if olj_title
+        else "Souhaitez-vous une autre recette ?"
+    )
+    answer = GroundedAnswer(
+        answer_sentences=sentences,
+        recipe_card=recipe_card,
+        recipe_card_secondary=None,
+        chef_card=None,
+        follow_up=follow_up,
+        confidence=0.45,
+    )
+    return validate_grounding(answer, reranked, user_query=user_query, preserve_carnets=True)
 
 
 def _best_chunk_for_article(
@@ -1495,6 +1653,35 @@ class RagPipeline:
         t3 = time.perf_counter()
         base2_fallback_used = False
         base2_recipe = _match_base2_recipe(user_query)
+        # Plat nommé mais absent de l'OLJ ? (aliases OU texte libre). Le fallback
+        # base2/génération ne se déclenche que dans ce cas (ou corpus vide) — pas
+        # quand l'OLJ a réellement le plat (sinon on l'écraserait).
+        cand_dish = _fallback_dish_name(user_query, plan)
+        named_alias_absent = bool(_requested_dish_terms(user_query)) and not _olj_has_named_dish(
+            user_query, reranked
+        )
+        freetext_absent = cand_dish is not None and not _olj_has_dish_text(cand_dish, reranked)
+        trigger_fallback = (not reranked) or named_alias_absent or freetext_absent
+
+        async def _normal_generate() -> GroundedAnswer:
+            thread_summary = (focus.thread_summary or "").strip() if focus else ""
+            return await self.generator.generate(
+                user_query,
+                reranked,
+                conversation_history=conversation_history,
+                session_thread_summary=thread_summary or None,
+                model=model,
+                required_ingredient_slugs=plan.ingredient_slugs or None,
+            )
+
+        async def _empty_answer() -> GroundedAnswer:
+            corpus_ok = await _probe_corpus_searchable(self.retriever, session)
+            return self.generator.build_empty_retrieval_answer(
+                user_query,
+                required_ingredient_slugs=plan.ingredient_slugs or None,
+                corpus_searchable=corpus_ok,
+            )
+
         if (
             not reranked
             and plan.ingredient_slugs
@@ -1502,14 +1689,7 @@ class RagPipeline:
             and base2_recipe is None
         ):
             answer = _build_no_alternate_ingredient_answer(plan.ingredient_slugs)
-        elif not reranked and base2_recipe is None:
-            corpus_ok = await _probe_corpus_searchable(self.retriever, session)
-            answer = self.generator.build_empty_retrieval_answer(
-                user_query,
-                required_ingredient_slugs=plan.ingredient_slugs or None,
-                corpus_searchable=corpus_ok,
-            )
-        elif base2_recipe is not None:
+        elif trigger_fallback and base2_recipe is not None:
             answer = _build_base2_last_resort_answer(
                 user_query=user_query,
                 base2_recipe=base2_recipe,
@@ -1522,20 +1702,28 @@ class RagPipeline:
                 base2_recipe=base2_recipe.get("name"),
                 has_olj_suggestion=bool(answer.recipe_card),
             )
+        elif trigger_fallback and cand_dish is not None:
+            generated = await get_or_generate_recipe(session, cand_dish)
+            if generated is not None:
+                answer = _build_generated_recipe_answer(
+                    user_query=user_query,
+                    generated=generated,
+                    reranked=reranked,
+                )
+                log.info(
+                    "rag.pipeline.generated_recipe_used",
+                    query=user_query[:80],
+                    dish=generated.get("name"),
+                    cached=generated.get("_cached"),
+                )
+            elif not reranked:
+                answer = await _empty_answer()
+            else:
+                answer = await _normal_generate()
+        elif not reranked:
+            answer = await _empty_answer()
         else:
-            thread_summary = (
-                (focus.thread_summary or "").strip()
-                if focus
-                else ""
-            )
-            answer = await self.generator.generate(
-                user_query,
-                reranked,
-                conversation_history=conversation_history,
-                session_thread_summary=thread_summary or None,
-                model=model,
-                required_ingredient_slugs=plan.ingredient_slugs or None,
-            )
+            answer = await _normal_generate()
         # Gating de pertinence de la carte : si l'utilisateur nomme un plat précis
         # et que la carte proposée n'y correspond pas (titre), on la retire plutôt
         # que d'afficher une fiche hors-sujet (bug "manouche -> Lahm bi aajine").
