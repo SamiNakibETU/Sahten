@@ -370,7 +370,11 @@ _MOOD_QUERY_RE = re.compile(
     r"ce weekend|pour demain|plat du soir|repas du soir|dîner rapide|dîner simple)\b",
 )
 
-_BASE2_JSON_PATH = Path(__file__).resolve().parents[3].parent / "Data_base_2.json"
+# En image Docker, seul v4/data est copié (/app/data). On cherche donc d'abord
+# data/Data_base_2.json ; fallback racine du repo pour le dev local.
+_BASE2_JSON_PATH = Path(__file__).resolve().parents[3] / "data" / "Data_base_2.json"
+if not _BASE2_JSON_PATH.is_file():
+    _BASE2_JSON_PATH = Path(__file__).resolve().parents[3].parent / "Data_base_2.json"
 _BASE2_RECIPE_ALIASES: tuple[tuple[str, ...], ...] = (
     ("houmous", "hoummous", "hummus", "hommos", "hommous"),
     ("moghrabieh", "moghrabié", "moghrabie", "moghrabiyé"),
@@ -752,21 +756,43 @@ def _olj_has_dish_text(name: str, reranked: list[RerankedHit]) -> bool:
     return any(n in _norm_match(h.hit.article_title) for h in reranked)
 
 
+_DISH_NAME_NOISE = {
+    "avec", "sans", "et", "ou", "pour", "dans", "plat", "recette", "facile",
+    "rapide", "bon", "bonne", "traditionnel", "traditionnelle", "libanais",
+    "libanaise", "maison", "vrai", "vraie", "veux", "voudrais", "donne", "donner",
+}
+
+
 def _fallback_dish_name(user_query: str, plan: QueryPlan) -> str | None:
     """Nom de plat candidat à la génération de dernier recours, sinon None.
-    On ne tente la génération que pour une vraie demande de PLAT (pas ingrédient/humeur)."""
-    if plan.ingredient_slugs:
-        return None
+
+    On ne génère que pour une vraie demande de PLAT. Important : quand un plat est
+    nommé, le LLM remplit souvent `ingredient_slugs` avec ses COMPOSANTS (knefe →
+    fromage, baklava → pâte filo) ; on ne doit donc PAS bloquer sur la seule
+    présence d'ingredient_slugs. On rejette seulement si le « nom » extrait n'est
+    composé que d'ingrédients/bruit (= vraie requête par ingrédient, ex.
+    « recette avec du concombre »)."""
     if plan.intent not in ("recipe", "mixed"):
         return None
     name = _extract_explicit_recipe_name(user_query)
-    if name:
-        return name
-    qn = _base2_normalize_text(user_query)
-    toks = [t for t in qn.split() if t not in _BASE2_TOKEN_STOPWORDS and len(t) > 2]
-    if 1 <= len(toks) <= 3:
-        return " ".join(toks)
-    return None
+    if not name:
+        qn = _base2_normalize_text(user_query)
+        toks = [t for t in qn.split() if t not in _BASE2_TOKEN_STOPWORDS and len(t) > 2]
+        if not (1 <= len(toks) <= 3):
+            return None
+        name = " ".join(toks)
+    name_toks = {
+        t for t in _base2_normalize_text(name).split()
+        if len(t) > 2 and t not in _BASE2_TOKEN_STOPWORDS and t not in _DISH_NAME_NOISE
+    }
+    if not name_toks:
+        return None
+    ing_toks: set[str] = set()
+    for slug in (plan.ingredient_slugs or []):
+        ing_toks |= {t for t in slug.replace("-", " ").split() if len(t) > 2}
+    if name_toks <= ing_toks:  # le « plat » n'est que des ingrédients -> pas un plat
+        return None
+    return name
 
 
 GENERATED_INTRO = (
@@ -1657,11 +1683,17 @@ class RagPipeline:
         # base2/génération ne se déclenche que dans ce cas (ou corpus vide) — pas
         # quand l'OLJ a réellement le plat (sinon on l'écraserait).
         cand_dish = _fallback_dish_name(user_query, plan)
-        named_alias_absent = bool(_requested_dish_terms(user_query)) and not _olj_has_named_dish(
-            user_query, reranked
-        )
-        freetext_absent = cand_dish is not None and not _olj_has_dish_text(cand_dish, reranked)
-        trigger_fallback = (not reranked) or named_alias_absent or freetext_absent
+        req_terms = _requested_dish_terms(user_query)
+        if req_terms:
+            # Plat connu (aliases) : la détection par alias fait AUTORITÉ — elle gère
+            # les translittérations (ex. « manouche » ↔ titre « mana'ichs »), là où
+            # une comparaison texte brute échouerait et déclencherait à tort le fallback.
+            dish_absent = not _olj_has_named_dish(user_query, reranked)
+        elif cand_dish is not None:
+            dish_absent = not _olj_has_dish_text(cand_dish, reranked)
+        else:
+            dish_absent = False
+        trigger_fallback = (not reranked) or dish_absent
 
         async def _normal_generate() -> GroundedAnswer:
             thread_summary = (focus.thread_summary or "").strip() if focus else ""

@@ -25,7 +25,7 @@ class Reranker(Protocol):
     name: str
 
     async def rerank(
-        self, query: str, hits: list[Hit], top_n: int
+        self, query: str, hits: list[Hit], top_n: int, *, cost_step: str | None = None
     ) -> list[RerankedHit]: ...
 
 
@@ -60,8 +60,9 @@ class CohereReranker:
         self.model = model or s.cohere_rerank_model
 
     async def rerank(
-        self, query: str, hits: list[Hit], top_n: int
+        self, query: str, hits: list[Hit], top_n: int, *, cost_step: str | None = None
     ) -> list[RerankedHit]:
+        _ = cost_step  # accepté pour compat d'appel (cost tracking optionnel)
         if not hits:
             return []
         docs = [_document_for_rerank(h) for h in hits]
@@ -88,8 +89,9 @@ class LocalBgeReranker:
         self._model = CrossEncoder(model_name or s.local_rerank_model)
 
     async def rerank(
-        self, query: str, hits: list[Hit], top_n: int
+        self, query: str, hits: list[Hit], top_n: int, *, cost_step: str | None = None
     ) -> list[RerankedHit]:
+        _ = cost_step
         if not hits:
             return []
         pairs = [[query, _document_for_rerank(h)] for h in hits]
@@ -117,6 +119,7 @@ class _NoOpReranker:
     name = "noop"
 
     async def rerank(
-        self, query: str, hits: list[Hit], top_n: int
+        self, query: str, hits: list[Hit], top_n: int, *, cost_step: str | None = None
     ) -> list[RerankedHit]:
+        _ = cost_step
         return [RerankedHit(hit=h, rerank_score=h.score_rrf) for h in hits[:top_n]]
