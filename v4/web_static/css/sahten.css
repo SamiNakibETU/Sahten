@@ -532,6 +532,38 @@
   color: var(--sahten-accent-press, #7aab93);
   background: rgba(148, 194, 174, 0.16);
 }
+/* ── Sélecteur de vues : CONTRÔLE SEGMENTÉ (track + chip actif) ──────────────
+   Les 3 tailles regroupées dans une seule pastille : lisible comme un sélecteur,
+   au lieu de 3 boutons isolés « bizarres ». L'actif est un chip blanc surélevé. */
+.sahten-size-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: var(--radius-sm);
+}
+.sahten-size-group .sahten-size-btn {
+  width: 28px;
+  min-width: 28px;
+  height: 26px;
+  min-height: 26px;
+  border-radius: var(--radius-xs);
+  background: transparent;
+}
+@media (hover: hover) and (pointer: fine) {
+  .sahten-size-group .sahten-size-btn:hover {
+    background: rgba(0, 0, 0, 0.06);
+  }
+}
+.sahten-size-group .sahten-size-btn.active {
+  background: #ffffff;
+  color: var(--text);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1), 0 0 0 0.5px rgba(0, 0, 0, 0.05);
+}
+.sahten-size-group .sahten-size-btn:active {
+  transform: scale(0.94);
+}
 .sahten-size-btn svg {
   width: 14px;
   height: 14px;
