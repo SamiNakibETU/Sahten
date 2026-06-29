@@ -1710,13 +1710,12 @@ class RagPipeline:
             r for r in reranked if r.rerank_score >= self.settings.rag_min_rerank_score
         ]
         if not _reranked_above_thresh:
-            _best_score = max((r.rerank_score for r in reranked), default=0.0)
-            if plan.ingredient_slugs and _best_score < 0.10:
-                # Tous les résultats sont très mauvais pour une requête ingrédient :
-                # préférer un message "non trouvé" propre plutôt que des chunks hors-sujet.
-                reranked = []
-            else:
-                reranked = reranked[: max(1, rerank_top_n // 2)]
+            # Pas de garde "ingredient -> vide si score bas" : le filtre ingrédient au
+            # RETRIEVAL (filter_hits_by_ingredient_text) garantit déjà que les hits
+            # contiennent réellement l'ingrédient. Un score de rerank bas signifie
+            # "incertain", pas "absent" -> montrer les meilleurs plutôt que rien
+            # (corrige les vides intermittents : poulet, 'une autre', etc.).
+            reranked = reranked[: max(1, rerank_top_n // 2)] if reranked else []
         else:
             reranked = _reranked_above_thresh
         if self.settings.rag_article_rerank_enabled and len(reranked) > 1:
