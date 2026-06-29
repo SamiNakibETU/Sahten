@@ -1649,24 +1649,26 @@ class RagPipeline:
                 excluded,
                 force_corpus_broaden=force_broaden,
             )
-            # Pool épuisé (tout a déjà été proposé) OU exclusion trop large : on
-            # RECYCLE (retry sans exclusion) plutôt que de renvoyer vide. Mieux vaut
-            # reproposer une recette déjà vue que ne rien donner sur « encore une autre ».
+            # Pool épuisé : recycler SANS renvoyer la même qu'à l'instant. On garde
+            # d'abord l'exclusion du SEUL dernier article montré (excluded est trié du
+            # plus récent au plus ancien) -> deux réponses consécutives diffèrent
+            # toujours ; en ultime recours seulement, on retire toute exclusion.
             if not hits and excluded:
+                last_only = excluded[:1]
                 log.info(
                     "rag.pipeline.rotation_pool_recycled",
                     n_excluded=len(excluded),
                     wants_different=wants_different,
                 )
                 hits = await self._retrieve_hits(
-                    session,
-                    user_query,
-                    plan,
-                    q,
-                    rerank_top_n,
-                    [],
+                    session, user_query, plan, q, rerank_top_n, last_only,
                     force_corpus_broaden=force_broaden,
                 )
+                if not hits:
+                    hits = await self._retrieve_hits(
+                        session, user_query, plan, q, rerank_top_n, [],
+                        force_corpus_broaden=force_broaden,
+                    )
         except Exception as exc:  # noqa: BLE001
             log.exception("rag.pipeline.retrieval_failed")
             hits = []
