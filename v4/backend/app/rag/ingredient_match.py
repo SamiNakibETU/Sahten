@@ -291,6 +291,35 @@ def filter_hits_by_ingredient_slugs(
     return [h for h in hits if int(h.article_external_id) in valid]
 
 
+def filter_hits_by_ingredient_text(
+    hits: list[Hit], slugs: list[str] | None
+) -> list[Hit]:
+    """Filtre TRÈS permissif (dernier recours) : garde les articles dont un chunk
+    — quelle que soit la section — contient réellement le terme de l'ingrédient.
+
+    Sert quand le pré-filtre structuré (`article_ingredients`) et le filtre par
+    section échouent alors que des recettes mentionnent bien l'ingrédient (ex.
+    « concombre » présent dans le titre/le corps mais non lié en base). Reste
+    précis : un plat absent (ex. « katayef », qu'aucune recette ne mentionne)
+    ressort vide → la génération de dernier recours prend le relais."""
+    if not slugs:
+        return hits
+    by_article: dict[int, list[Hit]] = defaultdict(list)
+    for h in hits:
+        by_article[int(h.article_external_id)].append(h)
+    valid: set[int] = set()
+    for aid, article_hits in by_article.items():
+        if all(
+            any(
+                text_contains_ingredient(h.chunk_text, slug_search_terms(slug))
+                for h in article_hits
+            )
+            for slug in slugs
+        ):
+            valid.add(aid)
+    return [h for h in hits if int(h.article_external_id) in valid]
+
+
 def filter_reranked_by_ingredient_slugs(
     reranked: list[RerankedHit],
     slugs: list[str] | None,

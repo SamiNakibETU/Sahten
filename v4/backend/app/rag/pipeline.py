@@ -41,6 +41,7 @@ from ..settings import get_settings
 from .embeddings import OpenAIEmbeddings
 from .ingredient_match import (
     filter_hits_by_ingredient_slugs,
+    filter_hits_by_ingredient_text,
     filter_reranked_by_ingredient_slugs,
     slug_search_terms,
     supplement_ingredient_slugs,
@@ -1248,6 +1249,12 @@ class RagPipeline:
                         filtered = filter_hits_by_ingredient_slugs(
                             broad, plan.ingredient_slugs, strict=False
                         )
+                    # Dernier recours : terme présent dans le texte (toute section),
+                    # pour les ingrédients réels mal liés en base (ex. concombre).
+                    if not filtered:
+                        filtered = filter_hits_by_ingredient_text(
+                            broad, plan.ingredient_slugs
+                        )
                     hits = filtered
             elif not ingredient_only:
                 log.warning(
@@ -1325,10 +1332,16 @@ class RagPipeline:
                             final_limit=final_limit + 24,
                             exclude_article_external_ids=excl,
                         )
-                        hits = filter_hits_by_ingredient_slugs(
-                            broad, plan.ingredient_slugs
-                        ) or filter_hits_by_ingredient_slugs(
-                            broad, plan.ingredient_slugs, strict=False
+                        hits = (
+                            filter_hits_by_ingredient_slugs(
+                                broad, plan.ingredient_slugs
+                            )
+                            or filter_hits_by_ingredient_slugs(
+                                broad, plan.ingredient_slugs, strict=False
+                            )
+                            or filter_hits_by_ingredient_text(
+                                broad, plan.ingredient_slugs
+                            )
                         )
                 except Exception as exc:  # noqa: BLE001
                     log.warning(

@@ -105,6 +105,20 @@ def test_build_generated_recipe_answer_labels_and_suggests() -> None:
     assert out.recipe_card.title == "Le maamoul de chef Amani"
 
 
+def test_ingredient_text_fallback_keeps_real_ingredient_drops_absent() -> None:
+    from backend.app.rag.ingredient_match import filter_hits_by_ingredient_text
+    # la fonction prend des Hit (pas des RerankedHit) -> on déballe .hit
+    hits = [
+        _mk_hit(aid=1, title="Sauce au concombre, menthe et coriandre", url="u1", chunk_id=1).hit,
+        _mk_hit(aid=2, title="Tarte aux pommes", url="u2", chunk_id=2).hit,
+    ]
+    # concombre présent dans un titre/chunk -> article 1 gardé, pas l'article 2
+    kept = filter_hits_by_ingredient_text(hits, ["concombre"])
+    assert {h.article_external_id for h in kept} == {1}
+    # ingrédient/plat absent partout -> vide (laisse la génération prendre le relais)
+    assert filter_hits_by_ingredient_text(hits, ["katayef"]) == []
+
+
 def test_normalize_dish() -> None:
     assert normalize_dish("Knéfé") == "knefe"
     assert normalize_dish("Baba Ghannouj'") == "baba ghannouj"
