@@ -43,6 +43,7 @@ from .ingredient_match import (
     filter_hits_by_ingredient_slugs,
     filter_hits_by_ingredient_text,
     filter_reranked_by_ingredient_slugs,
+    is_known_ingredient_slug,
     rerank_by_ingredient_centrality,
     slug_search_terms,
     supplement_ingredient_slugs,
@@ -1630,9 +1631,32 @@ class RagPipeline:
         wants_different = bool(
             focus and focus.user_wants_different_article
         ) or wants_another_recipe(user_query)
-        # ROTATION : pour « une autre / encore une autre », exclure TOUT ce qui a
-        # déjà été montré récemment (pas seulement le dernier), pour ne jamais
-        # resservir la même recette tant qu'il reste du neuf.
+        # ROTATION : à « une autre », le LLM pollue souvent le plan avec des termes
+        # tirés de la réponse PRÉCÉDENTE (chef de la recette montrée, variété
+        # « tomate-jabaliyeh », « saveurs »…) -> filtre AND sur-contraint -> 0 hit ->
+        # message vide. On nettoie : on retire le chef NON mentionné dans la requête
+        # courante, et on ne garde que les ingrédients réellement connus.
+        if wants_different and (plan.chef_slugs or plan.ingredient_slugs):
+            qn_rot = _norm_match(user_query)
+            keep_chef = [
+                c for c in plan.chef_slugs
+                if any(len(p) >= 3 and p in qn_rot for p in c.split("-"))
+            ]
+            clean_ings = [s for s in plan.ingredient_slugs if is_known_ingredient_slug(s)]
+            if keep_chef != plan.chef_slugs or clean_ings != plan.ingredient_slugs:
+                log.info(
+                    "rag.pipeline.rotation_plan_sanitized",
+                    before_ing=plan.ingredient_slugs,
+                    after_ing=clean_ings,
+                    before_chef=plan.chef_slugs,
+                    after_chef=keep_chef,
+                )
+                plan = plan.model_copy(
+                    update={"chef_slugs": keep_chef, "ingredient_slugs": clean_ings}
+                )
+
+        # Exclure TOUT ce qui a déjà été montré récemment (pas seulement le dernier),
+        # pour ne jamais resservir la même recette tant qu'il reste du neuf.
         excluded: list[int] = []
         if session_id and wants_different:
             try:

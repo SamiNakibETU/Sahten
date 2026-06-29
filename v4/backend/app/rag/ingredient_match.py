@@ -118,6 +118,16 @@ def canonical_ingredient_slug(slug: str) -> str:
     return _INGREDIENT_SLUG_CANONICAL.get(s, s)
 
 
+_KNOWN_INGREDIENT_SLUGS = set(INGREDIENT_SLUG_ALIASES) | set(_KNOWN_ING_WORDS.values())
+
+
+def is_known_ingredient_slug(slug: str) -> bool:
+    """True si le slug correspond à un ingrédient réel connu (pas un terme parasite
+    type 'saveurs'/'tomate-jabaliyeh' que le LLM extrait parfois d'une réponse
+    précédente). Sert à nettoyer le plan lors de la rotation « une autre »."""
+    return canonical_ingredient_slug((slug or "").strip().lower()) in _KNOWN_INGREDIENT_SLUGS
+
+
 def slug_search_terms(slug: str) -> tuple[str, ...]:
     raw = canonical_ingredient_slug((slug or "").strip().lower())
     if raw in INGREDIENT_SLUG_ALIASES:
