@@ -529,9 +529,8 @@
   box-shadow: 0 0 0 2px var(--ring-focus-neutral);
 }
 .sahten-size-btn.active {
-  color: var(--text);
-  background: rgba(0, 0, 0, 0.07);
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+  color: var(--sahten-accent-press, #7aab93);
+  background: rgba(148, 194, 174, 0.16);
 }
 .sahten-size-btn svg {
   width: 14px;
@@ -2086,6 +2085,33 @@
 .feedback-thanks {
   font-size: 12px;
   color: var(--text-muted);
+}
+
+/* ── Grandes vues (moyen / plein écran) : colonne de lecture centrée ──────────
+   Sans ça, le contenu reste collé en haut à gauche dans un grand vide. On
+   contraint conversation + composeur à une largeur lisible et on les centre ;
+   l'en-tête et le fond restent pleine largeur (pattern produit type Anthropic). */
+.sahten-widget-container[data-size="mid"] .sahten-body,
+.sahten-widget-container[data-size="full"] .sahten-body {
+  max-width: 768px;
+  width: 100%;
+  margin-inline: auto;
+}
+.sahten-widget-container[data-size="mid"] .sahten-footer .input-wrapper,
+.sahten-widget-container[data-size="full"] .sahten-footer .input-wrapper {
+  max-width: 768px;
+  margin-inline: auto;
+}
+/* Lecture plus confortable en plein écran (la « police qui ne grandit pas ») */
+.sahten-widget-container[data-size="full"] .sahten-body {
+  font-size: 15px;
+  padding-top: 20px;
+}
+/* État d'accueil (aucun message encore) : on centre verticalement le bloc
+   plutôt que de le laisser flotter en haut d'un grand vide. */
+.sahten-widget-container[data-size="mid"] .sahten-body:not(:has(.msg)),
+.sahten-widget-container[data-size="full"] .sahten-body:not(:has(.msg)) {
+  justify-content: center;
 }
 
 /* Accessibilité — respect de prefers-reduced-motion (skill Emil Kowalski :
