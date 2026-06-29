@@ -1575,14 +1575,13 @@ class RagPipeline:
         wants_different = bool(
             focus and focus.user_wants_different_article
         ) or wants_another_recipe(user_query)
+        # ROTATION : pour « une autre / encore une autre », exclure TOUT ce qui a
+        # déjà été montré récemment (pas seulement le dernier), pour ne jamais
+        # resservir la même recette tant qu'il reste du neuf.
         excluded: list[int] = []
         if session_id and wants_different:
             try:
-                last_id = await sessions_store.last_offered_article_external_id(
-                    session_id
-                )
-                if last_id is not None:
-                    excluded = [last_id]
+                excluded = await sessions_store.recent_article_external_ids(session_id)
             except Exception as exc:  # noqa: BLE001
                 log.warning("rag.pipeline.session_exclusions_failed", error=str(exc))
         try:
@@ -1595,10 +1594,14 @@ class RagPipeline:
                 excluded,
                 force_corpus_broaden=force_broaden,
             )
-            if not hits and excluded and not wants_different:
+            # Pool épuisé (tout a déjà été proposé) OU exclusion trop large : on
+            # RECYCLE (retry sans exclusion) plutôt que de renvoyer vide. Mieux vaut
+            # reproposer une recette déjà vue que ne rien donner sur « encore une autre ».
+            if not hits and excluded:
                 log.info(
-                    "rag.pipeline.retrieval_retry_no_session_article_exclusions",
+                    "rag.pipeline.rotation_pool_recycled",
                     n_excluded=len(excluded),
+                    wants_different=wants_different,
                 )
                 hits = await self._retrieve_hits(
                     session,
@@ -1608,11 +1611,6 @@ class RagPipeline:
                     rerank_top_n,
                     [],
                     force_corpus_broaden=force_broaden,
-                )
-            elif not hits and excluded and wants_different:
-                log.info(
-                    "rag.pipeline.no_retry_user_wants_different",
-                    n_excluded=len(excluded),
                 )
         except Exception as exc:  # noqa: BLE001
             log.exception("rag.pipeline.retrieval_failed")
