@@ -225,6 +225,31 @@ def extract_ingredient_slugs_from_text(text: str) -> list[str]:
     return found
 
 
+_EXCLUDE_RE = re.compile(
+    r"(?i)\b(?:sans|pas\s+de|pas\s+d'|sans\s+aucun[e]?|ni)\s+"
+    r"(?:de\s+|du\s+|des\s+|d'\s*|la\s+|le\s+|les\s+)?"
+    r"([\wàâäéèêëïîôùûç-]+)"
+)
+
+
+def extract_excluded_ingredient_slugs(text: str) -> list[str]:
+    """Ingrédients EXCLUS par une contrainte négative (« sans tomate », « pas de
+    poivron », « ni oignon »). Permet de ne pas les filtrer comme requis et de
+    retirer les recettes qui les contiennent."""
+    if not text or not text.strip():
+        return []
+    out: list[str] = []
+    seen: set[str] = set()
+    for m in _EXCLUDE_RE.finditer(text):
+        slug = _word_to_slug(m.group(1))
+        if slug:
+            slug = canonical_ingredient_slug(slug)
+        if slug and slug not in seen:
+            seen.add(slug)
+            out.append(slug)
+    return out
+
+
 def supplement_ingredient_slugs(
     plan: QueryPlan,
     user_query: str,
@@ -421,6 +446,34 @@ def rerank_by_ingredient_centrality(
         return 3
 
     return sorted(reranked, key=lambda r: (tier(r), -float(r.rerank_score)))
+
+
+def filter_reranked_excluding_ingredients(
+    reranked: list[RerankedHit],
+    excluded_slugs: list[str] | None,
+    *,
+    retrieval_hits: list[Hit] | None = None,
+) -> list[RerankedHit]:
+    """Écarte les articles qui contiennent un ingrédient EXCLU (« sans tomate »).
+    Ne renvoie jamais vide : si tout est exclu, on garde la liste d'origine plutôt
+    que d'abstenir (mieux vaut imparfait que rien)."""
+    if not excluded_slugs or not reranked:
+        return reranked
+    by_article: dict[int, list[Hit]] = defaultdict(list)
+    for h in retrieval_hits or []:
+        by_article[int(h.article_external_id)].append(h)
+    for r in reranked:
+        by_article[int(r.hit.article_external_id)].append(r.hit)
+
+    def has_excluded(aid: int) -> bool:
+        arts = by_article.get(aid, [])
+        return any(
+            any(text_contains_ingredient(h.chunk_text, slug_search_terms(s)) for h in arts)
+            for s in excluded_slugs
+        )
+
+    kept = [r for r in reranked if not has_excluded(int(r.hit.article_external_id))]
+    return kept if kept else reranked
 
 
 def article_external_id_for_recipe_card(

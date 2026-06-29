@@ -43,6 +43,8 @@ from .ingredient_match import (
     filter_hits_by_ingredient_slugs,
     filter_hits_by_ingredient_text,
     filter_reranked_by_ingredient_slugs,
+    filter_reranked_excluding_ingredients,
+    extract_excluded_ingredient_slugs,
     is_known_ingredient_slug,
     rerank_by_ingredient_centrality,
     slug_search_terms,
@@ -1577,14 +1579,23 @@ class RagPipeline:
         )
         _conv_to_scan = None if _is_mood_query else conversation_history
         plan = supplement_ingredient_slugs(plan, user_query, _conv_to_scan)
-        # Si l'utilisateur exclut explicitement l'ingrédient en cours, vider les slugs.
-        if plan.ingredient_slugs and _NEGATIVE_INGREDIENT_RE.search(user_query or ""):
+        # Contraintes négatives « sans X / pas de X / ni X » : exclusion CIBLÉE.
+        # On retire seulement l'ingrédient nié (en gardant le positif, ex. « avec
+        # concombre sans tomate » garde concombre) et on mémorise l'exclu pour
+        # écarter les recettes qui le contiennent. (Avant : on vidait TOUT -> on
+        # perdait l'ingrédient demandé.)
+        excluded_ingredient_slugs = extract_excluded_ingredient_slugs(user_query)
+        if excluded_ingredient_slugs:
+            kept = [s for s in plan.ingredient_slugs if s not in excluded_ingredient_slugs]
             log.info(
-                "rag.pipeline.ingredient_slugs_cleared_negative_constraint",
-                ingredient_slugs=plan.ingredient_slugs,
+                "rag.pipeline.ingredient_negative_constraint",
+                excluded=excluded_ingredient_slugs,
+                before=plan.ingredient_slugs,
+                after=kept,
                 query=user_query[:80],
             )
-            plan = plan.model_copy(update={"ingredient_slugs": []})
+            if kept != plan.ingredient_slugs:
+                plan = plan.model_copy(update={"ingredient_slugs": kept})
         # SOTA : sur une requête nommant un plat connu, retirer les ingrédients
         # spéculatifs (non tapés) inventés par le LLM (ex. manouche→zaatar/pain-pita).
         _kept_ing = _drop_speculative_ingredients(plan.ingredient_slugs, user_query)
@@ -1819,6 +1830,19 @@ class RagPipeline:
             reranked = rerank_by_ingredient_centrality(
                 reranked, plan.ingredient_slugs, retrieval_hits=hits
             )
+            # Contrainte négative : écarter les recettes contenant l'ingrédient exclu.
+            if excluded_ingredient_slugs:
+                _n0 = len(reranked)
+                reranked = filter_reranked_excluding_ingredients(
+                    reranked, excluded_ingredient_slugs, retrieval_hits=hits
+                )
+                if len(reranked) != _n0:
+                    log.info(
+                        "rag.pipeline.excluded_ingredient_filtered",
+                        excluded=excluded_ingredient_slugs,
+                        n_before=_n0,
+                        n_after=len(reranked),
+                    )
             if reranked and reranked[0].hit.article_title != before_top:
                 log.info(
                     "rag.pipeline.ingredient_centrality_reordered",
