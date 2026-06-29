@@ -405,11 +405,15 @@ export class SahtenChat {
             this.dom.input.addEventListener('input', () => this.autoResizeInput());
         }
 
-        // Size Switching (Desktop)
+        // Size Switching (Desktop) — bouton unique agrandir/réduire (window <-> full)
         this.dom.sizeBtns.forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const action = e.currentTarget.dataset.action;
-                this.setSize(action);
+                if (action === 'toggle-size') {
+                    this.setSize(this.state.size === 'full' ? 'window' : 'full');
+                } else {
+                    this.setSize(action);
+                }
             });
         });
 
@@ -524,7 +528,16 @@ export class SahtenChat {
         this.dom.container.setAttribute('data-size', nextSize);
         if (this.dom.backdrop) this.dom.backdrop.setAttribute('data-size', nextSize);
         
+        const EXPAND_SVG = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9.5 2.5 13.5 2.5 13.5 6.5"/><polyline points="6.5 13.5 2.5 13.5 2.5 9.5"/><line x1="13.5" y1="2.5" x2="9" y2="7"/><line x1="2.5" y1="13.5" x2="7" y2="9"/></svg>';
+        const COLLAPSE_SVG = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 6 9 6 9 2"/><polyline points="3 10 7 10 7 14"/><line x1="9" y1="6" x2="13.5" y2="1.5"/><line x1="7" y1="10" x2="2.5" y2="14.5"/></svg>';
         this.dom.sizeBtns.forEach(btn => {
+            if (btn.dataset.action === 'toggle-size') {
+                const isFull = nextSize === 'full';
+                btn.innerHTML = isFull ? COLLAPSE_SVG : EXPAND_SVG;
+                btn.setAttribute('aria-label', isFull ? 'Réduire' : 'Agrandir');
+                btn.classList.toggle('active', isFull);
+                return;
+            }
             const isActive = btn.dataset.action === nextSize;
             btn.classList.toggle('active', isActive);
             btn.setAttribute('aria-pressed', String(isActive));
