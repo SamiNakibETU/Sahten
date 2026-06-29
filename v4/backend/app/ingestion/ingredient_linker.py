@@ -138,10 +138,19 @@ async def link_article_ingredients(
 
 
 async def link_all_article_ingredients(session: AsyncSession) -> dict[str, int]:
-    """Backfill ``article_ingredients`` pour tous les articles."""
+    """Backfill ``article_ingredients`` pour tous les articles.
+
+    Affiche la progression + commit par lots (transactions courtes = plus rapide
+    et observable, plutôt qu'une seule énorme transaction muette)."""
     res = await session.execute(select(models.Article.id))
     article_ids = [int(row[0]) for row in res.all()]
+    n = len(article_ids)
     total_links = 0
-    for aid in article_ids:
+    print(f"[link-ingredients] {n} articles à traiter…", flush=True)
+    for i, aid in enumerate(article_ids, 1):
         total_links += await link_article_ingredients(session, aid)
-    return {"articles": len(article_ids), "links": total_links}
+        if i % 20 == 0 or i == n:
+            await session.commit()  # commit par lot
+            print(f"  [{i}/{n}] liens cumulés = {total_links}", flush=True)
+    await session.commit()
+    return {"articles": n, "links": total_links}
