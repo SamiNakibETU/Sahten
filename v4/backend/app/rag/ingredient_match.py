@@ -348,6 +348,47 @@ def filter_reranked_by_ingredient_slugs(
     return [r for r in reranked if int(r.hit.article_external_id) in valid]
 
 
+def rerank_by_ingredient_centrality(
+    reranked: list[RerankedHit],
+    slugs: list[str] | None,
+    *,
+    retrieval_hits: list[Hit] | None = None,
+) -> list[RerankedHit]:
+    """Ré-ordonne pour faire remonter les recettes où l'ingrédient est CENTRAL.
+
+    Niveaux (tri stable, le score de rerank départage à l'intérieur d'un niveau) :
+    0. ingrédient dans le TITRE de l'article (ex. « La kebbé de tomate ») ;
+    1. ingrédient confirmé dans la section ingredients_list ;
+    2. simplement mentionné ailleurs (ex. « … peut s'accompagner de tomates »).
+
+    Corrige le cas « recette tomate » → blette-qui-mentionne-tomate au lieu de
+    kebbé-de-tomate."""
+    if not slugs or len(reranked) < 2:
+        return reranked
+    by_article: dict[int, list[Hit]] = defaultdict(list)
+    for h in retrieval_hits or []:
+        by_article[int(h.article_external_id)].append(h)
+    for r in reranked:
+        by_article[int(r.hit.article_external_id)].append(r.hit)
+
+    def tier(r: RerankedHit) -> int:
+        title = r.hit.article_title or ""
+        if any(text_contains_ingredient(title, slug_search_terms(s)) for s in slugs):
+            return 0
+        arts = by_article.get(int(r.hit.article_external_id), [])
+        if all(
+            any(
+                chunk_confirms_ingredient(h.section_kind, h.chunk_text, s, strict=True)
+                for h in arts
+            )
+            for s in slugs
+        ):
+            return 1
+        return 2
+
+    return sorted(reranked, key=lambda r: (tier(r), -float(r.rerank_score)))
+
+
 def article_external_id_for_recipe_card(
     recipe_card,
     hits: list[RerankedHit],

@@ -58,6 +58,12 @@ def test_fallback_dish_name_only_for_real_dish_requests() -> None:
     assert _fallback_dish_name("qui est ce chef", _plan(intent="chef_bio")) is None
     # plat nu que le LLM a (à tort) mis comme son propre ingrédient -> on génère quand même
     assert _fallback_dish_name("katayef", _plan(ingredient_slugs=["katayef"])) == "katayef"
+    # tournures « au / aux / à la » = requête INGRÉDIENT -> pas de génération
+    assert _fallback_dish_name("recette au citron", _plan(ingredient_slugs=["citron"])) is None
+    assert _fallback_dish_name("recette aux pois chiches", _plan(ingredient_slugs=["pois-chiche"])) is None
+    assert _fallback_dish_name("recette à la tomate", _plan(ingredient_slugs=["tomate"])) is None
+    # mais « recette de X » reste un plat à générer
+    assert _fallback_dish_name("recette de baklava", _plan()) == "baklava"
 
 
 def test_manouche_title_matches_despite_curly_apostrophe() -> None:

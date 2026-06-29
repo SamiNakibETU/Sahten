@@ -43,6 +43,7 @@ from .ingredient_match import (
     filter_hits_by_ingredient_slugs,
     filter_hits_by_ingredient_text,
     filter_reranked_by_ingredient_slugs,
+    rerank_by_ingredient_centrality,
     slug_search_terms,
     supplement_ingredient_slugs,
     wants_another_recipe,
@@ -762,7 +763,9 @@ def _olj_has_dish_text(name: str, reranked: list[RerankedHit]) -> bool:
 
 
 # Marqueurs d'une requête PAR INGRÉDIENT (≠ plat nommé) : on ne génère pas.
-_INGREDIENT_QUERY_MARKERS = ("avec", "sans")
+# « au/aux/à la/à base de/avec/sans X » => X est un ingrédient cuisiné, pas le plat
+# (« recette au citron » ≠ un plat « citron »). « recette DE X » reste un plat.
+_INGREDIENT_QUERY_MARKERS = ("avec", "sans", "au", "aux")
 
 
 def _fallback_dish_name(user_query: str, plan: QueryPlan) -> str | None:
@@ -782,6 +785,8 @@ def _fallback_dish_name(user_query: str, plan: QueryPlan) -> str | None:
     if (
         any(m in toks_all for m in _INGREDIENT_QUERY_MARKERS)
         or "a base" in qn
+        or "a la " in qn
+        or "a l " in qn
         or "qui contient" in qn
         or "a partir" in qn
     ):
@@ -1719,6 +1724,18 @@ class RagPipeline:
                         n_remaining=len(non_sauce),
                     )
                     reranked = non_sauce
+            # Ranking par CENTRALITÉ de l'ingrédient : titre > ingredients_list >
+            # simple mention (corrige « recette tomate » -> blette au lieu de kebbé).
+            before_top = reranked[0].hit.article_title if reranked else None
+            reranked = rerank_by_ingredient_centrality(
+                reranked, plan.ingredient_slugs, retrieval_hits=hits
+            )
+            if reranked and reranked[0].hit.article_title != before_top:
+                log.info(
+                    "rag.pipeline.ingredient_centrality_reordered",
+                    ingredient_slugs=plan.ingredient_slugs,
+                    new_top=(reranked[0].hit.article_title or "")[:80],
+                )
         timings["rerank_ms"] = int((time.perf_counter() - t2) * 1000)
 
         t3 = time.perf_counter()
