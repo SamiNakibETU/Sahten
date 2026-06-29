@@ -1358,20 +1358,51 @@ class RagPipeline:
                     )
                     break
         if plan.ingredient_slugs:
+            # 1) Filtre structuré / par section (précis).
             filtered = filter_hits_by_ingredient_slugs(hits, plan.ingredient_slugs)
+            # 2) Sinon, garder les hits courants qui contiennent vraiment le terme.
+            if not filtered:
+                filtered = filter_hits_by_ingredient_text(hits, plan.ingredient_slugs)
+            # 3) Sinon, recherche DÉDIÉE sur le terme ingrédient NU (non dilué par
+            #    "recette libanaise…" qui tirait vers des résultats hors-sujet),
+            #    puis on ne garde que les articles mentionnant l'ingrédient.
+            if not filtered:
+                try:
+                    terms = " ".join(
+                        slug_search_terms(s)[0] for s in plan.ingredient_slugs
+                    )
+                    broad_ing = await self.retriever.search(
+                        session,
+                        terms,
+                        chef_slugs=[],
+                        ingredient_slugs=[],
+                        category_slugs=[],
+                        keyword_slugs=[],
+                        final_limit=final_limit + 24,
+                        exclude_article_external_ids=excl,
+                    )
+                    filtered = filter_hits_by_ingredient_text(
+                        broad_ing, plan.ingredient_slugs
+                    )
+                    if filtered:
+                        log.info(
+                            "rag.pipeline.ingredient_term_search_recovered",
+                            ingredient_slugs=plan.ingredient_slugs,
+                            terms=terms,
+                            n_hits=len(filtered),
+                        )
+                except Exception as exc:  # noqa: BLE001
+                    log.warning(
+                        "rag.pipeline.ingredient_term_search_failed", error=str(exc)
+                    )
             if filtered:
                 hits = filtered
-            elif hits:
-                log.info(
-                    "rag.pipeline.ingredient_post_filter_kept_sql_prefilter",
-                    ingredient_slugs=plan.ingredient_slugs,
-                    n_hits=len(hits),
-                )
             else:
+                # Aucune recette ne met cet ingrédient en avant : abstention honnête
+                # (ne pas renvoyer des cartes hors-sujet type cookies/blette).
                 log.warning(
-                    "rag.pipeline.ingredient_filter_removed_all_hits",
+                    "rag.pipeline.ingredient_no_real_match",
                     ingredient_slugs=plan.ingredient_slugs,
-                    n_before=len(hits),
                 )
                 hits = []
         return hits
