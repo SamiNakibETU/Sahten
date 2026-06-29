@@ -125,6 +125,9 @@ class ChatResponse(BaseModel):
     intent: str
     cost_usd: float | None = None
     cost_breakdown: dict | None = None
+    # Observabilité : stratégie de routage + plan (debuggable côté client/QA).
+    answer_strategy: str | None = None
+    debug_plan: dict | None = None
 
 
 def _new_session_id() -> str:
@@ -313,6 +316,14 @@ async def _run_chat_pipeline(
             else None
         ),
         cost_breakdown=result.cost_breakdown,
+        answer_strategy=result.answer_strategy,
+        debug_plan={
+            "rewritten_query": result.plan.rewritten_query,
+            "intent": result.plan.intent,
+            "ingredient_slugs": result.plan.ingredient_slugs,
+            "chef_slugs": result.plan.chef_slugs,
+            "n_reranked": len(result.reranked),
+        },
     )
 
 
