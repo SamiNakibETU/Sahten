@@ -1136,6 +1136,7 @@ class PipelineResult:
     timings_ms: dict[str, int]
     is_base2_fallback: bool = False
     cost_breakdown: dict[str, Any] | None = None
+    answer_strategy: str = "normal_generate"
 
 
 # Garde d'entrée (sécurité) : injection de prompt / extraction des instructions /
@@ -1451,6 +1452,7 @@ class RagPipeline:
                 reranked=[],
                 answer=_build_security_redirect_answer(),
                 timings_ms={},
+                answer_strategy="security_redirect",
             )
 
         t0 = time.perf_counter()
@@ -1757,6 +1759,9 @@ class RagPipeline:
                 corpus_searchable=corpus_ok,
             )
 
+        # Stratégie de réponse explicite (observabilité : une seule source de vérité
+        # du chemin pris, tracée + exposée). Voir log "rag.pipeline.decision".
+        answer_strategy = "normal_generate"
         if (
             not reranked
             and plan.ingredient_slugs
@@ -1764,6 +1769,7 @@ class RagPipeline:
             and base2_recipe is None
         ):
             answer = _build_no_alternate_ingredient_answer(plan.ingredient_slugs)
+            answer_strategy = "no_alternate_ingredient"
         elif trigger_fallback and base2_recipe is not None:
             answer = _build_base2_last_resort_answer(
                 user_query=user_query,
@@ -1771,6 +1777,7 @@ class RagPipeline:
                 reranked=reranked,
             )
             base2_fallback_used = True
+            answer_strategy = "base2_last_resort"
             log.info(
                 "rag.pipeline.base2_last_resort_used",
                 query=user_query[:80],
@@ -1785,6 +1792,9 @@ class RagPipeline:
                     generated=generated,
                     reranked=reranked,
                 )
+                answer_strategy = (
+                    "generated_cached" if generated.get("_cached") else "generated_new"
+                )
                 log.info(
                     "rag.pipeline.generated_recipe_used",
                     query=user_query[:80],
@@ -1793,10 +1803,13 @@ class RagPipeline:
                 )
             elif not reranked:
                 answer = await _empty_answer()
+                answer_strategy = "empty_no_generation"
             else:
                 answer = await _normal_generate()
+                answer_strategy = "normal_generate_dish_absent"
         elif not reranked:
             answer = await _empty_answer()
+            answer_strategy = "empty_retrieval"
         else:
             answer = await _normal_generate()
         # Gating de pertinence de la carte : si l'utilisateur nomme un plat précis
@@ -1825,10 +1838,31 @@ class RagPipeline:
         timings["generation_ms"] = int((time.perf_counter() - t3) * 1000)
         timings["total_ms"] = sum(timings.values())
 
+        # ── Décision de routage : UNE ligne structurée par requête (rien louper).
+        # Capture tous les signaux qui ont déterminé la stratégie -> debuggable
+        # a posteriori sans rejouer la requête.
+        log.info(
+            "rag.pipeline.decision",
+            query=user_query[:120],
+            strategy=answer_strategy,
+            intent=plan.intent,
+            n_hits=len(hits),
+            n_reranked=len(reranked),
+            dish_absent=bool(dish_absent),
+            trigger_fallback=bool(trigger_fallback),
+            requested_dish=bool(req_terms),
+            cand_dish=cand_dish,
+            base2_matched=(base2_recipe.get("name") if base2_recipe else None),
+            ingredient_slugs=plan.ingredient_slugs,
+            chef_slugs=plan.chef_slugs,
+            has_card=bool(answer.recipe_card),
+            confidence=round(float(answer.confidence or 0.0), 3),
+        )
         log.info(
             "rag.pipeline.completed",
             query=user_query[:80],
             intent=plan.intent,
+            strategy=answer_strategy,
             n_hits=len(hits),
             n_reranked=len(reranked),
             timings_ms=timings,
@@ -1843,5 +1877,5 @@ class RagPipeline:
         return PipelineResult(
             plan=plan, hits=hits, reranked=reranked,
             answer=answer, timings_ms=timings, is_base2_fallback=base2_fallback_used,
-            cost_breakdown=cost_breakdown,
+            cost_breakdown=cost_breakdown, answer_strategy=answer_strategy,
         )

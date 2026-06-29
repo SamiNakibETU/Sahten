@@ -42,6 +42,7 @@ async def record_chat_trace(
     cost_breakdown: dict[str, Any] | None = None,
     error: bool = False,
     error_type: str | None = None,
+    answer_strategy: str | None = None,
 ) -> None:
     """Enregistre une trace + compteurs métier (modèle, intent, requêtes).
 
@@ -72,6 +73,7 @@ async def record_chat_trace(
             "recipe_count": recipe_count,
             "model_used": model_used,
             "is_base2_fallback": is_base2_fallback,
+            "answer_strategy": answer_strategy,
             "latency_ms": latency_ms,
             "timings_ms": timings_ms,
             "cost_usd": round(cost_usd, 6),
@@ -112,6 +114,9 @@ async def record_chat_trace(
         pipe.incr(f"sahten:metrics:model:{mk}:count")
         if intent:
             pipe.incr(f"sahten:metrics:intent:{intent}:count")
+        if answer_strategy:
+            sk = answer_strategy.replace(":", "_")[:40]
+            pipe.incr(f"sahten:metrics:strategy:{sk}:count")
         if cost_usd > 0:
             micros = int(round(cost_usd * 1_000_000))
             pipe.incrby("sahten:metrics:cost_usd_micros", micros)
@@ -375,6 +380,22 @@ async def get_analytics() -> dict[str, Any]:
             if c > 0:
                 intent_stats[ik] = c
 
+        # ── Ventilation par stratégie de réponse (observabilité du routage) ──
+        strategy_stats: dict[str, int] = {}
+        cursor = 0
+        while True:
+            cursor, keys = await r.scan(
+                cursor=cursor, match="sahten:metrics:strategy:*:count", count=80
+            )
+            for key in keys:
+                k = key.decode() if isinstance(key, bytes) else str(key)
+                cnt = int(await r.get(k) or 0)
+                if cnt > 0:
+                    slug = k.replace("sahten:metrics:strategy:", "").replace(":count", "")
+                    strategy_stats[slug] = cnt
+            if cursor == 0:
+                break
+
         # ── Latence P50/P95/P99 ───────────────────────────────────────────
         latency = await get_latency_percentiles()
 
@@ -423,6 +444,7 @@ async def get_analytics() -> dict[str, Any]:
             },
             "models": model_stats,
             "intents": intent_stats,
+            "strategies": strategy_stats,
             "top_recipes": top_recipes,
             "quality": {
                 "exact_match_count": int(

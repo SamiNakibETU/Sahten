@@ -285,6 +285,7 @@ async def _run_chat_pipeline(
             timings_ms=result.timings_ms,
             is_base2_fallback=bool(result.is_base2_fallback),
             cost_breakdown=result.cost_breakdown,
+            answer_strategy=result.answer_strategy,
         )
     except Exception as exc:
         log.warning("chat.analytics_trace_failed", error=str(exc))
