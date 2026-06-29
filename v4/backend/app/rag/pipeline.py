@@ -473,8 +473,12 @@ def _canonicalize_dish_aliases(q: str) -> str:
 
 
 def _norm_match(s: str) -> str:
-    t = unicodedata.normalize("NFKD", (s or "").lower())
-    return "".join(ch for ch in t if not unicodedata.combining(ch))
+    # Normalise les apostrophes (courbe ’ vs droite ') PUIS les supprime, pour que
+    # « mana'ich » (alias) matche « mana’ichs » (titre) — sinon faux négatif qui
+    # déclenche à tort le fallback (bug manouche -> recette générée).
+    t = unicodedata.normalize("NFKD", (s or "").lower()).replace("’", "'")
+    t = "".join(ch for ch in t if not unicodedata.combining(ch))
+    return t.replace("'", "")
 
 
 def _load_dish_entries() -> list[tuple[tuple[str, ...], str, str | None]]:
@@ -756,43 +760,38 @@ def _olj_has_dish_text(name: str, reranked: list[RerankedHit]) -> bool:
     return any(n in _norm_match(h.hit.article_title) for h in reranked)
 
 
-_DISH_NAME_NOISE = {
-    "avec", "sans", "et", "ou", "pour", "dans", "plat", "recette", "facile",
-    "rapide", "bon", "bonne", "traditionnel", "traditionnelle", "libanais",
-    "libanaise", "maison", "vrai", "vraie", "veux", "voudrais", "donne", "donner",
-}
+# Marqueurs d'une requête PAR INGRÉDIENT (≠ plat nommé) : on ne génère pas.
+_INGREDIENT_QUERY_MARKERS = ("avec", "sans")
 
 
 def _fallback_dish_name(user_query: str, plan: QueryPlan) -> str | None:
     """Nom de plat candidat à la génération de dernier recours, sinon None.
 
-    On ne génère que pour une vraie demande de PLAT. Important : quand un plat est
-    nommé, le LLM remplit souvent `ingredient_slugs` avec ses COMPOSANTS (knefe →
-    fromage, baklava → pâte filo) ; on ne doit donc PAS bloquer sur la seule
-    présence d'ingredient_slugs. On rejette seulement si le « nom » extrait n'est
-    composé que d'ingrédients/bruit (= vraie requête par ingrédient, ex.
-    « recette avec du concombre »)."""
+    Distinguer un PLAT nommé (« katayef », « recette de baklava ») d'une requête
+    PAR INGRÉDIENT (« recette avec du concombre ») : le LLM met souvent les
+    composants — voire le nom du plat lui-même (katayef → ingredient 'katayef') —
+    dans `ingredient_slugs`, donc on NE peut PAS s'y fier. On se base sur la
+    FORMULATION : marqueurs « avec / sans / à base de » ⇒ requête ingrédient (pas
+    de génération) ; sinon un nom de plat explicite (« recette de X ») ou nu
+    (1-3 mots) est un plat → on génère."""
     if plan.intent not in ("recipe", "mixed"):
         return None
+    qn = _base2_normalize_text(user_query)
+    toks_all = qn.split()
+    if (
+        any(m in toks_all for m in _INGREDIENT_QUERY_MARKERS)
+        or "a base" in qn
+        or "qui contient" in qn
+        or "a partir" in qn
+    ):
+        return None
     name = _extract_explicit_recipe_name(user_query)
-    if not name:
-        qn = _base2_normalize_text(user_query)
-        toks = [t for t in qn.split() if t not in _BASE2_TOKEN_STOPWORDS and len(t) > 2]
-        if not (1 <= len(toks) <= 3):
-            return None
-        name = " ".join(toks)
-    name_toks = {
-        t for t in _base2_normalize_text(name).split()
-        if len(t) > 2 and t not in _BASE2_TOKEN_STOPWORDS and t not in _DISH_NAME_NOISE
-    }
-    if not name_toks:
-        return None
-    ing_toks: set[str] = set()
-    for slug in (plan.ingredient_slugs or []):
-        ing_toks |= {t for t in slug.replace("-", " ").split() if len(t) > 2}
-    if name_toks <= ing_toks:  # le « plat » n'est que des ingrédients -> pas un plat
-        return None
-    return name
+    if name:
+        return name
+    toks = [t for t in toks_all if t not in _BASE2_TOKEN_STOPWORDS and len(t) > 2]
+    if 1 <= len(toks) <= 3:
+        return " ".join(toks)
+    return None
 
 
 GENERATED_INTRO = (

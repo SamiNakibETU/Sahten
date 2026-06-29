@@ -3,9 +3,11 @@
 from backend.app.llm.query_understanding import QueryPlan
 from backend.app.rag.pipeline import (
     _build_generated_recipe_answer,
+    _card_title_matches_requested_dish,
     _fallback_dish_name,
     _match_base2_recipe,
     _olj_has_dish_text,
+    _requested_dish_terms,
 )
 from backend.app.rag.recipe_generator import normalize_dish
 from backend.app.rag.reranker import RerankedHit
@@ -50,10 +52,21 @@ def test_base2_fuzzy_matches_bare_and_phrased() -> None:
 def test_fallback_dish_name_only_for_real_dish_requests() -> None:
     assert _fallback_dish_name("knefe", _plan()) == "knefe"
     assert _fallback_dish_name("recette de baklava", _plan()) == "baklava"
-    # requête ingrédient -> pas de génération
+    # requête ingrédient (marqueur « avec ») -> pas de génération
     assert _fallback_dish_name("recette avec du concombre", _plan(ingredient_slugs=["concombre"])) is None
     # intention non-recette -> pas de génération
     assert _fallback_dish_name("qui est ce chef", _plan(intent="chef_bio")) is None
+    # plat nu que le LLM a (à tort) mis comme son propre ingrédient -> on génère quand même
+    assert _fallback_dish_name("katayef", _plan(ingredient_slugs=["katayef"])) == "katayef"
+
+
+def test_manouche_title_matches_despite_curly_apostrophe() -> None:
+    # le titre OLJ a une apostrophe COURBE (mana'ichs) ; l'alias une DROITE
+    req = _requested_dish_terms("recette de manouche")
+    assert req  # manouche est un plat connu
+    assert _card_title_matches_requested_dish(
+        "Les mana’ichs du Chouf de Salim Azzam", req
+    )
 
 
 def test_olj_has_dish_text() -> None:
