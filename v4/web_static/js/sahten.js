@@ -417,35 +417,29 @@ export class SahtenChat {
             });
         });
 
-        // Mobile Drag/Slide Logic
+        // Mobile : glisser la poignée vers le bas pour FERMER (bottom-sheet).
+        // Pas de redimensionnement (une seule vue sur mobile) -> comportement net,
+        // suit le doigt, et ferme franchement au-delà du seuil.
         if (this.dom.dragHandle) {
-            let startY = 0;
-
+            let startY = null;
             this.dom.dragHandle.addEventListener('touchstart', (e) => {
                 startY = e.touches[0].clientY;
+                this.dom.container.style.transition = 'none'; // suivi net du doigt
             }, { passive: true });
-
+            this.dom.dragHandle.addEventListener('touchmove', (e) => {
+                if (startY === null) return;
+                const dy = e.touches[0].clientY - startY;
+                // retour visuel : la feuille suit le doigt vers le bas (jamais vers le haut)
+                this.dom.container.style.transform = `translateY(${Math.max(0, dy)}px)`;
+            }, { passive: true });
             this.dom.dragHandle.addEventListener('touchend', (e) => {
+                if (startY === null) return;
                 const diff = e.changedTouches[0].clientY - startY;
-
-                if (diff > 40) {
-                    // Swipe down -> smaller or close
-                    if (this.state.size === 'full') this.setSize('mid');
-                    else if (this.state.size === 'mid') this.setSize('window');
-                    else this.toggle(false);
-                } else if (diff < -40) {
-                    // Swipe up -> bigger
-                    if (this.state.size === 'window') this.setSize('mid');
-                    else if (this.state.size === 'mid') this.setSize('full');
-                }
+                startY = null;
+                this.dom.container.style.transition = ''; // restaure l'animation
+                this.dom.container.style.transform = '';
+                if (diff > 80) this.toggle(false); // glissé franc vers le bas -> fermer
             }, { passive: true });
-
-            // Also allow tapping the handle area to cycle sizes
-            this.dom.dragHandle.addEventListener('click', () => {
-                if (this.state.size === 'window') this.setSize('mid');
-                else if (this.state.size === 'mid') this.setSize('full');
-                else this.setSize('window');
-            });
         }
     }
 

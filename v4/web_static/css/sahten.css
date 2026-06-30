@@ -148,23 +148,56 @@
   background: rgba(0, 0, 0, 0.1);
   border-radius: var(--radius-pill);
 }
-@media (max-width: 480px) {
+@media (max-width: 600px) {
   .sahten-drag-handle {
     display: block;
   }
-  .sahten-widget-container {
+  .sahten-widget-container,
+  .sahten-widget-container[data-size="window"],
+  .sahten-widget-container[data-size="mid"],
+  .sahten-widget-container[data-size="full"] {
+    /* Mobile : UNE seule présentation = bottom-sheet opaque, pleine largeur.
+       Les tailles desktop (window/mid/full) n'ont pas de sens ici, on les force
+       toutes vers la même feuille (évite le bouton taille « qui ne change rien »). */
+    top: auto;
     left: 0;
     right: 0;
     bottom: 0;
+    margin: 0;
     width: 100%;
-    max-height: min(92dvh, 100%);
-    border-radius: 14px 14px 0 0;
+    max-width: 100%;
+    height: auto; /* épouse le contenu… */
+    max-height: min(92dvh, 100%); /* …plafonné à 92% de la hauteur visible (dvh = clavier-safe) */
+    background: var(--surface-panel);
     border: 1px solid var(--border);
     border-bottom: none;
+    border-radius: 14px 14px 0 0;
     box-shadow: 0 -6px 28px rgba(0, 0, 0, 0.1);
+    backdrop-filter: none;
   }
+  /* Neutralise la « barely-there » plein écran (colonne centrée + composeur flottant) :
+     sur mobile la feuille reste pleine largeur et opaque, quel que soit data-size. */
+  .sahten-widget-container[data-size="full"] .sahten-header,
+  .sahten-widget-container[data-size="full"] .sahten-body,
+  .sahten-widget-container[data-size="full"] .sahten-footer {
+    max-width: none;
+    margin-left: 0;
+    margin-right: 0;
+    background: transparent;
+  }
+  .sahten-widget-container[data-size="full"] .input-wrapper {
+    max-width: none;
+    margin-left: 0;
+    margin-right: 0;
+    background: var(--footer-field-bg);
+    border: 1px solid var(--footer-field-border);
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+  /* Bouton taille masqué sur mobile (une seule vue) — !important pour battre les
+     règles globales [data-size="full"] .sahten-size-btn. */
   .sahten-size-btn {
-    display: none;
+    display: none !important;
   }
   .sahten-header {
     padding: 6px 10px;
@@ -303,7 +336,7 @@
     height: 13px;
   }
 }
-@media (min-width: 481px) {
+@media (min-width: 601px) {
   .sahten-widget-container[data-size="window"] {
     bottom: 24px;
     right: 24px;
@@ -1697,7 +1730,7 @@
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
-@media (max-width: 480px) {
+@media (max-width: 600px) {
   .sahten-restaurant-grid {
     margin-top: 10px;
     padding-top: 10px;
@@ -1728,7 +1761,7 @@
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 600px) {
   .recipe-card {
     padding: 8px 0;
     margin-bottom: 8px;
@@ -1961,7 +1994,7 @@
   border: 0;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 600px) {
   .sahten-trigger-wrap {
     bottom: calc(12px + env(safe-area-inset-bottom, 0px));
     right: max(12px, env(safe-area-inset-right, 0px));
