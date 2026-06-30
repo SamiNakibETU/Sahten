@@ -208,16 +208,17 @@
     justify-content: flex-start;
     padding-top: clamp(20px, 9vh, 72px);
   }
-  /* Typo d'accueil fluide selon la largeur de l'écran */
-  .welcome-lead {
+  /* Typo d'accueil fluide selon la largeur de l'écran. Spécificité (0,3,0) pour
+     battre les règles globales .welcome-editorial--atable .welcome-* (0,2,0). */
+  .sahten-body .welcome-editorial .welcome-lead {
     font-size: clamp(17px, 4.8vw, 21px);
     line-height: 1.5;
   }
-  .welcome-sub {
+  .sahten-body .welcome-editorial .welcome-sub {
     font-size: clamp(15px, 4.2vw, 18px);
     line-height: 1.5;
   }
-  .welcome-note {
+  .sahten-body .welcome-editorial .welcome-note {
     font-size: clamp(12px, 3.4vw, 14px);
     line-height: 1.5;
   }
@@ -228,6 +229,8 @@
   .sahten-widget-container .sahten-footer .input-wrapper {
     max-width: 640px;
     margin-inline: auto;
+    /* padding horizontal symétrique -> placeholder réellement centré (bat la base) */
+    padding: 6px 44px;
     background: #ffffff;
     border: 1px solid rgba(0, 0, 0, 0.06);
     border-radius: var(--radius-lg);
