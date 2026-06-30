@@ -414,7 +414,7 @@ def _contains_term(text: str, term: str) -> bool:
 # Source : data/aliases_dishes.json. On REMPLACE la graphie utilisateur par la
 # forme réellement indexée (méthode 'canonicalize_replace'), car l'empirie montre
 # qu'ajouter laisse le mauvais token tirer ailleurs (ex. 'tabbouleh taboulé'
-# échoue, mais 'taboulé' seul rang 1). Voir docs/alias-validation-report.md.
+# échoue, mais 'taboulé' seul rang 1).
 _DISH_ALIASES_PATH = Path(__file__).resolve().parents[3] / "data" / "aliases_dishes.json"
 _INGREDIENT_ALIASES_PATH = (
     Path(__file__).resolve().parents[3] / "data" / "aliases_ingredients.json"
