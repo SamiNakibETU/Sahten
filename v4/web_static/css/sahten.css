@@ -398,7 +398,7 @@
   line-height: 1.2;
   letter-spacing: -0.01em;
 }
-/* Header : « Sahteïn » — editorial serif italic */
+/* Header : « Sahteïn » — editorial serif, droit (pas d'italique) */
 .sahten-title.sahten-title--brand {
   display: inline-flex;
   align-items: center;
@@ -408,7 +408,7 @@
   background: transparent;
   font-family: var(--font-display);
   font-weight: 700;
-  font-style: italic;
+  font-style: normal;
   font-size: 18px;
   color: var(--atable-ink);
   letter-spacing: -0.02em;
@@ -2128,6 +2128,15 @@
 .sahten-widget-container[data-size="full"] .sahten-footer {
   background: transparent;
   border: none;
+}
+/* En-tête (Sahteïn + boutons) aligné sur la COLONNE de texte : bord gauche =
+   Sahteïn, bord droit = boutons, au même niveau que le contenu et le composeur. */
+.sahten-widget-container[data-size="full"] .sahten-header {
+  max-width: 768px;
+  width: 100%;
+  margin-inline: auto;
+  padding-left: 16px;
+  padding-right: 16px;
 }
 .sahten-widget-container[data-size="full"] .sahten-footer {
   padding-bottom: 24px;
