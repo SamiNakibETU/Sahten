@@ -2190,8 +2190,8 @@
   font-size: 15px;
   padding-top: 20px;
 }
-/* État d'accueil (aucun message encore) : on centre verticalement le bloc
-   plutôt que de le laisser flotter en haut d'un grand vide. */
+/* État d'accueil (aucune question posée) : top-pondéré responsive (PAS dead-center,
+   qui faisait flotter le texte au milieu d'un grand vide). */
 .sahten-widget-container[data-size="mid"] .sahten-body:not(:has(.msg-user)),
 .sahten-widget-container[data-size="full"] .sahten-body:not(:has(.msg-user)) {
   justify-content: flex-start;
