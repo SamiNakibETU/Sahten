@@ -149,55 +149,84 @@
   border-radius: var(--radius-pill);
 }
 @media (max-width: 600px) {
+  /* === MOBILE = rendu « plein écran » immersif (comme le full desktop) ===========
+     L'utilisateur préfère le look barely-there : le widget couvre l'écran par-dessus
+     un fond flouté, conversation en colonne de lecture, composeur flottant net.
+     On force TOUTES les tailles (window/mid/full) vers ce rendu unique.
+     Fermeture via la croix (pas de poignée, comme le plein écran desktop). */
   .sahten-drag-handle {
-    display: block;
+    display: none !important;
+  }
+  .sahten-size-btn {
+    display: none !important;
   }
   .sahten-widget-container,
   .sahten-widget-container[data-size="window"],
   .sahten-widget-container[data-size="mid"],
   .sahten-widget-container[data-size="full"] {
-    /* Mobile : UNE seule présentation = bottom-sheet opaque, pleine largeur.
-       Les tailles desktop (window/mid/full) n'ont pas de sens ici, on les force
-       toutes vers la même feuille (évite le bouton taille « qui ne change rien »). */
-    top: auto;
+    top: 0;
     left: 0;
     right: 0;
-    bottom: 0;
+    bottom: 0; /* top + bottom -> plein écran ; bottom suit le clavier (interactive-widget) */
     margin: 0;
     width: 100%;
     max-width: 100%;
-    height: auto; /* épouse le contenu… */
-    max-height: min(92dvh, 100%); /* …plafonné à 92% de la hauteur visible (dvh = clavier-safe) */
-    background: var(--surface-panel);
-    border: 1px solid var(--border);
-    border-bottom: none;
-    border-radius: 14px 14px 0 0;
-    box-shadow: 0 -6px 28px rgba(0, 0, 0, 0.1);
-    backdrop-filter: none;
-  }
-  /* Neutralise la « barely-there » plein écran (colonne centrée + composeur flottant) :
-     sur mobile la feuille reste pleine largeur et opaque, quel que soit data-size. */
-  .sahten-widget-container[data-size="full"] .sahten-header,
-  .sahten-widget-container[data-size="full"] .sahten-body,
-  .sahten-widget-container[data-size="full"] .sahten-footer {
-    max-width: none;
-    margin-left: 0;
-    margin-right: 0;
-    background: transparent;
-  }
-  .sahten-widget-container[data-size="full"] .input-wrapper {
-    max-width: none;
-    margin-left: 0;
-    margin-right: 0;
-    background: var(--footer-field-bg);
-    border: 1px solid var(--footer-field-border);
+    height: auto;
+    max-height: none;
+    border: none;
+    border-radius: 0;
     box-shadow: none;
-    backdrop-filter: none;
+    background: transparent; /* barely-there : le fond visible = backdrop flouté */
   }
-  /* Bouton taille masqué sur mobile (une seule vue) — !important pour battre les
-     règles globales [data-size="full"] .sahten-size-btn. */
-  .sahten-size-btn {
-    display: none !important;
+  /* En-tête / corps / pied transparents (le panneau blanc disparaît) */
+  .sahten-widget-container .sahten-header,
+  .sahten-widget-container .sahten-body,
+  .sahten-widget-container .sahten-footer {
+    background: transparent;
+    border: none;
+  }
+  /* En-tête aligné sur la colonne : Sahteïn à gauche, × à droite */
+  .sahten-widget-container .sahten-header {
+    max-width: 768px;
+    width: 100%;
+    margin-inline: auto;
+    padding-left: 16px;
+    padding-right: 16px;
+    padding-top: max(8px, env(safe-area-inset-top, 0px));
+  }
+  /* Conversation : colonne lisible centrée, police confortable */
+  .sahten-widget-container .sahten-body {
+    max-width: 768px;
+    width: 100%;
+    margin-inline: auto;
+    font-size: 15px;
+    padding-top: 14px;
+  }
+  /* Accueil (aucun message) centré verticalement dans le grand vide */
+  .sahten-widget-container .sahten-body:not(:has(.msg)) {
+    justify-content: center;
+  }
+  /* Composeur flottant net (carte blanche + ombre), centré ; clavier-safe via dvh */
+  .sahten-widget-container .sahten-footer {
+    padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  }
+  .sahten-widget-container .sahten-footer .input-wrapper {
+    max-width: 640px;
+    margin-inline: auto;
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 16px 50px rgba(0, 0, 0, 0.18), 0 2px 8px rgba(0, 0, 0, 0.06);
+  }
+  /* Croix discrète (frosted) au-dessus du fond flouté */
+  .sahten-close-btn {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(8px);
+  }
+  /* Fond flouté (indépendant du data-size : le backdrop reste « full ») */
+  .sahten-backdrop.visible {
+    background: rgba(43, 43, 43, 0.12);
+    backdrop-filter: blur(var(--backdrop-blur-full));
   }
   .sahten-header {
     padding: 6px 10px;
