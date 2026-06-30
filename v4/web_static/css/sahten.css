@@ -369,8 +369,10 @@
        (la zone droite laisse la place au bouton envoyer) */
     padding: 4px 44px;
   }
-  .sahten-input {
-    /* 16px : seuil sous lequel iOS Safari zoome au focus (anti-zoom) */
+  /* Spécificité (0,2,0) pour battre la base .sahten-input (font-size:
+     var(--welcome-body-size) ~14px) qui, plus loin dans le fichier, l'emportait
+     -> input < 16px -> iOS Safari ZOOME au focus. 16px = anti-zoom garanti. */
+  .sahten-widget-container .sahten-input {
     font-size: 16px;
     min-height: 32px;
     text-align: center; /* texte gris (placeholder) + saisie centrés dans la barre */
