@@ -202,8 +202,9 @@
     font-size: 15px;
     padding-top: 14px;
   }
-  /* Accueil (aucun message) centré verticalement dans le grand vide */
-  .sahten-widget-container .sahten-body:not(:has(.msg)) {
+  /* Accueil (aucune question posée) centré verticalement dans le grand vide.
+     NB : l'accueil est lui-même un .msg-bot -> on teste l'absence de .msg-user. */
+  .sahten-widget-container .sahten-body:not(:has(.msg-user)) {
     justify-content: center;
   }
   /* Composeur flottant net (carte blanche + ombre), centré ; clavier-safe via dvh */
@@ -2171,8 +2172,8 @@
 }
 /* État d'accueil (aucun message encore) : on centre verticalement le bloc
    plutôt que de le laisser flotter en haut d'un grand vide. */
-.sahten-widget-container[data-size="mid"] .sahten-body:not(:has(.msg)),
-.sahten-widget-container[data-size="full"] .sahten-body:not(:has(.msg)) {
+.sahten-widget-container[data-size="mid"] .sahten-body:not(:has(.msg-user)),
+.sahten-widget-container[data-size="full"] .sahten-body:not(:has(.msg-user)) {
   justify-content: center;
 }
 
