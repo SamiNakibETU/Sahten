@@ -34,6 +34,16 @@ nav.top {
   padding: 0 24px;
   gap: 8px;
   flex-wrap: nowrap;
+  /* Mobile : la barre scrolle EN INTERNE (swipe) au lieu de pousser la page en
+     largeur (évite le scroll horizontal du document sur petit écran). */
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+}
+nav.top::-webkit-scrollbar {
+  display: none;
 }
 
 .nav-brand {
