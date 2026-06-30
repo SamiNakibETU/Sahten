@@ -194,18 +194,32 @@
     padding-right: 16px;
     padding-top: max(8px, env(safe-area-inset-top, 0px));
   }
-  /* Conversation : colonne lisible centrée, police confortable */
+  /* Conversation : colonne lisible centrée, police FLUIDE (s'adapte à l'écran) */
   .sahten-widget-container .sahten-body {
     max-width: 768px;
     width: 100%;
     margin-inline: auto;
-    font-size: 15px;
+    font-size: clamp(14px, 3.8vw, 16px);
     padding-top: 14px;
   }
-  /* Accueil (aucune question posée) centré verticalement dans le grand vide.
-     NB : l'accueil est lui-même un .msg-bot -> on teste l'absence de .msg-user. */
+  /* Accueil (aucune question posée) : top-pondéré + responsive — PAS dead-center
+     (le centrage faisait flotter le texte au milieu d'un grand vide). */
   .sahten-widget-container .sahten-body:not(:has(.msg-user)) {
-    justify-content: center;
+    justify-content: flex-start;
+    padding-top: clamp(20px, 9vh, 72px);
+  }
+  /* Typo d'accueil fluide selon la largeur de l'écran */
+  .welcome-lead {
+    font-size: clamp(17px, 4.8vw, 21px);
+    line-height: 1.5;
+  }
+  .welcome-sub {
+    font-size: clamp(15px, 4.2vw, 18px);
+    line-height: 1.5;
+  }
+  .welcome-note {
+    font-size: clamp(12px, 3.4vw, 14px);
+    line-height: 1.5;
   }
   /* Composeur flottant net (carte blanche + ombre), centré ; clavier-safe via dvh */
   .sahten-widget-container .sahten-footer {
@@ -348,12 +362,15 @@
   }
   .input-wrapper {
     min-height: 38px;
-    padding: 3px 38px 3px 8px;
+    /* padding horizontal symétrique -> le placeholder est RÉELLEMENT centré
+       (la zone droite laisse la place au bouton envoyer) */
+    padding: 4px 44px;
   }
   .sahten-input {
     /* 16px : seuil sous lequel iOS Safari zoome au focus (anti-zoom) */
     font-size: 16px;
     min-height: 32px;
+    text-align: center; /* texte gris (placeholder) + saisie centrés dans la barre */
   }
   .send-btn {
     width: 30px;
@@ -2174,7 +2191,8 @@
    plutôt que de le laisser flotter en haut d'un grand vide. */
 .sahten-widget-container[data-size="mid"] .sahten-body:not(:has(.msg-user)),
 .sahten-widget-container[data-size="full"] .sahten-body:not(:has(.msg-user)) {
-  justify-content: center;
+  justify-content: flex-start;
+  padding-top: clamp(32px, 14vh, 140px);
 }
 
 /* ── Plein écran « BARELY THERE » : fond flouté, contenu centré, barre flottante ──
@@ -2208,10 +2226,17 @@
   max-width: 640px;
   margin-inline: auto;
   min-height: 56px;
+  /* padding horizontal symétrique -> placeholder réellement centré */
+  padding-inline: 48px;
   background: #ffffff;
   border: 1px solid rgba(0, 0, 0, 0.06);
   border-radius: var(--radius-lg);
   box-shadow: 0 16px 50px rgba(0, 0, 0, 0.18), 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+/* Placeholder gris (et saisie) centrés dans la barre — esprit Spotlight */
+.sahten-widget-container[data-size="full"] .sahten-input,
+.sahten-widget-container[data-size="mid"] .sahten-input {
+  text-align: center;
 }
 /* Boutons header discrets en barely-there (le toggle ne garde pas son chip) */
 .sahten-widget-container[data-size="full"] .sahten-size-btn,
