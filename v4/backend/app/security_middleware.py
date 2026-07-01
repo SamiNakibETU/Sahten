@@ -86,9 +86,18 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
                 "Content-Security-Policy",
                 (
                     "default-src 'self'; "
-                    "script-src 'self' 'unsafe-inline'; "
-                    "style-src 'self' 'unsafe-inline'; "
+                    # DOMPurify (défense XSS n°1) chargé depuis jsdelivr, secours unpkg.
+                    # SANS ces origines, la CSP bloquait DOMPurify -> repli sur un
+                    # sanitizer plus faible. On liste explicitement (pas de wildcard).
+                    "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com; "
+                    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.cdnfonts.com; "
+                    "font-src 'self' https://fonts.gstatic.com https://fonts.cdnfonts.com data:; "
                     "img-src 'self' data: https:; "
+                    # fetch /api/chat + SSE /api/chat/stream sur la même origine
+                    "connect-src 'self'; "
+                    "base-uri 'self'; "
+                    "form-action 'self'; "
+                    "object-src 'none'; "
                     "frame-ancestors https://www.lorientlejour.com https://*.lorientlejour.com 'self'"
                 ),
             )

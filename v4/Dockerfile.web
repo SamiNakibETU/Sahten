@@ -27,6 +27,12 @@ COPY v4/web_static ./web_static
 
 RUN chmod +x /app/scripts/docker_entrypoint.sh
 
+# Durcissement : ne pas tourner en root (moindre privilège). uvicorn écoute
+# sur 8000 (>1024) -> aucun privilège requis. Important pour la prod AWS.
+RUN useradd --create-home --uid 10001 appuser \
+    && chown -R appuser:appuser /app
+USER appuser
+
 EXPOSE 8000
 # Entrypoint : auto-migration alembic puis uvicorn. PYTHONPATH=/app/backend (ENV).
 CMD ["/app/scripts/docker_entrypoint.sh"]

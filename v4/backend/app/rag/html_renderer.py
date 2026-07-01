@@ -81,6 +81,20 @@ def _safe_http_image_url(url: str | None) -> str | None:
     return None
 
 
+def _safe_link_url(url: str | None) -> str | None:
+    """URL cliquable (href) : uniquement http(s). Bloque javascript:/data:/vbscript:
+    même si une URL malveillante venait du corpus. Défense en profondeur (le
+    HTML est déjà échappé, mais l'échappement n'empêche pas un schéma dangereux)."""
+    if not url:
+        return None
+    s = str(url).strip()
+    if s.startswith("//"):
+        s = "https:" + s
+    if s.lower().startswith(("https://", "http://")):
+        return s
+    return None
+
+
 def _absolute_image_url(raw: str | None, article_url: str | None) -> str | None:
     """Absolu https ou chemin relatif résolu avec le domaine de l’article."""
     u = _safe_http_image_url(raw)
@@ -162,6 +176,7 @@ def _render_recipe(
     primary_hit: RerankedHit | None,
 ) -> str:
     """Carte type aperçu OLJ : vignette + bandeau marque, titre unique, lien sur toute la carte."""
+    article_url = _safe_link_url(article_url)  # href http(s) uniquement
     cover = _cover_url_from_primary_hit(primary_hit, article_url)
     sk = primary_hit.hit.section_kind if primary_hit else ""
     cat = _recipe_category_label(sk)
@@ -246,6 +261,7 @@ def _render_source_article_card(rh: RerankedHit) -> str:
 
 
 def _render_chef(card: ChefCard, *, article_url: str | None, article_title: str | None) -> str:
+    article_url = _safe_link_url(article_url)  # href http(s) uniquement
     parts: list[str] = ['<article class="sahten-chef-card">']
     parts.append(f"<header><h2>{_escape(card.name)}</h2>")
     if card.role:

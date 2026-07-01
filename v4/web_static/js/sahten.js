@@ -63,27 +63,28 @@ function sanitizeHTML(html) {
             ALLOW_DATA_ATTR: false,
         });
     }
-    // Fallback: basic sanitization using browser's DOM parser
-    // This preserves HTML structure while removing scripts
-    // DOMPurify not loaded, using basic sanitization
-    const temp = document.createElement('div');
-    temp.innerHTML = html;
-    
-    // Remove potentially dangerous elements
-    /* Pas de suppression des <button> : accueil (exemples de questions) ; handlers on* retirés ci-dessous */
-    const dangerous = temp.querySelectorAll('script, iframe, object, embed, form, input');
-    dangerous.forEach(el => el.remove());
-    
-    // Remove event handlers from all elements
-    temp.querySelectorAll('*').forEach(el => {
+    // Repli si DOMPurify indisponible : on parse dans un document INERTE via
+    // DOMParser -> aucune exécution de script, aucun chargement de ressource
+    // (donc pas de <img src=x onerror=...> qui se déclenche PENDANT le nettoyage,
+    // contrairement à `element.innerHTML = html` sur un élément vivant).
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    // Pas de suppression des <button> : accueil (exemples de questions).
+    doc.querySelectorAll(
+        'script, iframe, object, embed, form, input, link, meta, base, style'
+    ).forEach(el => el.remove());
+    doc.querySelectorAll('*').forEach(el => {
         Array.from(el.attributes).forEach(attr => {
-            if (attr.name.startsWith('on')) {
+            const name = attr.name.toLowerCase();
+            const val = (attr.value || '').replace(/\s+/g, '').toLowerCase();
+            const isUrlAttr = name === 'href' || name === 'src' || name === 'xlink:href';
+            // handlers on*, et schémas dangereux (javascript:/data:/vbscript:)
+            if (name.startsWith('on') ||
+                (isUrlAttr && /^(javascript|data|vbscript):/.test(val))) {
                 el.removeAttribute(attr.name);
             }
         });
     });
-    
-    return temp.innerHTML;
+    return doc.body ? doc.body.innerHTML : '';
 }
 
 export class SahtenChat {
