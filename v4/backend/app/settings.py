@@ -97,6 +97,19 @@ class Settings(BaseSettings):
         description="Si True, expose /docs même hors environnement local.",
     )
     events_max_body_bytes: int = Field(default=32768, ge=2048, le=524_288)
+    # Nombre de proxys de confiance DEVANT l'app (qui ajoutent à X-Forwarded-For).
+    # Sert à retrouver le vrai IP client pour le rate-limit :
+    #   1 = un seul reverse-proxy (Railway edge, ou AWS ALB seul)
+    #   2 = deux couches (ex. AWS CloudFront -> ALB)
+    # Mal réglé => soit spoofable (trop bas), soit tous les users partagent un
+    # seul quota car on lit l'IP partagée de l'edge (trop haut).
+    trusted_proxy_hops: int = Field(
+        default=1,
+        alias="SAHTEN_TRUSTED_PROXY_HOPS",
+        ge=1,
+        le=5,
+        description="Proxys de confiance devant l'app (ALB=1, CloudFront+ALB=2).",
+    )
 
     @field_validator("log_level")
     @classmethod
