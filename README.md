@@ -3,12 +3,7 @@
 Assistant culinaire libanais de **L'Orient-Le Jour** — un RAG sur les recettes de
 chefs publiées dans « Liban à Table ».
 
-> ⚠️ **L'application vivante est dans [`v4/`](v4/).** L'ancienne app v2.1
-> (`backend/`, `frontend/`, JSON canonique) a été supprimée le 2026-06-25 :
-> elle est remplacée par la stack Postgres + pgvector de `v4/`.
-> Récupérable dans l'historique git si besoin (`git log -- backend`).
-
-## Architecture (v4)
+## Architecture
 
 FastAPI + **Postgres/pgvector + tsvector** + **Redis** (cache + queue `arq`),
 Docker, Alembic. Pipeline RAG hybride (dense + lexical → RRF → rerank Cohere →
