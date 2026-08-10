@@ -993,6 +993,27 @@ GENERATED_INTRO = (
 )
 
 
+# Une « recette proche » de l'OLJ ne se propose que si le voisin est RÉELLEMENT
+# proche. Sans ce garde-fou, un plat absent (ex. « taboulé », dont l'article OLJ
+# a été supprimé côté source) proposait le meilleur hit de récupération quel que
+# soit son score — d'où des suggestions absurdes (un dessert « mochi achta » pour
+# une salade de persil). On exige un score de rerank minimal ; sinon on ne
+# suggère RIEN, ce qui vaut mieux qu'une suggestion à côté de la plaque.
+_MIN_CLOSE_SUGGESTION_SCORE = 0.30
+
+
+def _relevant_close_olj_hit(reranked: list[RerankedHit]) -> RerankedHit | None:
+    top = next(
+        (r for r in reranked if _is_canonical_olj_url(r.hit.article_url)),
+        reranked[0] if reranked else None,
+    )
+    if top is None:
+        return None
+    if float(getattr(top, "rerank_score", 0.0) or 0.0) < _MIN_CLOSE_SUGGESTION_SCORE:
+        return None
+    return top
+
+
 def _build_generated_recipe_answer(
     *,
     user_query: str,
@@ -1001,10 +1022,7 @@ def _build_generated_recipe_answer(
 ) -> GroundedAnswer:
     """Réponse pour un plat absent partout : recette générée (clairement étiquetée
     hors-OLJ) dans le texte + une suggestion OLJ proche en carte (si disponible)."""
-    top_canonical = next(
-        (r for r in reranked if _is_canonical_olj_url(r.hit.article_url)),
-        reranked[0] if reranked else None,
-    )
+    top_canonical = _relevant_close_olj_hit(reranked)
     recipe_card: RecipeCard | None = None
     olj_title = ""
     olj_chunk_id: int | None = None
@@ -1134,10 +1152,7 @@ def _build_base2_last_resort_answer(
     base2_recipe: dict[str, Any],
     reranked: list[RerankedHit],
 ) -> GroundedAnswer:
-    top_canonical = next(
-        (r for r in reranked if _is_canonical_olj_url(r.hit.article_url)),
-        reranked[0] if reranked else None,
-    )
+    top_canonical = _relevant_close_olj_hit(reranked)
     recipe_card: RecipeCard | None = None
     olj_title = ""
     olj_chunk_id: int | None = None

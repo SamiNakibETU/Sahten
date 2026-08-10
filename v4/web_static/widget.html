@@ -5,6 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content" />
     <title>L'Orient-Le Jour - Sahteïn</title>
 
+    <!-- Mode embarqué détecté AU PLUS TÔT (avant rendu) pour éviter tout flash
+         du décor de la page autonome quand /widget?embed=1 est chargé en iframe. -->
+    <script>
+      if (new URLSearchParams(location.search).get("embed") === "1") {
+        document.documentElement.classList.add("sahten-embed");
+      }
+    </script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -60,6 +68,26 @@
         color: #111;
         letter-spacing: -0.03em;
         margin-bottom: 8px;
+      }
+
+      /* Mode embarqué (/widget?embed=1) : la page est chargée dans une iframe
+         par embed.js sur lorientlejour.com. On efface tout le décor (nav, titre,
+         fond blanc) pour ne montrer QUE le panneau de chat, déjà ouvert. Le
+         trigger interne est masqué : c'est embed.js qui fournit le bouton sur la
+         page hôte. Gardé sous .sahten-embed -> la page /widget autonome est
+         strictement inchangée. */
+      html.sahten-embed,
+      html.sahten-embed body {
+        background: transparent !important;
+        padding-top: 0 !important;
+        min-height: 0 !important;
+        display: block !important;
+      }
+      html.sahten-embed nav.top,
+      html.sahten-embed .page-context,
+      html.sahten-embed .sahten-trigger,
+      html.sahten-embed .sahten-trigger-wrap {
+        display: none !important;
       }
     </style>
   </head>
@@ -150,7 +178,51 @@
     <script type="module">
       import { SahtenChat } from "./js/sahten.js?v=20260630g";
       /* Production : pas de sélecteur de modèle (réglage côté API / dev uniquement) */
-      new SahtenChat();
+      window.__sahtenChat = new SahtenChat();
+    </script>
+
+    <!-- Pont d'embarquement : n'agit QUE sous ?embed=1 (page autonome intacte).
+         Ouvre le chat d'emblée dans l'iframe, et signale la fermeture au parent
+         (embed.js) pour masquer l'iframe et rendre le bouton flottant. -->
+    <script>
+      (function () {
+        if (!document.documentElement.classList.contains("sahten-embed")) return;
+
+        function openChat() {
+          try {
+            if (window.__sahtenChat && typeof window.__sahtenChat.toggle === "function") {
+              window.__sahtenChat.toggle(true);
+              return true;
+            }
+          } catch (e) {}
+          var t = document.querySelector(".sahten-trigger");
+          if (t) { t.click(); return true; }
+          return false;
+        }
+
+        // Ouvre dès que SahtenChat est prêt (le module est différé).
+        var tries = 0;
+        var iv = setInterval(function () {
+          if (openChat() || ++tries > 60) clearInterval(iv);
+        }, 100);
+
+        // Le parent (embed.js) redemande l'ouverture quand on ré-affiche l'iframe.
+        window.addEventListener("message", function (e) {
+          var d = e.data || {};
+          if (d && d.type === "sahten:open") openChat();
+        });
+
+        // La fermeture (bouton ×) prévient le parent : masquer l'iframe.
+        document.addEventListener(
+          "click",
+          function (e) {
+            if (e.target && e.target.closest && e.target.closest(".sahten-close-btn")) {
+              try { window.parent.postMessage({ type: "sahten:close" }, "*"); } catch (err) {}
+            }
+          },
+          true
+        );
+      })();
     </script>
 
     <button

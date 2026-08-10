@@ -61,6 +61,19 @@ def widget_page() -> Response:
     return _serve("widget.html")
 
 
+@router.get("/embed.js", include_in_schema=False)
+def embed_loader() -> Response:
+    # Chargeur embarquable pour lorientlejour.com (une seule balise <script>).
+    # Cache court : une amélioration poussée sur GitHub se propage aux visiteurs
+    # en <=10 min sans purge CDN. Servi cross-origin (un <script src> n'exige
+    # pas de CORS pour être chargé).
+    resp = _serve("embed.js")
+    resp.media_type = "application/javascript"
+    resp.headers["Content-Type"] = "application/javascript; charset=utf-8"
+    resp.headers["Cache-Control"] = "public, max-age=600"
+    return resp
+
+
 @router.get("/dashboard", include_in_schema=False)
 def dashboard_page() -> Response:
     return _serve("dashboard.html")
