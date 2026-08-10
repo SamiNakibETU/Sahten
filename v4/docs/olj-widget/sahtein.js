@@ -37,13 +37,29 @@ function getSessionId() {
 }
 
 // Appel API unique, partagé par tous les points d'entrée (barre + chat).
+// Appel API avec délai maximal : une requête figée (serveur lent, réseau qui
+// décroche) échoue proprement au lieu de laisser le spinner tourner sans fin.
+// Lève une erreur portant le code HTTP (utile pour distinguer 429 = trop de
+// demandes) ; l'appelant affiche le message adéquat.
 async function askSahten(query) {
-    const res = await fetch(SAHTEN_API, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: query, session_id: getSessionId() })
-    });
-    return res.json();
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 45000);
+    try {
+        const res = await fetch(SAHTEN_API, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query: query, session_id: getSessionId() }),
+            signal: controller.signal
+        });
+        if (!res.ok) {
+            const err = new Error('HTTP ' + res.status);
+            err.status = res.status;
+            throw err;
+        }
+        return res.json();
+    } finally {
+        clearTimeout(timer);
+    }
 }
 
 // === STATE & ELEMENTS ===
@@ -71,6 +87,7 @@ const state = {
     isSearchVisible: false,
     isChatVisible: false,
     isDragging: false,
+    isSending: false,  // verrou anti-double-envoi (une requête à la fois)
     dragStart: { x: 0, y: 0 },
     windowStart: { x: 0, y: 0 }
 };
@@ -251,6 +268,10 @@ const ui = {
 
     handleUserQuery: async (query) => {
         if (!query) return;
+        // Une requête à la fois : évite le double envoi (donc le double coût)
+        // quand l'utilisateur, face à un bot lent, renvoie sa question.
+        if (state.isSending) return;
+        state.isSending = true;
         messageSystem.add('user', query);
         const loadingMsg = messageSystem.add('loading');
         try {
@@ -260,7 +281,12 @@ const ui = {
         } catch (err) {
             console.error(err);
             loadingMsg.remove();
-            messageSystem.add('assistant-error', "Oups. Il semblerait que Sahteïn soit totalement débordé en cuisine. Pourriez-vous renvoyer votre requête ?");
+            const msg = (err && err.status === 429)
+                ? "Beaucoup de demandes en ce moment. Merci de réessayer dans un instant."
+                : "Oups. Il semblerait que Sahteïn soit totalement débordé en cuisine. Pourriez-vous renvoyer votre requête ?";
+            messageSystem.add('assistant-error', msg);
+        } finally {
+            state.isSending = false;
         }
     }
 };

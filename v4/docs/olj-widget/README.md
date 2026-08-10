@@ -18,6 +18,9 @@ HTML (`#blob`, `#chatWindow`, `#searchBar`, `#chatMessages`, `#chatInput`…).
 3. **Coquille du message d'accueil** (« mias je viens de ma lancer » →
    « mais je viens de me lancer »).
 4. **Sanitisation client conservée** (DOMPurify si présent, repli inerte sinon).
+5. **Robustesse** : délai maximal de 45 s sur l'appel (une requête figée n'immobilise
+   plus le widget), verrou anti-double-envoi (une requête à la fois), et message
+   dédié quand le serveur répond « trop de demandes » (HTTP 429).
 
 ## Déploiement
 
