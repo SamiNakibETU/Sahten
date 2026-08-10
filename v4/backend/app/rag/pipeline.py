@@ -311,12 +311,12 @@ _PARENT_SECTION_KINDS = ("ingredients_list", "recipe_steps", "recipe_summary", "
 _PARENT_SECTIONS_SQL = text(
     """
 SELECT c.id AS chunk_id, c.article_id, a.external_id AS article_external_id,
-       a.title AS article_title, a.url AS article_url, c.section_kind, c.text AS chunk_text
+       a.title AS article_title, a.url AS article_url, c.kind AS section_kind, c.text AS chunk_text
 FROM chunks c JOIN articles a ON a.id = c.article_id
 WHERE a.external_id = :ext_id
-  AND c.section_kind = ANY(:kinds)
+  AND c.kind = ANY(:kinds)
   AND c.id != ALL(:exclude_ids)
-ORDER BY array_position(CAST(:kinds AS text[]), c.section_kind), c.id
+ORDER BY array_position(CAST(:kinds AS text[]), c.kind), c.id
 LIMIT :max_chunks
 """
 )
