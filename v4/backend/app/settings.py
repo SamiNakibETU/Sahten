@@ -44,6 +44,12 @@ class Settings(BaseSettings):
     openai_api_key: str = ""
     llm_model: str = "gpt-4.1-mini"
     llm_temperature: float = 0.0
+    # Modèle de query_understanding (JSON structuré : intention + slugs). Tâche
+    # non rédactionnelle → un modèle plus rapide (gpt-4.1-nano) y convient et
+    # allège ~1 s payée à CHAQUE requête. Vide = même modèle que la génération.
+    # Réserve : l'anaphore multi-tours est le point sensible → basculer via env
+    # (SAHTEN_QU_MODEL) et valider au golden set (cas rotation/anti-régression).
+    query_understanding_model: str = Field(default="", alias="SAHTEN_QU_MODEL")
 
     # text-embedding-3-small (1536 dim) : compatible HNSW pgvector
     # (limite 2000 dim) sans recourir à `halfvec`. Largement suffisant

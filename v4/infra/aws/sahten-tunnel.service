@@ -1,0 +1,41 @@
+# Tunnel SSH inverse : rend le bot joignable publiquement SANS ouverture du
+# security group AWS (sortie seule). Le serveur initie la connexion vers la
+# passerelle Oracle (145.241.160.99, IP réservée) qui publie le port 8080 —
+# port d'origine HTTP accepté par Cloudflare.
+#
+#   EC2 (uvicorn :80) --ssh sortant--> passerelle 127.0.0.1:8081
+#                                      relais sahten-relay :8080 <-- Internet
+#
+# Le -R se lie en LOOPBACK sur la passerelle (défaut sshd, aucun GatewayPorts
+# à configurer) ; le service sahten-relay y publie le port 8080. NB : la
+# politique SELinux de l'image OL9 refuse silencieusement l'activation socket
+# systemd, d'où un relais python plutôt que systemd-socket-proxyd.
+#
+# Prérequis (une fois) :
+#   - clé publique ec2-user autorisée sur opc@145.241.160.99
+#   - sahten-relay actif sur la passerelle (~opc/bin/sahten_relay.py)
+#   - TCP 8080 ouvert : iptables passerelle + Security List du VCN Oracle
+# Installer : sudo cp sahten-tunnel.service /etc/systemd/system/
+#             sudo systemctl daemon-reload && sudo systemctl enable --now sahten-tunnel
+[Unit]
+Description=Sahtein - tunnel inverse vers la passerelle Oracle (port public 8080)
+After=network-online.target sahten.service
+Wants=network-online.target
+
+[Service]
+User=ec2-user
+# -N : pas de shell distant. ExitOnForwardFailure + keepalives : la connexion
+# morte est détectée en <90 s et systemd relance aussitôt.
+ExecStart=/usr/bin/ssh -N \
+    -o BatchMode=yes \
+    -o ExitOnForwardFailure=yes \
+    -o ServerAliveInterval=30 \
+    -o ServerAliveCountMax=3 \
+    -o StrictHostKeyChecking=accept-new \
+    -R 127.0.0.1:8081:localhost:80 \
+    opc@145.241.160.99
+Restart=always
+RestartSec=15
+
+[Install]
+WantedBy=multi-user.target

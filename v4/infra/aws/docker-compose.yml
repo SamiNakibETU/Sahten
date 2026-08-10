@@ -1,0 +1,89 @@
+# Stack Sahteïn v4 sur le serveur AWS de WhiteBeard (EC2, Amazon Linux 2023, aarch64).
+# Objectif : sortir de Railway. Tout tourne ici, sans dépendance externe autre
+# que les API (OpenAI, Cohere, CMS OLJ).
+#
+#   docker compose -f v4/infra/aws/docker-compose.yml --env-file .env up -d
+#
+# Toutes les images sont multi-architecture : elles tournent telles quelles sur ARM.
+# Cloudflare se connecte à l'origine sur le port 80 -> `web` est publié dessus.
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: sahten_pg
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-sahten}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?mot de passe Postgres requis}
+      POSTGRES_DB: ${POSTGRES_DB:-sahten}
+    # PAS de `ports:` — la base n'est joignable que depuis le réseau Docker.
+    # L'exposer sur l'hôte la rendrait atteignable depuis Internet.
+    volumes:
+      - sahten_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sahten} -d ${POSTGRES_DB:-sahten}"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  redis:
+    image: redis:7-alpine
+    container_name: sahten_redis
+    restart: unless-stopped
+    # `appendonly` : les compteurs d'analytics et les sessions survivent au redémarrage.
+    # Sans ça, les statistiques repartent de zéro à chaque `docker compose up`.
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - sahten_redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  web:
+    build:
+      # Contexte = racine du dépôt (le Dockerfile référence des chemins v4/...).
+      context: ../../..
+      dockerfile: v4/Dockerfile.web
+    image: sahten-web:local
+    container_name: sahten_web
+    restart: unless-stopped
+    env_file: [.env]
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-sahten}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-sahten}
+      REDIS_URL: redis://redis:6379/0
+    ports:
+      # 80 côté hôte : c'est ce que Cloudflare vient chercher.
+      - "80:8000"
+    depends_on:
+      postgres: {condition: service_healthy}
+      redis: {condition: service_healthy}
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8000/healthz || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  worker:
+    build:
+      context: ../../..
+      dockerfile: v4/Dockerfile.web
+    image: sahten-web:local
+    container_name: sahten_worker
+    restart: unless-stopped
+    env_file: [.env]
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-sahten}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-sahten}
+      REDIS_URL: redis://redis:6379/0
+    # Même image que `web` (elle contient worker/), mais commande arq.
+    # Évite de construire et maintenir une seconde image pour rien.
+    command: ["arq", "worker.tasks.WorkerSettings"]
+    depends_on:
+      postgres: {condition: service_healthy}
+      redis: {condition: service_healthy}
+
+volumes:
+  sahten_pgdata:
+  sahten_redisdata:

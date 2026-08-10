@@ -19,7 +19,26 @@ from __future__ import annotations
 from slowapi import Limiter
 from starlette.requests import Request
 
-__all__ = ["limiter", "real_ip_key"]
+__all__ = ["limiter", "real_ip_key", "global_cost_key", "GLOBAL_CHAT_LIMIT"]
+
+# Disjoncteur de COÛT : plafond de requêtes payantes (OpenAI+Cohere) toutes IP
+# confondues. La limite par-IP (real_ip_key) protège l'équité entre visiteurs ;
+# celle-ci protège la FACTURE si l'app est atteinte sans Cloudflare devant
+# (ex. exposition directe) où le filtrage anti-abus amont n'existe plus.
+# 300/min ≈ 5 req/s ≈ borne haute ~0,9 $/min : très au-dessus de l'usage réel
+# d'un widget éditorial, sans jamais gêner un pic de trafic légitime.
+GLOBAL_CHAT_LIMIT = "300/minute"
+
+
+def global_cost_key(*_args: object) -> str:
+    """Clé constante -> un unique compteur partagé par TOUTES les requêtes.
+
+    NB : un key_func passé à ``@limiter.limit(key_func=…)`` est invoqué SANS
+    argument par SlowAPI (``lim.key_func()``), à la différence du key_func de
+    niveau ``Limiter(key_func=…)`` qui reçoit la requête. On accepte donc
+    ``*_args`` pour être robuste aux deux chemins d'appel.
+    """
+    return "global-chat"
 
 
 def real_ip_key(request: Request) -> str:

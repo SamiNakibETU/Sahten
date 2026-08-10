@@ -20,7 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from .. import analytics_store, sessions
 from ..db.base import get_session
-from ..limiter_support import limiter
+from ..limiter_support import GLOBAL_CHAT_LIMIT, global_cost_key, limiter
 from ..rag.html_renderer import render_answer_html
 from ..rag.pipeline import RagPipeline
 from ..llm.models_config import resolve_llm_model
@@ -333,6 +333,7 @@ async def _run_chat_pipeline(
     dependencies=[Depends(_require_production_secrets)],
 )
 @limiter.limit("45/minute")
+@limiter.limit(GLOBAL_CHAT_LIMIT, key_func=global_cost_key)
 async def chat(
     request: Request,
     session: AsyncSession = Depends(get_session),  # noqa: B008
@@ -359,6 +360,7 @@ async def chat(
     dependencies=[Depends(_require_production_secrets)],
 )
 @limiter.limit("45/minute")
+@limiter.limit(GLOBAL_CHAT_LIMIT, key_func=global_cost_key)
 async def chat_stream(
     request: Request,
     session: AsyncSession = Depends(get_session),  # noqa: B008

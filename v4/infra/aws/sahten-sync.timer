@@ -1,0 +1,14 @@
+# Toutes les 6 h : une recette OLJ paraît au plus quelques fois par semaine,
+# la fraîcheur à l'heure près n'a aucun enjeu produit. Randomisation pour ne
+# pas taper l'API CMS à heure fixe.
+[Unit]
+Description=Sahtein - timer de sync catalogue OLJ
+
+[Timer]
+OnBootSec=10min
+OnUnitActiveSec=6h
+RandomizedDelaySec=15min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

@@ -21,6 +21,7 @@ from pathlib import Path
 from typing import Any
 
 import structlog
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..cost_tracker import cost_tracker_scope, get_request_cost
@@ -302,6 +303,95 @@ def _is_canonical_olj_url(url: str | None) -> bool:
     return "lorientlejour.com/cuisine-liban-a-table/" in u
 
 
+# Sections repêchées pour compléter l'article dominant (parent-enfant) :
+# le rerank sélectionne des chunks isolés ; sans ses ingrédients + étapes,
+# le générateur décrit une recette dont il n'a qu'un fragment.
+_PARENT_SECTION_KINDS = ("ingredients_list", "recipe_steps", "recipe_summary", "anchor")
+
+_PARENT_SECTIONS_SQL = text(
+    """
+SELECT c.id AS chunk_id, c.article_id, a.external_id AS article_external_id,
+       a.title AS article_title, a.url AS article_url, c.section_kind, c.text AS chunk_text
+FROM chunks c JOIN articles a ON a.id = c.article_id
+WHERE a.external_id = :ext_id
+  AND c.section_kind = ANY(:kinds)
+  AND c.id != ALL(:exclude_ids)
+ORDER BY array_position(CAST(:kinds AS text[]), c.section_kind), c.id
+LIMIT :max_chunks
+"""
+)
+
+
+async def _expand_parent_sections(
+    session: AsyncSession,
+    reranked: list[RerankedHit],
+    *,
+    max_chunks: int = 6,
+) -> list[RerankedHit]:
+    """Parent-enfant : complète l'article DOMINANT avec ses sections clés.
+
+    Le retrieval trouve le bon article via un chunk précis ; la génération, elle,
+    a besoin de la recette entière (ingrédients + étapes). On repêche les
+    sections manquantes de l'article top-1 et on les ajoute EN FIN de liste
+    (score epsilon sous le minimum retenu) : l'ordre du rerank est intact, le
+    validateur de grounding peut citer ces chunks (ids réels en base).
+    """
+    if not reranked:
+        return reranked
+    top_ext_id = int(reranked[0].hit.article_external_id)
+    have = [int(r.hit.chunk_id) for r in reranked]
+    have_kinds = {
+        r.hit.section_kind
+        for r in reranked
+        if int(r.hit.article_external_id) == top_ext_id
+    }
+    missing = [k for k in _PARENT_SECTION_KINDS if k not in have_kinds]
+    if not missing:
+        return reranked
+    rows = (
+        await session.execute(
+            _PARENT_SECTIONS_SQL,
+            {
+                "ext_id": top_ext_id,
+                "kinds": list(missing),
+                "exclude_ids": have,
+                "max_chunks": max_chunks,
+            },
+        )
+    ).mappings().all()
+    if not rows:
+        return reranked
+    floor = min(r.rerank_score for r in reranked) - 0.001
+    top_hit = reranked[0].hit
+    extra = [
+        RerankedHit(
+            hit=Hit(
+                chunk_id=int(row["chunk_id"]),
+                article_id=int(row["article_id"]),
+                article_external_id=int(row["article_external_id"]),
+                article_title=row["article_title"],
+                article_url=row["article_url"],
+                cover_image_url=top_hit.cover_image_url,
+                section_kind=row["section_kind"],
+                chunk_text=row["chunk_text"],
+                score_lex=None,
+                score_vec=None,
+                score_rrf=0.0,
+                metadata={"parent_expansion": True},
+            ),
+            rerank_score=floor,
+        )
+        for row in rows
+    ]
+    log.info(
+        "rag.pipeline.parent_expansion",
+        article_external_id=top_ext_id,
+        added_kinds=[row["section_kind"] for row in rows],
+        n_added=len(extra),
+    )
+    return reranked + extra
+
+
 def _apply_source_priority(
     reranked: list[RerankedHit],
     user_query: str,
@@ -541,6 +631,45 @@ def _primary_dish_pin(user_query: str) -> str | None:
         if pin and any(t in qn for t in terms):
             return pin
     return None
+
+
+# Bruit conversationnel à retirer d'une requête de plat nommé — SANS toucher
+# aux qualificatifs porteurs (« crevettes », « zaatar », « aubergines »...).
+# Le correctif historique reconstruisait base_q = "recette <canon>" et jetait
+# TOUT le reste : « fatteh de crevettes » et « fatteh aux aubergines »
+# devenaient la même requête (bug mesuré 2026-08-09, cf. golden set).
+_DISH_QUERY_NOISE = frozenset(
+    """
+    je tu il elle on nous vous ils elles voudrais veux voulais aimerais souhaite
+    souhaiterais cherche donne donnez propose proposez fais faites faire comment
+    peux peut pouvez pourrais montre montrez envie idee idees
+    un une des de du le la les l d au aux a et ou avec sans pour comme
+    recette recettes plat plats cuisine cuisiner preparer preparation
+    bon bonne vrai vraie classique traditionnel traditionnelle authentique
+    stp svp merci bonjour bonsoir salut plait plaît sil te
+    moi toi mon ma mes ton ta tes son sa ses ce cette ces quel quelle
+    quels quelles est sont suis
+    """.split()
+)
+
+
+def _dish_query_qualifiers(user_query: str) -> list[str]:
+    """Tokens porteurs de sens restants une fois retirés bruit + nom du plat.
+
+    « fatteh de crevettes » -> ["crevettes"] ; « je voudrais un hommos
+    classique » -> [] (comportement historique conservé).
+    """
+    qn = _norm_match(user_query)
+    dish_terms = _requested_dish_terms(user_query)
+    quals: list[str] = []
+    for tok in re.findall(r"[a-z0-9]+", qn):
+        if len(tok) < 3 or tok in _DISH_QUERY_NOISE:
+            continue
+        if any(tok in t or t in tok for t in dish_terms):
+            continue
+        if tok not in quals:
+            quals.append(tok)
+    return quals[:4]
 
 
 def _card_title_matches_requested_dish(
@@ -1626,7 +1755,14 @@ class RagPipeline:
                 # Plat nommé sans chef précisé : requête canonique PROPRE. On
                 # strippe le bruit conversationnel ("je voudrais un X classique",
                 # "je veux du X") qui diluait le retrieval -> abstention.
+                # MAIS on CONSERVE les qualificatifs porteurs (« de crevettes »,
+                # « aux aubergines ») : sinon toutes les recettes d'une même
+                # famille (fatteh, kebbé...) deviennent la même requête et le
+                # classement choisit un frère arbitraire.
+                _quals = _dish_query_qualifiers(user_query)
                 base_q = f"recette {_dish_canon}"
+                if _quals:
+                    base_q = f"{base_q} {' '.join(_quals)}"
             else:
                 # Plat + chef (ou cas particulier) : garder la formulation (le
                 # chef désambiguïse, ex. taboulé de Kamal Mouzawak).
@@ -1850,6 +1986,14 @@ class RagPipeline:
                     new_top=(reranked[0].hit.article_title or "")[:80],
                 )
         timings["rerank_ms"] = int((time.perf_counter() - t2) * 1000)
+
+        # Parent-enfant : le classement est FIGÉ ici ; on complète seulement le
+        # contexte de génération avec les sections clés de l'article dominant.
+        if reranked:
+            try:
+                reranked = await _expand_parent_sections(session, reranked)
+            except Exception as exc:  # noqa: BLE001
+                log.warning("rag.pipeline.parent_expansion_failed", error=str(exc))
 
         t3 = time.perf_counter()
         base2_fallback_used = False

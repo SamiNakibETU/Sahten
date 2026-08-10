@@ -1,0 +1,17 @@
+# Synchronisation catalogue OLJ -> base (tirage périodique, cf. scripts/sync_catalog.py).
+# Remplace le webhook CMS, qui pointe toujours sur l'ancienne URL Railway.
+# Installer : sudo cp sahten-sync.{service,timer} /etc/systemd/system/
+#             sudo systemctl daemon-reload && sudo systemctl enable --now sahten-sync.timer
+[Unit]
+Description=Sahtein - sync catalogue OLJ (ingestion des recettes manquantes)
+After=network-online.target postgresql.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=ec2-user
+WorkingDirectory=/home/ec2-user/sahten/v4
+EnvironmentFile=/home/ec2-user/sahten/v4/.env
+ExecStart=/home/ec2-user/sahten/v4/.venv/bin/python -m scripts.sync_catalog
+# L'ingestion appelle OpenAI (embeddings) : borne de sécurité.
+TimeoutStartSec=1800

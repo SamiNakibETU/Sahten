@@ -162,7 +162,9 @@ class QueryAnalyzer:
         if not s.openai_api_key:
             raise RuntimeError("OPENAI_API_KEY manquant pour QueryAnalyzer.")
         self._client = AsyncOpenAI(api_key=s.openai_api_key)
-        self._model = s.llm_model
+        # Modèle dédié si configuré (SAHTEN_QU_MODEL), sinon le modèle principal :
+        # sans réglage, comportement strictement inchangé.
+        self._model = (s.query_understanding_model or "").strip() or s.llm_model
 
     async def analyze(
         self,
