@@ -1465,10 +1465,18 @@ class RagPipeline:
                         )
                     hits = filtered
             elif not ingredient_only:
+                # NB observabilité : ce retry se déclenche sur ~97 % des requêtes
+                # (286/293 le 10/08) -> les préfiltres SQL du plan LLM ne matchent
+                # presque jamais la base, chaque requête paie DEUX recherches.
+                # On loggue TOUS les slugs (catégorie/mot-clé compris, absents
+                # avant) pour identifier les slugs fautifs et, à terme, ne
+                # préfiltrer que sur des slugs validés.
                 log.warning(
                     "rag.pipeline.retrieval_empty_with_filters_retrying_broad",
                     ingredient_slugs=plan.ingredient_slugs,
                     chef_slugs=plan.chef_slugs,
+                    category_slugs=plan.category_slugs,
+                    keyword_slugs=plan.keyword_slugs,
                 )
                 hits = await self.retriever.search(
                     session,
@@ -2004,9 +2012,16 @@ class RagPipeline:
 
         # Parent-enfant : le classement est FIGÉ ici ; on complète seulement le
         # contexte de génération avec les sections clés de l'article dominant.
+        # SAVEPOINT (begin_nested) : un échec SQL dans une transaction Postgres
+        # AVORTE toute la transaction — sans savepoint, l'except ci-dessous
+        # laissait une session empoisonnée et TOUTES les requêtes suivantes du
+        # pipeline échouaient (cause réelle des 20 `chat.rag_failed` du 10/08 :
+        # l'utilisateur recevait « débordé en cuisine »). Le savepoint borne
+        # l'échec à l'expansion seule.
         if reranked:
             try:
-                reranked = await _expand_parent_sections(session, reranked)
+                async with session.begin_nested():
+                    reranked = await _expand_parent_sections(session, reranked)
             except Exception as exc:  # noqa: BLE001
                 log.warning("rag.pipeline.parent_expansion_failed", error=str(exc))
 
