@@ -1,0 +1,14 @@
+# Vérifie GitHub toutes les 5 min. Un push est en ligne en <5 min sans geste
+# manuel. Assez réactif pour un widget éditorial, assez espacé pour ne pas
+# marteler l'API GitHub.
+[Unit]
+Description=Sahtein - timer d'auto-déploiement depuis GitHub
+
+[Timer]
+OnBootSec=3min
+OnUnitActiveSec=5min
+RandomizedDelaySec=60
+Persistent=true
+
+[Install]
+WantedBy=timers.target

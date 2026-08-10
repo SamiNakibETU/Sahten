@@ -1,0 +1,15 @@
+# Auto-déploiement gardé depuis GitHub main (cf. scripts/auto_deploy.sh).
+# Le serveur suit le dépôt tout seul : un `git push` propage à la prod en
+# quelques minutes, avec rollback automatique si /readyz casse.
+# Installer : sudo cp sahten-deploy.{service,timer} /etc/systemd/system/
+#             sudo systemctl daemon-reload && sudo systemctl enable --now sahten-deploy.timer
+[Unit]
+Description=Sahtein - auto-déploiement gardé depuis GitHub main
+After=network-online.target sahten.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=ec2-user
+ExecStart=/bin/bash /home/ec2-user/sahten/v4/scripts/auto_deploy.sh
+TimeoutStartSec=600
