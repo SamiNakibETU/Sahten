@@ -2412,8 +2412,9 @@
   padding: 0;
 }
 .sahten-rx-meta li + li::before {
-  content: " · ";
-  color: var(--border);
+  content: "·";
+  margin: 0 6px;
+  color: #c4c0ba;
 }
 .sahten-rx-h {
   margin: 18px 0 8px;
