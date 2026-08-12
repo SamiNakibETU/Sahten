@@ -1436,6 +1436,48 @@ _PROMPT_ATTACK_RE = re.compile(
 )
 
 
+# Hors-sujet non culinaire (politique, actualité, religion...) : sans ce garde,
+# le bot RÉPONDAIT sur « la situation politique » en citant les propos d'un
+# ex-député présent au corpus via sa recette (constaté 12/08). Un assistant de
+# journal qui commente la politique = incident éditorial. On redirige poliment,
+# SAUF si la question contient un mot culinaire (« la cuisine politique de X »
+# reste traitable par le pipeline normal).
+_OFF_TOPIC_RE = re.compile(
+    r"(?i)\b(?:politique|élection|élections|gouvernement|guerre|conflit|"
+    r"israël|hezbollah|syrie|manifestation|corruption|religion|dieu|"
+    r"président|ministre|député|parlement|dollar|inflation|banque)\b"
+)
+_CULINARY_TOKEN_RE = re.compile(
+    r"(?i)\b(?:recette|cuisin\w*|plat|manger|dessert|mezz[ée]|ingrédient|"
+    r"chef|salade|soupe|four|mijot\w*|saveur)\b"
+)
+
+
+def _is_off_topic(user_query: str) -> bool:
+    q = user_query or ""
+    return bool(_OFF_TOPIC_RE.search(q)) and not _CULINARY_TOKEN_RE.search(q)
+
+
+def _build_off_topic_redirect_answer() -> GroundedAnswer:
+    return GroundedAnswer(
+        answer_sentences=[
+            GroundedSentence(
+                text=(
+                    "Je suis Sahteïn, l'assistant cuisine de L'Orient-Le Jour — "
+                    "je laisse ces sujets aux journalistes de la rédaction. "
+                    "En cuisine, par contre, je suis intarissable."
+                ),
+                source_chunk_ids=[],
+            )
+        ],
+        recipe_card=None,
+        recipe_card_secondary=None,
+        chef_card=None,
+        follow_up="Un plat, un ingrédient ou un chef vous ferait envie ?",
+        confidence=0.0,
+    )
+
+
 def _build_security_redirect_answer() -> GroundedAnswer:
     return GroundedAnswer(
         answer_sentences=[
@@ -1743,6 +1785,20 @@ class RagPipeline:
                 answer=_build_security_redirect_answer(),
                 timings_ms={},
                 answer_strategy="security_redirect",
+            )
+
+        # Garde hors-sujet : politique/actualité/religion sans angle culinaire ->
+        # redirection courtoise, sans retrieval (le corpus contient des propos
+        # politiques de chefs-personnalités qui contamineraient la réponse).
+        if _is_off_topic(user_query or ""):
+            log.info("rag.pipeline.off_topic_redirect", query=(user_query or "")[:80])
+            return PipelineResult(
+                plan=QueryPlan(rewritten_query=(user_query or "").strip(), intent="mixed"),
+                hits=[],
+                reranked=[],
+                answer=_build_off_topic_redirect_answer(),
+                timings_ms={},
+                answer_strategy="off_topic_redirect",
             )
 
         t0 = time.perf_counter()
@@ -2311,6 +2367,35 @@ class RagPipeline:
         # l'article qu'elle cite (constaté : carte « Fattouche » inventée par le
         # LLM, liée à l'article des légumes farcis de Tara Khattar).
         answer = _force_card_title_to_cited_article(answer, reranked)
+        # Question de CHEF : la carte recette doit concerner CE chef, sinon on la
+        # retire — en DERNIER (après ensure/align/force qui peuvent en recréer
+        # une). Constaté 12/08 : « qui est Kamal Mouzawak ? » -> carte des
+        # mana'ich de Salim Azzam, trompeuse sur une question biographique.
+        if (
+            answer.recipe_card is not None
+            and plan.intent == "chef_bio"
+            and plan.chef_slugs
+        ):
+            card_blob = _norm_match(
+                (answer.recipe_card.title or "")
+                + " "
+                + (answer.recipe_card.chef or "")
+            )
+            chef_ok = any(
+                part in card_blob
+                for slug in plan.chef_slugs
+                for part in _norm_match(slug).split("-")
+                if len(part) >= 4
+            )
+            if not chef_ok:
+                log.info(
+                    "rag.pipeline.recipe_card_dropped_chef_mismatch",
+                    chef_slugs=plan.chef_slugs,
+                    card_title=(answer.recipe_card.title or "")[:80],
+                )
+                answer = answer.model_copy(
+                    update={"recipe_card": None, "recipe_card_secondary": None}
+                )
 
         timings["generation_ms"] = int((time.perf_counter() - t3) * 1000)
         timings["total_ms"] = sum(timings.values())
