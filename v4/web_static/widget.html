@@ -86,8 +86,33 @@
       html.sahten-embed nav.top,
       html.sahten-embed .page-context,
       html.sahten-embed .sahten-trigger,
-      html.sahten-embed .sahten-trigger-wrap {
+      html.sahten-embed .sahten-trigger-wrap,
+      html.sahten-embed .sahten-backdrop,
+      html.sahten-embed .sahten-drag-handle {
         display: none !important;
+      }
+      /* Le panneau REMPLIT l'iframe. En page normale il flotte avec des marges
+         (bottom/right) : à l'intérieur d'une iframe de la taille du panneau, ces
+         marges laissaient des bandes vides par lesquelles la page hôte
+         transparaissait — d'où un rendu « verre dépoli » involontaire.
+         L'arrondi et l'ombre sont portés par l'iframe, pas par le panneau. */
+      html.sahten-embed .sahten-widget-container,
+      html.sahten-embed .sahten-widget-container[data-size="window"],
+      html.sahten-embed .sahten-widget-container[data-size="mid"],
+      html.sahten-embed .sahten-widget-container[data-size="full"] {
+        position: fixed !important;
+        inset: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        height: 100% !important;
+        max-height: 100% !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        background: #ffffff !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        transform: none !important;
       }
     </style>
   </head>
