@@ -2314,3 +2314,78 @@
 @media (hover: none) {
   .msg-copy-btn { opacity: 0.55; }
 }
+
+/* ── Polish 2026-08-12 (better-ui / transitions-dev) ─────────────────────── */
+
+/* Listes de la narrative (ingrédients/étapes des recettes de secours) :
+   sans ceci, puces navigateur par défaut + grandes marges = brouillon. */
+.sahten-narrative ul {
+  margin: 6px 0 10px;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.sahten-narrative ul li {
+  margin: 0;
+  line-height: 1.5;
+}
+.sahten-narrative ul li::marker {
+  color: #0b5c3f;
+}
+
+/* Cartes recette/chef = LA cible de clic : affordance nette au survol
+   (élévation par ombre, pas par bordure) + pression tactile. Rayons
+   concentriques : conteneur md (12) = image sm (8) + padding (4). */
+.recipe-card,
+.chef-card {
+  transition-property: transform, box-shadow, border-color;
+  transition-duration: var(--dur-ui, 200ms);
+  transition-timing-function: var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1));
+}
+.recipe-card:hover,
+.chef-card:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 1px 2px rgba(16, 24, 16, 0.05),
+    0 4px 14px rgba(16, 24, 16, 0.09);
+  border-color: rgba(11, 92, 63, 0.25);
+}
+.recipe-card:active,
+.chef-card:active {
+  transform: translateY(0) scale(0.99);
+}
+/* Liseré d'image (better-ui) : noir pur translucide, jamais un gris teinté. */
+.recipe-card img,
+.chef-card img {
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
+}
+
+/* Boutons de feedback (Oui/Non) + envoi : pression 0.96, transitions ciblées. */
+.feedback-buttons button,
+.feedback-container button,
+.send-btn {
+  transition-property: transform, background-color, border-color, color;
+  transition-duration: var(--dur-press, 140ms);
+  transition-timing-function: var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1));
+}
+.feedback-buttons button:active,
+.feedback-container button:active,
+.send-btn:active {
+  transform: scale(0.96);
+}
+
+/* Entrée des nouveaux messages : discrète, ease-out, appliquée UNIQUEMENT aux
+   messages frais (classe posée par le JS hors restauration d'historique —
+   sinon toute la conversation « tomberait » à chaque rechargement). */
+@keyframes sahten-msg-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.msg.msg-enter {
+  animation: sahten-msg-in 220ms var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1)) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .msg.msg-enter { animation: none; }
+  .recipe-card:hover, .chef-card:hover { transform: none; }
+}

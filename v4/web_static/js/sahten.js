@@ -250,7 +250,7 @@ export class SahtenChat {
             this.dom.body.innerHTML = '';
             for (const t of data.turns) {
                 if (!t || typeof t.user !== 'string' || typeof t.html !== 'string') continue;
-                this.appendUserMessage(t.user);
+                this.appendUserMessage(t.user, false);
                 this.appendBotMessage(
                     { html: t.html, request_id: t.request_id ?? null },
                     { skipPersist: true }
@@ -670,9 +670,10 @@ export class SahtenChat {
         return html + indicator;
     }
 
-    appendUserMessage(text) {
+    appendUserMessage(text, fresh = true) {
         const div = document.createElement('div');
         div.className = 'msg msg-user';
+        if (fresh) div.classList.add('msg-enter');
         div.setAttribute('data-user-msg', '');
         const bubble = document.createElement('span');
         bubble.className = 'msg-user-bubble';
@@ -686,6 +687,7 @@ export class SahtenChat {
         const skipPersist = options.skipPersist === true;
         const div = document.createElement('div');
         div.className = 'msg msg-bot';
+        if (!skipPersist) div.classList.add('msg-enter');
         div.innerHTML = sanitizeHTML(data.html);
         div.querySelectorAll('.feedback-container').forEach((el) => el.remove());
         if (data.request_id) {
