@@ -531,6 +531,7 @@ export class SahtenChat {
             btn.classList.toggle('active', isActive);
             btn.setAttribute('aria-pressed', String(isActive));
         });
+        this._updateScrollAffordance?.();
     }
 
     /**
@@ -833,6 +834,11 @@ export class SahtenChat {
             btn.classList.toggle('visible', far);
         };
         this.dom.body.addEventListener('scroll', update, { passive: true });
+        // Un défilement programmé (réponse qui arrive, clic sur « descendre »)
+        // se termine APRÈS le dernier événement `scroll` utile : sans
+        // `scrollend`, le bouton restait affiché alors qu'on était en bas.
+        this.dom.body.addEventListener('scrollend', update, { passive: true });
+        window.addEventListener('resize', update, { passive: true });
         this._updateScrollAffordance = update;
         // La hauteur change quand un message arrive (et quand les images se
         // chargent) : un simple écouteur de scroll laissait le bouton affiché
