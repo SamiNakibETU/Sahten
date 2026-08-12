@@ -1012,12 +1012,34 @@ def _olj_has_named_dish(user_query: str, reranked: list[RerankedHit]) -> bool:
     )
 
 
+# Qualificatifs génériques à ignorer pour comparer un nom de plat aux titres :
+# « un bon burger maison » désigne le même plat que « kefta burger ». Sans ce
+# nettoyage, l'exigence de sous-chaîne complète déclarait absent un plat que
+# l'OLJ possède (et on générait par-dessus une vraie recette du corpus).
+_DISH_QUALIFIER_TOKENS = frozenset(
+    "bon bonne bons bonnes petit petite grand grande maison facile faciles"
+    " rapide rapides simple simples traditionnel traditionnelle classique"
+    " authentique vrai vraie original originale delicieux delicieuse leger"
+    " legere gourmand gourmande parfait parfaite".split()
+)
+
+
 def _olj_has_dish_text(name: str, reranked: list[RerankedHit]) -> bool:
-    """True si un titre d'article reranké contient le nom de plat (texte libre)."""
+    """True si un titre d'article reranké contient le nom de plat (texte libre).
+
+    Deux niveaux : sous-chaîne exacte, puis jetons significatifs (qualificatifs
+    génériques retirés) tous présents dans un même titre, dans n'importe quel
+    ordre — « burger maison » doit reconnaître « Le kefta burger d'Alan Geaam »."""
     n = _norm_match(name)
     if len(n) < 4:
         return False
-    return any(n in _norm_match(h.hit.article_title) for h in reranked)
+    titles = [_norm_match(h.hit.article_title) for h in reranked]
+    if any(n in t for t in titles):
+        return True
+    core = [t for t in n.split() if t not in _DISH_QUALIFIER_TOKENS and len(t) >= 3]
+    if not core:
+        return False
+    return any(all(tok in title for tok in core) for title in titles)
 
 
 # Marqueurs d'une requête PAR INGRÉDIENT (≠ plat nommé) : on ne génère pas.
