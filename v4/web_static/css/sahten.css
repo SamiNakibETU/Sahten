@@ -2588,6 +2588,14 @@
 .sahten-scroll-down:active { transform: translateY(0) scale(0.96); }
 .sahten-scroll-down svg { width: 14px; height: 14px; }
 
+/* En grand, le panneau occupe toute la largeur mais la lecture est contrainte
+   à 768px : sans ça le bouton flottait au bord de la fenêtre, détaché du
+   texte auquel il se rapporte. */
+.sahten-widget-container[data-size="mid"] .sahten-scroll-down,
+.sahten-widget-container[data-size="full"] .sahten-scroll-down {
+  right: max(14px, calc(50% - 384px + 14px));
+}
+
 /* Bouton « nouvelle conversation » : gabarit des autres contrôles d'en-tête. */
 .sahten-new-btn svg { width: 15px; height: 15px; }
 
