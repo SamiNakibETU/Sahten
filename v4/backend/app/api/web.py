@@ -58,7 +58,13 @@ def history_page() -> Response:
 
 @router.get("/widget", include_in_schema=False)
 def widget_page() -> Response:
-    return _serve("widget.html")
+    # Surface auto-mise à jour : embarquée en iframe sur lorientlejour.com, elle
+    # doit refléter le dernier déploiement. Sans revalidation, le navigateur
+    # d'un visiteur garde une version périmée et l'auto-déploiement ne lui
+    # parvient jamais (constaté : ancienne mise en page servie depuis le cache).
+    resp = _serve("widget.html")
+    resp.headers["Cache-Control"] = "no-cache, must-revalidate"
+    return resp
 
 
 @router.get("/embed.js", include_in_schema=False)
