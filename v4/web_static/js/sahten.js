@@ -828,24 +828,36 @@ export class SahtenChat {
         });
         this.dom.container.appendChild(btn);
         this._scrollBtn = btn;
-        const update = () => {
+        // Lecture de layout coalescée en rAF : les déclencheurs ci-dessous
+        // peuvent arriver en rafale (mutations DOM), inutile de mesurer à
+        // chaque fois.
+        let queued = false;
+        const apply = () => {
+            queued = false;
             const el = this.dom.body;
             const far = el.scrollHeight - el.scrollTop - el.clientHeight > 160;
             btn.classList.toggle('visible', far);
         };
+        const update = () => {
+            if (queued) return;
+            queued = true;
+            requestAnimationFrame(apply);
+        };
         this.dom.body.addEventListener('scroll', update, { passive: true });
         // Un défilement programmé (réponse qui arrive, clic sur « descendre »)
-        // se termine APRÈS le dernier événement `scroll` utile : sans
-        // `scrollend`, le bouton restait affiché alors qu'on était en bas.
+        // se termine APRÈS le dernier événement `scroll` utile.
         this.dom.body.addEventListener('scrollend', update, { passive: true });
         window.addEventListener('resize', update, { passive: true });
+        // Le CONTENU grandit sans que la boîte du conteneur ne bouge : un
+        // ResizeObserver sur le fil lui-même ne se déclenchait jamais, et le
+        // bouton restait figé quand une image de carte finissait de charger.
+        // `load` ne remonte pas : on l'écoute en phase de capture.
+        this.dom.body.addEventListener('load', update, true);
+        new MutationObserver(update).observe(this.dom.body, {
+            childList: true,
+            subtree: true,
+        });
         this._updateScrollAffordance = update;
-        // La hauteur change quand un message arrive (et quand les images se
-        // chargent) : un simple écouteur de scroll laissait le bouton affiché
-        // alors que le fil était déjà en bas.
-        if (typeof ResizeObserver === 'function') {
-            new ResizeObserver(update).observe(this.dom.body);
-        }
         update();
     }
 
