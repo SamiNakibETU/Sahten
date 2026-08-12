@@ -745,10 +745,7 @@ export class SahtenChat {
             clone.querySelectorAll(
                 '.msg-actions, .feedback-container, .feedback-buttons, script, style'
             ).forEach((el) => el.remove());
-            const text = (clone.innerText || '').replace(/
-{3,}/g, '
-
-').trim();
+            const text = (clone.innerText || '').replace(/\n{3,}/g, '\n\n').trim();
             const done = () => {
                 btn.classList.add('copied');
                 const label = btn.querySelector('.msg-copy-label');
