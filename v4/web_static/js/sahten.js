@@ -705,6 +705,7 @@ export class SahtenChat {
         }
 
         this.dom.body.appendChild(div);
+        this._updateScrollAffordance?.();
         this.initializeRestaurantMap(div);
         this.scrollToResponseStart();
         if (!skipPersist) {
@@ -746,18 +747,40 @@ export class SahtenChat {
                 '.msg-actions, .feedback-container, .feedback-buttons, script, style'
             ).forEach((el) => el.remove());
             const text = (clone.innerText || '').replace(/\n{3,}/g, '\n\n').trim();
-            const done = () => {
-                btn.classList.add('copied');
-                const label = btn.querySelector('.msg-copy-label');
-                if (label) label.textContent = 'Copié';
+            const label = btn.querySelector('.msg-copy-label');
+            const flash = (ok) => {
+                btn.classList.toggle('copied', ok);
+                if (label) label.textContent = ok ? 'Copié' : 'Échec';
                 clearTimeout(btn._copiedTimer);
                 btn._copiedTimer = setTimeout(() => {
                     btn.classList.remove('copied');
                     if (label) label.textContent = 'Copier';
                 }, 1800);
             };
+            // Repli execCommand : dans une iframe cross-origin ou sans focus,
+            // navigator.clipboard rejette (NotAllowedError). Sans repli le
+            // bouton restait muet — pire que pas de bouton du tout.
+            const legacyCopy = () => {
+                try {
+                    const ta = document.createElement('textarea');
+                    ta.value = text;
+                    ta.setAttribute('readonly', '');
+                    ta.style.cssText = 'position:fixed;top:0;left:-9999px;opacity:0;';
+                    document.body.appendChild(ta);
+                    ta.select();
+                    const ok = document.execCommand('copy');
+                    ta.remove();
+                    return ok;
+                } catch (e) {
+                    return false;
+                }
+            };
             if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(text).then(done).catch(() => {});
+                navigator.clipboard.writeText(text)
+                    .then(() => flash(true))
+                    .catch(() => flash(legacyCopy()));
+            } else {
+                flash(legacyCopy());
             }
         });
         return btn;
@@ -810,6 +833,13 @@ export class SahtenChat {
             btn.classList.toggle('visible', far);
         };
         this.dom.body.addEventListener('scroll', update, { passive: true });
+        this._updateScrollAffordance = update;
+        // La hauteur change quand un message arrive (et quand les images se
+        // chargent) : un simple écouteur de scroll laissait le bouton affiché
+        // alors que le fil était déjà en bas.
+        if (typeof ResizeObserver === 'function') {
+            new ResizeObserver(update).observe(this.dom.body);
+        }
         update();
     }
 
