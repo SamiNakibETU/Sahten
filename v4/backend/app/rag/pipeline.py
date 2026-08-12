@@ -47,6 +47,7 @@ from .ingredient_match import (
     filter_reranked_excluding_ingredients,
     extract_excluded_ingredient_slugs,
     is_known_ingredient_slug,
+    is_short_follow_up,
     rerank_by_ingredient_centrality,
     slug_search_terms,
     supplement_ingredient_slugs,
@@ -779,6 +780,76 @@ def _align_card_with_cited_article(
                 source_chunk_ids=[top.hit.chunk_id],
                 ingredients=[],
                 steps=[],
+            )
+        }
+    )
+
+
+# « Pas trouvé » : constat d'échec du bot lui-même. Une carte recette collée
+# dessous contredit le texte (l'utilisateur lit « rien trouvé » ET voit une
+# recette). Les textes qui enchaînent sur une proposition ASSUMÉE gardent la
+# leur : base2 (« voici tout de même une version courte ») et suggestion proche
+# (« je vous recommande aussi »).
+_NOT_FOUND_RE = re.compile(
+    r"(?i)je n'ai pas trouvé de recette|pas de recette .{0,40}dans mes (?:carnets|notes)"
+)
+_ASSUMED_OFFER_RE = re.compile(
+    r"(?i)voici tout de même|je vous recommande|je vous propose"
+)
+
+
+def _drop_card_on_not_found(answer: GroundedAnswer) -> GroundedAnswer:
+    if answer.recipe_card is None:
+        return answer
+    txt = " ".join(s.text for s in answer.answer_sentences)
+    if _NOT_FOUND_RE.search(txt) and not _ASSUMED_OFFER_RE.search(txt):
+        log.info(
+            "rag.pipeline.card_dropped_on_not_found",
+            card_title=(answer.recipe_card.title or "")[:70],
+        )
+        return answer.model_copy(
+            update={"recipe_card": None, "recipe_card_secondary": None}
+        )
+    return answer
+
+
+def _force_card_title_to_cited_article(
+    answer: GroundedAnswer, reranked: list[RerankedHit]
+) -> GroundedAnswer:
+    """Le titre de la carte = TOUJOURS le vrai titre de l'article cité.
+
+    Le générateur LLM rédige la carte et peut en INVENTER le titre (constaté :
+    carte « Fattouche, salade libanaise... par Tara Khattar » alors qu'aucun
+    article fattouche n'existe — la carte pointait l'article des légumes farcis
+    de Tara Khattar). Un titre fabriqué adossé à un vrai lien est pire qu'une
+    absence de carte : il fait mentir le journal. On écrase par le titre réel.
+    """
+    rc = answer.recipe_card
+    if rc is None or not reranked:
+        return answer
+    by_chunk = {h.hit.chunk_id: h for h in reranked}
+    src = next((by_chunk[c] for c in (rc.source_chunk_ids or []) if c in by_chunk), None)
+    if src is None:
+        return answer
+    real_title = (src.hit.article_title or "").strip()
+    if not real_title:
+        return answer
+    card_n = _norm_match(rc.title or "")
+    real_n = _norm_match(real_title)
+    if card_n and (card_n in real_n or real_n in card_n):
+        return answer  # titre fidèle (éventuellement raccourci) : on garde
+    log.info(
+        "rag.pipeline.card_title_forced_to_article",
+        invented=(rc.title or "")[:70],
+        real=real_title[:70],
+    )
+    return answer.model_copy(
+        update={
+            "recipe_card": rc.model_copy(
+                update={
+                    "title": real_title,
+                    "chef": _chef_name_from_metadata(src.hit.metadata) or rc.chef,
+                }
             )
         }
     )
@@ -1808,24 +1879,44 @@ class RagPipeline:
         # l'héritage y est justement le comportement voulu.
         # PLACÉ AVANT la construction de `q` : sinon le texte de recherche embarque
         # encore les ingrédients hérités, qui polluent aussi le classement.
-        if plan.ingredient_slugs and len(plan.ingredient_slugs) > 1:
+        if plan.ingredient_slugs:
             qn_cur = _norm_match(user_query)
-            in_query = [
-                s
-                for s in plan.ingredient_slugs
-                if any(
-                    len(part) >= 4 and part in qn_cur
-                    for part in _norm_match(s).split("-")
-                )
-            ]
-            if in_query and in_query != plan.ingredient_slugs:
+
+            def _slug_in_query(slug: str) -> bool:
+                for part in _norm_match(slug).split("-"):
+                    if len(part) >= 4 and part in qn_cur:
+                        return True
+                    # Mots courts réels (ail, sel...) : frontière de mot stricte,
+                    # sinon « sel » matcherait « salade ».
+                    if len(part) == 3 and re.search(
+                        r"\b" + re.escape(part) + r"\b", qn_cur
+                    ):
+                        return True
+                return False
+
+            in_query = [s for s in plan.ingredient_slugs if _slug_in_query(s)]
+            keep = plan.ingredient_slugs
+            if in_query:
+                # La requête nomme des ingrédients : eux seuls sont légitimes.
+                keep = in_query
+            elif not (wants_another_recipe(user_query) or is_short_follow_up(user_query)):
+                # AUCUN slug nommé dans la requête ET la requête n'est pas une
+                # continuation (« une autre », « et sans viande ? ») : c'est un
+                # NOUVEAU sujet (« une recette de salade », « un dessert »...).
+                # Les slugs viennent du fil et le contaminent — constaté (12/08) :
+                # « recette de dessert » avec ingr hérités [tomate, aubergine]
+                # -> « pas de dessert à base de tomates » alors que la base a
+                # 15+ desserts. On repart à zéro ; l'héritage reste actif pour
+                # les vraies continuations anaphoriques.
+                keep = []
+            if keep != plan.ingredient_slugs:
                 log.info(
                     "rag.pipeline.history_ingredient_contamination_cleaned",
                     before=plan.ingredient_slugs,
-                    after=in_query,
+                    after=keep,
                     query=user_query[:80],
                 )
-                plan = plan.model_copy(update={"ingredient_slugs": in_query})
+                plan = plan.model_copy(update={"ingredient_slugs": keep})
 
         q = _expand_search_q_with_ingredients(base_q, plan)
         if focus and (focus.search_boost_phrase or "").strip():
@@ -2182,6 +2273,17 @@ class RagPipeline:
         )
         # Cohérence carte/texte : la carte doit parler du même article que le texte.
         answer = _align_card_with_cited_article(answer, reranked)
+        # Pas de carte sous un constat d'échec : « Je n'ai pas trouvé de recette
+        # de dessert... » + carte moussaka (constaté 12/08, idem carte Itch sur
+        # demande de dessert côté OLJ) = contradiction visible. On ne retire la
+        # carte QUE si le texte n'enchaîne pas sur une proposition assumée
+        # (« voici tout de même », « je vous recommande ») — le fallback base2
+        # et la suggestion proche restent intacts.
+        answer = _drop_card_on_not_found(answer)
+        # Anti-fabrication : le titre de la carte DOIT être le vrai titre de
+        # l'article qu'elle cite (constaté : carte « Fattouche » inventée par le
+        # LLM, liée à l'article des légumes farcis de Tara Khattar).
+        answer = _force_card_title_to_cited_article(answer, reranked)
 
         timings["generation_ms"] = int((time.perf_counter() - t3) * 1000)
         timings["total_ms"] = sum(timings.values())

@@ -17,6 +17,10 @@ def test_golden_schema() -> None:
     assert "items" in data
     for item in data["items"]:
         assert "id" in item
-        assert "query" in item
+        # Cas mono-tour : `query`. Cas multi-tours : `turns` (liste de questions
+        # jouées dans la MÊME session, vérification sur le dernier tour).
+        assert "query" in item or (
+            isinstance(item.get("turns"), list) and len(item["turns"]) >= 2
+        )
         assert isinstance(item.get("expected_article_external_ids", []), list)
         assert isinstance(item.get("answer_must_contain", []), list)
