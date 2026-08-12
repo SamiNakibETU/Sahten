@@ -59,6 +59,6 @@ def test_build_base2_last_resort_answer_includes_olj_suggestion() -> None:
         reranked=reranked,
     )
     assert out.answer_sentences[0].text == CARNETS_PHRASE
-    assert any("Ingrédients (résumé)" in s.text for s in out.answer_sentences)
+    assert any(s.text.startswith("• Ingrédients :") for s in out.answer_sentences)
     assert out.recipe_card is not None
     assert out.recipe_card.title == "Le hommos au cumin"

@@ -1130,18 +1130,17 @@ def _build_generated_recipe_answer(
     sentences = [GroundedSentence(text=GENERATED_INTRO, source_chunk_ids=[])]
     head = f"Recette de {name}" + (f" ({details})" if details else "") + " :"
     sentences.append(GroundedSentence(text=head, source_chunk_ids=[]))
+    # Puces lisibles (le renderer groupe les « • » en <ul>) : une ligne
+    # ingrédients, puis une puce PAR étape — fini le pavé numéroté d'un bloc.
     if ingredients:
         sentences.append(
             GroundedSentence(
-                text="Ingrédients : " + " ; ".join(ingredients[:14]) + ".",
+                text="• Ingrédients : " + ", ".join(ingredients[:14]),
                 source_chunk_ids=[],
             )
         )
-    if steps:
-        numbered = " ".join(f"{i}. {s}" for i, s in enumerate(steps[:8], 1))
-        sentences.append(
-            GroundedSentence(text="Préparation : " + numbered, source_chunk_ids=[])
-        )
+    for s in steps[:8]:
+        sentences.append(GroundedSentence(text=f"• {s}", source_chunk_ids=[]))
     note = str(generated.get("note") or "").strip()
     if note:
         sentences.append(GroundedSentence(text="Astuce : " + note, source_chunk_ids=[]))
@@ -1155,11 +1154,8 @@ def _build_generated_recipe_answer(
                 source_chunk_ids=[olj_chunk_id],
             )
         )
-    follow_up = (
-        f"Souhaitez-vous que je vous en dise plus sur {olj_title} ?"
-        if olj_title
-        else "Souhaitez-vous une autre recette ?"
-    )
+    # Relance pro-clic (jamais « en dire plus » : la fiche suggérée est cliquable).
+    follow_up = "Envie d'une autre idée — un mezzé, un plat ou un dessert ?"
     answer = GroundedAnswer(
         answer_sentences=sentences,
         recipe_card=recipe_card,
@@ -1215,6 +1211,27 @@ def _format_base2_steps_short(raw_steps: Any) -> str:
     if not steps:
         return ""
     return " | ".join(steps[:3])
+
+
+def _recipe_outline_sentences(
+    ingredients_short: str, raw_steps: Any
+) -> list[GroundedSentence]:
+    """Recette de secours en puces lisibles (le renderer transforme « • » en <ul>).
+
+    Avant : « Ingrédients (résumé) : a, b, c. Étapes (courtes) : x. | y. | z.. »
+    — un pavé à séparateurs illisible dans le widget.
+    """
+    out: list[GroundedSentence] = []
+    if ingredients_short:
+        out.append(
+            GroundedSentence(
+                text=f"• Ingrédients : {ingredients_short}", source_chunk_ids=[]
+            )
+        )
+    if isinstance(raw_steps, list):
+        for s in [str(x).strip() for x in raw_steps if str(x).strip()][:4]:
+            out.append(GroundedSentence(text=f"• {s}", source_chunk_ids=[]))
+    return out
 
 
 def _build_base2_last_resort_answer(
@@ -1273,20 +1290,9 @@ def _build_base2_last_resort_answer(
                 source_chunk_ids=[],
             )
         )
-    if ingredients_short:
-        sentences.append(
-            GroundedSentence(
-                text=f"Ingrédients (résumé) : {ingredients_short}.",
-                source_chunk_ids=[],
-            )
-        )
-    if steps_short:
-        sentences.append(
-            GroundedSentence(
-                text=f"Étapes (courtes) : {steps_short}.",
-                source_chunk_ids=[],
-            )
-        )
+    sentences.extend(
+        _recipe_outline_sentences(ingredients_short, base2_recipe.get("steps"))
+    )
     if olj_title and olj_chunk_id is not None:
         sentences.append(
             GroundedSentence(
@@ -1297,11 +1303,9 @@ def _build_base2_last_resort_answer(
                 source_chunk_ids=[olj_chunk_id],
             )
         )
-    follow_up = (
-        f"Souhaitez-vous que je vous en dise plus sur {olj_title} ?"
-        if olj_title
-        else "Souhaitez-vous que je cherche une autre variante proche ?"
-    )
+    # Relance pro-clic : jamais « que je vous en dise plus » (la fiche est là
+    # pour ça) — on ouvre vers une autre découverte.
+    follow_up = "Envie d'une autre idée — un mezzé, un plat ou un dessert ?"
     answer = GroundedAnswer(
         answer_sentences=sentences,
         recipe_card=recipe_card,

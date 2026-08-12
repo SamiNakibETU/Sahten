@@ -375,6 +375,47 @@ def _join_display_sentences(texts: list[str]) -> str:
     return " ".join(parts)
 
 
+def _render_narrative_blocks(texts: list[str]) -> str:
+    """Texte scannable, plus jamais un pavé unique.
+
+    - Une phrase commençant par « • » devient un item de liste (les items
+      consécutifs sont groupés en <ul>) — utilisé par les recettes de secours
+      (ingrédients, étapes), illisibles auparavant en « a. | b. | c. ».
+    - Le reste est découpé en paragraphes de 2 phrases maximum : un lecteur
+      scanne, il ne lit pas un bloc de 6 lignes.
+    """
+    blocks: list[str] = []
+    para: list[str] = []
+    bullets: list[str] = []
+
+    def flush_para() -> None:
+        if para:
+            blocks.append("<p>" + _escape(_join_display_sentences(para)) + "</p>")
+            para.clear()
+
+    def flush_bullets() -> None:
+        if bullets:
+            items = "".join(f"<li>{_escape(b)}</li>" for b in bullets)
+            blocks.append(f"<ul>{items}</ul>")
+            bullets.clear()
+
+    for raw in texts:
+        t = (raw or "").strip()
+        if not t:
+            continue
+        if t.startswith("•"):
+            flush_para()
+            bullets.append(t.lstrip("• ").strip())
+            continue
+        flush_bullets()
+        para.append(t)
+        if len(para) >= 2:
+            flush_para()
+    flush_para()
+    flush_bullets()
+    return "".join(blocks)
+
+
 def render_answer_html(
     answer: GroundedAnswer,
     hits: list[RerankedHit],
@@ -460,7 +501,7 @@ def render_answer_html(
     )
     if raw_sentences:
         parts.append(
-            "<p>" + _escape(_join_display_sentences(raw_sentences)) + "</p>"
+            _render_narrative_blocks(raw_sentences)
         )
     elif has_cards or follow_pre:
         # Le modèle a pu filtrer les phrases (citations invalides) mais proposer

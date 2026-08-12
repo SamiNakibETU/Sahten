@@ -284,7 +284,13 @@ Règles ABSOLUES :
    par au moins un `chunk_id` parmi le CONTEXTE fourni.
 2. Si le contexte ne contient pas la réponse, dis-le honnêtement et propose
    une question de clarification dans `follow_up`.
-3. La réponse est en français soutenu mais accessible, sans emojis.
+3. La réponse est en français chaleureux et direct, sans emojis. **Format
+   court obligatoire : 2 à 3 phrases maximum.** La fiche cliquable porte la
+   recette — ton texte donne envie de cliquer, il ne remplace pas la fiche.
+   Phrase 1 : le plat, le chef, et pourquoi il répond à la demande. Phrase 2
+   (optionnelle) : un détail saillant (saveur, occasion, temps). Pas de prose
+   ampoulée (« célébration raffinée », « belle invitation à redécouvrir »,
+   « sublimé par ») ni de résumé exhaustif des étapes de préparation.
 4. Ne cite pas les `chunk_id` dans le texte ; mets-les uniquement dans le
    tableau `source_chunk_ids` de chaque phrase.
 5. Si la requête concerne un chef, remplis `chef_card` avec ses informations
@@ -332,8 +338,13 @@ Règles ABSOLUES :
    « extrait », « extraits disponibles », « archives consultées », « corpus »
    ou « indexé ». Si le CONTEXTE est vide ou insuffisant, dis-le sans jargon
    technique ni politesse marketing.
-12. Si la requête est une demande de recette, termine souvent `follow_up` par une
-   question qui ouvre vers un autre plat ou une variante, sans redonner la recette.
+12. `follow_up` : courte (≤ 12 mots), elle ouvre vers une **découverte
+   différente** (autre plat, autre chef, autre envie). **INTERDIT** de proposer
+   de détailler, développer, résumer ou « en dire plus » sur la recette déjà
+   montrée (« Souhaitez-vous que je vous détaille… », « que je vous en dise
+   plus… », « la recette complète… ») : la recette complète est SUR LA FICHE,
+   à un clic — le but produit est ce clic vers l'article, jamais de le
+   remplacer dans le chat.
 13. Si tu expliques que les archives **ne contiennent pas** de réponse adaptée,
    qu’aucune recette ne correspond, ou que le contenu est **insuffisant** pour la
    demande : mets **`source_chunk_ids: []` sur chaque phrase**, laisse
@@ -573,6 +584,9 @@ class ResponseGenerator:
                 )
             raw = completion.choices[0].message.content or "{}"
             answer = GroundedAnswer.model_validate_json(raw)
+            answer = answer.model_copy(
+                update={"follow_up": _sanitize_follow_up(answer.follow_up)}
+            )
         except Exception as exc:  # noqa: BLE001
             log.warning("response_generator.openai_failed", error=str(exc))
             return GroundedAnswer(
@@ -618,6 +632,14 @@ def validate_grounding(
     for sent in answer.answer_sentences:
         kept_ids = [cid for cid in sent.source_chunk_ids if cid in valid_ids]
         if not kept_ids:
+            # Lignes de plan structuré (« • ingrédient », « • étape ») : émises
+            # délibérément sans citation par les recettes de secours. Le seuil
+            # de 24 caractères ci-dessous les décapitait (« • Cuire 15 min. »).
+            if sent.text.strip().startswith("•"):
+                grounded.append(
+                    GroundedSentence(text=sent.text, source_chunk_ids=[])
+                )
+                continue
             # Réponses très courtes (accord / refus) : pas de chunk explicite.
             tnorm = sent.text.strip().lower().replace("’", "'")
             if tnorm in ("oui", "non", "ok", "merci", "d'accord"):
@@ -810,6 +832,32 @@ def validate_grounding(
             answer.chef_card = None
 
     return answer
+
+
+# Relances anti-clic : proposer de « détailler » ou d'« en dire plus » retient
+# le lecteur dans le chat alors que la recette complète est sur la fiche — le
+# but produit est le CLIC vers l'article. Le prompt l'interdit (règle 12) ;
+# ce garde-fou déterministe rattrape les écarts du LLM.
+_ANTI_CLICK_FOLLOWUP_RE = re.compile(
+    r"(?i)(?:que je (?:vous )?(?:détaille|développe|résume)|"
+    r"(?:vous )?en (?:dise|dire|savoir) plus|"
+    r"détailler (?:cette|la) recette|"
+    r"la recette (?:complète|détaillée|pas à pas)|"
+    r"plus de détails sur (?:cette|la))"
+)
+_FOLLOWUP_FALLBACK = (
+    "Envie d'une autre idée — un mezzé, un plat ou un dessert ?"
+)
+
+
+def _sanitize_follow_up(follow_up: str | None) -> str:
+    fu = (follow_up or "").strip()
+    if not fu:
+        return fu
+    if _ANTI_CLICK_FOLLOWUP_RE.search(fu):
+        log.info("response_generator.follow_up_sanitized", dropped=fu[:90])
+        return _FOLLOWUP_FALLBACK
+    return fu
 
 
 def _wants_recipe_suggestion(q: str) -> bool:

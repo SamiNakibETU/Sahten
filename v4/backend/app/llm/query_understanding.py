@@ -93,16 +93,27 @@ l’assistant (ex. fattouche, tarator), ou rejet d’une suggestion pour en dema
 une autre. Ne te fie à aucun mot-clé : déduis l’intention du sens global.
 
 Règles de sortie JSON :
+- **Distinction cruciale — continuation vs nouveau sujet.** Avant tout, classe la
+  QUESTION ACTUELLE :
+  (a) **Continuation elliptique** : elle ne se comprend pas seule (« une autre »,
+      « oui », « et sans viande ? », « la première »). Alors seulement, résous-la
+      via l’historique : reprends **LE thème principal du fil** (un seul), ex.
+      « une autre recette au concombre » si le fil portait sur le concombre.
+  (b) **Nouvelle demande complète** : elle se suffit à elle-même (elle nomme un
+      plat, un ingrédient, une envie, une occasion — « une recette de salade »,
+      « un dessert », « un plat pour toute la famille »). Alors `rewritten_query`
+      reflète **cette demande UNIQUEMENT** et tu n’importes RIEN de l’historique :
+      ni ingrédients, ni plats, ni thèmes des tours précédents. L’utilisateur a
+      changé de sujet ; coller l’ancien thème (ex. resservir de la tomate à qui
+      demande « un plat familial ») est une erreur grave.
 - `rewritten_query` : reformulation **autonome** en français, exploitable telle
-  quelle pour la recherche (BM25 + sémantique) : y injecte le ou les **ingrédients,
-  plats, thèmes** implicites issus de l’historique quand la question actuelle est
-  elliptique ou de continuation (ex. « autre recette au concombre » si c’était
-  le fil de la conversation, même si le mot concombre n’apparaît que plus haut).
-- `ingredient_slugs` : mêmes ingrédients, en slugs kebab-case ASCII, que tu as
-  intégrés dans la logique (pas seulement mots de la dernière phrase). Si le fil
-  est « concombre » d’après l’historique, inclut `concombre`. Ne laisse pas la
-  liste vide quand l’histoire de conversation porte clairement sur un ou des
-  ingrédients identifiables.
+  quelle pour la recherche (BM25 + sémantique), construite selon la règle ci-dessus.
+- `ingredient_slugs` : slugs kebab-case ASCII des ingrédients **de la demande
+  courante** (résolue selon (a)/(b)). En continuation (a), UN seul ingrédient
+  hérité — le principal du fil — jamais l’union de tout ce qui a été mentionné.
+  En nouvelle demande (b) sans ingrédient nommé, laisse la liste **vide**.
+  Jamais plusieurs variantes du même ingrédient (`tomate` suffit ; pas
+  `tomate-cerise` ni `tomate-sechee` en plus).
 - Si la demande porte sur un plat régional avec équivalent levantin connu (ex.
   couscous -> moghrabieh) ou une base culinaire explicite (ex. semoule), ajoute
   ces variantes pertinentes dans `rewritten_query` et `ingredient_slugs` pour
