@@ -849,10 +849,16 @@ export class SahtenChat {
      * stockage local ou subir un contexte qui ne le concerne plus.
      */
     startNewConversation() {
+        // generateSessionId() RELIT sessionStorage : sans purge, on repartait
+        // avec la même session serveur et la mémoire de conversation suivait —
+        // exactement ce que ce bouton doit permettre de fuir.
+        try { window.sessionStorage.removeItem('sahten_session_id'); } catch (e) {}
         this.state.sessionId = this.generateSessionId();
         if (this.dom.body) this.dom.body.innerHTML = '';
-        try { localStorage.removeItem(this._localTurnsKey); } catch (e) {}
         this.renderWelcome();
+        // Après le rendu : l'accueil repasse par _persistLocalHistory et
+        // réécrirait la clé qu'on vient d'effacer.
+        try { localStorage.removeItem(this._localTurnsKey); } catch (e) {}
         if (this._a11yLive) this._a11yLive.textContent = 'Nouvelle conversation démarrée.';
         if (this.dom.input) this.dom.input.focus();
     }
