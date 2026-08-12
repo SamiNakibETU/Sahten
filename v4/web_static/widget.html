@@ -29,7 +29,7 @@
     ></script>
 
     <link rel="stylesheet" href="/css/nav-shell.css" />
-    <link rel="stylesheet" href="/css/sahten.css?v=20260812b" />
+    <link rel="stylesheet" href="/css/sahten.css?v=20260812c" />
 
     <style>
       /* Même barre que les autres pages : le body centré ne doit pas rétrécir la nav */
@@ -87,19 +87,15 @@
       html.sahten-embed .page-context,
       html.sahten-embed .sahten-trigger,
       html.sahten-embed .sahten-trigger-wrap,
-      html.sahten-embed .sahten-backdrop,
       html.sahten-embed .sahten-drag-handle {
         display: none !important;
       }
-      /* Le panneau REMPLIT l'iframe. En page normale il flotte avec des marges
-         (bottom/right) : à l'intérieur d'une iframe de la taille du panneau, ces
-         marges laissaient des bandes vides par lesquelles la page hôte
-         transparaissait — d'où un rendu « verre dépoli » involontaire.
-         L'arrondi et l'ombre sont portés par l'iframe, pas par le panneau. */
-      html.sahten-embed .sahten-widget-container,
-      html.sahten-embed .sahten-widget-container[data-size="window"],
-      html.sahten-embed .sahten-widget-container[data-size="mid"],
-      html.sahten-embed .sahten-widget-container[data-size="full"] {
+      /* MODE FENÊTRE : le panneau REMPLIT l'iframe (embed.js dimensionne
+         l'iframe en fenêtre bottom-right et porte l'arrondi + l'ombre). Les
+         marges natives laissaient des bandes vides -> « verre dépoli ».
+         IMPORTANT : scopé à data-size="window" UNIQUEMENT — en agrandi
+         (mid/full) le panneau garde son design natif centré. */
+      html.sahten-embed .sahten-widget-container[data-size="window"] {
         position: fixed !important;
         inset: 0 !important;
         width: 100% !important;
@@ -109,14 +105,35 @@
         margin: 0 !important;
         border-radius: 0 !important;
         box-shadow: none !important;
+        transform: none !important;
+      }
+      /* MODE AGRANDI dans l'iframe (devenue plein écran + transparente via
+         embed.js) : panneau CENTRÉ « comme avant », arrondi, ombre, voile
+         translucide derrière (le blur ne peut pas atteindre la page hôte à
+         travers une iframe — le voile rgba, si). */
+      html.sahten-embed .sahten-widget-container[data-size="mid"],
+      html.sahten-embed .sahten-widget-container[data-size="full"] {
+        position: fixed !important;
+        inset: 0 !important;
+        margin: auto !important;
+        width: min(94vw, 980px) !important;
+        height: min(92vh, 92dvh) !important;
+        max-width: calc(100vw - 32px) !important;
+        max-height: calc(100vh - 32px) !important;
+        border-radius: var(--radius-lg, 16px) !important;
+        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35) !important;
+        transform: none !important;
+      }
+      html.sahten-embed .sahten-backdrop {
+        background: rgba(20, 20, 18, 0.45) !important;
+      }
+      /* Le panneau doit être visible/opaque d'emblée dans l'iframe (en page
+         normale il attend l'ouverture avec opacity:0 — ici un JS qui tarde
+         laissait un panneau fantôme). Vaut pour toutes les tailles. */
+      html.sahten-embed .sahten-widget-container {
         background: #ffffff !important;
         backdrop-filter: none !important;
         -webkit-backdrop-filter: none !important;
-        transform: none !important;
-        /* En page normale le panneau est masqué (opacity:0) jusqu'à l'ouverture.
-           Embarqué, l'iframe EST le panneau : il doit être visible d'emblée.
-           Forcé en CSS plutôt que par script — un JS qui tarde laissait un
-           panneau transparent laissant voir la page hôte au travers. */
         opacity: 1 !important;
         visibility: visible !important;
         pointer-events: auto !important;
@@ -208,7 +225,7 @@
     </script>
 
     <script type="module">
-      import { SahtenChat } from "./js/sahten.js?v=20260812b";
+      import { SahtenChat } from "./js/sahten.js?v=20260812c";
       /* Production : pas de sélecteur de modèle (réglage côté API / dev uniquement) */
       window.__sahtenChat = new SahtenChat();
     </script>
@@ -244,11 +261,38 @@
           if (d && d.type === "sahten:open") openChat();
         });
 
+        // Chaque changement de taille du panneau est signalé au parent :
+        // embed.js étend l'iframe en plein écran transparent quand on agrandit,
+        // et la ramène en fenêtre bottom-right quand on réduit.
+        var container = document.querySelector(".sahten-widget-container");
+        if (container) {
+          var lastSize = null;
+          var notifySize = function () {
+            var size = container.getAttribute("data-size") || "window";
+            if (size === lastSize) return;
+            lastSize = size;
+            try {
+              window.parent.postMessage(
+                { type: "sahten:size", expanded: size !== "window" }, "*"
+              );
+            } catch (err) {}
+          };
+          new MutationObserver(notifySize).observe(container, {
+            attributes: true, attributeFilter: ["data-size"],
+          });
+          notifySize();
+        }
+
         // La fermeture (bouton ×) prévient le parent : masquer l'iframe.
         document.addEventListener(
           "click",
           function (e) {
             if (e.target && e.target.closest && e.target.closest(".sahten-close-btn")) {
+              // Réouverture toujours en mode fenêtre : sinon un panneau resté
+              // en « full » se retrouverait à l'étroit dans l'iframe-fenêtre.
+              try {
+                if (window.__sahtenChat) window.__sahtenChat.setSize("window");
+              } catch (err) {}
               try { window.parent.postMessage({ type: "sahten:close" }, "*"); } catch (err) {}
             }
           },

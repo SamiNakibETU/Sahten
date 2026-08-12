@@ -65,12 +65,18 @@
 
     function isMobile() { return window.matchMedia("(max-width: 600px)").matches; }
 
+    // Agrandi (bouton ⤢ dans le widget) : l'iframe couvre tout l'écran en
+    // TRANSPARENT — le panneau centré + le voile sont dessinés dedans.
+    var expanded = false;
+
     function sizeFrame() {
       if (!frame) return;
-      if (isMobile()) {
-        // Plein écran sur mobile, safe-areas comprises.
+      if (expanded || isMobile()) {
         frame.style.cssText = baseFrameCss() +
-          ";inset:0;width:100%;height:100%;border-radius:0;";
+          ";inset:0;width:100%;height:100%;border-radius:0" +
+          (expanded && !isMobile()
+            ? ";background:transparent;box-shadow:none"
+            : "");
       } else {
         frame.style.cssText = baseFrameCss() +
           ";bottom:20px;right:20px;width:412px;height:min(680px, calc(100vh - 40px));border-radius:16px;";
@@ -80,7 +86,7 @@
       return [
         "position:fixed", "border:0", "z-index:" + (Z + 1),
         "background:#ffffff", "box-shadow:0 12px 48px rgba(0,0,0,.28)",
-        "max-width:100vw", "max-height:100vh"
+        "max-width:100vw", "max-height:100vh", "color-scheme:normal"
       ].join(";");
     }
 
@@ -90,6 +96,7 @@
         frame.src = ORIGIN + "/widget?embed=1&v=" + Math.floor(Date.now()/600000);
         frame.title = "Sahteïn — assistant recettes";
         frame.setAttribute("allow", "clipboard-write");
+        frame.setAttribute("allowtransparency", "true");
         sizeFrame();
         document.body.appendChild(frame);
         window.addEventListener("resize", sizeFrame);
@@ -114,7 +121,8 @@
     window.addEventListener("message", function (e) {
       if (e.origin !== ORIGIN) return;          // sécurité : n'écoute que notre origine
       var d = e.data || {};
-      if (d && d.type === "sahten:close") closeWidget();
+      if (d && d.type === "sahten:close") { expanded = false; closeWidget(); }
+      if (d && d.type === "sahten:size") { expanded = !!d.expanded; sizeFrame(); }
     });
 
     document.body.appendChild(btn);
