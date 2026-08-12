@@ -698,12 +698,46 @@ export class SahtenChat {
             div.appendChild(this.createFeedbackButtons(data.request_id));
         }
 
+        div.appendChild(this.createCopyButton(div));
         this.dom.body.appendChild(div);
         this.initializeRestaurantMap(div);
         this.scrollToResponseStart();
         if (!skipPersist) {
             this._persistLocalHistory();
         }
+    }
+
+    createCopyButton(messageEl) {
+        // Copier le message (texte de la réponse, sans les contrôles).
+        // Deux icônes superposées en currentColor, cross-fade CSS ; la coche
+        // est le retour statique (jamais le mouvement seul).
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'msg-copy-btn';
+        btn.setAttribute('aria-label', 'Copier la réponse');
+        btn.title = 'Copier la réponse';
+        btn.innerHTML =
+            '<svg class="ico-copy" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+            '<rect x="5.5" y="5.5" width="8" height="8" rx="1.5"/>' +
+            '<path d="M10.5 5.5v-2a1.5 1.5 0 0 0-1.5-1.5H4A1.5 1.5 0 0 0 2.5 3.5V9A1.5 1.5 0 0 0 4 10.5h1.5"/></svg>' +
+            '<svg class="ico-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+            '<polyline points="3 8.5 6.5 12 13 4.5"/></svg>';
+        btn.addEventListener('click', () => {
+            const clone = messageEl.cloneNode(true);
+            clone.querySelectorAll(
+                '.msg-copy-btn, .feedback-container, .feedback-buttons, script, style'
+            ).forEach((el) => el.remove());
+            const text = (clone.innerText || '').replace(/\n{3,}/g, '\n\n').trim();
+            navigator.clipboard.writeText(text).then(() => {
+                btn.classList.add('copied');
+                clearTimeout(btn._copiedTimer);
+                btn._copiedTimer = setTimeout(
+                    () => btn.classList.remove('copied'),
+                    1800
+                );
+            }).catch(() => {});
+        });
+        return btn;
     }
 
     initializeRestaurantMap(container) {

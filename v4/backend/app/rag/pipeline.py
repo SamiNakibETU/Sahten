@@ -1128,7 +1128,9 @@ def _build_generated_recipe_answer(
     steps = [str(x).strip() for x in (generated.get("steps") or []) if str(x).strip()]
 
     sentences = [GroundedSentence(text=GENERATED_INTRO, source_chunk_ids=[])]
-    head = f"Recette de {name}" + (f" ({details})" if details else "") + " :"
+    # Pas de « : » final — le renderer ajoute un point de fin de phrase, ce qui
+    # produisait « ... difficulté moyenne) :. » à l'écran.
+    head = f"Recette de {name}" + (f" ({details})" if details else "") + "."
     sentences.append(GroundedSentence(text=head, source_chunk_ids=[]))
     # Puces lisibles (le renderer groupe les « • » en <ul>) : une ligne
     # ingrédients, puis une puce PAR étape — fini le pavé numéroté d'un bloc.

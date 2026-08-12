@@ -2270,3 +2270,47 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* ── Copier la réponse (micro-interaction, cf. better-ui) ─────────────────
+   Deux icônes currentColor superposées, cross-fade opacity+scale+blur ;
+   la coche est le retour STATIQUE du succès (le mouvement n'est jamais seul).
+   Révélé au survol du message sur desktop, toujours visible au tactile. */
+.msg-bot { position: relative; }
+.msg-copy-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: var(--radius-sm, 8px);
+  background: transparent;
+  color: #9a938a;
+  cursor: pointer;
+  opacity: 0;
+  transition-property: opacity, background-color, color, scale;
+  transition-duration: 160ms;
+  transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+.msg-bot:hover .msg-copy-btn,
+.msg-copy-btn:focus-visible,
+.msg-copy-btn.copied { opacity: 1; }
+.msg-copy-btn:hover { background: rgba(0, 0, 0, 0.05); color: #5c564e; }
+.msg-copy-btn:active { scale: 0.96; }
+.msg-copy-btn svg {
+  position: absolute;
+  width: 15px;
+  height: 15px;
+  transition-property: opacity, transform, filter;
+  transition-duration: 200ms;
+  transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+.msg-copy-btn .ico-check { opacity: 0; transform: scale(0.25); filter: blur(4px); }
+.msg-copy-btn.copied .ico-copy { opacity: 0; transform: scale(0.25); filter: blur(4px); }
+.msg-copy-btn.copied .ico-check { opacity: 1; transform: scale(1); filter: blur(0); color: #0b5c3f; }
+@media (hover: none) {
+  .msg-copy-btn { opacity: 0.55; }
+}

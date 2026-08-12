@@ -276,7 +276,9 @@ def _render_chef(card: ChefCard, *, article_url: str | None, article_title: str 
     if card.biography:
         parts.append(f"<p>{_escape(card.biography)}</p>")
     if card.works:
-        parts.append('<section><h3>Œuvres / titres</h3><ul>')
+        # Ces entrées sont des titres d'articles/recettes du chef, pas des
+        # « œuvres » — le libellé doit inviter à cliquer.
+        parts.append('<section><h3>À découvrir</h3><ul>')
         for w in card.works:
             parts.append(f"<li>{_escape(w)}</li>")
         parts.append("</ul></section>")

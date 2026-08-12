@@ -344,9 +344,11 @@ Règles ABSOLUES :
    montrée (« Souhaitez-vous que je vous détaille… », « que je vous en dise
    plus… », « la recette complète… ») : la recette complète est SUR LA FICHE,
    à un clic — le but produit est ce clic vers l'article, jamais de le
-   remplacer dans le chat. La relance est toujours une question DE l'assistant
-   AU lecteur (« Envie de… ? », « Je peux aussi vous proposer… »), jamais
-   formulée comme si le lecteur parlait (« Pouvez-vous me suggérer… » interdit).
+   remplacer dans le chat. La relance est toujours une QUESTION (elle se
+   termine par « ? ») posée par l'assistant au lecteur : « Envie d'un poulet
+   rôti ? », « Un dessert pour finir ? » — jamais une affirmation (« Je peux
+   aussi vous proposer X. ») ni une phrase à la voix du lecteur
+   (« Pouvez-vous me suggérer… » interdit).
 13. Si tu expliques que les archives **ne contiennent pas** de réponse adaptée,
    qu’aucune recette ne correspond, ou que le contenu est **insuffisant** pour la
    demande : mets **`source_chunk_ids: []` sur chaque phrase**, laisse
@@ -859,6 +861,10 @@ def _sanitize_follow_up(follow_up: str | None) -> str:
     if _ANTI_CLICK_FOLLOWUP_RE.search(fu):
         log.info("response_generator.follow_up_sanitized", dropped=fu[:90])
         return _FOLLOWUP_FALLBACK
+    # La relance est une QUESTION : une affirmation (« Je peux aussi vous
+    # proposer X. ») n'invite pas à répondre. On transforme au lieu de jeter.
+    if not fu.rstrip().endswith("?"):
+        fu = fu.rstrip().rstrip(".!…") + ", ça vous tente ?"
     return fu
 
 
