@@ -486,6 +486,127 @@
    ],
    "note": "le bruit conversationnel (classique/je voudrais) ne doit PAS diluer.",
    "max_recipe_cards": 1
+  },
+  {
+   "id": "multiturn-ingredient-no-contamination",
+   "category": "multiturn",
+   "turns": [
+    "recette avec du concombre",
+    "recette avec du poulet"
+   ],
+   "answer_any_contains": [
+    "poulet",
+    "djej",
+    "djaj"
+   ],
+   "answer_must_not_contain": [
+    "je n'ai pas cette recette dans mes carnets"
+   ],
+   "require_recipe_card": true,
+   "note": "BUG 11/08 : l'historique accumulait les ingredients -> filtre ET -> 0 hit -> fallback."
+  },
+  {
+   "id": "multiturn-trois-tours-propre",
+   "category": "multiturn",
+   "turns": [
+    "recette de hommos",
+    "recette avec du yaourt",
+    "recette avec des aubergines"
+   ],
+   "answer_any_contains": [
+    "aubergine"
+   ],
+   "answer_must_not_contain": [
+    "je n'ai pas cette recette dans mes carnets"
+   ],
+   "require_recipe_card": true,
+   "note": "Les reponses ne doivent pas se degrader au fil de la conversation."
+  },
+  {
+   "id": "multiturn-apres-plat-absent",
+   "category": "multiturn",
+   "turns": [
+    "taboulé",
+    "recette avec du poulet"
+   ],
+   "answer_any_contains": [
+    "poulet",
+    "djej",
+    "djaj"
+   ],
+   "answer_must_not_contain": [
+    "je n'ai pas cette recette dans mes carnets"
+   ],
+   "require_recipe_card": true,
+   "note": "Un plat absent au tour precedent ne doit pas casser le tour suivant."
+  },
+  {
+   "id": "generique-kebbe",
+   "category": "recipe_present",
+   "query": "kebbé",
+   "answer_any_contains": [
+    "kebbé",
+    "kebbe"
+   ],
+   "require_recipe_card": true,
+   "max_recipe_cards": 1
+  },
+  {
+   "id": "generique-moutabbal",
+   "category": "recipe_present",
+   "query": "moutabbal",
+   "answer_any_contains": [
+    "moutabbal",
+    "aubergine",
+    "koussa"
+   ],
+   "require_recipe_card": true,
+   "max_recipe_cards": 1
+  },
+  {
+   "id": "generique-poulet-seul",
+   "category": "ingredient",
+   "query": "poulet",
+   "answer_any_contains": [
+    "poulet",
+    "djej",
+    "djaj"
+   ],
+   "require_recipe_card": true,
+   "max_recipe_cards": 1
+  },
+  {
+   "id": "generique-dessert",
+   "category": "ingredient",
+   "query": "un dessert libanais",
+   "answer_must_not_contain": [
+    "je n'ai pas cette recette dans mes carnets"
+   ],
+   "require_recipe_card": true
+  },
+  {
+   "id": "generique-entree",
+   "category": "ingredient",
+   "query": "une entrée libanaise",
+   "answer_must_not_contain": [
+    "je n'ai pas cette recette dans mes carnets"
+   ],
+   "require_recipe_card": true
+  },
+  {
+   "id": "generique-avec-poulet",
+   "category": "ingredient",
+   "query": "recette avec du poulet",
+   "answer_any_contains": [
+    "poulet",
+    "djej",
+    "djaj"
+   ],
+   "answer_must_not_contain": [
+    "je n'ai pas cette recette dans mes carnets"
+   ],
+   "require_recipe_card": true,
+   "max_recipe_cards": 1
   }
  ]
 }

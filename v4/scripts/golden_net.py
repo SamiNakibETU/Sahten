@@ -103,16 +103,36 @@ def main() -> int:
         gap = bool(set(int(x) for x in it.get("expected_article_external_ids") or [])
                    & KNOWN_MISSING_ARTICLES)
         try:
-            r = chat(args.base, it["query"], f"golden-{cid}"[:40])
-            fails = check(it, r)
-            if fails:
-                # Anti-flake : la génération LLM (temp 0.2) rend certains cas
-                # instables — un échec ne compte qu'une fois CONFIRMÉ par un
-                # second essai (session neuve pour éviter tout effet mémoire).
-                r2 = chat(args.base, it["query"], f"golden2-{cid}"[:40])
-                fails2 = check(it, r2)
-                if not fails2:
-                    r, fails = r2, []
+            # Cas MULTI-TOURS : plusieurs questions dans la MÊME session, vérifiées
+            # sur le dernier tour. Indispensable — le bug de contamination par
+            # l'historique (11/08 : « recette avec du poulet » -> « pas dans mes
+            # carnets » dès le 2e tour) était invisible aux cas mono-tour, qui
+            # ouvrent tous une session neuve.
+            if it.get("turns"):
+                sid = f"gmt-{cid}"[:40]
+                for prev in it["turns"][:-1]:
+                    chat(args.base, prev, sid)
+                r = chat(args.base, it["turns"][-1], sid)
+                fails = check(it, r)
+                if fails:
+                    sid2 = f"gmt2-{cid}"[:40]
+                    for prev in it["turns"][:-1]:
+                        chat(args.base, prev, sid2)
+                    r2 = chat(args.base, it["turns"][-1], sid2)
+                    fails2 = check(it, r2)
+                    if not fails2:
+                        r, fails = r2, []
+            else:
+                r = chat(args.base, it["query"], f"golden-{cid}"[:40])
+                fails = check(it, r)
+                if fails:
+                    # Anti-flake : la génération LLM (temp 0.2) rend certains cas
+                    # instables — un échec ne compte qu'une fois CONFIRMÉ par un
+                    # second essai (session neuve pour éviter tout effet mémoire).
+                    r2 = chat(args.base, it["query"], f"golden2-{cid}"[:40])
+                    fails2 = check(it, r2)
+                    if not fails2:
+                        r, fails = r2, []
         except Exception as e:  # noqa: BLE001
             r, fails = {"strategy": None, "confidence": None}, [f"exception:{e}"[:120]]
         status = "PASS" if not fails else ("KNOWN_GAP" if gap else "FAIL")
