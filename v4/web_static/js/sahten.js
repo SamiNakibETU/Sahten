@@ -828,20 +828,21 @@ export class SahtenChat {
         });
         this.dom.container.appendChild(btn);
         this._scrollBtn = btn;
-        // Lecture de layout coalescée en rAF : les déclencheurs ci-dessous
-        // peuvent arriver en rafale (mutations DOM), inutile de mesurer à
-        // chaque fois.
-        let queued = false;
+        // Lecture de layout coalescée : les déclencheurs ci-dessous peuvent
+        // arriver en rafale (mutations DOM), inutile de mesurer à chaque fois.
+        // Minuteur et NON requestAnimationFrame : rAF est suspendu dans un
+        // onglet en arrière-plan (ou une iframe hors écran), ce qui laissait
+        // l'état du bouton figé jusqu'au retour au premier plan.
+        let queued = null;
         const apply = () => {
-            queued = false;
+            queued = null;
             const el = this.dom.body;
             const far = el.scrollHeight - el.scrollTop - el.clientHeight > 160;
             btn.classList.toggle('visible', far);
         };
         const update = () => {
-            if (queued) return;
-            queued = true;
-            requestAnimationFrame(apply);
+            if (queued !== null) return;
+            queued = setTimeout(apply, 50);
         };
         this.dom.body.addEventListener('scroll', update, { passive: true });
         // Un défilement programmé (réponse qui arrive, clic sur « descendre »)
