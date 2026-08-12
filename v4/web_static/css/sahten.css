@@ -2286,18 +2286,18 @@
 
 /* Listes de la narrative (ingrédients/étapes des recettes de secours) :
    sans ceci, puces navigateur par défaut + grandes marges = brouillon. */
-.sahten-narrative ul {
+.sahten-narrative ul:not(.sahten-rx-meta):not(.sahten-rx-ing) {
   margin: 6px 0 10px;
   padding-left: 18px;
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
-.sahten-narrative ul li {
+.sahten-narrative ul:not(.sahten-rx-meta) li {
   margin: 0;
   line-height: 1.5;
 }
-.sahten-narrative ul li::marker {
+.sahten-narrative ul:not(.sahten-rx-meta) li::marker {
   color: #0b5c3f;
 }
 

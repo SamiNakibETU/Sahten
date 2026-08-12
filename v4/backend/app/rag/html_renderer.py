@@ -481,7 +481,7 @@ def _render_narrative_blocks(texts: list[str]) -> str:
             flush_para()
             flush_bullets()
             flush_steps()
-            ings.append(t[len(RX_ING):].strip())
+            ings.append(t[len(RX_ING):].strip().rstrip("."))
             continue
         if t.startswith(RX_STEP):
             flush_para()
