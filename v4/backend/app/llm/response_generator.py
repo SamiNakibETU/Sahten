@@ -639,7 +639,10 @@ def validate_grounding(
             # Lignes de plan structuré (« • ingrédient », « • étape ») : émises
             # délibérément sans citation par les recettes de secours. Le seuil
             # de 24 caractères ci-dessous les décapitait (« • Cuire 15 min. »).
-            if sent.text.strip().startswith("•"):
+            # Puces et blocs recette structurés (§NAME/§ING/§STEP…) ne citent
+            # rien : ce sont des recettes de secours, hors corpus. Sans cette
+            # exemption le seuil des 24 caractères les supprimait en silence.
+            if sent.text.strip().startswith(("•", "§")):
                 grounded.append(
                     GroundedSentence(text=sent.text, source_chunk_ids=[])
                 )

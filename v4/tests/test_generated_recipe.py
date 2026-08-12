@@ -1,6 +1,7 @@
 """Fallback dernier recours : matching base2 fuzzy + recette générée (hors OLJ)."""
 
 from backend.app.llm.query_understanding import QueryPlan
+from backend.app.rag.html_renderer import _render_narrative_blocks
 from backend.app.rag.pipeline import (
     _build_generated_recipe_answer,
     _card_title_matches_requested_dish,
@@ -104,7 +105,12 @@ def test_build_generated_recipe_answer_labels_and_suggests() -> None:
         user_query="knefe", generated=generated, reranked=reranked
     )
     text = " ".join(s.text for s in out.answer_sentences)
-    assert "hors carnets OLJ" in text  # étiquetage non négociable
+    # Étiquetage non négociable : la phrase d'intro dit explicitement que le
+    # plat n'est pas dans les carnets, et le rendu porte le badge « Hors
+    # carnets OLJ ». On vérifie la surface RÉELLEMENT vue par le lecteur.
+    assert "n'est pas (encore) dans les carnets de L'Orient-Le Jour" in text
+    html = _render_narrative_blocks([s_.text for s_ in out.answer_sentences])
+    assert "Hors carnets OLJ" in html
     assert "kataifi" in text and "Beurrer le moule" in text  # contenu généré présent
     # suggestion OLJ rendue en carte (avec chunk source valide)
     assert out.recipe_card is not None

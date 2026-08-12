@@ -55,6 +55,7 @@ from .ingredient_match import (
     ingredient_display_name,
 )
 from .recipe_generator import get_or_generate_recipe
+from .html_renderer import RX_ING, RX_META, RX_NAME, RX_STEP, RX_TIP
 from .reranker import Reranker, build_default_reranker
 from .retriever import HybridRetriever, Hit
 from .reranker import RerankedHit
@@ -1081,8 +1082,8 @@ def _fallback_dish_name(user_query: str, plan: QueryPlan) -> str | None:
 
 
 GENERATED_INTRO = (
-    "Ce plat n'est pas (encore) dans les carnets de L'Orient-Le Jour ; "
-    "voici une version générée à titre indicatif (hors carnets OLJ)."
+    "Ce plat n'est pas (encore) dans les carnets de L'Orient-Le Jour. "
+    "Je vous la donne quand même, à ma façon."
 )
 
 
@@ -1105,6 +1106,38 @@ def _relevant_close_olj_hit(reranked: list[RerankedHit]) -> RerankedHit | None:
     if float(getattr(top, "rerank_score", 0.0) or 0.0) < _MIN_CLOSE_SUGGESTION_SCORE:
         return None
     return top
+
+
+def _structured_recipe_sentences(
+    *,
+    name: str,
+    meta_bits: list[str],
+    ingredients: list[str],
+    steps: list[str],
+    note: str = "",
+) -> list[GroundedSentence]:
+    """Phrases marquées composant un bloc recette rendu proprement.
+
+    Les marqueurs (`§NAME`, `§META`, `§ING`, `§STEP`, `§TIP`) sont interprétés
+    par `html_renderer._render_narrative_blocks`. Aucun n'est cité : ces
+    recettes de secours ne viennent PAS du corpus, d'où l'exemption explicite
+    dans `validate_grounding`."""
+    out: list[GroundedSentence] = [
+        GroundedSentence(text=f"{RX_NAME}{name}", source_chunk_ids=[])
+    ]
+    if meta_bits:
+        out.append(
+            GroundedSentence(
+                text=RX_META + " · ".join(meta_bits), source_chunk_ids=[]
+            )
+        )
+    for ing in ingredients[:18]:
+        out.append(GroundedSentence(text=f"{RX_ING}{ing}", source_chunk_ids=[]))
+    for st in steps[:10]:
+        out.append(GroundedSentence(text=f"{RX_STEP}{st}", source_chunk_ids=[]))
+    if note:
+        out.append(GroundedSentence(text=f"{RX_TIP}{note}", source_chunk_ids=[]))
+    return out
 
 
 def _build_generated_recipe_answer(
@@ -1145,29 +1178,22 @@ def _build_generated_recipe_answer(
         details_bits.append(f"cuisson {cook}")
     if difficulty:
         details_bits.append(f"difficulté {difficulty}")
-    details = ", ".join(details_bits)
     ingredients = [str(x).strip() for x in (generated.get("ingredients") or []) if str(x).strip()]
     steps = [str(x).strip() for x in (generated.get("steps") or []) if str(x).strip()]
 
     sentences = [GroundedSentence(text=GENERATED_INTRO, source_chunk_ids=[])]
-    # Pas de « : » final — le renderer ajoute un point de fin de phrase, ce qui
-    # produisait « ... difficulté moyenne) :. » à l'écran.
-    head = f"Recette de {name}" + (f" ({details})" if details else "") + "."
-    sentences.append(GroundedSentence(text=head, source_chunk_ids=[]))
-    # Puces lisibles (le renderer groupe les « • » en <ul>) : une ligne
-    # ingrédients, puis une puce PAR étape — fini le pavé numéroté d'un bloc.
-    if ingredients:
-        sentences.append(
-            GroundedSentence(
-                text="• Ingrédients : " + ", ".join(ingredients[:14]),
-                source_chunk_ids=[],
-            )
+    # Bloc recette structuré : titre + chips (portions/temps/difficulté),
+    # ingrédients et préparation SÉPARÉS. En liste à puces unique, « 800 g de
+    # bœuf » et « couvrir 2 h à feu doux » avaient le même poids visuel.
+    sentences.extend(
+        _structured_recipe_sentences(
+            name=name,
+            meta_bits=details_bits,
+            ingredients=ingredients,
+            steps=steps,
+            note=str(generated.get("note") or "").strip(),
         )
-    for s in steps[:8]:
-        sentences.append(GroundedSentence(text=f"• {s}", source_chunk_ids=[]))
-    note = str(generated.get("note") or "").strip()
-    if note:
-        sentences.append(GroundedSentence(text="Astuce : " + note, source_chunk_ids=[]))
+    )
     if olj_title and olj_chunk_id is not None:
         sentences.append(
             GroundedSentence(
@@ -1298,24 +1324,18 @@ def _build_base2_last_resort_answer(
         details_bits.append(f"difficulté {difficulty}")
     details = ", ".join(details_bits)
     ingredients_short = _format_base2_ingredients_short(base2_recipe.get("ingredients"))
-    steps_short = _format_base2_steps_short(base2_recipe.get("steps"))
     base2_name = str(base2_recipe.get("name") or "cette recette").strip()
 
     sentences = [
         GroundedSentence(text=CARNETS_PHRASE, source_chunk_ids=[]),
     ]
-    if details:
-        sentences.append(
-            GroundedSentence(
-                text=(
-                    f"Voici tout de même une version courte de {base2_name} "
-                    f"({details})."
-                ),
-                source_chunk_ids=[],
-            )
-        )
     sentences.extend(
-        _recipe_outline_sentences(ingredients_short, base2_recipe.get("steps"))
+        _structured_recipe_sentences(
+            name=base2_name,
+            meta_bits=details_bits,
+            ingredients=[i.strip() for i in ingredients_short.split(",") if i.strip()],
+            steps=[str(x).strip() for x in (base2_recipe.get("steps") or []) if str(x).strip()],
+        )
     )
     if olj_title and olj_chunk_id is not None:
         sentences.append(

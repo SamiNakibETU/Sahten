@@ -160,6 +160,11 @@
   .sahten-size-btn {
     display: none !important;
   }
+  /* « Nouvelle conversation » reste accessible sur mobile : repartir de zéro
+     est justement le geste le plus utile quand le fil a dérivé. */
+  .sahten-new-btn {
+    display: inline-flex !important;
+  }
   .sahten-widget-container,
   .sahten-widget-container[data-size="window"],
   .sahten-widget-container[data-size="mid"],
@@ -260,6 +265,7 @@
     min-width: 44px;
     padding: 0 6px;
   }
+  .sahten-new-btn,
   .sahten-size-btn,
   .sahten-close-btn {
     width: 30px;
@@ -569,6 +575,7 @@
   box-shadow: 0 0 0 2px var(--ring-focus-glow);
 }
 
+.sahten-new-btn,
 .sahten-size-btn,
 .sahten-close-btn {
   box-sizing: border-box;
@@ -590,11 +597,13 @@
     color var(--dur-press) var(--ease-out),
     transform var(--dur-press) var(--ease-out);
 }
+.sahten-new-btn svg,
 .sahten-size-btn svg,
 .sahten-close-btn svg {
   transition: transform var(--dur-press) var(--ease-out);
 }
 @media (hover: hover) and (pointer: fine) {
+  .sahten-new-btn:hover,
   .sahten-size-btn:hover,
   .sahten-close-btn:hover {
     color: var(--text);
@@ -602,11 +611,13 @@
   }
 }
 /* Feedback de press : l'UI confirme l'appui (skill Emil — buttons must feel responsive) */
+.sahten-new-btn:active,
 .sahten-size-btn:active,
 .sahten-close-btn:active {
   transform: scale(0.92);
   background: rgba(0, 0, 0, 0.08);
 }
+.sahten-new-btn:focus-visible,
 .sahten-size-btn:focus-visible,
 .sahten-close-btn:focus-visible {
   outline: none;
@@ -2271,50 +2282,6 @@
   }
 }
 
-/* ── Copier la réponse (micro-interaction, cf. better-ui) ─────────────────
-   Deux icônes currentColor superposées, cross-fade opacity+scale+blur ;
-   la coche est le retour STATIQUE du succès (le mouvement n'est jamais seul).
-   Révélé au survol du message sur desktop, toujours visible au tactile. */
-.msg-bot { position: relative; }
-.msg-copy-btn {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 28px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 0;
-  border-radius: var(--radius-sm, 8px);
-  background: transparent;
-  color: #9a938a;
-  cursor: pointer;
-  opacity: 0;
-  transition-property: opacity, background-color, color, scale;
-  transition-duration: 160ms;
-  transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
-}
-.msg-bot:hover .msg-copy-btn,
-.msg-copy-btn:focus-visible,
-.msg-copy-btn.copied { opacity: 1; }
-.msg-copy-btn:hover { background: rgba(0, 0, 0, 0.05); color: #5c564e; }
-.msg-copy-btn:active { scale: 0.96; }
-.msg-copy-btn svg {
-  position: absolute;
-  width: 15px;
-  height: 15px;
-  transition-property: opacity, transform, filter;
-  transition-duration: 200ms;
-  transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
-}
-.msg-copy-btn .ico-check { opacity: 0; transform: scale(0.25); filter: blur(4px); }
-.msg-copy-btn.copied .ico-copy { opacity: 0; transform: scale(0.25); filter: blur(4px); }
-.msg-copy-btn.copied .ico-check { opacity: 1; transform: scale(1); filter: blur(0); color: #0b5c3f; }
-@media (hover: none) {
-  .msg-copy-btn { opacity: 0.55; }
-}
-
 /* ── Polish 2026-08-12 (better-ui / transitions-dev) ─────────────────────── */
 
 /* Listes de la narrative (ingrédients/étapes des recettes de secours) :
@@ -2388,4 +2355,225 @@
 @media (prefers-reduced-motion: reduce) {
   .msg.msg-enter { animation: none; }
   .recipe-card:hover, .chef-card:hover { transform: none; }
+}
+
+/* ── Bloc recette structuré (recettes hors carnets) ───────────────────────
+   Ingrédients et préparation séparés et hiérarchisés : en liste à puces
+   unique, « 800 g de bœuf » et « couvrir 2 h » pesaient pareil à l'œil.
+   Rayons concentriques : section 12 = intérieur 8 + padding 4. */
+.sahten-rx {
+  margin: 12px 0;
+  padding: 14px 16px 4px;
+  border-radius: 12px;
+  background: rgba(11, 92, 63, 0.035);
+  box-shadow: inset 0 0 0 1px rgba(11, 92, 63, 0.12);
+}
+.sahten-rx-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.sahten-rx-title {
+  margin: 0;
+  font-family: var(--font-display, "Playfair Display", serif);
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.25;
+  color: #14241c;
+  text-wrap: balance;
+}
+/* Mention d'origine : la recette n'est pas éditoriale OLJ. Discrète mais
+   toujours présente — l'information est de nature déontologique. */
+.sahten-rx-badge {
+  flex-shrink: 0;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(11, 92, 63, 0.09);
+  color: #0b5c3f;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.sahten-rx-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.sahten-rx-meta li {
+  margin: 0;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.07);
+  font-size: 0.78rem;
+  color: #5c564e;
+  font-variant-numeric: tabular-nums;
+}
+.sahten-rx-h {
+  margin: 16px 0 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: #8a8279;
+}
+.sahten-rx-ing,
+.sahten-rx-steps {
+  margin: 0 0 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.sahten-rx-ing { padding-left: 17px; }
+.sahten-rx-ing li::marker { color: #0b5c3f; }
+.sahten-rx-steps { padding-left: 20px; }
+.sahten-rx-steps li::marker {
+  color: #0b5c3f;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.sahten-rx-ing li,
+.sahten-rx-steps li { margin: 0; line-height: 1.5; }
+.sahten-rx-tip {
+  margin: 0 0 12px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+.sahten-rx-tip strong {
+  color: #0b5c3f;
+  margin-right: 4px;
+}
+
+/* ── Barre d'actions du message (copier + feedback) ───────────────────────
+   Une seule rangée en pied de réponse : le bouton copier ne flotte plus
+   par-dessus le texte, où il masquait la première ligne. */
+.msg-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+.msg-actions .feedback-container { margin: 0; }
+.msg-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 9px 4px 7px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #8a8279;
+  font: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition-property: background-color, color, scale;
+  transition-duration: 150ms;
+  transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+.msg-copy-btn:hover { background: rgba(0, 0, 0, 0.05); color: #43403a; }
+.msg-copy-btn:active { scale: 0.96; }
+.msg-copy-btn.copied { color: #0b5c3f; }
+/* Deux icônes empilées : cross-fade opacity + scale 0.25 + blur 4px. */
+.msg-copy-icons {
+  position: relative;
+  display: inline-flex;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+.msg-copy-icons svg {
+  position: absolute;
+  inset: 0;
+  width: 14px;
+  height: 14px;
+  transition-property: opacity, transform, filter;
+  transition-duration: 200ms;
+  transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+.msg-copy-btn .ico-check { opacity: 0; transform: scale(0.25); filter: blur(4px); }
+.msg-copy-btn.copied .ico-copy { opacity: 0; transform: scale(0.25); filter: blur(4px); }
+.msg-copy-btn.copied .ico-check { opacity: 1; transform: scale(1); filter: blur(0); }
+
+/* ── Relance cliquable ────────────────────────────────────────────────────
+   La relance est une question : un clic l'envoie, plus besoin de la retaper. */
+.sahten-followup-chip {
+  display: inline-block;
+  margin: 12px 0 2px;
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(11, 92, 63, 0.07);
+  box-shadow: inset 0 0 0 1px rgba(11, 92, 63, 0.16);
+  color: #0b5c3f;
+  font: inherit;
+  font-size: 0.88rem;
+  font-style: italic;
+  line-height: 1.35;
+  text-align: left;
+  cursor: pointer;
+  transition-property: background-color, box-shadow, scale;
+  transition-duration: 160ms;
+  transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+.sahten-followup-chip:hover {
+  background: rgba(11, 92, 63, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(11, 92, 63, 0.3);
+}
+.sahten-followup-chip:active { scale: 0.98; }
+.sahten-followup-chip:disabled { opacity: 0.5; cursor: default; }
+
+/* ── Retour au dernier message ────────────────────────────────────────────
+   Apparaît seulement si on a remonté le fil de plus de 160px. */
+.sahten-scroll-down {
+  position: absolute;
+  bottom: 84px;
+  left: 50%;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
+  color: #43403a;
+  box-shadow: 0 1px 2px rgba(16, 24, 16, 0.08), 0 4px 14px rgba(16, 24, 16, 0.14);
+  cursor: pointer;
+  opacity: 0;
+  transform: translate(-50%, 6px);
+  pointer-events: none;
+  transition-property: opacity, transform;
+  transition-duration: 200ms;
+  transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+.sahten-scroll-down.visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+  pointer-events: auto;
+}
+.sahten-scroll-down:active { transform: translate(-50%, 0) scale(0.96); }
+.sahten-scroll-down svg { width: 15px; height: 15px; }
+
+/* Bouton « nouvelle conversation » : même gabarit que les autres contrôles
+   d'en-tête, il hérite donc de leurs styles ; on ne pose que l'icône. */
+.sahten-new-btn svg { width: 15px; height: 15px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .sahten-scroll-down { transition: none; }
+  .msg-copy-icons svg { transition: none; }
 }

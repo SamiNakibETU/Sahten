@@ -18,6 +18,17 @@ from .retriever import Hit
 
 MAX_SOURCE_CARDS = 1
 
+# Marqueurs de phrases structurées (recettes de secours). Le pipeline les émet,
+# le renderer les transforme en vrai bloc recette (titre, chips, ingrédients,
+# préparation numérotée, astuce) au lieu d'une liste à puces indifférenciée où
+# « 800 g de bœuf » et « couvrir 2 h » avaient le même poids visuel.
+RX_NAME = "§NAME "
+RX_META = "§META "
+RX_ING = "§ING "
+RX_STEP = "§STEP "
+RX_TIP = "§TIP "
+RX_MARKERS = (RX_NAME, RX_META, RX_ING, RX_STEP, RX_TIP)
+
 
 def _int_id(raw: int | float) -> int:
     """Évite les mismatches d’appartenance (ex. numpy / types SQL)."""
@@ -389,6 +400,9 @@ def _render_narrative_blocks(texts: list[str]) -> str:
     blocks: list[str] = []
     para: list[str] = []
     bullets: list[str] = []
+    ings: list[str] = []
+    steps: list[str] = []
+    rx_open = False
 
     def flush_para() -> None:
         if para:
@@ -401,20 +415,99 @@ def _render_narrative_blocks(texts: list[str]) -> str:
             blocks.append(f"<ul>{items}</ul>")
             bullets.clear()
 
+    def flush_ings() -> None:
+        if ings:
+            items = "".join(f"<li>{_escape(i)}</li>" for i in ings)
+            blocks.append(
+                '<h4 class="sahten-rx-h">Ingrédients</h4>'
+                f'<ul class="sahten-rx-ing">{items}</ul>'
+            )
+            ings.clear()
+
+    def flush_steps() -> None:
+        if steps:
+            items = "".join(f"<li>{_escape(s)}</li>" for s in steps)
+            blocks.append(
+                '<h4 class="sahten-rx-h">Préparation</h4>'
+                f'<ol class="sahten-rx-steps">{items}</ol>'
+            )
+            steps.clear()
+
+    def flush_all() -> None:
+        flush_para()
+        flush_bullets()
+        flush_ings()
+        flush_steps()
+
+    def close_rx() -> None:
+        nonlocal rx_open
+        flush_ings()
+        flush_steps()
+        if rx_open:
+            blocks.append("</section>")
+            rx_open = False
+
     for raw in texts:
         t = (raw or "").strip()
         if not t:
             continue
+
+        if t.startswith(RX_NAME):
+            flush_para()
+            flush_bullets()
+            close_rx()
+            blocks.append(
+                '<section class="sahten-rx">'
+                '<header class="sahten-rx-head">'
+                f'<h3 class="sahten-rx-title">{_escape(t[len(RX_NAME):].strip())}</h3>'
+                '<span class="sahten-rx-badge">Hors carnets OLJ</span>'
+                "</header>"
+            )
+            rx_open = True
+            continue
+        if t.startswith(RX_META):
+            flush_ings()
+            flush_steps()
+            chips = [c.strip() for c in t[len(RX_META):].split("·") if c.strip()]
+            if chips:
+                items = "".join(f"<li>{_escape(c)}</li>" for c in chips)
+                blocks.append(f'<ul class="sahten-rx-meta">{items}</ul>')
+            continue
+        if t.startswith(RX_ING):
+            flush_para()
+            flush_bullets()
+            flush_steps()
+            ings.append(t[len(RX_ING):].strip())
+            continue
+        if t.startswith(RX_STEP):
+            flush_para()
+            flush_bullets()
+            flush_ings()
+            steps.append(t[len(RX_STEP):].strip())
+            continue
+        if t.startswith(RX_TIP):
+            flush_ings()
+            flush_steps()
+            blocks.append(
+                '<p class="sahten-rx-tip">'
+                f'<strong>Astuce</strong> {_escape(t[len(RX_TIP):].strip())}</p>'
+            )
+            continue
+
         if t.startswith("•"):
             flush_para()
+            close_rx()
             bullets.append(t.lstrip("• ").strip())
             continue
+
         flush_bullets()
+        close_rx()
         para.append(t)
         if len(para) >= 2:
             flush_para()
-    flush_para()
-    flush_bullets()
+
+    flush_all()
+    close_rx()
     return "".join(blocks)
 
 

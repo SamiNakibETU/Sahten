@@ -22,7 +22,7 @@
 // Allowed HTML elements for sanitization
 const ALLOWED_TAGS = [
     'div', 'p', 'span', 'strong', 'em', 'u', 'br',
-    'a', 'article', 'section', 'h2', 'h3', 'header',
+    'a', 'article', 'section', 'h2', 'h3', 'h4', 'h5', 'header',
     'ul', 'li', 'ol',
     'button',
     'blockquote',  // For recipe citations/grounding
@@ -158,6 +158,8 @@ export class SahtenChat {
         this.ensureA11yLiveRegion();
         const initialSize = this.dom.container.dataset.size || this.state.size;
         this.setSize(initialSize);
+        this.setupHeaderActions();
+        this.setupScrollAffordance();
         this._restoreLocalHistoryIfAny();
         this.loadModels();
     }
@@ -477,15 +479,7 @@ export class SahtenChat {
             
             // Welcome Message
             if (this.dom.body.children.length === 0) {
-                this.appendBotMessage({
-                    html: `<article class="welcome-editorial welcome-editorial--stanza welcome-editorial--atable" lang="fr">
-                        <div class="welcome-stanza">
-                            <p class="welcome-lead">👋 Vous cherchez une recette libanaise (traditionnelle ou revisitée), arménienne ou encore des saveurs méditerranéennes ?</p>
-                            <p class="welcome-sub">🌿🍋 Dites-moi tout, et je vous proposerai une recette répondant à vos envies.</p>
-                            <p class="welcome-note">Soyez indulgents avec moi, je vais certainement faire des erreurs, mais je viens de me lancer. Et avec le temps, je vais certainement m’améliorer.</p>
-                        </div>
-                    </article>`
-                });
+                this.renderWelcome();
             }
         } else {
             this.dom.container.removeAttribute('data-state');
@@ -689,7 +683,7 @@ export class SahtenChat {
         div.className = 'msg msg-bot';
         if (!skipPersist) div.classList.add('msg-enter');
         div.innerHTML = sanitizeHTML(data.html);
-        div.querySelectorAll('.feedback-container').forEach((el) => el.remove());
+        div.querySelectorAll('.feedback-container, .msg-actions').forEach((el) => el.remove());
         if (data.request_id) {
             div.dataset.requestId = data.request_id;
         }
@@ -697,10 +691,19 @@ export class SahtenChat {
         if (data.request_id) {
             this.trackImpressions(div, data);
             this.addClickTracking(div, data);
-            div.appendChild(this.createFeedbackButtons(data.request_id));
+        }
+        this.makeFollowUpClickable(div);
+        const isWelcome = !!div.querySelector('.welcome-editorial');
+        const actions = document.createElement('div');
+        actions.className = 'msg-actions';
+        if (!isWelcome) {
+            actions.appendChild(this.createCopyButton(div));
+            if (data.request_id) {
+                actions.appendChild(this.createFeedbackButtons(data.request_id));
+            }
+            div.appendChild(actions);
         }
 
-        div.appendChild(this.createCopyButton(div));
         this.dom.body.appendChild(div);
         this.initializeRestaurantMap(div);
         this.scrollToResponseStart();
@@ -709,163 +712,139 @@ export class SahtenChat {
         }
     }
 
+    renderWelcome() {
+        this.appendBotMessage({
+            html: `<article class="welcome-editorial welcome-editorial--stanza welcome-editorial--atable" lang="fr">
+                        <div class="welcome-stanza">
+                            <p class="welcome-lead">👋 Vous cherchez une recette libanaise (traditionnelle ou revisitée), arménienne ou encore des saveurs méditerranéennes ?</p>
+                            <p class="welcome-sub">🌿🍋 Dites-moi tout, et je vous proposerai une recette répondant à vos envies.</p>
+                            <p class="welcome-note">Soyez indulgents avec moi, je vais certainement faire des erreurs, mais je viens de me lancer. Et avec le temps, je vais certainement m’améliorer.</p>
+                        </div>
+                    </article>`
+        });
+    }
+
     createCopyButton(messageEl) {
-        // Copier le message (texte de la réponse, sans les contrôles).
-        // Deux icônes superposées en currentColor, cross-fade CSS ; la coche
-        // est le retour statique (jamais le mouvement seul).
+        // Action explicite dans la barre du bas (icône + libellé), et non une
+        // pastille flottante posée sur le texte : elle masquait la réponse et
+        // ne se découvrait qu'au survol.
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'msg-copy-btn';
         btn.setAttribute('aria-label', 'Copier la réponse');
-        btn.title = 'Copier la réponse';
         btn.innerHTML =
-            '<svg class="ico-copy" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+            '<span class="msg-copy-icons" aria-hidden="true">' +
+            '<svg class="ico-copy" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">' +
             '<rect x="5.5" y="5.5" width="8" height="8" rx="1.5"/>' +
             '<path d="M10.5 5.5v-2a1.5 1.5 0 0 0-1.5-1.5H4A1.5 1.5 0 0 0 2.5 3.5V9A1.5 1.5 0 0 0 4 10.5h1.5"/></svg>' +
-            '<svg class="ico-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
-            '<polyline points="3 8.5 6.5 12 13 4.5"/></svg>';
+            '<svg class="ico-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">' +
+            '<polyline points="3 8.5 6.5 12 13 4.5"/></svg></span>' +
+            '<span class="msg-copy-label">Copier</span>';
         btn.addEventListener('click', () => {
             const clone = messageEl.cloneNode(true);
             clone.querySelectorAll(
-                '.msg-copy-btn, .feedback-container, .feedback-buttons, script, style'
+                '.msg-actions, .feedback-container, .feedback-buttons, script, style'
             ).forEach((el) => el.remove());
-            const text = (clone.innerText || '').replace(/\n{3,}/g, '\n\n').trim();
-            navigator.clipboard.writeText(text).then(() => {
+            const text = (clone.innerText || '').replace(/
+{3,}/g, '
+
+').trim();
+            const done = () => {
                 btn.classList.add('copied');
+                const label = btn.querySelector('.msg-copy-label');
+                if (label) label.textContent = 'Copié';
                 clearTimeout(btn._copiedTimer);
-                btn._copiedTimer = setTimeout(
-                    () => btn.classList.remove('copied'),
-                    1800
-                );
-            }).catch(() => {});
+                btn._copiedTimer = setTimeout(() => {
+                    btn.classList.remove('copied');
+                    if (label) label.textContent = 'Copier';
+                }, 1800);
+            };
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(done).catch(() => {});
+            }
         });
         return btn;
     }
 
-    initializeRestaurantMap(container) {
-        const mapEl = container.querySelector('#sahten-map');
-        if (!mapEl || typeof L === 'undefined') {
-            return;
-        }
-
-        let markers = [];
-        let center = null;
-        try {
-            const markersRaw = mapEl.dataset.markers || '[]';
-            markers = JSON.parse(markersRaw);
-        } catch (e) {
-            markers = [];
-        }
-        try {
-            const centerRaw = mapEl.dataset.center;
-            center = centerRaw ? JSON.parse(centerRaw) : null;
-        } catch (e) {
-            center = null;
-        }
-
-        const geocoded = markers.filter(m => typeof m.lat === 'number' && typeof m.lon === 'number');
-        const hasCenter = center && typeof center.lat === 'number' && typeof center.lon === 'number';
-        if (!geocoded.length && !hasCenter) {
-            return;
-        }
-
-        const initialLat = center?.lat ?? geocoded[0]?.lat;
-        const initialLon = center?.lon ?? geocoded[0]?.lon;
-        const initialZoom = center?.zoom ?? 13;
-        const map = L.map(mapEl).setView([initialLat, initialLon], initialZoom);
-
-        // Carte personnalisée Sahten : CartoDB Positron (fond épuré, moderne)
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-            maxZoom: 19,
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
-            subdomains: 'abcd',
-        }).addTo(map);
-
-        // Marqueur personnalisé aux couleurs Sahten (#94C2AE)
-        const sahtenIcon = L.divIcon({
-            className: 'sahten-map-marker',
-            html: '<div class="sahten-marker-pin"></div>',
-            iconSize: [24, 36],
-            iconAnchor: [12, 36],
+    /**
+     * La relance est une question : la rendre cliquable évite d'avoir à la
+     * retaper. Un clic l'envoie telle quelle — c'est la suite de conversation
+     * la plus probable, et elle mène aux fiches recettes.
+     */
+    makeFollowUpClickable(messageEl) {
+        const p = messageEl.querySelector('.sahten-followup');
+        if (!p) return;
+        const question = (p.textContent || '').trim();
+        if (!question) return;
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'sahten-followup-chip';
+        chip.textContent = question;
+        chip.addEventListener('click', () => {
+            if (this.state.isLoading) return;
+            chip.disabled = true;
+            this.dom.input.value = question;
+            this.sendMessage();
         });
-
-        geocoded.forEach(marker => {
-            const pin = L.marker([marker.lat, marker.lon], { icon: sahtenIcon }).addTo(map);
-            const popup = [marker.title, marker.address].filter(Boolean).join('<br>');
-            if (popup) {
-                pin.bindPopup(popup);
-            }
-        });
+        p.replaceWith(chip);
     }
 
-    trackImpressions(container, data) {
-        /**
-         * Track impression events for each recipe card displayed.
-         */
-        const recipeCards = container.querySelectorAll(
-            '.recipe-card, .sahten-recipe-card--preview'
-        );
-        recipeCards.forEach(card => {
-            const link = card.querySelector('a');
-            const titleEl =
-                card.querySelector('.recipe-title') ||
-                card.querySelector('.sahten-recipe-card__title');
-            if (link && titleEl) {
-                this.trackEvent('impression', {
-                    request_id: data.request_id,
-                    recipe_url: link.href,
-                    recipe_title: titleEl.textContent,
-                    intent: data.intent,
-                    model_used: data.model_used,
-                });
-            }
+    /**
+     * Bouton « descendre » quand on a remonté la conversation : sans lui, une
+     * réponse longue laisse l'utilisateur perdu au milieu du fil.
+     */
+    setupScrollAffordance() {
+        if (!this.dom.body || !this.dom.container || this._scrollBtn) return;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'sahten-scroll-down';
+        btn.setAttribute('aria-label', 'Aller au dernier message');
+        btn.innerHTML =
+            '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+            '<line x1="8" y1="3" x2="8" y2="12"/><polyline points="4 8.5 8 12.5 12 8.5"/></svg>';
+        btn.addEventListener('click', () => {
+            this.dom.body.scrollTo({ top: this.dom.body.scrollHeight, behavior: 'smooth' });
         });
+        this.dom.container.appendChild(btn);
+        this._scrollBtn = btn;
+        const update = () => {
+            const el = this.dom.body;
+            const far = el.scrollHeight - el.scrollTop - el.clientHeight > 160;
+            btn.classList.toggle('visible', far);
+        };
+        this.dom.body.addEventListener('scroll', update, { passive: true });
+        update();
     }
 
-    addClickTracking(container, data) {
-        /**
-         * Add click tracking to recipe card links.
-         */
-        const recipeLinks = container.querySelectorAll(
-            '.recipe-card a, .sahten-recipe-card__link'
-        );
-        recipeLinks.forEach(link => {
-            link.addEventListener('click', (e) => {
-                const titleEl =
-                    link.querySelector('.recipe-title') ||
-                    link.querySelector('.sahten-recipe-card__title');
-                this.trackEvent('click', {
-                    request_id: data.request_id,
-                    recipe_url: link.href,
-                    recipe_title: titleEl ? titleEl.textContent : '',
-                    intent: data.intent,
-                    model_used: data.model_used,
-                });
-            });
-        });
+    /**
+     * Repartir de zéro : nouvelle session serveur ET locale. Indispensable
+     * quand un fil a dérivé — sans ça, l'utilisateur devait fermer, vider son
+     * stockage local ou subir un contexte qui ne le concerne plus.
+     */
+    startNewConversation() {
+        this.state.sessionId = this.generateSessionId();
+        if (this.dom.body) this.dom.body.innerHTML = '';
+        try { localStorage.removeItem(this._localTurnsKey); } catch (e) {}
+        this.renderWelcome();
+        if (this._a11yLive) this._a11yLive.textContent = 'Nouvelle conversation démarrée.';
+        if (this.dom.input) this.dom.input.focus();
     }
 
-    async trackEvent(eventType, eventData) {
-        /**
-         * Send event to the analytics API.
-         */
-        try {
-            const payload = {
-                event_type: eventType,
-                session_id: this.state.sessionId,
-                ...eventData,
-            };
-            
-            // Fire and forget (don't wait for response)
-            fetch(`${this.config.apiBase}/events`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload),
-            }).catch(() => { /* Event tracking failed silently */ });
-            
-        } catch (error) {
-            // Failed to track event silently
-        }
+    /** Bouton « nouvelle conversation » injecté dans l'en-tête (le widget
+     *  déployé côté OLJ n'a pas à changer son HTML pour en bénéficier). */
+    setupHeaderActions() {
+        const controls = this.dom.container?.querySelector('.sahten-controls');
+        if (!controls || controls.querySelector('.sahten-new-btn')) return;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'sahten-new-btn';
+        btn.setAttribute('aria-label', 'Nouvelle conversation');
+        btn.title = 'Nouvelle conversation';
+        btn.innerHTML =
+            '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+            '<path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9"/><polyline points="13.5 2.5 13.5 5.5 10.5 5.5"/></svg>';
+        btn.addEventListener('click', () => this.startNewConversation());
+        controls.insertBefore(btn, controls.firstChild);
     }
 
     createFeedbackButtons(requestId) {
