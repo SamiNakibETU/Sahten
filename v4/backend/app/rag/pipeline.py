@@ -1909,6 +1909,16 @@ class RagPipeline:
                 # 15+ desserts. On repart à zéro ; l'héritage reste actif pour
                 # les vraies continuations anaphoriques.
                 keep = []
+            # Effondrement des VARIANTES : [tomate, tomate-cerise, tomate-sechee]
+            # sont trois slugs du même ingrédient — en filtre ET, exiger les trois
+            # sur un même article donne 0 hit (« pas trouvé de recette à base de
+            # tomate » constaté 12/08 alors que la base en a 10). On ne garde que
+            # le slug de base quand ses déclinaisons `base-xxx` l'accompagnent.
+            bases = set(keep)
+            keep = [
+                s for s in keep
+                if not any(b != s and s.startswith(b + "-") for b in bases)
+            ]
             if keep != plan.ingredient_slugs:
                 log.info(
                     "rag.pipeline.history_ingredient_contamination_cleaned",
@@ -1937,6 +1947,19 @@ class RagPipeline:
                 if any(len(p) >= 3 and p in qn_rot for p in c.split("-"))
             ]
             clean_ings = [s for s in plan.ingredient_slugs if is_known_ingredient_slug(s)]
+            # « Une autre » accumule les ingrédients de TOUT le fil ([tomate,
+            # aubergine, citron]) -> filtre ET -> vivier ~6 recettes, vite épuisé
+            # -> le recyclage RESSERT les mêmes cartes (constaté 12/08, baba
+            # ghanouj servie 2x ; « il ne me propose que deux » chez Emilie).
+            # Aucun ingrédient nommé dans la requête -> on ne garde que le
+            # PRINCIPAL du fil (premier extrait), le vivier respire.
+            if clean_ings and not any(
+                p in qn_rot
+                for s in clean_ings
+                for p in _norm_match(s).split("-")
+                if len(p) >= 4
+            ):
+                clean_ings = clean_ings[:1]
             if keep_chef != plan.chef_slugs or clean_ings != plan.ingredient_slugs:
                 log.info(
                     "rag.pipeline.rotation_plan_sanitized",

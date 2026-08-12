@@ -607,6 +607,77 @@
    ],
    "require_recipe_card": true,
    "max_recipe_cards": 1
+  },
+  {
+   "id": "emilie-salade-apres-fil-tomate",
+   "category": "multiturn",
+   "turns": [
+    "une recette à base de tomates",
+    "une autre",
+    "je voudrais une recette de salade"
+   ],
+   "answer_any_contains": [
+    "salade"
+   ],
+   "answer_must_not_contain": [
+    "je n'ai pas trouvé"
+   ],
+   "require_recipe_card": true,
+   "note": "Emilie 11/08 : nouveau sujet apres fil tomate ne doit pas heriter des ingredients."
+  },
+  {
+   "id": "emilie-dessert-apres-fil-tomate",
+   "category": "multiturn",
+   "turns": [
+    "une recette à base de tomates",
+    "une autre",
+    "je voudrais une recette de dessert"
+   ],
+   "answer_must_not_contain": [
+    "je n'ai pas trouvé",
+    "à base de tomates"
+   ],
+   "require_recipe_card": true,
+   "note": "Emilie 11/08 : « pas de dessert a base de tomates » = contamination + la base a 15+ desserts."
+  },
+  {
+   "id": "emilie-chocolat",
+   "category": "recipe_present",
+   "query": "je voudrais une recette au chocolat",
+   "answer_any_contains": [
+    "chocolat"
+   ],
+   "answer_must_not_contain": [
+    "je n'ai pas trouvé"
+   ],
+   "require_recipe_card": true,
+   "max_recipe_cards": 1,
+   "note": "Emilie 11/08 : refus alors que la base a 12 recettes chocolat."
+  },
+  {
+   "id": "emilie-tarte-citron",
+   "category": "recipe_present",
+   "query": "je voudrais une recette de tarte au citron",
+   "answer_any_contains": [
+    "tarte"
+   ],
+   "answer_must_not_contain": [
+    "carnets",
+    "bouillon"
+   ],
+   "require_recipe_card": true,
+   "max_recipe_cards": 1,
+   "note": "Emilie 11/08 : generait un bouillon d agneau ; la base a 2 tartes au citron."
+  },
+  {
+   "id": "emilie-dessert-sucre",
+   "category": "recipe_present",
+   "query": "je veux une recette sucrée. un dessert",
+   "answer_must_not_contain": [
+    "je n'ai pas trouvé"
+   ],
+   "require_recipe_card": true,
+   "note": "Emilie 11/08 : refus + carte salade Itch contradictoire."
   }
  ]
 }
