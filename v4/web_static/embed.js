@@ -79,7 +79,7 @@
     function baseFrameCss() {
       return [
         "position:fixed", "border:0", "z-index:" + (Z + 1),
-        "background:transparent", "box-shadow:0 12px 48px rgba(0,0,0,.28)",
+        "background:#ffffff", "box-shadow:0 12px 48px rgba(0,0,0,.28)",
         "max-width:100vw", "max-height:100vh"
       ].join(";");
     }
@@ -87,10 +87,9 @@
     function openWidget() {
       if (!frame) {
         frame = document.createElement("iframe");
-        frame.src = ORIGIN + "/widget?embed=1";
+        frame.src = ORIGIN + "/widget?embed=1&v=" + Math.floor(Date.now()/600000);
         frame.title = "Sahteïn — assistant recettes";
         frame.setAttribute("allow", "clipboard-write");
-        frame.allowTransparency = true;
         sizeFrame();
         document.body.appendChild(frame);
         window.addEventListener("resize", sizeFrame);

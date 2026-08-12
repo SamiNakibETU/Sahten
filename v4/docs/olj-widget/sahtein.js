@@ -47,7 +47,7 @@
     function sizeFrame() {
       if (!frame) return;
       var base =
-        "position:fixed;border:0;z-index:" + (Z + 1) + ";background:transparent;" +
+        "position:fixed;border:0;z-index:" + (Z + 1) + ";background:#ffffff;" +
         "box-shadow:0 12px 48px rgba(0,0,0,.28);max-width:100vw;max-height:100vh";
       frame.style.cssText = isMobile()
         ? base + ";inset:0;width:100%;height:100%;border-radius:0"
@@ -57,7 +57,7 @@
     function open() {
       if (!frame) {
         frame = document.createElement("iframe");
-        frame.src = ORIGIN + "/widget?embed=1";
+        frame.src = ORIGIN + "/widget?embed=1&v=" + Math.floor(Date.now()/600000);
         frame.title = "Sahteïn — assistant recettes";
         frame.setAttribute("allow", "clipboard-write");
         sizeFrame();
