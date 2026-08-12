@@ -1794,6 +1794,39 @@ class RagPipeline:
                     if len(_canon_raw.split()) <= 2 and "recette" not in _canon_raw.lower():
                         _canon_raw = f"recette {_canon_raw}"
                     base_q = _canon_raw
+        # ── CONTAMINATION PAR L'HISTORIQUE (bug majeur, constaté en prod le 11/08) ──
+        # L'analyse de requête reçoit l'historique pour résoudre les anaphores, mais
+        # elle ACCUMULE les ingrédients des tours précédents. Mesuré sur le site,
+        # même question au même instant :
+        #   fil existant -> ingredient_slugs=[poulet, concombre, yaourt, tomate, citron]
+        #                   -> filtre SQL en ET -> 0 hit -> « pas dans mes carnets »
+        #   fil neuf     -> ingredient_slugs=[poulet] -> 7 hits -> bonne recette
+        # Plus la conversation avance, plus les réponses se dégradent.
+        # Règle : si la requête COURANTE nomme elle-même des ingrédients, ce sont les
+        # seuls légitimes ; les autres viennent du fil et sautent. On ne touche à rien
+        # quand la requête n'en nomme aucun (« une autre », « et avec ça ? ») :
+        # l'héritage y est justement le comportement voulu.
+        # PLACÉ AVANT la construction de `q` : sinon le texte de recherche embarque
+        # encore les ingrédients hérités, qui polluent aussi le classement.
+        if plan.ingredient_slugs and len(plan.ingredient_slugs) > 1:
+            qn_cur = _norm_match(user_query)
+            in_query = [
+                s
+                for s in plan.ingredient_slugs
+                if any(
+                    len(part) >= 4 and part in qn_cur
+                    for part in _norm_match(s).split("-")
+                )
+            ]
+            if in_query and in_query != plan.ingredient_slugs:
+                log.info(
+                    "rag.pipeline.history_ingredient_contamination_cleaned",
+                    before=plan.ingredient_slugs,
+                    after=in_query,
+                    query=user_query[:80],
+                )
+                plan = plan.model_copy(update={"ingredient_slugs": in_query})
+
         q = _expand_search_q_with_ingredients(base_q, plan)
         if focus and (focus.search_boost_phrase or "").strip():
             q = f"{q} {(focus.search_boost_phrase or '').strip()}".strip()
@@ -1824,36 +1857,6 @@ class RagPipeline:
                 plan = plan.model_copy(
                     update={"chef_slugs": keep_chef, "ingredient_slugs": clean_ings}
                 )
-
-        # ── CONTAMINATION PAR L'HISTORIQUE (bug majeur, constaté en prod le 11/08) ──
-        # L'analyse de requête reçoit l'historique pour résoudre les anaphores, mais
-        # elle ACCUMULE les ingrédients des tours précédents. Mesuré sur le site :
-        # « recette avec du poulet » dans un fil existant ->
-        #   ingredient_slugs = [poulet, concombre, yaourt, tomate, citron]
-        # Ces slugs deviennent un filtre SQL en ET -> 0 hit -> fallback
-        # « Désolé, je n'ai pas cette recette dans mes carnets » sur du POULET.
-        # Plus la conversation avance, plus les réponses se dégradent.
-        # Règle : si la requête COURANTE nomme elle-même des ingrédients, ce sont les
-        # seuls légitimes ; les autres viennent du fil et doivent sauter. On ne touche
-        # à rien quand la requête n'en nomme aucun (« une autre », « et avec ça ? ») :
-        # l'héritage y est justement le comportement voulu.
-        if plan.ingredient_slugs and len(plan.ingredient_slugs) > 1:
-            qn_cur = _norm_match(user_query)
-            in_query = [
-                s for s in plan.ingredient_slugs
-                if any(
-                    len(part) >= 4 and part in qn_cur
-                    for part in _norm_match(s).split("-")
-                )
-            ]
-            if in_query and in_query != plan.ingredient_slugs:
-                log.info(
-                    "rag.pipeline.history_ingredient_contamination_cleaned",
-                    before=plan.ingredient_slugs,
-                    after=in_query,
-                    query=user_query[:80],
-                )
-                plan = plan.model_copy(update={"ingredient_slugs": in_query})
 
         # Exclure TOUT ce qui a déjà été montré récemment (pas seulement le dernier),
         # pour ne jamais resservir la même recette tant qu'il reste du neuf.
