@@ -844,6 +844,132 @@ export class SahtenChat {
         controls.insertBefore(btn, controls.firstChild);
     }
 
+    initializeRestaurantMap(container) {
+        const mapEl = container.querySelector('#sahten-map');
+        if (!mapEl || typeof L === 'undefined') {
+            return;
+        }
+
+        let markers = [];
+        let center = null;
+        try {
+            const markersRaw = mapEl.dataset.markers || '[]';
+            markers = JSON.parse(markersRaw);
+        } catch (e) {
+            markers = [];
+        }
+        try {
+            const centerRaw = mapEl.dataset.center;
+            center = centerRaw ? JSON.parse(centerRaw) : null;
+        } catch (e) {
+            center = null;
+        }
+
+        const geocoded = markers.filter(m => typeof m.lat === 'number' && typeof m.lon === 'number');
+        const hasCenter = center && typeof center.lat === 'number' && typeof center.lon === 'number';
+        if (!geocoded.length && !hasCenter) {
+            return;
+        }
+
+        const initialLat = center?.lat ?? geocoded[0]?.lat;
+        const initialLon = center?.lon ?? geocoded[0]?.lon;
+        const initialZoom = center?.zoom ?? 13;
+        const map = L.map(mapEl).setView([initialLat, initialLon], initialZoom);
+
+        // Carte personnalisée Sahten : CartoDB Positron (fond épuré, moderne)
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            subdomains: 'abcd',
+        }).addTo(map);
+
+        // Marqueur personnalisé aux couleurs Sahten (#94C2AE)
+        const sahtenIcon = L.divIcon({
+            className: 'sahten-map-marker',
+            html: '<div class="sahten-marker-pin"></div>',
+            iconSize: [24, 36],
+            iconAnchor: [12, 36],
+        });
+
+        geocoded.forEach(marker => {
+            const pin = L.marker([marker.lat, marker.lon], { icon: sahtenIcon }).addTo(map);
+            const popup = [marker.title, marker.address].filter(Boolean).join('<br>');
+            if (popup) {
+                pin.bindPopup(popup);
+            }
+        });
+    }
+
+    trackImpressions(container, data) {
+        /**
+         * Track impression events for each recipe card displayed.
+         */
+        const recipeCards = container.querySelectorAll(
+            '.recipe-card, .sahten-recipe-card--preview'
+        );
+        recipeCards.forEach(card => {
+            const link = card.querySelector('a');
+            const titleEl =
+                card.querySelector('.recipe-title') ||
+                card.querySelector('.sahten-recipe-card__title');
+            if (link && titleEl) {
+                this.trackEvent('impression', {
+                    request_id: data.request_id,
+                    recipe_url: link.href,
+                    recipe_title: titleEl.textContent,
+                    intent: data.intent,
+                    model_used: data.model_used,
+                });
+            }
+        });
+    }
+
+    addClickTracking(container, data) {
+        /**
+         * Add click tracking to recipe card links.
+         */
+        const recipeLinks = container.querySelectorAll(
+            '.recipe-card a, .sahten-recipe-card__link'
+        );
+        recipeLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                const titleEl =
+                    link.querySelector('.recipe-title') ||
+                    link.querySelector('.sahten-recipe-card__title');
+                this.trackEvent('click', {
+                    request_id: data.request_id,
+                    recipe_url: link.href,
+                    recipe_title: titleEl ? titleEl.textContent : '',
+                    intent: data.intent,
+                    model_used: data.model_used,
+                });
+            });
+        });
+    }
+
+    async trackEvent(eventType, eventData) {
+        /**
+         * Send event to the analytics API.
+         */
+        try {
+            const payload = {
+                event_type: eventType,
+                session_id: this.state.sessionId,
+                ...eventData,
+            };
+            
+            // Fire and forget (don't wait for response)
+            fetch(`${this.config.apiBase}/events`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            }).catch(() => { /* Event tracking failed silently */ });
+            
+        } catch (error) {
+            // Failed to track event silently
+        }
+    }
+
     createFeedbackButtons(requestId) {
         /**
          * Create feedback buttons (👍/👎) for a response.

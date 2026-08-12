@@ -459,7 +459,7 @@ def _render_narrative_blocks(texts: list[str]) -> str:
             blocks.append(
                 '<section class="sahten-rx">'
                 '<header class="sahten-rx-head">'
-                f'<h3 class="sahten-rx-title">{_escape(t[len(RX_NAME):].strip())}</h3>'
+                f'<h3 class="sahten-rx-title">{_escape(t[len(RX_NAME):].strip().rstrip("."))}</h3>'
                 '<span class="sahten-rx-badge">Hors carnets OLJ</span>'
                 "</header>"
             )
@@ -468,7 +468,11 @@ def _render_narrative_blocks(texts: list[str]) -> str:
         if t.startswith(RX_META):
             flush_ings()
             flush_steps()
-            chips = [c.strip() for c in t[len(RX_META):].split("·") if c.strip()]
+            chips = [
+                c.strip().rstrip(".")
+                for c in t[len(RX_META):].split("·")
+                if c.strip().rstrip(".")
+            ]
             if chips:
                 items = "".join(f"<li>{_escape(c)}</li>" for c in chips)
                 blocks.append(f'<ul class="sahten-rx-meta">{items}</ul>')
