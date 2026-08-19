@@ -419,17 +419,18 @@
     max-height: calc(100dvh - 24px);
     border-radius: var(--radius-lg);
   }
+  /* Agrandi = grande FENÊTRE CENTRÉE sur le voile, jamais une feuille blanche
+     bord à bord : à pleine largeur le panneau masque toute la page et la
+     colonne de lecture (768px) flotte au milieu d'un vide blanc. */
   .sahten-widget-container[data-size="full"] {
-    top: max(0px, env(safe-area-inset-top, 0px));
-    left: max(0px, env(safe-area-inset-left, 0px));
-    right: max(0px, env(safe-area-inset-right, 0px));
-    bottom: max(0px, env(safe-area-inset-bottom, 0px));
-    width: auto;
-    height: auto;
-    max-width: none;
-    max-height: none;
-    border-radius: 0;
-    border: none;
+    inset: 0;
+    margin: auto;
+    width: min(94vw, 1040px);
+    height: min(92vh, 92dvh);
+    max-width: calc(100vw - 32px);
+    max-height: calc(100vh - 32px);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.22);
   }
   .sahten-widget-container[data-size="full"][data-state="open"] {
     transform: none;
@@ -1972,7 +1973,7 @@
   right: 20px;
   z-index: 9998;
   display: flex;
-  flex-direction: row-reverse;
+  flex-direction: row;
   align-items: center;
   gap: 8px;
   max-width: min(calc(100vw - 32px), 300px);
@@ -2719,4 +2720,25 @@ html.sahten-embed.sahten-host-desktop .input-wrapper {
   .sahten-widget-container[data-state="open"] {
     transform: none;
   }
+}
+
+/* ── Bulle du lanceur : elle se montre puis s'efface ──────────────────────
+   Affichée en permanence, elle devient du mobilier qu'on ne voit plus. Elle
+   se manifeste au chargement (le « coucou »), s'efface, et revient au survol.
+   Le wrap entier est cliquable : la bulle est une cible d'ouverture, pas une
+   étiquette décorative. */
+.sahten-trigger-bubble {
+  opacity: 0;
+  transform: translateX(6px);
+  pointer-events: none;
+  transition-property: opacity, transform;
+  transition-duration: 220ms;
+  transition-timing-function: var(--ease-out);
+}
+.sahten-trigger-wrap:hover .sahten-trigger-bubble,
+.sahten-trigger-wrap:focus-within .sahten-trigger-bubble,
+.sahten-trigger-wrap.hint-visible .sahten-trigger-bubble {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
 }

@@ -46,7 +46,7 @@
     var wrap = document.createElement("div");
     wrap.style.cssText = [
       "position:fixed", "bottom:20px", "right:20px", "z-index:" + Z,
-      "display:flex", "flex-direction:row-reverse", "align-items:center",
+      "display:flex", "flex-direction:row", "align-items:center",
       "gap:8px", "max-width:min(calc(100vw - 32px),300px)", "cursor:pointer",
       "opacity:0", "transform:translateY(8px)",
       "transition:opacity .35s cubic-bezier(.23,1,.32,1),transform .35s cubic-bezier(.23,1,.32,1)"
@@ -56,25 +56,22 @@
     btn.type = "button";
     btn.setAttribute("aria-label", "Ouvrir Sahteïn — assistant recettes L'Orient-Le Jour");
     btn.title = "Une idée recette ? Ouvrez Sahteïn.";
-    // Pastille blanche sous le logo : le lanceur flotte au-dessus d'articles
-    // illustrés, et un logo sombre sans fond y devient illisible. Même matière
-    // que la bulle (blanc, filet, ombre douce) plutôt que le disque vert saturé
-    // d'origine, étranger à la palette du site.
+    // Logo seul, sans fond : identique à la page autonome. Une ombre portée
+    // légère suffit à le détacher d'une photo d'article.
     btn.style.cssText = [
-      "flex-shrink:0", "width:56px", "height:56px", "padding:0",
-      "border:1px solid rgba(0,0,0,.07)", "border-radius:50%",
-      "background:#ffffff", "box-shadow:0 2px 12px rgba(0,0,0,.10)",
-      "cursor:pointer", "display:flex",
+      "flex-shrink:0", "width:auto", "height:auto", "padding:0", "border:0",
+      "background:transparent", "cursor:pointer", "display:flex",
       "align-items:center", "justify-content:center",
       "-webkit-tap-highlight-color:transparent",
-      "transition:transform .18s cubic-bezier(.23,1,.32,1),box-shadow .18s cubic-bezier(.23,1,.32,1)"
+      "transition:transform .18s cubic-bezier(.23,1,.32,1)"
     ].join(";");
     var logo = document.createElement("img");
     logo.src = LOGO;
     logo.alt = "";
-    logo.width = 34; logo.height = 34;
+    logo.width = 52; logo.height = 52;
     logo.style.cssText =
-      "display:block;width:34px;height:34px;object-fit:contain;pointer-events:none;";
+      "display:block;width:52px;height:52px;object-fit:contain;pointer-events:none;" +
+      "filter:drop-shadow(0 1px 5px rgba(0,0,0,.18));";
     btn.appendChild(logo);
 
     var bubble = document.createElement("div");
@@ -85,24 +82,35 @@
       "box-shadow:0 1px 8px rgba(0,0,0,.05)",
       "font:600 11px/1.25 'Aktiv Grotesk Trial','Aktiv Grotesk','DM Sans',-apple-system,sans-serif",
       "letter-spacing:-.01em", "color:#000", "text-align:center",
-      "user-select:none", "white-space:nowrap"
+      "user-select:none", "white-space:nowrap",
+      // Elle se montre au chargement puis s'efface ; revient au survol.
+      "opacity:0", "transform:translateX(6px)", "pointer-events:none",
+      "transition:opacity .22s cubic-bezier(.23,1,.32,1),transform .22s cubic-bezier(.23,1,.32,1)"
     ].join(";");
+    var showBubble = function (on) {
+      bubble.style.opacity = on ? "1" : "0";
+      bubble.style.transform = on ? "translateX(0)" : "translateX(6px)";
+      bubble.style.pointerEvents = on ? "auto" : "none";
+    };
 
     wrap.appendChild(bubble);
     wrap.appendChild(btn);
     wrap.addEventListener("mouseenter", function () {
       btn.style.transform = "scale(1.06)";
-      btn.style.boxShadow = "0 4px 18px rgba(0,0,0,.16)";
+      showBubble(true);
     });
     wrap.addEventListener("mouseleave", function () {
       btn.style.transform = "scale(1)";
-      btn.style.boxShadow = "0 2px 12px rgba(0,0,0,.10)";
+      showBubble(false);
     });
     // Entrée douce une fois la page posée : une apparition sèche au chargement
     // se remarque plus qu'elle n'invite.
     setTimeout(function () {
       wrap.style.opacity = "1";
       wrap.style.transform = "translateY(0)";
+      // Le « coucou » : la bulle se montre, puis s'efface d'elle-même.
+      showBubble(true);
+      setTimeout(function () { showBubble(false); }, 4200);
     }, 600);
 
     // --- Panneau iframe (créé au premier clic) ---------------------------
@@ -165,7 +173,9 @@
       wrap.style.display = "flex";
     }
 
-    btn.addEventListener("click", openWidget);
+    // La bulle est une cible d'ouverture, pas une étiquette : le wrap entier
+    // est cliquable.
+    wrap.addEventListener("click", openWidget);
 
     // Le widget (dans l'iframe) demande la fermeture via postMessage.
     window.addEventListener("message", function (e) {

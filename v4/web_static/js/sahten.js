@@ -192,6 +192,20 @@ export class SahtenChat {
         wrap.setAttribute('title', 'Ouvrir Sahteïn');
         this.dom.triggerWrap = wrap;
         this.dom.triggerBubble = bubble;
+        this._playTriggerHint();
+    }
+
+    /** Le « coucou » : la bulle se montre peu après l'arrivée sur la page, puis
+     *  s'efface. Elle revient au survol. Affichée en permanence elle devient du
+     *  mobilier ; jamais affichée, personne ne sait que l'assistant existe. */
+    _playTriggerHint() {
+        const wrap = this.dom.triggerWrap;
+        if (!wrap) return;
+        setTimeout(() => {
+            if (this.state.isOpen) return;
+            wrap.classList.add('hint-visible');
+            setTimeout(() => wrap.classList.remove('hint-visible'), 4200);
+        }, 900);
     }
 
     /** Zone lue par les lecteurs d'écran à l'ouverture du panneau. */
