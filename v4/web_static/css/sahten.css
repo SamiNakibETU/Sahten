@@ -2207,7 +2207,7 @@
 }
 .sahten-widget-container[data-size="mid"] .sahten-footer .input-wrapper,
 .sahten-widget-container[data-size="full"] .sahten-footer .input-wrapper {
-  max-width: 768px;
+  max-width: 736px;
   margin-inline: auto;
 }
 /* Lecture plus confortable en plein écran (la « police qui ne grandit pas ») */
@@ -2259,7 +2259,11 @@
   padding-bottom: 24px;
 }
 .sahten-widget-container[data-size="full"] .sahten-footer .input-wrapper {
-  max-width: 640px;
+  /* MÊME largeur que la colonne de texte : le corps fait 768px avec 16px de
+     retrait de chaque côté, soit 736px de texte utile. À 640px le composeur
+     était rentré de 48px de part et d'autre et ne s'alignait sur rien —
+     très visible dans une mise en page aussi dépouillée. */
+  max-width: 736px;
   margin-inline: auto;
   min-height: 56px;
   padding-left: 20px;
