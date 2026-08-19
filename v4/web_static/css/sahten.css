@@ -216,9 +216,14 @@
   }
   /* Accueil (aucune question posée) : top-pondéré + responsive — PAS dead-center
      (le centrage faisait flotter le texte au milieu d'un grand vide). */
+  /* Accueil sur téléphone : le panneau est PLEIN ÉCRAN (844px de haut) pour
+     ~160px de contenu. Le poids en haut y laissait le même trou que celui
+     corrigé sur grand écran. Centré, le vide se répartit et se lit comme une
+     respiration. */
   html:not(.sahten-host-desktop) .sahten-widget-container .sahten-body:not(:has(.msg-user)){
-    justify-content: flex-start;
-    padding-top: clamp(20px, 9vh, 72px);
+    justify-content: center;
+    padding-top: 20px;
+    padding-bottom: 20px;
   }
   /* Typo d'accueil fluide selon la largeur de l'écran. Spécificité (0,3,0) pour
      battre les règles globales .welcome-editorial--atable .welcome-* (0,2,0). */

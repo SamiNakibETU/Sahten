@@ -13,6 +13,7 @@
     />
 
     <script
+      defer
       src="https://cdn.jsdelivr.net/npm/dompurify@3.2.5/dist/purify.min.js"
       crossorigin="anonymous"
       referrerpolicy="no-referrer"
@@ -20,7 +21,7 @@
     ></script>
 
     <link rel="stylesheet" href="/css/nav-shell.css" />
-    <link rel="stylesheet" href="css/sahten.css?v=20260813o" />
+    <link rel="stylesheet" href="css/sahten.css?v=20260813p" />
 
     <style>
       /* ─── Tokens ───────────────────────────────────────────────── */
@@ -488,7 +489,7 @@
     </script>
 
     <script type="module">
-      import { SahtenChat } from "./js/sahten.js?v=20260813o";
+      import { SahtenChat } from "./js/sahten.js?v=20260813p";
       const chat = new SahtenChat({ modelSelector: document.getElementById("model-select") });
       requestAnimationFrame(() => { if (!chat.state.isOpen) chat.toggle(true); });
     </script>
