@@ -41,6 +41,19 @@ def _serve(path: str) -> FileResponse:
     return FileResponse(full)
 
 
+def _serve_fresh(name: str) -> Response:
+    """Page d'outillage : toujours revalidee.
+
+    Ces pages evoluent a chaque deploiement et sont consultees par une poignee
+    de personnes : le cache navigateur n'y apporte rien et masque les
+    corrections (constate le 20/08 — un correctif du tableau de bord etait en
+    place sur le serveur mais le navigateur affichait encore l'ancienne page).
+    """
+    resp = _serve(name)
+    resp.headers["Cache-Control"] = "no-cache, must-revalidate"
+    return resp
+
+
 @router.get("/", include_in_schema=False)
 def home() -> Response:
     return _serve("index.html")
@@ -48,12 +61,12 @@ def home() -> Response:
 
 @router.get("/admin", include_in_schema=False)
 def admin_page() -> Response:
-    return _serve("admin.html")
+    return _serve_fresh("admin.html")
 
 
 @router.get("/history", include_in_schema=False)
 def history_page() -> Response:
-    return _serve("history.html")
+    return _serve_fresh("history.html")
 
 
 @router.get("/widget", include_in_schema=False)
@@ -85,7 +98,7 @@ def embed_loader() -> Response:
 
 @router.get("/dashboard", include_in_schema=False)
 def dashboard_page() -> Response:
-    return _serve("dashboard.html")
+    return _serve_fresh("dashboard.html")
 
 
 @router.get("/demo", include_in_schema=False)
