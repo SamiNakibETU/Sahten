@@ -125,10 +125,16 @@
     function sizeFrame() {
       if (!frame) return;
       if (expanded || isMobile()) {
+        // Le verre dépoli de /widget vient d'un `backdrop-filter` appliqué à la
+        // page derrière le panneau. Dans l'iframe ce flou n'atteint pas la page
+        // hôte — mais appliqué à l'ÉLÉMENT iframe, depuis la page hôte, il
+        // l'atteint parfaitement. On reproduit donc le rendu d'origine ici,
+        // plutôt que de le simuler par un voile opaque à l'intérieur.
         frame.style.cssText = baseFrameCss() +
           ";inset:0;width:100%;height:100%;border-radius:0" +
           (expanded && !isMobile()
-            ? ";background:transparent;box-shadow:none"
+            ? ";background:rgba(250,250,249,.72);box-shadow:none" +
+              ";backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px)"
             : "");
       } else {
         frame.style.cssText = baseFrameCss() +
