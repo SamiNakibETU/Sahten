@@ -70,13 +70,16 @@ def widget_page() -> Response:
 @router.get("/embed.js", include_in_schema=False)
 def embed_loader() -> Response:
     # Chargeur embarquable pour lorientlejour.com (une seule balise <script>).
-    # Cache court : une amélioration poussée sur GitHub se propage aux visiteurs
-    # en <=10 min sans purge CDN. Servi cross-origin (un <script src> n'exige
-    # pas de CORS pour être chargé).
+    # C'est LE point d'entrée de l'intégration : il porte le lanceur, la taille
+    # de l'iframe et l'URL du widget. Un `max-age=600` laissait Cloudflare le
+    # mettre en cache (cf-cache-status: HIT) et servir une version de la veille,
+    # donc l'auto-déploiement ne parvenait pas aux lecteurs. Revalidation
+    # systématique, comme /widget : le fichier fait quelques kilo-octets, le
+    # coût d'un 304 est négligeable devant une intégration figée.
     resp = _serve("embed.js")
     resp.media_type = "application/javascript"
     resp.headers["Content-Type"] = "application/javascript; charset=utf-8"
-    resp.headers["Cache-Control"] = "public, max-age=600"
+    resp.headers["Cache-Control"] = "no-cache, must-revalidate"
     return resp
 
 
