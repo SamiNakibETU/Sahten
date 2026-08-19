@@ -456,7 +456,10 @@ async function loadTraces() {
     const d = await r.json().catch(()=>({}));
     const traces = Array.isArray(d.traces) ? d.traces : [];
     const count  = d.count ?? traces.length;
-    document.getElementById('kpi-conv').textContent = count;
+    // NE PAS ecrire kpi-conv ici : `count` est le nombre de traces RAMENEES
+    // (plafonne a 100 par la requete), pas le nombre de conversations. Le KPI
+    // affichait donc 100 alors que le total reel etait 1038. Le vrai total
+    // vient de /api/analytics, plus bas.
     document.getElementById('count-conv').textContent = count;
     if (!r.ok || traces.length===0) {
       el.innerHTML = `<div class="empty">${traces.length===0 ? 'Aucune conversation enregistrée.' : 'Traces indisponibles.'}</div>`;
@@ -529,6 +532,12 @@ async function loadAnalytics() {
     redisB.style.display = 'none';
     document.getElementById('kpi-imp').textContent      = d.events?.impressions??'—';
     document.getElementById('kpi-clicks').textContent   = d.events?.clicks??'—';
+    const totalConv = d.conversations?.total;
+    if (totalConv != null) {
+      document.getElementById('kpi-conv').textContent = totalConv.toLocaleString('fr-FR');
+      document.getElementById('kpi-conv-sub').textContent =
+        'depuis le lancement · ' + (d.conversations?.recent_traces ?? 0) + ' tracees en detail';
+    }
     document.getElementById('kpi-fallback').textContent = d.rates?.fallback_rate?d.rates.fallback_rate+'%':'—';
 
     // Latence : la MÉDIANE seule ment. Le P95 dit ce que vit le lecteur
