@@ -1172,11 +1172,26 @@ export class SahtenChat {
                     </div>
                 </div>
             `;
+            // L'attente dure ~9s, dont l'essentiel en rédaction. Un texte figé
+            // pendant 9s donne l'impression que rien ne se passe ; en nommant
+            // l'étape en cours, la même durée se supporte. Les seuils suivent
+            // les temps mesurés (recherche ~0,7s, puis rédaction).
+            const ligne = loader.querySelector('.sahten-thinking-line');
+            const etapes = [
+                [2200, 'Sahteïn choisit la meilleure recette…'],
+                [5000, 'Sahteïn rédige sa réponse…'],
+            ];
+            loader._minuteurs = etapes.map(([delai, texte]) =>
+                setTimeout(() => { if (ligne.isConnected) ligne.textContent = texte; }, delai)
+            );
             this.dom.body.appendChild(loader);
             this.scrollToBottom();
             this._currentLoader = loader;
         } else {
             if (this._currentLoader) {
+                // Sans cela, un minuteur en attente réécrit le texte d'un
+                // indicateur déjà retiré si la réponse arrive plus vite.
+                (this._currentLoader._minuteurs || []).forEach(clearTimeout);
                 this._currentLoader.remove();
                 this._currentLoader = null;
             }
