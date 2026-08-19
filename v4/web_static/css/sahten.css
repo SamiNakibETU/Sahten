@@ -2296,7 +2296,14 @@
        de départ et l'auto-agrandissement ne fonctionnait plus du tout.
        Sous « mouvement réduit », l'intention est justement qu'aucune propriété
        ne s'anime : on le dit explicitement. */
-    transition-property: opacity, color, background-color, border-color !important;
+    /* AUCUNE propriété transitionnable. Tenté le 13/08 de garder les fondus
+       (« mouvement réduit = plus sobre, pas zéro ») : avec une durée de
+       0.01ms la transition reste bloquée à son instant zéro et FIGE la
+       propriété à sa valeur de départ. Sur `height` cela paralysait le
+       composeur ; sur `opacity` le panneau restait invisible à l'ouverture.
+       Sous mouvement réduit, les valeurs doivent s'appliquer instantanément :
+       c'est précisément ce que fait `none`. */
+    transition-property: none !important;
     scroll-behavior: auto !important;
   }
 }
