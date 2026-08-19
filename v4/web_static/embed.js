@@ -56,20 +56,25 @@
     btn.type = "button";
     btn.setAttribute("aria-label", "Ouvrir Sahteïn — assistant recettes L'Orient-Le Jour");
     btn.title = "Une idée recette ? Ouvrez Sahteïn.";
+    // Pastille blanche sous le logo : le lanceur flotte au-dessus d'articles
+    // illustrés, et un logo sombre sans fond y devient illisible. Même matière
+    // que la bulle (blanc, filet, ombre douce) plutôt que le disque vert saturé
+    // d'origine, étranger à la palette du site.
     btn.style.cssText = [
-      "flex-shrink:0", "width:auto", "height:auto", "padding:0", "border:0",
-      "background:transparent", "cursor:pointer", "display:flex",
+      "flex-shrink:0", "width:56px", "height:56px", "padding:0",
+      "border:1px solid rgba(0,0,0,.07)", "border-radius:50%",
+      "background:#ffffff", "box-shadow:0 2px 12px rgba(0,0,0,.10)",
+      "cursor:pointer", "display:flex",
       "align-items:center", "justify-content:center",
       "-webkit-tap-highlight-color:transparent",
-      "transition:transform .18s cubic-bezier(.23,1,.32,1)"
+      "transition:transform .18s cubic-bezier(.23,1,.32,1),box-shadow .18s cubic-bezier(.23,1,.32,1)"
     ].join(";");
     var logo = document.createElement("img");
     logo.src = LOGO;
     logo.alt = "";
-    logo.width = 52; logo.height = 52;
+    logo.width = 34; logo.height = 34;
     logo.style.cssText =
-      "display:block;width:52px;height:52px;object-fit:contain;pointer-events:none;" +
-      "filter:drop-shadow(0 1px 4px rgba(0,0,0,.08));";
+      "display:block;width:34px;height:34px;object-fit:contain;pointer-events:none;";
     btn.appendChild(logo);
 
     var bubble = document.createElement("div");
@@ -85,8 +90,14 @@
 
     wrap.appendChild(bubble);
     wrap.appendChild(btn);
-    wrap.addEventListener("mouseenter", function () { btn.style.transform = "scale(1.06)"; });
-    wrap.addEventListener("mouseleave", function () { btn.style.transform = "scale(1)"; });
+    wrap.addEventListener("mouseenter", function () {
+      btn.style.transform = "scale(1.06)";
+      btn.style.boxShadow = "0 4px 18px rgba(0,0,0,.16)";
+    });
+    wrap.addEventListener("mouseleave", function () {
+      btn.style.transform = "scale(1)";
+      btn.style.boxShadow = "0 2px 12px rgba(0,0,0,.10)";
+    });
     // Entrée douce une fois la page posée : une apparition sèche au chargement
     // se remarque plus qu'elle n'invite.
     setTimeout(function () {
