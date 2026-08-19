@@ -391,13 +391,16 @@ export class SahtenChat {
             });
         }
         if (this.dom.backdrop) {
-            this.dom.backdrop.addEventListener('click', () => this.toggle(false));
+            // Agrandi, un clic à l'extérieur RÉDUIT au lieu de tout fermer :
+            // c'est le geste attendu quand on a délibérément agrandi, et fermer
+            // ferait perdre la conversation de vue. Un second clic ferme.
+            this.dom.backdrop.addEventListener('click', () => this._dismissStep());
         }
 
         // Escape key closes the widget; Tab key traps focus in full mode
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && this.state.isOpen) {
-                this.toggle(false);
+                this._dismissStep();
             } else if (e.key === 'Tab' && this.state.isOpen) {
                 this._focusTrap(e);
             }
@@ -458,6 +461,15 @@ export class SahtenChat {
                 if (diff > 80) this.toggle(false); // glissé franc vers le bas -> fermer
             }, { passive: true });
         }
+    }
+
+    /** Abandon par paliers : agrandi -> fenêtre -> fermé. */
+    _dismissStep() {
+        if (this.state.size !== 'window') {
+            this.setSize('window');
+            return;
+        }
+        this.toggle(false);
     }
 
     toggle(forceState) {
