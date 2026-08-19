@@ -161,21 +161,21 @@
      un fond flouté, conversation en colonne de lecture, composeur flottant net.
      On force TOUTES les tailles (window/mid/full) vers ce rendu unique.
      Fermeture via la croix (pas de poignée, comme le plein écran desktop). */
-  .sahten-drag-handle {
+  html:not(.sahten-host-desktop) .sahten-drag-handle{
     display: none !important;
   }
-  .sahten-size-btn {
+  html:not(.sahten-host-desktop) .sahten-size-btn{
     display: none !important;
   }
   /* « Nouvelle conversation » reste accessible sur mobile : repartir de zéro
      est justement le geste le plus utile quand le fil a dérivé. */
-  .sahten-new-btn {
+  html:not(.sahten-host-desktop) .sahten-new-btn{
     display: inline-flex !important;
   }
-  .sahten-widget-container,
-  .sahten-widget-container[data-size="window"],
-  .sahten-widget-container[data-size="mid"],
-  .sahten-widget-container[data-size="full"] {
+  html:not(.sahten-host-desktop) .sahten-widget-container,
+  html:not(.sahten-host-desktop) .sahten-widget-container[data-size="window"],
+  html:not(.sahten-host-desktop) .sahten-widget-container[data-size="mid"],
+  html:not(.sahten-host-desktop) .sahten-widget-container[data-size="full"]{
     top: 0;
     left: 0;
     right: 0;
@@ -191,14 +191,14 @@
     background: transparent; /* barely-there : le fond visible = backdrop flouté */
   }
   /* En-tête / corps / pied transparents (le panneau blanc disparaît) */
-  .sahten-widget-container .sahten-header,
-  .sahten-widget-container .sahten-body,
-  .sahten-widget-container .sahten-footer {
+  html:not(.sahten-host-desktop) .sahten-widget-container .sahten-header,
+  html:not(.sahten-host-desktop) .sahten-widget-container .sahten-body,
+  html:not(.sahten-host-desktop) .sahten-widget-container .sahten-footer{
     background: transparent;
     border: none;
   }
   /* En-tête aligné sur la colonne : Sahteïn à gauche, × à droite */
-  .sahten-widget-container .sahten-header {
+  html:not(.sahten-host-desktop) .sahten-widget-container .sahten-header{
     max-width: 768px;
     width: 100%;
     margin-inline: auto;
@@ -207,7 +207,7 @@
     padding-top: max(8px, env(safe-area-inset-top, 0px));
   }
   /* Conversation : colonne lisible centrée, police FLUIDE (s'adapte à l'écran) */
-  .sahten-widget-container .sahten-body {
+  html:not(.sahten-host-desktop) .sahten-widget-container .sahten-body{
     max-width: 768px;
     width: 100%;
     margin-inline: auto;
@@ -216,29 +216,29 @@
   }
   /* Accueil (aucune question posée) : top-pondéré + responsive — PAS dead-center
      (le centrage faisait flotter le texte au milieu d'un grand vide). */
-  .sahten-widget-container .sahten-body:not(:has(.msg-user)) {
+  html:not(.sahten-host-desktop) .sahten-widget-container .sahten-body:not(:has(.msg-user)){
     justify-content: flex-start;
     padding-top: clamp(20px, 9vh, 72px);
   }
   /* Typo d'accueil fluide selon la largeur de l'écran. Spécificité (0,3,0) pour
      battre les règles globales .welcome-editorial--atable .welcome-* (0,2,0). */
-  .sahten-body .welcome-editorial .welcome-lead {
+  html:not(.sahten-host-desktop) .sahten-body .welcome-editorial .welcome-lead{
     font-size: clamp(17px, 4.8vw, 21px);
     line-height: 1.5;
   }
-  .sahten-body .welcome-editorial .welcome-sub {
+  html:not(.sahten-host-desktop) .sahten-body .welcome-editorial .welcome-sub{
     font-size: clamp(15px, 4.2vw, 18px);
     line-height: 1.5;
   }
-  .sahten-body .welcome-editorial .welcome-note {
+  html:not(.sahten-host-desktop) .sahten-body .welcome-editorial .welcome-note{
     font-size: clamp(12px, 3.4vw, 14px);
     line-height: 1.5;
   }
   /* Composeur flottant net (carte blanche + ombre), centré ; clavier-safe via dvh */
-  .sahten-widget-container .sahten-footer {
+  html:not(.sahten-host-desktop) .sahten-widget-container .sahten-footer{
     padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
   }
-  .sahten-widget-container .sahten-footer .input-wrapper {
+  html:not(.sahten-host-desktop) .sahten-widget-container .sahten-footer .input-wrapper{
     max-width: 640px;
     margin-inline: auto;
     /* padding horizontal symétrique -> placeholder réellement centré (bat la base) */
@@ -249,115 +249,115 @@
     box-shadow: 0 16px 50px rgba(0, 0, 0, 0.18), 0 2px 8px rgba(0, 0, 0, 0.06);
   }
   /* Croix discrète (frosted) au-dessus du fond flouté */
-  .sahten-close-btn {
+  html:not(.sahten-host-desktop) .sahten-close-btn{
     background: rgba(255, 255, 255, 0.6);
     backdrop-filter: blur(8px);
   }
   /* Fond flouté (indépendant du data-size : le backdrop reste « full ») */
-  .sahten-backdrop.visible {
+  html:not(.sahten-host-desktop) .sahten-backdrop.visible{
     background: rgba(43, 43, 43, 0.12);
     backdrop-filter: blur(var(--backdrop-blur-full));
   }
-  .sahten-header {
+  html:not(.sahten-host-desktop) .sahten-header{
     padding: 6px 10px;
     min-height: 44px;
     column-gap: 8px;
   }
-  .sahten-brand {
+  html:not(.sahten-host-desktop) .sahten-brand{
     gap: 5px;
   }
-  .sahten-model-select {
+  html:not(.sahten-host-desktop) .sahten-model-select{
     height: 30px;
     font-size: 9px;
     min-width: 44px;
     padding: 0 6px;
   }
-  .sahten-new-btn,
-  .sahten-size-btn,
-  .sahten-close-btn {
+  html:not(.sahten-host-desktop) .sahten-new-btn,
+  html:not(.sahten-host-desktop) .sahten-size-btn,
+  html:not(.sahten-host-desktop) .sahten-close-btn{
     width: 30px;
     min-width: 30px;
     height: 30px;
     min-height: 30px;
   }
-  .sahten-close-btn {
+  html:not(.sahten-host-desktop) .sahten-close-btn{
     width: 34px;
     min-width: 34px;
     padding: 0;
     margin-left: 2px;
   }
-  .sahten-close-btn svg {
+  html:not(.sahten-host-desktop) .sahten-close-btn svg{
     width: 15px;
     height: 15px;
   }
-  .sahten-size-btn svg {
+  html:not(.sahten-host-desktop) .sahten-size-btn svg{
     width: 13px;
     height: 13px;
   }
-  .sahten-logo-mascot {
+  html:not(.sahten-host-desktop) .sahten-logo-mascot{
     height: 28px;
     width: 28px;
   }
-  .sahten-body {
+  html:not(.sahten-host-desktop) .sahten-body{
     padding: 8px 12px 6px;
     gap: 6px;
   }
-  .welcome-line {
+  html:not(.sahten-host-desktop) .welcome-line{
     font-size: 14px;
     line-height: 1.4;
     margin-bottom: 0;
     letter-spacing: 0.012em;
   }
-  .welcome-stanza > .welcome-line:first-child {
+  html:not(.sahten-host-desktop) .welcome-stanza > .welcome-line:first-child{
     margin-bottom: 3px;
   }
-  .welcome-line--logo {
+  html:not(.sahten-host-desktop) .welcome-line--logo{
     margin-top: 0.05em;
     margin-bottom: 0.3em;
   }
-  .welcome-line--lede {
+  html:not(.sahten-host-desktop) .welcome-line--lede{
     margin-top: 0;
     font-size: 13px;
     line-height: 1.42;
   }
-  .welcome-pill {
+  html:not(.sahten-host-desktop) .welcome-pill{
     font-size: 11px;
     padding: 1px var(--welcome-pill-pad-x);
   }
-  .welcome-examples--reference {
+  html:not(.sahten-host-desktop) .welcome-examples--reference{
     margin-top: 10px;
     padding-top: 8px;
   }
-  .welcome-examples--minimal {
+  html:not(.sahten-host-desktop) .welcome-examples--minimal{
     margin-top: 0.75rem;
   }
-  .welcome-examples--reference .welcome-examples-list {
+  html:not(.sahten-host-desktop) .welcome-examples--reference .welcome-examples-list{
     gap: 7px;
   }
-  .welcome-examples--reference .welcome-example-prompt {
+  html:not(.sahten-host-desktop) .welcome-examples--reference .welcome-example-prompt{
     min-height: 44px;
     padding: 12px 14px;
     font-size: 13px;
     line-height: 1.45;
   }
-  .welcome-olj-logomark {
+  html:not(.sahten-host-desktop) .welcome-olj-logomark{
     max-width: min(9rem, 52vw);
     height: 1.05em;
   }
-  .welcome-examples--minimal .welcome-example-prompt {
+  html:not(.sahten-host-desktop) .welcome-examples--minimal .welcome-example-prompt{
     padding: 0.28rem 0;
     font-size: 14px;
   }
-  .msg.msg-user {
+  html:not(.sahten-host-desktop) .msg.msg-user{
     gap: 2px;
   }
-  .msg.msg-user::before {
+  html:not(.sahten-host-desktop) .msg.msg-user::before{
     font-size: 8px;
     font-weight: 700;
     letter-spacing: 0.06em;
     opacity: 0.85;
   }
-  .msg-user-bubble {
+  html:not(.sahten-host-desktop) .msg-user-bubble{
     max-width: 88%;
     padding: 8px 12px;
     border-radius: 16px 16px 4px 16px;
@@ -365,18 +365,18 @@
     border: 1px solid rgba(0, 0, 0, 0.07);
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
   }
-  .msg-bot {
+  html:not(.sahten-host-desktop) .msg-bot{
     gap: 0.35rem;
   }
-  .sahten-narrative,
-  .sahten-block {
+  html:not(.sahten-host-desktop) .sahten-narrative,
+  html:not(.sahten-host-desktop) .sahten-block{
     font-size: 14px;
     line-height: 1.4;
   }
-  .sahten-footer {
+  html:not(.sahten-host-desktop) .sahten-footer{
     padding: 8px 12px calc(10px + env(safe-area-inset-bottom, 0px));
   }
-  .input-wrapper {
+  html:not(.sahten-host-desktop) .input-wrapper{
     min-height: 38px;
     /* padding horizontal symétrique -> le placeholder est RÉELLEMENT centré
        (la zone droite laisse la place au bouton envoyer) */
@@ -385,18 +385,18 @@
   /* Spécificité (0,2,0) pour battre la base .sahten-input (font-size:
      var(--welcome-body-size) ~14px) qui, plus loin dans le fichier, l'emportait
      -> input < 16px -> iOS Safari ZOOME au focus. 16px = anti-zoom garanti. */
-  .sahten-widget-container .sahten-input {
+  html:not(.sahten-host-desktop) .sahten-widget-container .sahten-input{
     font-size: 16px;
     min-height: 32px;
     text-align: center; /* texte gris (placeholder) + saisie centrés dans la barre */
   }
-  .send-btn {
+  html:not(.sahten-host-desktop) .send-btn{
     width: 30px;
     height: 30px;
     right: 4px;
     border-radius: var(--radius-sm);
   }
-  .send-btn svg {
+  html:not(.sahten-host-desktop) .send-btn svg{
     width: 13px;
     height: 13px;
   }
@@ -1802,30 +1802,30 @@
 }
 
 @media (max-width: 600px) {
-  .sahten-restaurant-grid {
+  html:not(.sahten-host-desktop) .sahten-restaurant-grid{
     margin-top: 10px;
     padding-top: 10px;
   }
-  .restaurant-card {
+  html:not(.sahten-host-desktop) .restaurant-card{
     padding: 8px 0;
     margin-bottom: 8px;
   }
-  .restaurant-card-link-wrapper {
+  html:not(.sahten-host-desktop) .restaurant-card-link-wrapper{
     gap: 12px;
     padding: 10px;
   }
-  .restaurant-image {
+  html:not(.sahten-host-desktop) .restaurant-image{
     width: 72px;
     height: 72px;
     min-width: 72px;
   }
-  .restaurant-title {
+  html:not(.sahten-host-desktop) .restaurant-title{
     font-size: 13px;
   }
-  .restaurant-desc {
+  html:not(.sahten-host-desktop) .restaurant-desc{
     font-size: 11px;
   }
-  .sahten-map {
+  html:not(.sahten-host-desktop) .sahten-map{
     min-height: 140px;
     height: 160px;
     margin-top: 8px;
@@ -1833,20 +1833,20 @@
 }
 
 @media (max-width: 600px) {
-  .recipe-card {
+  html:not(.sahten-host-desktop) .recipe-card{
     padding: 8px 0;
     margin-bottom: 8px;
   }
-  .recipe-card-link-wrapper {
+  html:not(.sahten-host-desktop) .recipe-card-link-wrapper{
     gap: 12px;
     padding: 10px;
   }
-  .recipe-image {
+  html:not(.sahten-host-desktop) .recipe-image{
     width: 72px;
     height: 72px;
     min-width: 72px;
   }
-  .recipe-title {
+  html:not(.sahten-host-desktop) .recipe-title{
     font-size: 18px;
     line-height: 1.2;
   }
@@ -2069,18 +2069,18 @@
 }
 
 @media (max-width: 600px) {
-  .sahten-trigger-wrap {
+  html:not(.sahten-host-desktop) .sahten-trigger-wrap{
     bottom: calc(12px + env(safe-area-inset-bottom, 0px));
     right: max(12px, env(safe-area-inset-right, 0px));
     gap: 6px;
   }
-  .sahten-trigger-bubble {
+  html:not(.sahten-host-desktop) .sahten-trigger-bubble{
     font-size: 10.5px;
     padding: 5px 10px;
     max-width: min(152px, 52vw);
     box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06);
   }
-  .sahten-trigger-logo {
+  html:not(.sahten-host-desktop) .sahten-trigger-logo{
     width: 40px;
     height: 40px;
   }
@@ -2639,28 +2639,13 @@
 
 
 /* ── Iframe étroite sur un hôte DESKTOP ───────────────────────────────────
-   Le widget embarqué vit dans une iframe de 412px : à l'intérieur, son propre
-   viewport passe sous le seuil mobile (600px) et il applique le rendu
-   téléphone — bouton « agrandir » masqué, composeur centré — alors que le
-   visiteur est sur un écran de bureau. embed.js nous dit la largeur réelle de
-   la page hôte ; on rétablit ici le comportement desktop.
-   Ces règles ne s'appliquent QUE sous .sahten-host-desktop : le vrai mobile
-   (où embed.js ne pose pas la classe) garde son rendu inchangé. */
-html.sahten-embed.sahten-host-desktop .sahten-size-btn {
-  display: inline-flex !important;
-}
-html.sahten-embed.sahten-host-desktop .sahten-widget-container .sahten-input {
-  text-align: left !important;
-  font-size: 15px;
-}
-html.sahten-embed.sahten-host-desktop .sahten-widget-container .sahten-footer .input-wrapper,
-html.sahten-embed.sahten-host-desktop .input-wrapper {
-  /* Asymétrique : le texte part de la gauche, la place à droite reste pour le
-     bouton envoyer. */
-  padding: 4px 42px 4px 14px !important;
-  max-width: none;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
-}
+   Le widget embarqué vit dans une iframe de 412px : son viewport interne passe
+   sous le seuil mobile (600px) alors que le visiteur est sur un écran de
+   bureau. embed.js pose alors la classe `sahten-host-desktop`, et TOUT le bloc
+   `@media (max-width: 600px)` est neutralisé à la source (chaque règle y est
+   préfixée par `html:not(.sahten-host-desktop)`).
+   Aucune règle de rattrapage ici : corriger symptôme par symptôme laissait
+   23 écarts de rendu entre la page /widget et la version embarquée. */
 
 /* Le texte de saisie était trop pâle pour être lu confortablement : le gris
    sourd convient à une étiquette, pas à l'invite principale du composeur. */
