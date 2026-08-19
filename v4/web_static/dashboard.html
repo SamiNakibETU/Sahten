@@ -35,6 +35,16 @@
       -webkit-font-smoothing: antialiased;
     }
 
+    /* Répartition des chemins de réponse : filets et proportions, pas de
+       camembert — on compare des longueurs, pas des angles. */
+    .strat-row { display:grid; grid-template-columns: 1fr 160px 96px; gap:14px;
+      align-items:center; padding:9px 0; border-bottom:1px solid var(--line); }
+    .strat-row:last-child { border-bottom:0; }
+    .strat-nom { font-size:12.5px; color:var(--ink-2); }
+    .strat-bar { height:5px; background:rgba(0,0,0,.05); border-radius:999px; overflow:hidden; }
+    .strat-bar span { display:block; height:100%; background:var(--green-d); opacity:.75; }
+    .strat-val { font-family:var(--mono); font-size:12px; text-align:right; color:var(--ink); }
+
     /* ── Page shell ───────────────────────────────────────────────── */
     .page { max-width: 1100px; margin: 0 auto; padding: 0 24px 80px; }
 
@@ -269,7 +279,31 @@
       <div class="kpi-num" id="kpi-fallback">—</div>
       <div class="kpi-sub">corpus secondaire</div>
     </div>
+    <div class="kpi">
+      <div class="kpi-label">Latence médiane</div>
+      <div class="kpi-num" id="kpi-p50">—</div>
+      <div class="kpi-sub" id="kpi-p95-sub">P95 —</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Coût cumulé</div>
+      <div class="kpi-num" id="kpi-cost">—</div>
+      <div class="kpi-sub" id="kpi-cost-sub">par requête —</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Erreurs</div>
+      <div class="kpi-num" id="kpi-err">—</div>
+      <div class="kpi-sub" id="kpi-err-sub">sur la période</div>
+    </div>
   </div>
+
+  <!-- Ce que fait le bot : répartition des chemins de réponse -->
+  <section class="panel" style="margin-top:26px">
+    <div class="panel-hd">
+      <h2>Ce que fait le bot</h2>
+      <span class="muted" id="strat-total">—</span>
+    </div>
+    <div id="strategies-container" class="pad"><div class="empty">Chargement…</div></div>
+  </section>
 
   <!-- Charts row 1 -->
   <div class="charts-2">
@@ -496,7 +530,66 @@ async function loadAnalytics() {
     document.getElementById('kpi-imp').textContent      = d.events?.impressions??'—';
     document.getElementById('kpi-clicks').textContent   = d.events?.clicks??'—';
     document.getElementById('kpi-fallback').textContent = d.rates?.fallback_rate?d.rates.fallback_rate+'%':'—';
+
+    // Latence : la MÉDIANE seule ment. Le P95 dit ce que vit le lecteur
+    // malchanceux, et c'est lui qui décide s'il attend ou s'il ferme.
+    const L = d.latency_ms || {};
+    const secs = ms => ms ? (ms/1000).toFixed(1).replace('.', ',') + ' s' : '—';
+    document.getElementById('kpi-p50').textContent = secs(L.p50);
+    const p95El = document.getElementById('kpi-p95-sub');
+    p95El.textContent = 'P95 ' + secs(L.p95) + ' · P99 ' + secs(L.p99);
+    if (L.p95 > 15000) p95El.classList.add('neg');
+
+    const C = d.costs || {};
+    document.getElementById('kpi-cost').textContent =
+      C.total_usd != null ? C.total_usd.toFixed(2).replace('.', ',') + ' $' : '—';
+    document.getElementById('kpi-cost-sub').textContent =
+      C.avg_usd_per_request != null
+        ? 'par requête ' + C.avg_usd_per_request.toFixed(4).replace('.', ',') + ' $'
+        : 'par requête —';
+
+    const errPct = d.rates?.error_rate_pct ?? d.errors?.rate_pct;
+    const errEl = document.getElementById('kpi-err');
+    errEl.textContent = errPct != null ? errPct + ' %' : '—';
+    errEl.classList.toggle('pos', errPct === 0);
+    errEl.classList.toggle('neg', errPct > 1);
+    document.getElementById('kpi-err-sub').textContent =
+      (d.errors?.total ?? 0) + ' sur ' + (d.conversations?.total ?? 0) + ' requêtes';
+
+    // Répartition des chemins de réponse : c'est ici qu'on voit si le bot
+    // répond depuis les carnets ou s'il se rabat sur autre chose.
+    const LIBELLES = {
+      normal_generate: 'Réponse depuis les carnets',
+      normal_generate_dish_absent: 'Carnets, plat demandé absent',
+      generated_cached: 'Recette générée (déjà en cache)',
+      generated_new: 'Recette générée (nouvelle)',
+      base2_last_resort: 'Repli sur le corpus secondaire',
+      empty_retrieval: 'Aucun résultat trouvé',
+      empty_no_generation: 'Aucun résultat, sans génération',
+      no_alternate_ingredient: 'Pas d'autre recette pour cet ingrédient',
+      off_topic_redirect: 'Sujet hors cuisine, redirigé',
+      security_redirect: 'Tentative de détournement, bloquée',
+    };
+    const st = d.strategies || {};
+    const total = Object.values(st).reduce((a, b) => a + b, 0);
+    document.getElementById('strat-total').textContent = total + ' réponses';
+    const rows = Object.entries(st).sort((a, b) => b[1] - a[1]).map(([k, v]) => {
+      const pct = total ? (v / total * 100) : 0;
+      const nom = LIBELLES[k] || k;
+      return `<div class="strat-row">
+        <div class="strat-nom">${esc(nom)}</div>
+        <div class="strat-bar"><span style="width:${pct.toFixed(1)}%"></span></div>
+        <div class="strat-val">${v} <span class="muted">${pct.toFixed(1)} %</span></div>
+      </div>`;
+    }).join('');
+    document.getElementById('strategies-container').innerHTML =
+      rows || '<div class="empty">Aucune donnée.</div>';
     if (d.rates?.ctr) document.getElementById('kpi-ctr-sub').textContent = `CTR ${d.rates.ctr}%`;
+    // Le taux de clic ne porte QUE sur la période où l'interface moderne
+    // envoie des impressions. Le comparer au total des conversations (qui
+    // couvre aussi l'ancien widget, muet) donne un ratio faux.
+    document.getElementById('kpi-ctr-sub').textContent +=
+      ' · mesuré depuis le 10/08';
     el.innerHTML = d.top_recipes?.length
       ? `<table><thead><tr><th>#</th><th>Recette</th><th>Clicks</th></tr></thead><tbody>${d.top_recipes.map((r,i)=>`<tr>
           <td style="font-family:var(--mono);color:var(--ink-4);width:28px">${i+1}</td>
