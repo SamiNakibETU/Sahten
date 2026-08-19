@@ -83,19 +83,25 @@
     .banner code { font-family: var(--mono); font-size: 11px; }
 
     /* ── KPI row ──────────────────────────────────────────────────── */
+    /* Grille auto-adaptative : la rangee est passee de 6 a 9 indicateurs, et
+       en flex chacun se comprimait jusqu'a casser son libelle sur trois
+       lignes. Une largeur minimale de 150px force le repli sur plusieurs
+       rangees plutot que l'ecrasement. */
     .kpi-row {
-      display: flex;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
       border-bottom: 1px solid var(--line);
       margin-bottom: 40px;
     }
     .kpi {
-      flex: 1;
-      padding: 28px 24px 24px 0;
+      padding: 24px 20px 22px;
       border-right: 1px solid var(--line);
+      border-top: 1px solid var(--line);
     }
-    .kpi:last-child { border-right: none; padding-right: 0; }
-    .kpi:first-child { padding-left: 0; }
-    .kpi + .kpi { padding-left: 24px; }
+    /* Le filet superieur ne doit apparaitre qu'a partir de la 2e rangee : sur
+       la premiere il doublerait le trait de l'en-tete. */
+    .kpi:nth-child(-n+6) { border-top: none; }
+    .kpi-label { min-height: 24px; }
     .kpi-label {
       font-size: 10px; text-transform: uppercase;
       letter-spacing: .09em; color: var(--ink-4); margin-bottom: 8px;
