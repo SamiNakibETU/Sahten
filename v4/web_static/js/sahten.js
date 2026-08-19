@@ -590,6 +590,14 @@ export class SahtenChat {
 
         this.dom.input.value = '';
         if (this.dom.input.tagName === 'TEXTAREA') this.autoResizeInput();
+        // La flèche s'élance : le lecteur voit que son message est parti,
+        // avant même que l'indicateur de chargement n'apparaisse.
+        const sendBtn = this.dom.sendBtn;
+        if (sendBtn) {
+            sendBtn.classList.add('sent');
+            clearTimeout(this._sentTimer);
+            this._sentTimer = setTimeout(() => sendBtn.classList.remove('sent'), 220);
+        }
         this.appendUserMessage(text);
         this.setLoading(true);
 

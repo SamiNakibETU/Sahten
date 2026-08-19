@@ -115,8 +115,15 @@
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
   opacity: 0;
-  transform: translateY(8px);
-  transition: opacity 0.25s, transform 0.25s;
+  /* Le panneau émerge du lanceur (en bas à droite) : origine de transformation
+     posée là, l'ouverture se lit comme un agrandissement depuis le bouton et
+     non comme une apparition venue de nulle part. Jamais scale(0) : rien ne
+     surgit du néant. */
+  transform: translateY(8px) scale(0.97);
+  transform-origin: bottom right;
+  transition-property: opacity, transform;
+  transition-duration: 240ms;
+  transition-timing-function: var(--ease-out);
   pointer-events: none;
   box-sizing: border-box;
   /* Intégration site : évite débordements hors viewport (scrollbars, barres OS) */
@@ -126,7 +133,7 @@
 }
 .sahten-widget-container[data-state="open"] {
   opacity: 1;
-  transform: translateY(0);
+  transform: translateY(0) scale(1);
   pointer-events: auto;
 }
 
@@ -2245,17 +2252,19 @@
   max-width: 640px;
   margin-inline: auto;
   min-height: 56px;
-  /* padding horizontal symétrique -> placeholder réellement centré */
-  padding-inline: 48px;
+  padding-left: 20px;
+  padding-right: 52px;
   background: #ffffff;
   border: 1px solid rgba(0, 0, 0, 0.06);
   border-radius: var(--radius-lg);
   box-shadow: 0 16px 50px rgba(0, 0, 0, 0.18), 0 2px 8px rgba(0, 0, 0, 0.06);
 }
-/* Placeholder gris (et saisie) centrés dans la barre — esprit Spotlight */
+/* Saisie alignée à gauche : un champ de saisie se lit et se corrige depuis la
+   gauche. Le centrage « esprit Spotlight » faisait sauter le texte à chaque
+   caractère tapé et déplaçait le curseur sous les yeux du lecteur. */
 .sahten-widget-container[data-size="full"] .sahten-input,
 .sahten-widget-container[data-size="mid"] .sahten-input {
-  text-align: center;
+  text-align: left;
 }
 /* Boutons header discrets en barely-there (le toggle ne garde pas son chip) */
 .sahten-widget-container[data-size="full"] .sahten-size-btn,
@@ -2287,7 +2296,7 @@
        de départ et l'auto-agrandissement ne fonctionnait plus du tout.
        Sous « mouvement réduit », l'intention est justement qu'aucune propriété
        ne s'anime : on le dit explicitement. */
-    transition-property: none !important;
+    transition-property: opacity, color, background-color, border-color !important;
     scroll-behavior: auto !important;
   }
 }
@@ -2644,4 +2653,63 @@ html.sahten-embed.sahten-host-desktop .input-wrapper {
    sourd convient à une étiquette, pas à l'invite principale du composeur. */
 .sahten-input::placeholder {
   color: #8f8a83;
+}
+
+/* ── Animations (référentiel Emil Kowalski) ───────────────────────────────
+   Trois seulement, chacune avec une raison nommée. Le changement de taille
+   n'est volontairement PAS animé : il faudrait transitionner la géométrie
+   (width/height), ce qui déclenche layout et paint à chaque image et saccade. */
+
+/* 1. Agrandi et centré, le panneau n'est plus ancré au lanceur : il se
+      comporte comme une fenêtre modale, donc origine au centre. */
+.sahten-widget-container[data-size="mid"],
+.sahten-widget-container[data-size="full"] {
+  transform-origin: center;
+}
+
+/* 2. Le voile suit exactement le panneau, sinon l'un précède l'autre et
+      l'ouverture se dédouble à l'œil. */
+.sahten-backdrop {
+  transition-property: opacity;
+  transition-duration: 240ms;
+  transition-timing-function: var(--ease-out);
+}
+
+/* 3. Accueil : vu une seule fois par conversation, c'est là que le budget
+      « délice » est légitime. Les trois blocs entrent décalés de 70ms —
+      la hiérarchie se lit dans l'ordre d'arrivée. */
+@keyframes sahten-stanza-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.welcome-stanza > * {
+  animation: sahten-stanza-in 320ms var(--ease-out) both;
+}
+.welcome-stanza > *:nth-child(1) { animation-delay: 40ms; }
+.welcome-stanza > *:nth-child(2) { animation-delay: 110ms; }
+.welcome-stanza > *:nth-child(3) { animation-delay: 180ms; }
+
+/* 4. Envoi : la flèche part vers la droite le temps de la requête. Retour
+      d'action, pas décoration — le lecteur voit que son message est parti. */
+.send-btn svg {
+  transition-property: transform;
+  transition-duration: 160ms;
+  transition-timing-function: var(--ease-out);
+}
+.send-btn.sent svg {
+  transform: translateX(3px);
+}
+
+/* Mouvement réduit : on retire le DÉPLACEMENT, on garde les fondus et les
+   changements de couleur, qui aident à comprendre sans bouger l'écran.
+   `transition-property` est explicité plutôt que supprimé en bloc : laissé à
+   `all`, il rendait `height` animable et figeait le composeur. */
+@media (prefers-reduced-motion: reduce) {
+  .welcome-stanza > * {
+    animation: none;
+  }
+  .sahten-widget-container,
+  .sahten-widget-container[data-state="open"] {
+    transform: none;
+  }
 }
