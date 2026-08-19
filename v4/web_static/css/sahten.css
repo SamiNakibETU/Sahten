@@ -419,18 +419,19 @@
     max-height: calc(100dvh - 24px);
     border-radius: var(--radius-lg);
   }
-  /* Agrandi = grande FENÊTRE CENTRÉE sur le voile, jamais une feuille blanche
-     bord à bord : à pleine largeur le panneau masque toute la page et la
-     colonne de lecture (768px) flotte au milieu d'un vide blanc. */
+  /* Agrandi = PLEIN ÉCRAN. Le panneau lui-même est transparent (voir plus bas)
+     et laisse voir la page floutée : c'est le rendu « verre dépoli » voulu.
+     Une fenêtre blanche centrée a été essayée puis rejetée. */
   .sahten-widget-container[data-size="full"] {
-    inset: 0;
-    margin: auto;
-    width: min(94vw, 1040px);
-    height: min(92vh, 92dvh);
-    max-width: calc(100vw - 32px);
-    max-height: calc(100vh - 32px);
-    border-radius: var(--radius-lg);
-    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.22);
+    top: max(0px, env(safe-area-inset-top, 0px));
+    left: max(0px, env(safe-area-inset-left, 0px));
+    right: max(0px, env(safe-area-inset-right, 0px));
+    bottom: max(0px, env(safe-area-inset-bottom, 0px));
+    width: auto;
+    height: auto;
+    max-width: none;
+    max-height: none;
+    border-radius: 0;
   }
   .sahten-widget-container[data-size="full"][data-state="open"] {
     transform: none;
@@ -2227,16 +2228,17 @@
   padding-bottom: 24px;
 }
 
-/* ── Vue agrandie : une vraie FENÊTRE, pas un calque transparent ──────────
-   Le panneau était rendu transparent par-dessus le fond flouté (concept
-   « barely there »). Résultat : du texte flottant sans support, sans limite
-   lisible, au milieu d'une page devinée derrière. La vue agrandie reprend donc
-   la surface du panneau — blanche, arrondie, posée sur le voile — identique à
-   ce que fait la version embarquée sur lorientlejour.com. */
+/* ── Plein écran « BARELY THERE » : fond flouté, contenu centré ───────────
+   Pas de panneau blanc opaque : le widget devient transparent par-dessus le
+   backdrop flouté, seule la barre de saisie reste un objet net (esprit
+   command-palette). C'est le rendu voulu en grand.
+   J'ai remplacé ce traitement par une fenêtre blanche le 13/08 en croyant que
+   la transparence était en cause : le vrai défaut était la répartition du
+   texte (274px de vide sous l'accueil), corrigé séparément. */
 .sahten-widget-container[data-size="full"] {
-  background: var(--surface-panel, #ffffff);
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.22);
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }
 .sahten-widget-container[data-size="full"] .sahten-header,
 .sahten-widget-container[data-size="full"] .sahten-body,
@@ -2263,11 +2265,10 @@
   padding-left: 20px;
   padding-right: 52px;
   background: #ffffff;
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.06);
   border-radius: var(--radius-lg);
-  /* Ombre allégée : la barre repose maintenant DANS la fenêtre, elle n'a plus
-     à se détacher d'une page floutée. */
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  /* Seul objet net au-dessus du fond flouté : l'ombre l'en détache. */
+  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.18), 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 /* Saisie alignée à gauche : un champ de saisie se lit et se corrige depuis la
    gauche. Le centrage « esprit Spotlight » faisait sauter le texte à chaque

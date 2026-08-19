@@ -36,7 +36,7 @@
     ></script>
 
     <link rel="stylesheet" href="/css/nav-shell.css" />
-    <link rel="stylesheet" href="/css/sahten.css?v=20260813j" />
+    <link rel="stylesheet" href="/css/sahten.css?v=20260813k" />
 
     <style>
       /* Même barre que les autres pages : le body centré ne doit pas rétrécir la nav */
@@ -131,13 +131,25 @@
       /* Le panneau doit être visible/opaque d'emblée dans l'iframe (en page
          normale il attend l'ouverture avec opacity:0 — ici un JS qui tarde
          laissait un panneau fantôme). Vaut pour toutes les tailles. */
+      /* Visibilité forcée pour TOUTES les tailles : embarqué, le panneau ne
+         doit pas attendre l'ouverture (un JS qui tarde laissait un panneau
+         fantôme). */
       html.sahten-embed .sahten-widget-container {
-        background: #ffffff !important;
-        backdrop-filter: none !important;
-        -webkit-backdrop-filter: none !important;
         opacity: 1 !important;
         visibility: visible !important;
         pointer-events: auto !important;
+      }
+      /* Fond blanc UNIQUEMENT en mode fenêtre : le panneau remplit alors
+         l'iframe et doit être opaque. En grand il redevient transparent, pour
+         retrouver le verre dépoli de la page /widget. */
+      html.sahten-embed .sahten-widget-container[data-size="window"] {
+        background: #ffffff !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+      }
+      html.sahten-embed .sahten-widget-container[data-size="mid"],
+      html.sahten-embed .sahten-widget-container[data-size="full"] {
+        background: transparent !important;
       }
     </style>
   </head>
@@ -226,7 +238,7 @@
     </script>
 
     <script type="module">
-      import { SahtenChat } from "./js/sahten.js?v=20260813j";
+      import { SahtenChat } from "./js/sahten.js?v=20260813k";
       /* Production : pas de sélecteur de modèle (réglage côté API / dev uniquement) */
       window.__sahtenChat = new SahtenChat();
     </script>
