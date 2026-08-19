@@ -2301,13 +2301,14 @@
        de départ et l'auto-agrandissement ne fonctionnait plus du tout.
        Sous « mouvement réduit », l'intention est justement qu'aucune propriété
        ne s'anime : on le dit explicitement. */
-    /* AUCUNE propriété transitionnable. Tenté le 13/08 de garder les fondus
-       (« mouvement réduit = plus sobre, pas zéro ») : avec une durée de
-       0.01ms la transition reste bloquée à son instant zéro et FIGE la
-       propriété à sa valeur de départ. Sur `height` cela paralysait le
-       composeur ; sur `opacity` le panneau restait invisible à l'ouverture.
-       Sous mouvement réduit, les valeurs doivent s'appliquer instantanément :
-       c'est précisément ce que fait `none`. */
+    /* AUCUNE propriété transitionnable sous mouvement réduit : les valeurs
+       s'appliquent instantanément, ce qui est le comportement attendu, et
+       aucune transition ne peut rester en suspens.
+       NB : j'ai un temps cru qu'une transition de 0.01ms « figeait » la valeur
+       de départ (composeur bloqué, panneau invisible). C'était un artefact de
+       mon navigateur de test, dont l'onglet en arrière-plan n'avance JAMAIS
+       les transitions. Le choix ci-dessous reste le bon, mais ce n'est pas
+       pour cette raison. */
     transition-property: none !important;
     scroll-behavior: auto !important;
   }
