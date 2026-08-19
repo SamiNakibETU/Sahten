@@ -397,6 +397,21 @@ export class SahtenChat {
             this.dom.backdrop.addEventListener('click', () => this._dismissStep());
         }
 
+        // En vue agrandie le panneau est TRANSPARENT et occupe tout l'écran :
+        // le voile est derrière lui, donc un clic sur les côtés atteint
+        // toujours le panneau et jamais le voile. Sans ce qui suit, cliquer à
+        // côté ne faisait rien. On réduit quand le clic tombe sur une zone
+        // VIDE (le conteneur ou le fil lui-même), jamais sur un message, une
+        // fiche ou un bouton.
+        if (this.dom.container) {
+            this.dom.container.addEventListener('click', (e) => {
+                if (this.state.size === 'window') return;
+                if (e.target === this.dom.container || e.target === this.dom.body) {
+                    this._dismissStep();
+                }
+            });
+        }
+
         // Escape key closes the widget; Tab key traps focus in full mode
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && this.state.isOpen) {
