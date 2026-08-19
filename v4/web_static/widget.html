@@ -8,8 +8,15 @@
     <!-- Mode embarqué détecté AU PLUS TÔT (avant rendu) pour éviter tout flash
          du décor de la page autonome quand /widget?embed=1 est chargé en iframe. -->
     <script>
-      if (new URLSearchParams(location.search).get("embed") === "1") {
+      var _p = new URLSearchParams(location.search);
+      if (_p.get("embed") === "1") {
         document.documentElement.classList.add("sahten-embed");
+        // L'iframe fait 412px : sans cette indication, le widget se croit sur
+        // un téléphone (seuil mobile 600px) et masque « agrandir » + centre le
+        // composeur, alors que le visiteur est sur un écran de bureau.
+        if (_p.get("host") === "desktop") {
+          document.documentElement.classList.add("sahten-host-desktop");
+        }
       }
     </script>
 
@@ -29,7 +36,7 @@
     ></script>
 
     <link rel="stylesheet" href="/css/nav-shell.css" />
-    <link rel="stylesheet" href="/css/sahten.css?v=20260812r" />
+    <link rel="stylesheet" href="/css/sahten.css?v=20260813a" />
 
     <style>
       /* Même barre que les autres pages : le body centré ne doit pas rétrécir la nav */
@@ -225,7 +232,7 @@
     </script>
 
     <script type="module">
-      import { SahtenChat } from "./js/sahten.js?v=20260812r";
+      import { SahtenChat } from "./js/sahten.js?v=20260813a";
       /* Production : pas de sélecteur de modèle (réglage côté API / dev uniquement) */
       window.__sahtenChat = new SahtenChat();
     </script>

@@ -2614,3 +2614,34 @@
   .msg-copy-icons svg,
   .sahten-followup-chip::after { transition: none; }
 }
+
+
+/* ── Iframe étroite sur un hôte DESKTOP ───────────────────────────────────
+   Le widget embarqué vit dans une iframe de 412px : à l'intérieur, son propre
+   viewport passe sous le seuil mobile (600px) et il applique le rendu
+   téléphone — bouton « agrandir » masqué, composeur centré — alors que le
+   visiteur est sur un écran de bureau. embed.js nous dit la largeur réelle de
+   la page hôte ; on rétablit ici le comportement desktop.
+   Ces règles ne s'appliquent QUE sous .sahten-host-desktop : le vrai mobile
+   (où embed.js ne pose pas la classe) garde son rendu inchangé. */
+html.sahten-embed.sahten-host-desktop .sahten-size-btn {
+  display: inline-flex !important;
+}
+html.sahten-embed.sahten-host-desktop .sahten-widget-container .sahten-input {
+  text-align: left !important;
+  font-size: 15px;
+}
+html.sahten-embed.sahten-host-desktop .sahten-widget-container .sahten-footer .input-wrapper,
+html.sahten-embed.sahten-host-desktop .input-wrapper {
+  /* Asymétrique : le texte part de la gauche, la place à droite reste pour le
+     bouton envoyer. */
+  padding: 4px 42px 4px 14px !important;
+  max-width: none;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+/* Le texte de saisie était trop pâle pour être lu confortablement : le gris
+   sourd convient à une étiquette, pas à l'invite principale du composeur. */
+.sahten-input::placeholder {
+  color: #8f8a83;
+}

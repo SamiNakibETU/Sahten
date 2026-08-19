@@ -39,26 +39,60 @@
 
   ready(function () {
     // --- Bouton flottant (trigger) ---------------------------------------
+    // Lanceur : une bulle « coucou » à gauche + le logo, exactement comme sur
+    // la page autonome. Le disque vert saturé de la version précédente ne
+    // ressemblait à rien du reste du site, et sans texte le bouton n'invitait
+    // pas à cliquer.
+    var wrap = document.createElement("div");
+    wrap.style.cssText = [
+      "position:fixed", "bottom:20px", "right:20px", "z-index:" + Z,
+      "display:flex", "flex-direction:row-reverse", "align-items:center",
+      "gap:8px", "max-width:min(calc(100vw - 32px),300px)", "cursor:pointer",
+      "opacity:0", "transform:translateY(8px)",
+      "transition:opacity .35s cubic-bezier(.23,1,.32,1),transform .35s cubic-bezier(.23,1,.32,1)"
+    ].join(";");
+
     var btn = document.createElement("button");
     btn.type = "button";
     btn.setAttribute("aria-label", "Ouvrir Sahteïn — assistant recettes L'Orient-Le Jour");
     btn.title = "Une idée recette ? Ouvrez Sahteïn.";
     btn.style.cssText = [
-      "position:fixed", "bottom:20px", "right:20px",
-      "width:60px", "height:60px", "border-radius:50%", "border:0",
-      "padding:0", "cursor:pointer", "z-index:" + Z,
-      "background:#0b5c3f", "box-shadow:0 6px 20px rgba(0,0,0,.28)",
-      "display:flex", "align-items:center", "justify-content:center",
-      "transition:transform .15s ease, box-shadow .15s ease"
+      "flex-shrink:0", "width:auto", "height:auto", "padding:0", "border:0",
+      "background:transparent", "cursor:pointer", "display:flex",
+      "align-items:center", "justify-content:center",
+      "-webkit-tap-highlight-color:transparent",
+      "transition:transform .18s cubic-bezier(.23,1,.32,1)"
     ].join(";");
     var logo = document.createElement("img");
     logo.src = LOGO;
     logo.alt = "";
-    logo.width = 38; logo.height = 38;
-    logo.style.cssText = "width:38px;height:38px;pointer-events:none;";
+    logo.width = 52; logo.height = 52;
+    logo.style.cssText =
+      "display:block;width:52px;height:52px;object-fit:contain;pointer-events:none;" +
+      "filter:drop-shadow(0 1px 4px rgba(0,0,0,.08));";
     btn.appendChild(logo);
-    btn.addEventListener("mouseenter", function () { btn.style.transform = "scale(1.06)"; });
-    btn.addEventListener("mouseleave", function () { btn.style.transform = "scale(1)"; });
+
+    var bubble = document.createElement("div");
+    bubble.textContent = "Une idée recette ?";
+    bubble.style.cssText = [
+      "max-width:min(176px,56vw)", "padding:6px 12px", "background:#ffffff",
+      "border:1px solid rgba(0,0,0,.07)", "border-radius:999px",
+      "box-shadow:0 1px 8px rgba(0,0,0,.05)",
+      "font:600 11px/1.25 'Aktiv Grotesk Trial','Aktiv Grotesk','DM Sans',-apple-system,sans-serif",
+      "letter-spacing:-.01em", "color:#000", "text-align:center",
+      "user-select:none", "white-space:nowrap"
+    ].join(";");
+
+    wrap.appendChild(bubble);
+    wrap.appendChild(btn);
+    wrap.addEventListener("mouseenter", function () { btn.style.transform = "scale(1.06)"; });
+    wrap.addEventListener("mouseleave", function () { btn.style.transform = "scale(1)"; });
+    // Entrée douce une fois la page posée : une apparition sèche au chargement
+    // se remarque plus qu'elle n'invite.
+    setTimeout(function () {
+      wrap.style.opacity = "1";
+      wrap.style.transform = "translateY(0)";
+    }, 600);
 
     // --- Panneau iframe (créé au premier clic) ---------------------------
     var frame = null;
@@ -93,7 +127,12 @@
     function openWidget() {
       if (!frame) {
         frame = document.createElement("iframe");
-        frame.src = ORIGIN + "/widget?embed=1&v=" + Math.floor(Date.now()/600000);
+        // `host=desktop` dit au widget de NE PAS basculer en rendu téléphone :
+        // son viewport interne (412px) est sous le seuil mobile alors que le
+        // visiteur est sur un écran de bureau.
+        frame.src = ORIGIN + "/widget?embed=1" +
+          (isMobile() ? "" : "&host=desktop") +
+          "&v=" + Math.floor(Date.now()/600000);
         frame.title = "Sahteïn — assistant recettes";
         frame.setAttribute("allow", "clipboard-write");
         frame.setAttribute("allowtransparency", "true");
@@ -107,12 +146,12 @@
         // on lui redemande de s'ouvrir (conversation préservée).
         try { frame.contentWindow.postMessage({ type: "sahten:open" }, ORIGIN); } catch (e) {}
       }
-      btn.style.display = "none";
+      wrap.style.display = "none";
     }
 
     function closeWidget() {
       if (frame) frame.style.display = "none";
-      btn.style.display = "flex";
+      wrap.style.display = "flex";
     }
 
     btn.addEventListener("click", openWidget);
@@ -125,6 +164,6 @@
       if (d && d.type === "sahten:size") { expanded = !!d.expanded; sizeFrame(); }
     });
 
-    document.body.appendChild(btn);
+    document.body.appendChild(wrap);
   });
 })();
