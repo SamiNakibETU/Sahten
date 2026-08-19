@@ -87,9 +87,12 @@
        en flex chacun se comprimait jusqu'a casser son libelle sur trois
        lignes. Une largeur minimale de 150px force le repli sur plusieurs
        rangees plutot que l'ecrasement. */
+    /* 9 indicateurs : 5 puis 4. `auto-fit` donnait des rangees inegales avec
+       une large zone bordee vide ; un nombre fixe de colonnes par palier
+       garde deux rangees pleines et lisibles. */
     .kpi-row {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      grid-template-columns: repeat(5, 1fr);
       border-bottom: 1px solid var(--line);
       margin-bottom: 40px;
     }
@@ -100,7 +103,9 @@
     }
     /* Le filet superieur ne doit apparaitre qu'a partir de la 2e rangee : sur
        la premiere il doublerait le trait de l'en-tete. */
-    .kpi:nth-child(-n+6) { border-top: none; }
+    .kpi:nth-child(-n+5) { border-top: none; }
+    /* Le chiffre ne doit jamais se couper : « 4,50 $ » passait a la ligne. */
+    .kpi-num { white-space: nowrap; }
     .kpi-label { min-height: 24px; }
     .kpi-label {
       font-size: 10px; text-transform: uppercase;
@@ -126,6 +131,11 @@
     .sec-badge.neg { color: var(--red); }
 
     /* ── Chart areas ──────────────────────────────────────────────── */
+    @media (max-width: 1000px) and (min-width: 641px) {
+      .kpi-row { grid-template-columns: repeat(3, 1fr); }
+      .kpi:nth-child(-n+5) { border-top: 1px solid var(--line); }
+      .kpi:nth-child(-n+3) { border-top: none; }
+    }
     .charts-2 { display: grid; grid-template-columns: 2fr 1fr; gap: 40px; margin-bottom: 48px; }
     .charts-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 40px; margin-bottom: 48px; }
     .chart-wrap { position: relative; }
@@ -194,6 +204,9 @@
     /* ── Responsive ───────────────────────────────────────────────── */
     @media (max-width: 900px) {
       .charts-2, .charts-3 { grid-template-columns: 1fr; gap: 32px; }
+      .kpi-row { grid-template-columns: repeat(2, 1fr); }
+      .kpi:nth-child(-n+5) { border-top: 1px solid var(--line); }
+      .kpi:nth-child(-n+2) { border-top: none; }
       .kpi-row { flex-wrap: wrap; }
       .kpi { flex: 0 0 33%; border-right: 1px solid var(--line); }
       .page { padding: 0 16px 60px; }
