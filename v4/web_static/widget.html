@@ -36,7 +36,7 @@
     ></script>
 
     <link rel="stylesheet" href="/css/nav-shell.css" />
-    <link rel="stylesheet" href="/css/sahten.css?v=20260813k" />
+    <link rel="stylesheet" href="/css/sahten.css?v=20260813l" />
 
     <style>
       /* Même barre que les autres pages : le body centré ne doit pas rétrécir la nav */
@@ -123,8 +123,16 @@
          Seule exception irréductible : le flou d'arrière-plan ne peut pas
          traverser une iframe pour atteindre la page hôte, on lui substitue
          donc un voile opaque. */
+      /* Le verre dépoli de /widget repose sur `backdrop-filter: blur(24px)`
+         appliqué à la page derrière. Dans une iframe, ce flou ne peut PAS
+         atteindre la page hôte : sans compensation, le texte du widget se
+         superpose lisiblement à celui de l'article et tout devient illisible.
+         On remplace donc le flou par un voile CLAIR et dense : la page reste
+         devinée en arrière-plan, et le texte sombre du widget garde son
+         contraste. Un voile sombre ferait l'inverse (texte sombre sur fond
+         sombre). C'est l'approximation la plus proche du rendu d'origine. */
       html.sahten-embed .sahten-backdrop {
-        background: rgba(20, 20, 18, 0.45) !important;
+        background: rgba(252, 252, 251, 0.94) !important;
         backdrop-filter: none !important;
         -webkit-backdrop-filter: none !important;
       }
@@ -238,7 +246,7 @@
     </script>
 
     <script type="module">
-      import { SahtenChat } from "./js/sahten.js?v=20260813k";
+      import { SahtenChat } from "./js/sahten.js?v=20260813l";
       /* Production : pas de sélecteur de modèle (réglage côté API / dev uniquement) */
       window.__sahtenChat = new SahtenChat();
     </script>
